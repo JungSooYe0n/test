@@ -1,0 +1,13 @@
+# /
+target
+logs
+.classpath
+.project
+.settings
+.DS_Store
+.idea/
+*.iml
+*.log
+.properties
+nohup.out
+trssmas.pid

@@ -1,0 +1,285 @@
+@font-face {
+  font-family:"SYH-font";
+  src: url("/fonts/webfont.woff2") format("woff2"),
+  url("/fonts/webfont.eot?#iefix") format('embedded-opentype'),
+  url("/fonts/webfont.woff") format('woff'),
+  url("/fonts/webfont.ttf") format('truetype'),
+  url("/fonts/webfont.svg") format('svg');
+}
+
+* {
+  font-family: "SYH-font";
+  margin: 0;
+  padding: 0;
+  vertical-align: top;
+  font-size: 16px;
+  text-decoration: none;
+  list-style: none;
+}
+
+/* 微博样式 */
+.header {
+  height: 1.3rem;
+  padding: 0 0.3rem;
+} 
+.header .logo {
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-top: 0.32rem;
+  margin-bottom: 0.52rem;
+  display: inline-block;
+  border-radius: 50%;
+  background: url(drawable-xhdpi/weiboMoren.png) center no-repeat;
+  background-size: cover;
+}
+.header .logo1 {
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-top: 0.32rem;
+  margin-bottom: 0.52rem;
+  display: inline-block;
+  border-radius: 50%;
+  background: url(drawable-xhdpi/Facebook.png) center no-repeat;
+  background-size: cover;
+}
+.header .logo2 {
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-top: 0.32rem;
+  margin-bottom: 0.52rem;
+  display: inline-block;
+  border-radius: 50%;
+  background: url(drawable-xhdpi/twitterhover_pc.png) center no-repeat;
+  background-size: cover;
+}
+.header .title {
+  display: inline-block;
+  padding-left: 0.18rem;
+}
+.header .title>p{
+  font-size: 0.28rem;
+  line-height: 0.28rem;
+  color: #111;
+  margin-top: 0.34rem;
+  margin-bottom: 0.12rem;
+}
+#name font {
+  font-size: 0.28rem;
+}
+.header .title>.time {
+  display: inline-block;
+  color: #999;
+  font-size: 0.22rem;
+  line-height: 0.22rem;
+}
+.header .title>.time>span {
+  font-size: 0.22rem;
+  margin: 0 0.18rem 0 0.08rem;
+}
+.header .icon {
+  display: inline-block;
+  width: 0.22rem;
+  height: 0.22rem;
+}
+.header .icon1 {
+  background: url(drawable-xhdpi/pinglun.png) center no-repeat;
+  background-size: cover;
+}
+.header .icon2 {
+  width: 0.2rem;
+  height: 0.2rem;
+  background: url(drawable-xhdpi/zhuanfa.png) center no-repeat;
+  background-size: cover;
+}
+.header .icon3 {
+  width: 0.2rem;
+  height: 0.2rem;
+  background: url(drawable-xhdpi/zan.png) center no-repeat;
+  background-size: cover;
+}
+.header .line {
+  display: inline-block;
+  height: 0.22rem;
+  width: 2px;
+  background: #e0e0e0;
+}
+/* 传统样式 */
+.header1{
+  padding: 0.34rem 0.3rem;
+}
+.header1 h3,.header2 h3 {
+  font-size: 0.42rem;
+  line-height: 0.5rem;
+  color: #111;
+}
+.header1 h3 font,.header2 h3 font {
+  font-size: 0.42rem;
+}
+.header1>.title {
+  margin-top: 0.32rem;
+  font-size: 0.22rem;
+  line-height: 0.24rem;
+}
+.header1>.title>.authors {
+  margin-right: 0.1rem;
+  color: #555;
+  font-size: 0.22rem;
+}
+.header1>.title>.icon {
+  width: 0.26rem;
+  height: 0.22rem;
+  display: inline-block;
+  background: url(drawable-xhdpi/weixin.png) center no-repeat;
+  background-size: cover;
+}
+.header1>.title>.time {
+  color: #999;
+  font-size: 0.22rem;
+}
+/* 贴吧 */
+.header2 {
+  padding: 0.34rem 0.3rem;
+}
+.header2>.source {
+  font-size: 0.22rem;
+  color: #555;
+  margin-top: 0.32rem;
+  line-height: 0.3rem;
+}
+.header2>.source>.sitename {
+  font-size: 0.22rem;
+}
+.header2 .logo {
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-top: 0.47rem;
+  display: inline-block;
+  border-radius: 50%;
+  background: url(drawable-xhdpi/tiebaamoren.png) center no-repeat;
+  background-size: cover;
+}
+.header2 .title {
+  display: inline-block;
+  padding-left: 0.18rem;
+}
+.header2 .title>p{
+  font-size: 0.28rem;
+  color: #111;
+  margin-top: 0.5rem;
+  margin-bottom: 0.12rem;
+}
+.header2 .title>.time {
+  display: inline-block;
+  color: #999;
+  font-size: 0.22rem;
+}
+/* 内容详情 */
+.con {
+  padding: 0 0.3rem 0.2rem;
+}
+.con p {
+  font-size: 0.32rem;
+  line-height: 0.4rem;
+  color: #333;
+}
+.con p font {
+  font-size: 0.32rem;
+}
+/* 主贴回帖 */
+#wrap {margin-top: 0.12rem; overflow: hidden;}
+#tit {
+  height: 0.76rem;
+  line-height: 0.76rem;
+  padding-left: 0.3rem;
+  border-bottom: 1px solid #f3f3f3;
+}
+#tit>span {
+  font-size: 0.28rem;
+  color: #666;
+  display: inline-block;
+  margin-right: 0.4rem;
+}
+#con>li{
+  display: none;
+}
+#tit>span.select {
+  color: #222;
+  border-bottom: 0.04rem solid #000;
+}
+#con>li.show {display: block;}
+/*  */
+.tieCon {
+  font-size: 0.22rem;
+}
+.tieCon>li {
+  margin: 0.32rem 0.3rem;
+  border-bottom: 1px solid #f3f3f3;
+}
+.tieCon>li:last-child{
+  border-bottom: none;
+}
+.tieCon>li>.from {
+  line-height: 0.26rem;
+  height: 0.26rem;
+}
+.tieCon>li>.from span {
+  color: #999;
+  font-size: 0.22rem;
+}
+.tieCon>li>.from i {
+  width: 0.22rem;
+  height: 0.22rem;
+  display: inline-block;
+  font-size: 0.22rem;
+  background: url(drawable-xhdpi/time.png) center no-repeat;
+  background-size: cover;
+}
+.tieCon>li>.from .name {
+  color: #2065b4;
+  margin-right: 0.2rem;
+}
+.tieCon>li>p {
+  font-size: 0.28rem;
+  color: #333;
+  margin-top: 0.22rem;
+  margin-bottom: 0.32rem;
+}
+/* 底部 */
+.foot {
+  padding: 0 0.3rem;
+  margin: 0.2rem auto;
+  display: flex;
+  text-align: center;
+  bottom: 0.58rem;
+}
+.foot>span {
+  margin: 0 auto;
+  font-size: 0.26rem;
+}
+.foot>span>a {
+  text-decoration: none;
+  color: #fc862a;
+}
+.background { 
+  display: block; 
+  width: 100%; 
+  height: 100%; 
+  opacity: 0; 
+  filter: alpha(opacity=40); 
+  background:while; 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  z-index: 2000; 
+} 
+.progressBar {
+  background:url(drawable-xhdpi/ing.gif) no-repeat center;
+  background-size:3rem
+} 
+.progressBar { 
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: fixed; 
+  z-index: 2001; 
+}

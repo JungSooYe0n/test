@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<dubbo:application name="es_api_old"/>
+
+	<!--<dubbo:registry address="zookeeper://192.168.201.2:2181" />-->
+	<!--<dubbo:registry address="zookeeper://192.168.200.197:2181" />-->
+	<!--<dubbo:registry address="zookeeper://192.168.200.52:2181" />-->
+	<!--<dubbo:registry address="zookeeper://192.168.106.217:2181" />-->
+	<dubbo:registry address="zookeeper://192.168.200.197:2181" />
+	<dubbo:reference id="esSearchService" interface="com.trs.dc.openservice.IEsSearchOpenService" />
+
+	<dubbo:reference id="esDatabaseService" interface="com.trs.dc.openservice.IEsDatabaseOpenService" />
+
+	<dubbo:reference id="esDataService" interface="com.trs.dc.openservice.IEsDataOpenService" />
+
+</beans>
