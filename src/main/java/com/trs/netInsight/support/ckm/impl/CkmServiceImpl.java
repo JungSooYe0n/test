@@ -107,9 +107,6 @@ public class CkmServiceImpl implements ICkmService {
 	    List<SegDictWord> wordList1 = SegText(content,0);
         List<SegDictWord> wordList2 =  SegText(getMainPart(content).toString(),0);
         List<SegWord> wordList = new ArrayList<>();
-//        for (SegDictWord seg : wordList2 ) {
-//            System.out.println("主谓："+ seg.getword());
-//        }
         for (int i = 0; i < wordList1.size(); i++) {
             boolean isMain = false;
             for (int j = 0; j < wordList2.size(); j++) {
