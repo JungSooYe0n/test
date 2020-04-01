@@ -717,17 +717,20 @@ public class InfoListServiceImpl implements IInfoListService {
 						// if (StringUtil.isEmpty(content)) {
 						// String content = document.getContent();
 						// }
-						String content = document.getContent();
-						List<String> imgSrcList = StringUtil.getImgStr(content);
-						if(imgSrcList!=null && imgSrcList.size()>0){
-							if(imgSrcList.size()>1){
-								document.setImgSrc(imgSrcList.get(1));
-							}else{
-								document.setImgSrc(imgSrcList.get(0));
+						if (StringUtil.isNotEmpty(document.getContent())) {
+							String content = document.getContent();
+							List<String> imgSrcList = StringUtil.getImgStr(content);
+							if (imgSrcList != null && imgSrcList.size() > 0) {
+								if (imgSrcList.size() > 1) {
+									document.setImgSrc(imgSrcList.get(1));
+								} else {
+									document.setImgSrc(imgSrcList.get(0));
+								}
 							}
+							//document.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
+
+							document.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
 						}
-						//document.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
-						document.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
 						document.setTrslk(trslk);
 						if (StringUtil.isNotEmpty(document.getTitle())){
 							document.setTitle( StringUtil.replaceAnnotation(document.getTitle()).replace("&amp;nbsp;", ""));
@@ -976,10 +979,12 @@ public class InfoListServiceImpl implements IInfoListService {
 						}
 
 						// String content = document.getStatusContent();
-						String content = StringUtil.replaceImg(document.getStatusContent());
-					//	document.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
-						document.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(content), Const.CONTENT_LENGTH));
-                        document.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(content), Const.CONTENT_LENGTH));
+						if (StringUtil.isNotEmpty(document.getContent())) {
+							String content = StringUtil.replaceImg(document.getStatusContent());
+							//	document.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
+							document.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(content), Const.CONTENT_LENGTH));
+							document.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(content), Const.CONTENT_LENGTH));
+						}
 						document.setTrslk(trslk);
 						md5List.add(document.getMd5Tag());
 						ftsList.add(document);
@@ -1851,10 +1856,12 @@ public class InfoListServiceImpl implements IInfoListService {
 						if (ObjectUtils.isEmpty(favouritesList)) {// 因为当收藏列表为空时，程序不进以上的遍历，上面也不用写非空了
 							ftsDocumentStatus.setFavourite(false);
 						}
-						String content = ftsDocumentStatus.getStatusContent();
-						// 此处对文章具体内容按第一个命中的词的前后截取共150个字
-						//Matcher matcher = Pattern.compile("font").matcher(content);
-						ftsDocumentStatus.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(content), Const.CONTENT_LENGTH));
+						if (StringUtil.isNotEmpty(ftsDocumentStatus.getContent())) {
+							String content = ftsDocumentStatus.getStatusContent();
+							// 此处对文章具体内容按第一个命中的词的前后截取共150个字
+							//Matcher matcher = Pattern.compile("font").matcher(content);
+							ftsDocumentStatus.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(content), Const.CONTENT_LENGTH));
+						}
 						/*if (content.length() > 150 && matcher.find()) {
 							int targetIndex = matcher.start();
 							if (75 > targetIndex) {
@@ -2117,8 +2124,10 @@ public class InfoListServiceImpl implements IInfoListService {
 						if (ObjectUtils.isEmpty(favouritesList)) {// 因为当收藏列表为空时，程序不进以上的遍历，上面也不用写非空了
 							ftsDocumentWeChat.setFavourite(false);
 						}
+						if (StringUtil.isNotEmpty(ftsDocumentWeChat.getContent())) {
 						//ftsDocumentWeChat.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
-						ftsDocumentWeChat.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(ftsDocumentWeChat.getContent()),  Const.CONTENT_LENGTH));
+							ftsDocumentWeChat.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(ftsDocumentWeChat.getContent()),  Const.CONTENT_LENGTH));
+						}
 						ftsDocumentWeChat.setTrslk(trslk);
 						if (StringUtil.isNotEmpty(ftsDocumentWeChat.getUrlTitle())){
 							ftsDocumentWeChat.setUrlTitle( StringUtil.replaceAnnotation(ftsDocumentWeChat.getUrlTitle()).replace("&amp;nbsp;", ""));
@@ -2564,6 +2573,18 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.filterByTRSL(trsl);
 					searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
 					// builder中加入groupName
+					if(StringUtil.isNotEmpty(id) && searchPage.equals(SearchPage.ORDINARY_SEARCH.toString())){
+						//id不为空，则去掉当前文章
+						StringBuffer idBuffer = new StringBuffer();
+						if(Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id).append(")");
+						}else if(Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id).append(")");
+						}else{
+							idBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id).append(")");
+						}
+						searchBuilder.filterByTRSL_NOT(idBuffer.toString());
+					}
 					searchBuilder.setDatabase(indices);
 					// 算相似文章数时 如果值为1 置 0
 					searchBuilder.setServer(server);
@@ -2674,7 +2695,18 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
 					// searchBuilder.filterField(FtsFieldConst.FIELD_MID, id,
 					// Operator.NotEqual);
-
+					if(StringUtil.isNotEmpty(id) && searchPage.equals(SearchPage.ORDINARY_SEARCH.toString())){
+						//id不为空，则去掉当前文章
+						StringBuffer idBuffer = new StringBuffer();
+						if(Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id).append(")");
+						}else if(Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id).append(")");
+						}else{
+							idBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id).append(")");
+						}
+						searchBuilder.filterByTRSL_NOT(idBuffer.toString());
+					}
 					searchBuilder.setDatabase(indices);
 					// 算相似文章数时 如果值为1 置 0
                     //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
@@ -2783,7 +2815,18 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
 					// searchBuilder.filterField(FtsFieldConst.FIELD_MID, id,
 					// Operator.NotEqual);
-
+					if(StringUtil.isNotEmpty(id) && searchPage.equals(SearchPage.ORDINARY_SEARCH.toString())){
+						//id不为空，则去掉当前文章
+						StringBuffer idBuffer = new StringBuffer();
+						if(Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id).append(")");
+						}else if(Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id).append(")");
+						}else{
+							idBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id).append(")");
+						}
+						searchBuilder.filterByTRSL_NOT(idBuffer.toString());
+					}
 					searchBuilder.setDatabase(indices);
 					searchBuilder.setServer(server);
 					// 算相似文章数时 如果值为1 置 0
@@ -2890,7 +2933,18 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
 					// searchBuilder.filterField(FtsFieldConst.FIELD_HKEY, id,
 					// Operator.NotEqual);
-
+					if(StringUtil.isNotEmpty(id) && searchPage.equals(SearchPage.ORDINARY_SEARCH.toString())){
+						//id不为空，则去掉当前文章
+						StringBuffer idBuffer = new StringBuffer();
+						if(Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id).append(")");
+						}else if(Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id).append(")");
+						}else{
+							idBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id).append(")");
+						}
+						searchBuilder.filterByTRSL_NOT(idBuffer.toString());
+					}
 					searchBuilder.setDatabase(indices);
 					searchBuilder.setServer(server);
 					// 算相似文章数时 如果值为1 置 0
@@ -3570,12 +3624,15 @@ public class InfoListServiceImpl implements IInfoListService {
 					// int index = 0;
 					for (FtsDocumentCommonVO document : list) {
 						// String content = document.getContent();
-						String content = StringUtil.replaceImg(document.getContent());
-						document.setExportContent(content);
-						//content = StringUtil.substringRed(content, Const.CONTENT_LENGTH);
-						//document.setContent(content);
-						document.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
-						document.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
+						String content= "";
+						if (StringUtil.isNotEmpty(document.getContent())) {
+							content = StringUtil.replaceImg(document.getContent());
+							document.setExportContent(content);
+							//content = StringUtil.substringRed(content, Const.CONTENT_LENGTH);
+							//document.setContent(content);
+							document.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
+							document.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
+						}
 						// 控制标题长度
 						document.setTrslk(trslk);
 						if (StringUtil.isNotEmpty(document.getTitle())){
@@ -3673,6 +3730,18 @@ public class InfoListServiceImpl implements IInfoListService {
 					} else {
 						searchBuilder.setDatabase(database);
 					}
+					if(StringUtil.isNotEmpty(id) && searchPage.equals(SearchPage.ORDINARY_SEARCH.toString())){
+						//id不为空，则去掉当前文章
+						StringBuffer idBuffer = new StringBuffer();
+						if(Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id).append(")");
+						}else if(Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())){
+							idBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id).append(")");
+						}else{
+							idBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id).append(")");
+						}
+						searchBuilder.filterByTRSL_NOT(idBuffer.toString());
+					}
 					searchBuilder.setServer(server);
 					searchBuilder.setPageSize(1);
 					// 算相似文章数时 如果值为1 置 0
@@ -3702,11 +3771,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (ftsCount == 1L) {
 						asyncDocument.setSimNum(0L);
 					} else {
-					    if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
-                            asyncDocument.setSimNum(ftsCount-1);
-                        }else{
-                            asyncDocument.setSimNum(ftsCount);
-                        }
+						asyncDocument.setSimNum(ftsCount);
 					}
 				} else {
 					asyncDocument.setSimNum(0L);

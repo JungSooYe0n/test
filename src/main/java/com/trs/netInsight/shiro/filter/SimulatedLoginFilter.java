@@ -92,7 +92,7 @@ public class SimulatedLoginFilter extends AccessControlFilter {
 				String loginUserId = user.getId();
 				user = userService.findById(userId);
 				HttpSession session = request.getSession();
-				Object isAlert = session.getAttribute(UserUtils.SIMULATED_LOGIN_USER+loginUserId);
+				Object isAlert = session.getAttribute(UserUtils.SIMULATED_LOGIN_USER+loginUserId+user.getId());
 				if(ObjectUtil.isNotEmpty(isAlert)){
 					user.setIsAlert((Boolean)isAlert);
 				}

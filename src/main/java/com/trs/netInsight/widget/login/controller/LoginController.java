@@ -322,22 +322,13 @@ public class LoginController {
 	@ResponseBody
 	@RequestMapping(value = "/isLogin", method = RequestMethod.GET)
 	public Object isLogin(HttpServletRequest request) throws TRSException, TRSException {
-
-		String token = request.getHeader("Simulated-Login-Token");
+		//普通登录
 		User user = null;
-		// 模拟登录时
-		if (StringUtils.isNotBlank(token)&&!StringUtils.equals("null", token) ) {
-			Map<String, Object> map = JwtUtil.parseJwtToken(token);
-			String userId = String.valueOf(map.get("userId"));
-			user = userService.findById(userId);
-		}else {
-		    //普通登录
-			Subject currentUser = SecurityUtils.getSubject();
-			if (currentUser.isAuthenticated()) {
-				Object principal = currentUser.getPrincipal();
-				if (principal instanceof User) {
-					user = (User) principal;
-				}
+		Subject currentUser = SecurityUtils.getSubject();
+		if (currentUser.isAuthenticated()) {
+			Object principal = currentUser.getPrincipal();
+			if (principal instanceof User) {
+				user = (User) principal;
 			}
 		}
 		if (ObjectUtil.isNotEmpty(user)){
@@ -519,7 +510,7 @@ public class LoginController {
 		map.put("userLimit", String.valueOf(simulatedLoginOrganization.getUserLimit()));
 		map.put("token", loginService.getSimulatedLoginToken(loginId, organizationId,userGroupId, userId));
 		HttpSession session = request.getSession();
-		session.removeAttribute(UserUtils.SIMULATED_LOGIN_USER+loginId);
+		session.removeAttribute(UserUtils.SIMULATED_LOGIN_USER+loginId+userId);
 		return map;
 	}
 

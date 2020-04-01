@@ -454,7 +454,7 @@ public class UserUtils {
 			}
 			if(isSimulate){
 				HttpSession session = request.getSession();
-				session.setAttribute(UserUtils.SIMULATED_LOGIN_USER+userId,isAlert);
+				session.setAttribute(UserUtils.SIMULATED_LOGIN_USER+userId+loginUser.getId(),isAlert);
 			}
 			return loginUser;
 
