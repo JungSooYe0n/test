@@ -2,6 +2,7 @@ package com.trs.netInsight.support.hybaseShard.controller;
 
 import com.trs.hybase.client.TRSConnection;
 import com.trs.hybase.client.TRSDatabase;
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.support.cache.RedisFactory;
@@ -79,6 +80,16 @@ public class HybaseShardContrller {
             trsHybaseShard.setHybaseServer("");
             trsHybaseShard.setHybasePwd("");
             trsHybaseShard.setHybaseUser("");
+        }else {
+            //为空则是表示历史机构 添加默认库
+            trsHybaseShard = new HybaseShard();
+            trsHybaseShard.setHybaseServer("");
+            trsHybaseShard.setHybasePwd("");
+            trsHybaseShard.setHybaseUser("");
+            trsHybaseShard.setWeiXin(Const.WECHAT);
+            trsHybaseShard.setWeiBo(Const.WEIBO);
+            trsHybaseShard.setTradition(Const.HYBASE_NI_INDEX);
+            trsHybaseShard.setOverseas(Const.HYBASE_OVERSEAS);
         }
 return trsHybaseShard;
     }

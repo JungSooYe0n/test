@@ -102,6 +102,12 @@ public class CkmServiceImpl implements ICkmService {
 		TrsCkmSoapClient getClient = new TrsCkmSoapClient(host, username, password);
 		return getClient;
 	}
+
+	/**
+	 * 主谓宾结果与ckm分词整合
+	 * @param content
+	 * @return
+	 */
 	@Override
 	public List<SegWord> SegMakeWord(String content){
 	    List<SegDictWord> wordList1 = SegText(content,0);
@@ -122,7 +128,14 @@ public class CkmServiceImpl implements ICkmService {
         }
         return wordList;
     }
-public List<SegDictWord> SegText(String sContent,int iOption){
+
+	/**
+	 * ckm分词以及优化
+	 * @param sContent
+	 * @param iOption 默认为0
+	 * @return
+	 */
+	public List<SegDictWord> SegText(String sContent,int iOption){
 		if (StringUtil.isNotEmpty(sContent)) {
 			TrsCkmSoapClient getClient = this.getClient();
 			try {
