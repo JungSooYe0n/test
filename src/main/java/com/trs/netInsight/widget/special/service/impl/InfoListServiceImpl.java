@@ -2592,16 +2592,14 @@ public class InfoListServiceImpl implements IInfoListService {
                     long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 
 					if (ftsCount == 1L) {
-						asyncDocument.setSimNum(0L);
+						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
+							asyncDocument.setSimNum(ftsCount);
+						}else{
+							asyncDocument.setSimNum(0L);
+						}
 					} else {
-                        if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
-                            asyncDocument.setSimNum(ftsCount-1);
-                        }else{
-                            asyncDocument.setSimNum(ftsCount);
-                        }
+						asyncDocument.setSimNum(ftsCount);
 					}
-					// } else {
-					// asyncDocument.setSimNum(0L);
 				} else {
 					asyncDocument.setSimNum(0L);
 				}
@@ -2712,13 +2710,13 @@ public class InfoListServiceImpl implements IInfoListService {
                     //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
                     long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 					if (ftsCount == 1L) {
-						asyncDocument.setSimNum(0L);
+						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
+							asyncDocument.setSimNum(ftsCount);
+						}else{
+							asyncDocument.setSimNum(0L);
+						}
 					} else {
-                        if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
-                            asyncDocument.setSimNum(ftsCount-1);
-                        }else{
-                            asyncDocument.setSimNum(ftsCount);
-                        }
+						asyncDocument.setSimNum(ftsCount);
 					}
 				} else {
 					asyncDocument.setSimNum(0L);
@@ -2833,13 +2831,13 @@ public class InfoListServiceImpl implements IInfoListService {
                     //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
                     long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 					if (ftsCount == 1L) {
-						asyncDocument.setSimNum(0L);
+						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
+							asyncDocument.setSimNum(ftsCount);
+						}else{
+							asyncDocument.setSimNum(0L);
+						}
 					} else {
-                        if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
-                            asyncDocument.setSimNum(ftsCount-1);
-                        }else{
-                            asyncDocument.setSimNum(ftsCount);
-                        }
+						asyncDocument.setSimNum(ftsCount);
 					}
 				} else {
 					asyncDocument.setSimNum(0L);
@@ -2951,13 +2949,13 @@ public class InfoListServiceImpl implements IInfoListService {
                     //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
                     long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 					if (ftsCount == 1L) {
-						asyncDocument.setSimNum(0L);
+						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
+							asyncDocument.setSimNum(ftsCount);
+						}else{
+							asyncDocument.setSimNum(0L);
+						}
 					} else {
-                        if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
-                            asyncDocument.setSimNum(ftsCount-1);
-                        }else{
-                            asyncDocument.setSimNum(ftsCount);
-                        }
+						asyncDocument.setSimNum(ftsCount);
 					}
 				} else {
 					asyncDocument.setSimNum(0L);
@@ -3516,7 +3514,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
 				searchBuilder.setDatabase(indices);
 				// 算相似文章数时 如果值为1 置 0
-				long ftsCount = hybase8SearchService.ftsCount(searchBuilder, true, false,false,null);
+				long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,null);
 				if (ftsCount == 1L) {
 					asyncDocument.setSimNum(0L);
 				} else {
@@ -3769,7 +3767,11 @@ public class InfoListServiceImpl implements IInfoListService {
                     }
 					RedisUtil.setString(searchBuilder.getKeyRedis(), trsl, 30, TimeUnit.MINUTES);
 					if (ftsCount == 1L) {
-						asyncDocument.setSimNum(0L);
+						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
+							asyncDocument.setSimNum(ftsCount);
+						}else{
+							asyncDocument.setSimNum(0L);
+						}
 					} else {
 						asyncDocument.setSimNum(ftsCount);
 					}
@@ -4505,8 +4507,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					builder.filterByTRSL(Const.PRIMARY_WEIBO+" AND "+Const.PRIMARY_WEIBO);
 					countBuiler.filterByTRSL(Const.PRIMARY_WEIBO+" AND "+Const.PRIMARY_WEIBO);
 				}else if("forward".equals(forwardPrimary1)){
-					builder.filterByTRSL(Const.PRIMARY_WEIBO+" AND NOT "+Const.PRIMARY_WEIBO);
-					countBuiler.filterByTRSL(Const.PRIMARY_WEIBO+" AND NOT "+Const.PRIMARY_WEIBO);
+					builder.filterByTRSL(Const.PRIMARY_WEIBO+" NOT "+Const.PRIMARY_WEIBO);
+					countBuiler.filterByTRSL(Const.PRIMARY_WEIBO+" NOT "+Const.PRIMARY_WEIBO);
 				}else {
 					builder.filterByTRSL(Const.PRIMARY_WEIBO);
 					countBuiler.filterByTRSL(Const.PRIMARY_WEIBO);
@@ -4520,8 +4522,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					builderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO).append(" AND ").append(Const.PRIMARY_WEIBO);
 					countBuilderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO).append(" AND ").append(Const.PRIMARY_WEIBO);
 				}else if("forward".equals(forwardPrimary1)){
-					builderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO).append(" AND ").append(" NOT ").append(Const.PRIMARY_WEIBO);
-					countBuilderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO).append(" AND NOT").append(Const.PRIMARY_WEIBO);
+					builderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO).append(" NOT ").append(Const.PRIMARY_WEIBO);
+					countBuilderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO).append(" NOT").append(Const.PRIMARY_WEIBO);
 				}else {
 					builderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO);
 					countBuilderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO);
@@ -5431,14 +5433,14 @@ public class InfoListServiceImpl implements IInfoListService {
 						sb.append(" AND ").append(Const.PRIMARY_WEIBO);
 					}else  if ("forward".equals(forwarPrimary)){
 						//转发
-						sb.append(" AND ").append(" NOT ").append(Const.PRIMARY_WEIBO);
+						sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
 					}
 					if ("primary".equals(forwarPrimary1)) {
 						// 原发
 						sb.append(" AND ").append(Const.PRIMARY_WEIBO);
 					}else  if ("forward".equals(forwarPrimary1)){
 						//转发
-						sb.append(" AND ").append(" NOT ").append(Const.PRIMARY_WEIBO);
+						sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
 					}
 					sb.append(")");
 					source = source.replaceAll(";微博","").replaceAll("微博;","");
@@ -6822,7 +6824,7 @@ public class InfoListServiceImpl implements IInfoListService {
 						sb.append(" AND ").append(Const.PRIMARY_WEIBO);
 					}else  if ("forward".equals(forwardPrimary)){
 						//转发
-						sb.append(" AND ").append(" NOT ").append(Const.PRIMARY_WEIBO);
+						sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
 					}
 					sb.append(")");
 					source = source.replaceAll(";微博","").replaceAll("微博;","");

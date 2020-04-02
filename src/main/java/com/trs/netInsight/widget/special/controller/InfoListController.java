@@ -575,10 +575,8 @@ public class InfoListController {
 				countBuilder.filterByTRSL(Const.PRIMARY_WEIBO);
 			} else if ("forward".equals(forwarPrimary)) {
 				// 转发
-				StringBuffer sb = new StringBuffer();
-				sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
-				builder.filterByTRSL(sb.toString());
-				countBuilder.filterByTRSL(sb.toString());
+				builder.filterByTRSL_NOT(Const.PRIMARY_WEIBO);
+				countBuilder.filterByTRSL_NOT(Const.PRIMARY_WEIBO);
 			}
 		}
 		// 结果中搜索

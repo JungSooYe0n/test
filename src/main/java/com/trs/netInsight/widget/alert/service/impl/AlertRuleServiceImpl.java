@@ -1493,7 +1493,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					sb.append(" AND ").append(Const.PRIMARY_WEIBO);
 				}else  if ("forward".equals(forwarPrimary)){
 					//转发
-					sb.append(" AND ").append(" NOT ").append(Const.PRIMARY_WEIBO);
+					sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
 				}
 
 				sb.append(")");
