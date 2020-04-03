@@ -597,7 +597,7 @@ public class InfoListController {
 					break;
 				case "fullText":
 					trsl.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
-							.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(") OR ("+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
+							.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
 							.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 					break;
 			}

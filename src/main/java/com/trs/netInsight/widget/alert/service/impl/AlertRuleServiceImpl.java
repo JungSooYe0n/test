@@ -843,7 +843,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			}
 			if("fullText".equals(hybaseField)){
 				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
-						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(") OR ("+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
 						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 			}else {
 				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
@@ -1046,7 +1046,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			}
 			if("fullText".equals(hybaseField)){
 				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
-						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(") OR ("+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
 						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 			}else {
 				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
@@ -1238,7 +1238,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			}
 			if("fullText".equals(hybaseField)){
 				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
-						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(") OR ("+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
 						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 			}else {
 				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
@@ -1369,7 +1369,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			}
 			if("fullText".equals(hybaseField)){
 				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
-						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(") OR ("+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
 						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 			}else {
 				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
@@ -1589,7 +1589,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			}
 			if("fullText".equals(hybaseField)){
 				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
-						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(") OR ("+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
 						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 			}else {
 				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
