@@ -40,6 +40,7 @@ import java.util.Map;
                 "com.trs.netInsight.support.report.*",
                 "com.trs.netInsight.support.storage.*",
                 "com.trs.netInsight.support.hybaseShard.*",
+                "com.trs.netInsight.support.Yiqing.*",
                 "com.trs.netInsight.support.knowledgeBase.*"})//设置Repository所在位置
 public class MasterDataSourceConfig {
 
@@ -80,6 +81,7 @@ public class MasterDataSourceConfig {
                         "com.trs.netInsight.support.storage.*",
                         "com.trs.netInsight.support.template.*",
                         "com.trs.netInsight.support.hybaseShard.*",
+                        "com.trs.netInsight.support.Yiqing.*",
                         "com.trs.netInsight.support.knowledgeBase.*"
                 ) //设置实体类所在位置
                 .persistenceUnit("primaryPersistenceUnit")

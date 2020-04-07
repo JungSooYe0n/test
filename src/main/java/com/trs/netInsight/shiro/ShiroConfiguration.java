@@ -328,6 +328,9 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/autoLogin", "anon");
 		//大屏点击次数记录
 		filterChainDefinitionMap.put("/bigScreenLog/addBigScreenLog", "anon");
+		//疫情数据
+		filterChainDefinitionMap.put("/yq/getTxt", "anon");
+		filterChainDefinitionMap.put("/yq/getData", "anon");
 		// 未授权
 		filterChainDefinitionMap.put("/kickout", "anon");
 		// 没有权限
