@@ -935,7 +935,7 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		if (StringUtil.isNotEmpty(user.getSubGroupId())){
 			ownerId = user.getSubGroupId();
 		}
-		HybaseShard trsHybaseShard;
+		HybaseShard trsHybaseShard = null;
 		if (UserUtils.isRolePlatform()){
 			//运维
 			String valueFromRedis = "";
@@ -951,7 +951,7 @@ public class Hybase8SearchImpl implements FullTextSearch {
 			if (StringUtil.isNotEmpty(valueFromRedis)) {
 				trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
 			}else {
-				trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+				if (StringUtil.isNotEmpty(user.getOrganizationId())) trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
 			}
 
 		}
@@ -1243,7 +1243,7 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		if (StringUtil.isNotEmpty(user.getSubGroupId())){
 			ownerId = user.getSubGroupId();
 		}
-        HybaseShard trsHybaseShard;
+        HybaseShard trsHybaseShard = null;
         if (UserUtils.isRolePlatform()){
             //运维
 			String valueFromRedis = "";
@@ -1259,7 +1259,7 @@ public class Hybase8SearchImpl implements FullTextSearch {
 			if (StringUtil.isNotEmpty(valueFromRedis)) {
 				trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
 			}else {
-				trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+				if(StringUtil.isNotEmpty(user.getOrganizationId())) trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
 			}
 
         }
