@@ -76,6 +76,7 @@ public class AlertSendWeChat extends BaseEntity {
 	@Column(name = "`size`")
 	private int size;
 
+
 }
 
 /**

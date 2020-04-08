@@ -32,8 +32,9 @@ import lombok.ToString;
 @ToString
 public class AlertTemplateMsg {
 
-	private String templateId = "WRJUZbLj2DuRlwYzQXSNlV2G2saewC-NW09P2CiXxKQ";
-
+	//private String templateId = "WRJUZbLj2DuRlwYzQXSNlV2G2saewC-NW09P2CiXxKQ";
+	//新预警模板
+	private String templateId = "DfpAMIGgCwsteO4tFUXxw_2cIg3pj5PF8ooMbh72dPg";
 	/**
 	 * 
 	 * @param touser
@@ -119,8 +120,8 @@ public class AlertTemplateMsg {
 	public String toJson() {
 		return "{\"touser\":\"" + touser + "\",\"template_id\":\"" + ConfigHelper.getConfigValue(ConfigConst.TRS_WEIXIN_TEMPLATEID, templateId) + "\","
 				+ " \"url\":\""+url+"\"," + " \"data\":{ \"first\": { \"value\":\"" + first
-				+ "\",\"color\":\"#0000FF\"}," + " \"content\":{ \"value\":\"" + content + "\", \"color\":\"#0000FF\"},"
-				+ " \"occurtime\":{ \"value\":\"" + occurtime + "\", \"color\":\"#0000FF\"},"
+				+ "\",\"color\":\"#0000FF\"}," + " \"keyword1\":{ \"value\":\"" + content + "\", \"color\":\"#0000FF\"},"
+				+ " \"keyword2\":{ \"value\":\"" + occurtime + "\", \"color\":\"#0000FF\"},"
 				+ " \"remark\":{ \"value\":\"" + remark + "\",\"color\":\"#0000FF\"}} }";
 	}
 

@@ -20,6 +20,7 @@ import org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver;
 import org.apache.shiro.web.mgt.CookieRememberMeManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.servlet.AbstractShiroFilter;
+import org.apache.shiro.web.servlet.Cookie;
 import org.apache.shiro.web.servlet.SimpleCookie;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ import java.util.Map;
 @Slf4j
 public class ShiroConfiguration {
 	private static ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
+
 
 	@Value("${spring.redis.host}")
 	private String host;

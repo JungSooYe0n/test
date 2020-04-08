@@ -175,41 +175,64 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				} else {
 					listWeiChat = list;
 				}
-				String alertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
-				AlertSendWeChat sendAlert = new AlertSendWeChat(null, subject, alertTime, SendWay.WE_CHAT, size);
-				sendAlert.setCreatedUserId(userId);
-				String id = UUID.randomUUID().toString();
-				sendAlert.setId(id);
+				/*List<List<Map<String, String>>> listWeiChats = new ArrayList<>();
+				List<List<String>> messageLists = new ArrayList<>();
+				if (list != null && list.size() > 5) {
+					listWeiChats.add(list.subList(0, 5));
+					listWeiChats.add(list.subList(5,list.size()));
+				} else {
+					listWeiChats.add(list);
+				}
+				int i = 0;*/
+				//for(List<Map<String, String>> listWeiChat :listWeiChats){
+
+					String alertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
+					AlertSendWeChat sendAlert = new AlertSendWeChat(null, subject, alertTime, SendWay.WE_CHAT, list.size());
+					sendAlert.setCreatedUserId(userId);
+					String id = UUID.randomUUID().toString();
+
 //				AlertSendWeChat add = sendAlertService.add(sendAlert);
 //				AlertSendWeChat add = sendAlertService.add(sendAlert);
 //				String id = add.getId();
-				List<String> messageList = new ArrayList<>();
-				// 通过用户名
-				User findByUserNameWE_CHAT = userService.findByUserName(receivers);
-				Environment env = SpringUtil.getBean(Environment.class);
-				String netinsightUrl = env.getProperty(Const.NETINSIGHT_URL);
-				String alertDetailUrl = WeixinMessageUtil.ALERT_DETAILS_URL.replace("ID", id)
-						.replace("NETINSIGHT_URL", netinsightUrl);
-				if(subject==null){
-					subject="";
-				}
-				if(userName==null){
-					userName="";
-				}
-				String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
-						.replace("SIZE", String.valueOf(size)).replace("USERNAME",
-								userName);
-				List<AlertAccount> accountList = new ArrayList<>();
-				if (findByUserNameWE_CHAT != null) {
+					List<String> messageList = new ArrayList<>();
+					// 通过用户名
+					User findByUserNameWE_CHAT = userService.findByUserName(receivers);
+					Environment env = SpringUtil.getBean(Environment.class);
+					String netinsightUrl = env.getProperty(Const.NETINSIGHT_URL);
+					//json命名，为了方便快速的查找。
+					SimpleDateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");//设置日期格式
+					SimpleDateFormat df2 = new SimpleDateFormat("HH");//设置日期格式
+					Date nowDate = new Date();
+					String format = df1.format(nowDate);
+					int hour = Integer.parseInt(df2.format(nowDate));
+					String amOrPm = "am";
+					if(hour>=12){
+						amOrPm = "pm";
+					}
+					sendAlert.setId(id+"+"+format+"+"+amOrPm);
+					String alertDetailUrl = WeixinMessageUtil.ALERT_DETAILS_URL.replaceAll("ID","")
+							.replace("NETINSIGHT_URL", netinsightUrl)+id+"+"+format+"+"+amOrPm;
+
+					if(subject==null){
+						subject="";
+					}
+					if(userName==null){
+						userName="";
+					}
+					String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
+							.replace("SIZE", String.valueOf(size)).replace("USERNAME",
+									userName);
+					List<AlertAccount> accountList = new ArrayList<>();
+					if (findByUserNameWE_CHAT != null) {
 //					List<AlertAccount> receiveList = alertAccountService
 //							.findByUserIdAndType(findByUserNameWE_CHAT.getId(), SendWay.WE_CHAT);
-					accountList = alertAccountService.findByUserIdAndType(findByUserNameWE_CHAT.getId(), SendWay.WE_CHAT);
-				}else{//直接传的微信号   这个人没停止预警  就发  停止预警就不发
-					//通过微信号查alertaccount中的active  true发  false不发
+						accountList = alertAccountService.findByUserIdAndType(findByUserNameWE_CHAT.getId(), SendWay.WE_CHAT);
+					}else{//直接传的微信号   这个人没停止预警  就发  停止预警就不发
+						//通过微信号查alertaccount中的active  true发  false不发
 //					List<AlertAccount> accountList = alertAccountService.findByAccount(receivers);
-					AlertAccount alertaccount = alertAccountService.findByAccountAndUserIdAndType(receivers,userId, SendWay.WE_CHAT);
-					accountList.add(alertaccount);
-				}
+						AlertAccount alertaccount = alertAccountService.findByAccountAndUserIdAndType(receivers,userId, SendWay.WE_CHAT);
+						accountList.add(alertaccount);
+					}
 //				if (accountList != null && accountList.size() > 0) {
 					for (AlertAccount alertAccount : accountList) {
 						if (alertAccount != null) {
@@ -217,7 +240,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 								log.error("netinsightUrl:" + netinsightUrl);
 								AlertTemplateMsg alertTemplateMsg = new AlertTemplateMsg(alertAccount.getAccount(),
 										alertDetailUrl,alertTitle,StringUtil.toString(listWeiChat), alertTime, "");
+
 								String sendWeixin = WeixinUtil.sendWeixin(WeixinUtil.getToken(), alertTemplateMsg);
+
 								log.error("发送微信返回值：" + sendWeixin);
 								if (StringUtils.equals("ok", sendWeixin)) {
 									messageList.add(alertAccount.getName() + "：发送成功！");
@@ -228,7 +253,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 								messageList.add(alertAccount.getName() + "：关闭了预警！");
 							}
 							String alertIds = this.addAlertOrAlertBackups(true, list, receivers, SendWay.WE_CHAT,
-									userId,"send");
+									userId+"+"+format+"+"+amOrPm,"send");
 //							add.setIds(alertIds);
 							sendAlert.setIds(alertIds);
 							//直接存文件不编辑了
@@ -240,7 +265,8 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						log.error("微信推送！预警名称："+subject+"接收人："+receivers+"接收人id："+alertAccount.getAccount());
 					}
 //				}
-				log.error("微信推送循环外！预警名称："+subject+"接收人："+receivers);
+					log.error("微信推送循环外！预警名称："+subject+"接收人："+receivers);
+				//}
 				return Message.getMessage(CodeUtils.SUCCESS, "发送成功！", messageList);
 				case APP:// 安卓端
 					String appAlertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
