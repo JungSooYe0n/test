@@ -169,25 +169,25 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				return Message.getMessage(CodeUtils.SUCCESS, "发送成功！", null);
 
 			case WE_CHAT:
-				List<Map<String, String>> listWeiChat = new ArrayList<>();
+				/*List<Map<String, String>> listWeiChat = new ArrayList<>();
 				if (list != null && list.size() > 5) {
 					listWeiChat = list.subList(0, 5);
 				} else {
 					listWeiChat = list;
-				}
-				/*List<List<Map<String, String>>> listWeiChats = new ArrayList<>();
+				}*/
+				List<List<Map<String, String>>> listWeiChats = new ArrayList<>();
 				List<List<String>> messageLists = new ArrayList<>();
-				if (list != null && list.size() > 5) {
-					listWeiChats.add(list.subList(0, 5));
-					listWeiChats.add(list.subList(5,list.size()));
-				} else {
-					listWeiChats.add(list);
+				for(int i = 0;i<list.size();i+=5){
+					if(i+5<list.size()){
+						listWeiChats.add(list.subList(i,i+5));
+					}else {
+						listWeiChats.add(list.subList(i,list.size()));
+					}
 				}
-				int i = 0;*/
-				//for(List<Map<String, String>> listWeiChat :listWeiChats){
-
+				int i = 1;
+				for(List<Map<String, String>> listWeiChat :listWeiChats){
 					String alertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
-					AlertSendWeChat sendAlert = new AlertSendWeChat(null, subject, alertTime, SendWay.WE_CHAT, list.size());
+					AlertSendWeChat sendAlert = new AlertSendWeChat(null, subject, alertTime, SendWay.WE_CHAT, listWeiChat.size());
 					sendAlert.setCreatedUserId(userId);
 					String id = UUID.randomUUID().toString();
 
@@ -220,8 +220,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						userName="";
 					}
 					String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
-							.replace("SIZE", String.valueOf(size)).replace("USERNAME",
-									userName);
+								.replace("SIZE", String.valueOf(size)).replace("USERNAME",
+										userName);
+
 					List<AlertAccount> accountList = new ArrayList<>();
 					if (findByUserNameWE_CHAT != null) {
 //					List<AlertAccount> receiveList = alertAccountService
@@ -236,10 +237,17 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 //				if (accountList != null && accountList.size() > 0) {
 					for (AlertAccount alertAccount : accountList) {
 						if (alertAccount != null) {
+							String alertIds = this.addAlertOrAlertBackups(true, listWeiChat, receivers, SendWay.WE_CHAT,
+									userId+"+"+format+"+"+amOrPm,"send");
+							sendAlert.setIds(alertIds);
+							//直接存文件不编辑了
+							sendAlertService.add(sendAlert);
+//							sendAlertService.edit(add);
+
 							if (alertAccount.isActive()) {
 								log.error("netinsightUrl:" + netinsightUrl);
 								AlertTemplateMsg alertTemplateMsg = new AlertTemplateMsg(alertAccount.getAccount(),
-										alertDetailUrl,alertTitle,StringUtil.toString(listWeiChat), alertTime, "");
+										alertDetailUrl,alertTitle,StringUtil.toString(listWeiChat,i), alertTime, "");
 
 								String sendWeixin = WeixinUtil.sendWeixin(WeixinUtil.getToken(), alertTemplateMsg);
 
@@ -252,13 +260,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							} else {
 								messageList.add(alertAccount.getName() + "：关闭了预警！");
 							}
-							String alertIds = this.addAlertOrAlertBackups(true, list, receivers, SendWay.WE_CHAT,
-									userId+"+"+format+"+"+amOrPm,"send");
-//							add.setIds(alertIds);
-							sendAlert.setIds(alertIds);
-							//直接存文件不编辑了
-							sendAlertService.add(sendAlert);
-//							sendAlertService.edit(add);
+
 						} else {
 							messageList.add(receivers + "：没有查询到微信号！");
 						}
@@ -266,8 +268,10 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					}
 //				}
 					log.error("微信推送循环外！预警名称："+subject+"接收人："+receivers);
-				//}
-				return Message.getMessage(CodeUtils.SUCCESS, "发送成功！", messageList);
+					messageLists.add(messageList);
+					i = i+listWeiChat.size();
+				}
+				return Message.getMessage(CodeUtils.SUCCESS, "发送成功！", messageLists);
 				case APP:// 安卓端
 					String appAlertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
 					//手动
@@ -308,6 +312,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 			}
 		} catch (Exception e) {
 			log.error("发送报错", e);
+			e.printStackTrace();
 		}
 		return Message.getMessage(CodeUtils.FAIL, "发送方式不明确！", send);
 

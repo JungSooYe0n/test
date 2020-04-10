@@ -24,6 +24,7 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.appApi.handler.AppApi;
 import com.trs.netInsight.support.appApi.service.IOAuthService;
 import com.trs.netInsight.support.appApi.utils.constance.ApiMethod;
+import com.trs.netInsight.support.cache.EnableRedis;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.entity.FtsDocument;

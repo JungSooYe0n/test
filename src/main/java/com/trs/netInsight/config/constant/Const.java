@@ -85,7 +85,7 @@ public class Const {
 	/**
 	 * 预警标题长度
 	 */
-	public static final int ALERT_NUM = 23;
+	public static final int ALERT_NUM = 22;
 	/**
 	 * 微信库
 	 */

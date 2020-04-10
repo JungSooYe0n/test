@@ -506,11 +506,11 @@ public final class StringUtil {
 	 * @param list
 	 * @return
 	 */
-	public static String toString(List<Map<String, String>> list) {
+	public static String toString(List<Map<String, String>> list,int start) {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("\\n");
 		if (list != null && list.size() > 0) {
-			int i = 1;
+			int i = start;
 			for (Map<String, String> map : list) {
 				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
 				buffer.append(i + "、").append(replaceNRT(replaceFont(replaceImg(map.get("title"))))).append("\\n\\n");

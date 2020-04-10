@@ -21,6 +21,7 @@ import org.apache.shiro.web.mgt.CookieRememberMeManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.servlet.AbstractShiroFilter;
 import org.apache.shiro.web.servlet.Cookie;
+import org.apache.shiro.web.servlet.ShiroHttpSession;
 import org.apache.shiro.web.servlet.SimpleCookie;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,8 @@ public class ShiroConfiguration {
 
 	@Autowired
 	private IPermissionService permissionService;
+
+	public static final String DEFAULT_SESSION_ID_NAME = "TRSJSESSIONID";
 
 	/**
 	 * ShiroFilterFactoryBean 处理拦截资源文件问题。
@@ -179,6 +182,11 @@ public class ShiroConfiguration {
 	@Bean
 	public DefaultWebSessionManager sessionManager() {
 		DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+		//解决网察项目无故死掉的问题（暂时研究方向是shiro的cookie导致的）
+		Cookie cookie = new SimpleCookie(DEFAULT_SESSION_ID_NAME);
+		cookie.setHttpOnly(true); //more secure, protects against XSS attacks
+		sessionManager.setSessionIdCookie(cookie);
+
 		sessionManager.setSessionDAO(redisSessionDAO());
 		return sessionManager;
 	}

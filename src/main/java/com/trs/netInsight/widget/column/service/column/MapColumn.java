@@ -361,4 +361,5 @@ public class MapColumn extends AbstractColumn {
 		}
 		return groupInfos;
 	}
+
 }
