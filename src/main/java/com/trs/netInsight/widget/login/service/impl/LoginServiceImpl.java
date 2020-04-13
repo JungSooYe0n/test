@@ -15,6 +15,7 @@ package com.trs.netInsight.widget.login.service.impl;
 
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.log.service.ILoginFrequencyLogService;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.login.service.ILoginService;
 import com.trs.netInsight.widget.user.entity.User;
@@ -45,6 +46,8 @@ public class LoginServiceImpl implements ILoginService {
 
 	@Autowired
 	private IUserService userService;
+	@Autowired
+	private ILoginFrequencyLogService loginFrequencyLogService;
 
 	@Value("${spring.session.timeout}")
 	private int sessionTimeout;
@@ -119,7 +122,8 @@ public class LoginServiceImpl implements ILoginService {
 				throw new TRSException(CodeUtils.UNKNOWN_FAIL, "[" + userName + "]未知错误！", e);
 			}
 			// 将登录次数存入redis（按用户）
-			UserUtils.setLoginCount(userName+user.getId());
+			Integer count = UserUtils.setLoginCount(userName+user.getId());
+			loginFrequencyLogService.save(count,user.getId());
 			// 将登录次数存入redis（按分组）
 			String subGroupId = user.getSubGroupId();
 			UserUtils.setLoginCount(subGroupId);

@@ -14,6 +14,7 @@
 package com.trs.netInsight.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.trs.netInsight.support.log.service.ILoginFrequencyLogService;
 import com.trs.netInsight.widget.config.entity.SystemConfig;
 import com.trs.netInsight.widget.config.service.ISystemConfigService;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -383,16 +384,20 @@ public class UserUtils {
 	 * @Author 谷泽昊
 	 * @param userName
 	 */
-	public static void setLoginCount(String userName) {
+	public static Integer setLoginCount(String userName) {
 		String key = LOGIN_COUNT + userName + DateUtil.formatCurrentTime(DateUtil.yyyyMMdd3);
 		Integer integer = RedisUtil.getInteger(key);
+		Integer count = integer;
 		if (integer == null) {
 			RedisUtil.setInteger(key, 1);
+			count = 1;
 			RedisUtil.expire(key, 1, TimeUnit.DAYS);
 		} else {
 			RedisUtil.setInteger(key, ++integer);
+			count = integer;
 			RedisUtil.expire(key, 1, TimeUnit.DAYS);
 		}
+		return count;
 	}
 
 	/**

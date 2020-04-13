@@ -103,10 +103,11 @@ public class SystemLogController {
 			@ApiParam("页码") @RequestParam(value = "pageNum") Integer pageNum,
 			@ApiParam("步长") @RequestParam(value = "pageSize") Integer pageSize,
 			@ApiParam("机构类型") @RequestParam(value = "organizationType",required = false) String organizationType,
-			@ApiParam("排序:0不排序 1在线人数,2登录次数") @RequestParam(value = "sortBy",defaultValue = "0",required = false) Integer sortBy,
+			@ApiParam("对当前在线进行筛选，全部：0、仅在线：1  ") @RequestParam(value = "onLine",required = false,defaultValue = "0") Integer onLine,
+			@ApiParam("排序:0不排序 1登录次数") @RequestParam(value = "sortBy",defaultValue = "0",required = false) Integer sortBy,
 			@ApiParam("升序降序") @RequestParam(value = "ascDesc",required = false,defaultValue = "desc") String ascDesc) throws Exception {
 		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(DepositPattern.MYSQL);
-		return abstractSystemLog.findorgList(retrievalCondition, retrievalInformation, id, pageNum, pageSize,sortBy,ascDesc,organizationType);
+		return abstractSystemLog.findorgList(retrievalCondition, retrievalInformation, id, pageNum, pageSize,onLine,sortBy,ascDesc,organizationType);
 	}
 
 	/***

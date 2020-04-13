@@ -79,11 +79,23 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	@Override
 	public Map<String, Object> findorgList(String retrievalCondition, String retrievalInformation, String id,
-			Integer pageNum, Integer pageSize,Integer sortBy,String ascDesc,String organizationType) throws Exception {
+			Integer pageNum, Integer pageSize,Integer onLine,Integer sortBy,String ascDesc,String organizationType) throws Exception {
 		//多个字段排序
 		List<Sort.Order> listSort = new ArrayList();
-		Sort.Order orderCreateTime = new Sort.Order(Sort.Direction.DESC, "createdTime");
-		listSort.add(orderCreateTime);
+		Sort.Order order =  null;
+		if(sortBy == 1 ){
+			if("asc".equals(ascDesc)){
+				order = new Sort.Order(Sort.Direction.ASC,"loginCount");
+			}else if("desc".equals(ascDesc)){
+				order = new Sort.Order(Sort.Direction.DESC,"loginCount");
+			}else{
+				order =new Sort.Order(Sort.Direction.DESC,"createdTime");
+			}
+		}else{
+			order =new Sort.Order(Sort.Direction.DESC,"createdTime");
+		}
+
+		listSort.add(order);
 		PageRequest pageable = new PageRequest(pageNum, pageSize, new Sort(listSort));
 		//定义查询条件
 		Specification<Organization> criteria = new Specification<Organization>() {
@@ -143,12 +155,12 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 		Page<Organization> organizations;
 		Collection<Organization> orgs;
-		//排序走此方法 1在线人数,2登录次数
-		if(sortBy==1 || sortBy==2){
-			pageable = new PageRequest(0, 2000, new Sort(listSort));
+		//排序走此方法 1登录次数
+		if(onLine == 1 ){
+			pageable = new PageRequest(0, 2000,new Sort(listSort));
 			organizations = organizationService.findByCriteria(criteria, pageable);
 			orgs = organizations.getContent();
-			return sortOrgByNumber(orgs,pageNum,pageSize,sortBy,ascDesc,listSort);
+			return sortOrgByNumber(orgs,pageNum,pageSize,ascDesc);
 		}else{
 			organizations = organizationService.findByCriteria(criteria, pageable);
 			orgs = organizations.getContent();
@@ -184,9 +196,9 @@ public class MysqlSystemLog extends AbstractSystemLog {
 	}
 
 	public Map<String, Object> sortOrgByNumber(Collection<Organization> orgs,
-								Integer pageNum, Integer pageSize,Integer sortBy,String ascDesc,List<Sort.Order> listSort) throws Exception{
+								Integer pageNum, Integer pageSize,String ascDesc) throws Exception{
 		log.info("---------->走排序方法:sortOrgByNumber");
-
+		//原本 在线人数和登录次数都不存Mysql，所以查询所有单独排序，现在 - 登录次数存库，则在线人数筛选单独筛选
 		ArrayList<HashMap<String, Object>> resultDataList = new ArrayList<>();
 		AtomicInteger iii = new AtomicInteger(0);
 		Collection<Session> activeSessions = sessionDAO.getActiveSessions();
@@ -195,33 +207,34 @@ public class MysqlSystemLog extends AbstractSystemLog {
 			e.setLoginCount(getLoginCount(e));
 			e.setOnlineUserCount(getOnlineUserCount(activeSessions, e));
 			e.setAscDesc(ascDesc);
-			e.setSortByCount(sortBy);
-			orgList.add(e);
+			if(e.getOnlineUserCount() > 0){
+				orgList.add(e);
+			}
 		}
-		//数据排序
-		Collections.sort(orgList);
 		//计算页数
 		int totalPages;
 		int totalElements = orgList.size();
 		if(totalElements%pageSize==0) totalPages = totalElements%pageSize;
 		else totalPages = totalElements%pageSize + 1;
+
 		//循环从list中取想要的数据
 		int start = (pageSize-1)*pageNum;
-		int limit = (start+pageSize)<totalElements?(start+pageSize):totalElements;
-		for(int j=start;j<limit;j++){
-			Organization e = orgList.get(j);
-			iii.getAndIncrement();// 以原子方式+1
-			HashMap<String, Object> each = new HashMap<>();
-			each.put("order", iii.intValue());
-			each.put("organizationName", e.getOrganizationName());
-			//each.put("systemName", e.getSystemName());
-			each.put("organizationType", "formal".equals(e.getOrganizationType()) ? "正式" : "试用");
-			each.put("onlineUserCount", e.getOnlineUserCount());
-			each.put("loginCount", e.getLoginCount());
-			each.put("organizationId", e.getId());
-			resultDataList.add(each);
+		if(start < totalElements){
+			int limit = (start+pageSize)<totalElements?(start+pageSize):totalElements;
+			for(int j=start;j<limit;j++){
+				Organization e = orgList.get(j);
+				iii.getAndIncrement();// 以原子方式+1
+				HashMap<String, Object> each = new HashMap<>();
+				each.put("order", iii.intValue());
+				each.put("organizationName", e.getOrganizationName());
+				//each.put("systemName", e.getSystemName());
+				each.put("organizationType", "formal".equals(e.getOrganizationType()) ? "正式" : "试用");
+				each.put("onlineUserCount", e.getOnlineUserCount());
+				each.put("loginCount", e.getLoginCount());
+				each.put("organizationId", e.getId());
+				resultDataList.add(each);
+			}
 		}
-
 		Map<String, Object> result = new HashMap<>();
 		if (resultDataList == null || resultDataList.size() <= 0) {
 			return null;
@@ -739,29 +752,6 @@ public class MysqlSystemLog extends AbstractSystemLog {
 	private int getOnlineUserCount(Collection<Session> activeSessions, Organization org) throws Exception {
 		int onlineUserCount = 0;
 		for (Session session : activeSessions) {
-			// System.out.println("最后操作日期:" + session.getLastAccessTime());
-			// SimplePrincipalCollection attribute = (SimplePrincipalCollection)
-			// session
-			// .getAttribute("org.apache.shiro.subject.support.DefaultSubjectContext_PRINCIPALS_SESSION_KEY");
-			// if (attribute == null)
-			// continue;
-			// Class<? extends SimplePrincipalCollection> classPrin =
-			// attribute.getClass();
-			// Field[] declaredFields = classPrin.getDeclaredFields();
-			// Field field = Arrays.stream(declaredFields).map(e -> {
-			// e.setAccessible(true);
-			// return e;
-			// }).filter(e ->
-			// "realmPrincipals".equals(e.getName())).collect(Collectors.toList()).get(0);
-			// if (field.get(attribute) instanceof Map) {
-			// Map<?, ?> map = (Map<?, ?>) field.get(attribute);
-			// Set<?> set = (Set<?>)
-			// map.get("com.trs.netInsight.shiro.MyShiroRealm_0");
-			// User user = (User) set.iterator().next();
-			// String organizationId = user.getOrganizationId();
-			// if (org.getId().equals(organizationId))
-			// onlineUserCount++;
-			// }
 			// 更新于20181212
 			if (session != null) {
 				Object obj = session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY);

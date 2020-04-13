@@ -21,11 +21,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.trs.netInsight.widget.user.entity.Organization;
+
+import javax.transaction.Transactional;
 
 /**
  * 机构Repository
@@ -105,6 +108,17 @@ public interface OrganizationRepository extends JpaRepository<Organization, Stri
 
 	@Query(value = "select distinct `head_of_sales` FROM `organization` where head_of_sales is not null", nativeQuery = true)
 	public List<String> findAllForHeadOfSale();
+
+	/**
+	 * 批量修改隐藏状态
+	 *
+	 *
+	 * @Return : void
+	 */
+	@Transactional
+	@Modifying
+	@Query(value = "UPDATE `organization` o SET o.login_count = ?1 WHERE o.id = ?2", nativeQuery = true)
+	void updateOrganizationLoginCount(Integer loginCount,String organizationId);
 
 }
 

@@ -273,7 +273,7 @@ public class Organization extends BaseEntity implements Comparable<Organization>
 	/**
 	 * 登录次数（不入库）
 	 */
-	@Transient
+	@Column(name = "`login_count`")
 	private Integer loginCount;
 	/**
 	 * 在线人数（不入库）

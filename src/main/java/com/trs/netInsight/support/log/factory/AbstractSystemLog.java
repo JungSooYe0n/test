@@ -106,7 +106,7 @@ public abstract class AbstractSystemLog {
 	 * @throws Exception
 	 */
 	public abstract Map<String, Object> findorgList(String retrievalCondition, String retrievalInformation, String id,
-			Integer pageNum, Integer pageSize,Integer sortBy,String ascDesc,String organizationType) throws Exception;
+			Integer pageNum, Integer pageSize,Integer onLine,Integer sortBy,String ascDesc,String organizationType) throws Exception;
 
 	/**
 	 * 当前机构下所有用户的操作日志
