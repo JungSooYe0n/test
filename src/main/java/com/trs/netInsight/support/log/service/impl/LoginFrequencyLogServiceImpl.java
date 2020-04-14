@@ -38,7 +38,7 @@ public class LoginFrequencyLogServiceImpl implements ILoginFrequencyLogService {
         if(list != null && list.size() >0){
             //不管数据库里面怎么存的，以redis中的为准
             LoginFrequencyLog log = list.get(0);
-            list.remove(log);
+            list.remove(0);
             if(list.size() >0){
                 loginFrequencyLogRepository.delete(list);
             }
