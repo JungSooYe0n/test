@@ -99,7 +99,7 @@ public class Const {
 	 * 微信库(新库,可以进行多表联合查询)
 	 */
 	public static  String WECHAT_COMMON = "system2.weixin_180325";
-	
+
 	/**
 	 * es微博库
 	 */
