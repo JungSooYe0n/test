@@ -331,7 +331,7 @@ public class ShiroConfiguration {
 		// 获取登录页配置的logo图标或者底栏二维码
 		filterChainDefinitionMap.put("/getLoginPagePic", "anon");
 		// 登出
-		filterChainDefinitionMap.put("/loginout", "anon");
+		filterChainDefinitionMap.put("/loginout", "logout");
 		// 登录
 		filterChainDefinitionMap.put("/login", "anon");
 		//一键登录
