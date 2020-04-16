@@ -19,7 +19,9 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.trs.netInsight.support.log.entity.SystemLog;
 import com.trs.netInsight.support.log.repository.SystemLogExceptionRepository;
+import com.trs.netInsight.util.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -71,9 +73,13 @@ public class SystemLogController {
 			@ApiParam("栏目组id-专题id") @RequestParam(value = "systemLogTabId") String systemLogTabId,
 			HttpServletRequest request) {
 		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(depositPattern);
-		abstractSystemLog.add(null, null, systemLogType, systemLogOperation, systemLogTabId,
-				NetworkUtil.getIpAddress(request), request.getRequestURI(), new Date(), new Date(), ResultCode.SUCCESS,
-				null, null, null, null, null,null, null,null);
+		long timeConsumed = new Date().getTime() - new Date().getTime();
+		String simpleStatus = 500 == ResultCode.SUCCESS ? "失败" : "成功";
+		SystemLog systemLog = new SystemLog(null, null, systemLogType.getValue(),
+				systemLogOperation.getValue(), systemLogTabId, NetworkUtil.getIpAddress(request),  request.getRequestURI(), new Date(), new Date(), timeConsumed,
+				ResultCode.SUCCESS, null, null, null, null, null, null,
+				UserUtils.getUser().getUserName(), null,null,0);
+
 	}
 
 	/**

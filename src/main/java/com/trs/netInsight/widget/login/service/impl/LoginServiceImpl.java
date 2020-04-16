@@ -123,7 +123,7 @@ public class LoginServiceImpl implements ILoginService {
 			}
 			// 将登录次数存入redis（按用户）
 			Integer count = UserUtils.setLoginCount(userName+user.getId());
-			loginFrequencyLogService.save(count,user.getId());
+			//loginFrequencyLogService.save(count,user.getId());
 			// 将登录次数存入redis（按分组）
 			String subGroupId = user.getSubGroupId();
 			UserUtils.setLoginCount(subGroupId);

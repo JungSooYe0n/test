@@ -64,16 +64,7 @@ import java.util.stream.Collectors;
 public class MysqlSystemLog extends AbstractSystemLog {
 
 	@Override
-	public SystemLog add(String requestParams, String methodDescription, SystemLogType systemLogType,
-			SystemLogOperation systemLogOperation, String systemLogTabId, String requestIp, String requestUri,
-			Date startTime, Date endTime, int status, String exceptionDetail, String osInfo, String browserInfo,
-			String sessionId, String operationPosition, String operationUserName, String trsl,Integer num) {
-		String simpleStatus = 500 == status ? "失败" : "成功";
-		long timeConsumed = endTime.getTime() - startTime.getTime();
-		SystemLog systemLog = new SystemLog(requestParams, methodDescription, systemLogType.getValue(),
-				systemLogOperation.getValue(), systemLogTabId, requestIp, requestUri, startTime, endTime, timeConsumed,
-				status, simpleStatus, exceptionDetail, osInfo, browserInfo, sessionId, operationPosition,
-				operationUserName == null ? operationUserName = UserUtils.getUser().getUserName():operationUserName, trsl,num,0);
+	public SystemLog add(SystemLog systemLog) {
 		return mysqlSystemLogRepository.save(systemLog);
 	}
 

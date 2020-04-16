@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -28,6 +29,7 @@ public class LoginFrequencyLogServiceImpl implements ILoginFrequencyLogService {
     private UserRepository userRepository;
 
     @Override
+    @Transactional
     public void save(Integer num,String  id){
         User user = userRepository.findOne(id);
         Sort sort = new Sort(Sort.Direction.ASC,"createdTime");

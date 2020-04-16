@@ -57,39 +57,36 @@ public abstract class AbstractSystemLog {
 	 * 
 	 * @date Created at 2018年7月26日 下午2:42:19
 	 * @Author 谷泽昊
-	 * @param requestParams
+	 * @param systemLog requestParams
 	 *            参数
-	 * @param methodDescription
+	 * @param systemLog methodDescription
 	 *            备注
-	 * @param systemLogType
+	 * @param systemLog systemLogType
 	 *            日志类型
-	 * @param systemLogOperation
+	 * @param systemLog systemLogOperation
 	 *            具体操作
-	 * @param systemLogTabId
+	 * @param systemLog systemLogTabId
 	 *            日常监测为：栏目分组id
-	 * @param requestIp
+	 * @param systemLog requestIp
 	 *            ip
-	 * @param requestUri
+	 * @param systemLog requestUri
 	 *            具体类型
-	 * @param startTime
+	 * @param systemLog startTime
 	 *            开始时间
-	 * @param endTime
+	 * @param systemLog endTime
 	 *            结束时间
-	 * @param status
+	 * @param systemLog systemLogstatus
 	 *            状态
-	 * @param exceptionDetail
+	 * @param systemLog exceptionDetail
 	 *            错误信息
-	 * @param osInfo
-	 * @param browserInfo
-	 * @param sessionId
-	 * @param operationPosition
-	 * @param trsl
+	 * @param systemLog osInfo
+	 * @param systemLog browserInfo
+	 * @param systemLog sessionId
+	 * @param systemLog operationPosition
+	 * @param systemLog trsl
 	 * @return
 	 */
-	public abstract SystemLog add(String requestParams, String methodDescription, SystemLogType systemLogType,
-			SystemLogOperation systemLogOperation, String systemLogTabId, String requestIp, String requestUri,
-			Date startTime, Date endTime, int status, String exceptionDetail, String osInfo, String browserInfo,
-			String sessionId, String operationPosition, String operationUserName, String trsl,Integer num);
+	public abstract SystemLog add(SystemLog systemLog);
 
 	/**
 	 * 查看当前运维人员下的所有机构；超管看所有
