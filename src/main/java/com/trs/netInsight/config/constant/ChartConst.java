@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2017年11月24日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -47,13 +47,15 @@ public class ChartConst {
 	 */
 	public static final String AUTOLOGIN = "天目云-";
 	public static final String AUTOLOGINUSERNAME = "TMY-";
+	public static final String AUTOLOGIN_ZB = "浙报-";
+	public static final String AUTOLOGINUSERNAME_ZB = "ZB-";
 
 }
 
 /**
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2017年11月24日 Administrator creat
