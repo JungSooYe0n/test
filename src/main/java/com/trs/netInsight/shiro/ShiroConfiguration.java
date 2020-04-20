@@ -38,7 +38,7 @@ import java.util.Map;
 /**
  * Description : Apache Shiro 核心通过 Filter 来实现，就好像SpringMvc 通过DispachServlet
  * 来主控制一样。 既然是使用 Filter 一般也就能猜到，是通过URL规则来进行过滤和权限校验，所以我们需要定义一系列关于URL的规则和访问权限。
- * 
+ *
  * @Type ShiroConfiguration.java
  * @Desc
  * @author 谷泽昊
@@ -129,7 +129,7 @@ public class ShiroConfiguration {
 
 	/**
 	 * 身份认证realm; (这个需要自己写，账号密码校验；权限等)
-	 * 
+	 *
 	 * @return
 	 */
 	@Bean
@@ -141,7 +141,7 @@ public class ShiroConfiguration {
 
 	/**
 	 * 配置shiro redisManager 使用的是shiro-redis开源插件
-	 * 
+	 *
 	 * @return
 	 */
 	public RedisManager redisManager() {
@@ -157,7 +157,7 @@ public class ShiroConfiguration {
 
 	/**
 	 * cacheManager 缓存 redis实现 使用的是shiro-redis开源插件
-	 * 
+	 *
 	 * @return
 	 */
 	public RedisCacheManager cacheManager() {
@@ -193,7 +193,7 @@ public class ShiroConfiguration {
 
 	/**
 	 * cookie对象;
-	 * 
+	 *
 	 * @return
 	 */
 	public SimpleCookie rememberMeCookie() {
@@ -206,7 +206,7 @@ public class ShiroConfiguration {
 
 	/**
 	 * cookie管理对象;记住我功能
-	 * 
+	 *
 	 * @return
 	 */
 	public CookieRememberMeManager rememberMeManager() {
@@ -232,7 +232,7 @@ public class ShiroConfiguration {
 
 	/**
 	 * 限制同一账号登录同时登录人数控制
-	 * 
+	 *
 	 * @return
 	 */
 	public KickoutSessionControlFilter kickoutSessionControlFilter() {
@@ -254,7 +254,7 @@ public class ShiroConfiguration {
 
 	/**
 	 * 存入用户
-	 * 
+	 *
 	 * @return
 	 */
 	public UserExistenceFilter userExistenceFilter() {
@@ -336,6 +336,7 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/login", "anon");
 		//一键登录
 		filterChainDefinitionMap.put("/autoLogin", "anon");
+		filterChainDefinitionMap.put("/autoLoginGen", "anon");
 		//大屏点击次数记录
 		filterChainDefinitionMap.put("/bigScreenLog/addBigScreenLog", "anon");
 		//疫情数据

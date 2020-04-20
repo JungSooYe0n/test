@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2018年7月27日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -40,7 +40,7 @@ import io.swagger.annotations.ApiParam;
 
 /**
  * 日志类
- * 
+ *
  * @Type SystemLogController.java
  * @author 谷泽昊
  * @date 2018年7月27日 下午5:18:02
@@ -55,7 +55,7 @@ public class SystemLogController {
 
 	/**
 	 * 添加点击日志
-	 * 
+	 *
 	 * @date Created at 2018年7月27日 下午5:27:00
 	 * @Author 谷泽昊
 	 * @param depositPattern
@@ -70,15 +70,15 @@ public class SystemLogController {
 			@ApiParam("具体操作类") @RequestParam(value = "systemLogOperation") SystemLogOperation systemLogOperation,
 			@ApiParam("栏目组id-专题id") @RequestParam(value = "systemLogTabId") String systemLogTabId,
 			HttpServletRequest request) {
-		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(depositPattern);
-		abstractSystemLog.add(null, null, systemLogType, systemLogOperation, systemLogTabId,
-				NetworkUtil.getIpAddress(request), request.getRequestURI(), new Date(), new Date(), ResultCode.SUCCESS,
-				null, null, null, null, null,null, null,null);
+//		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(depositPattern);
+//		abstractSystemLog.add(null, null, systemLogType, systemLogOperation, systemLogTabId,
+//				NetworkUtil.getIpAddress(request), request.getRequestURI(), new Date(), new Date(), ResultCode.SUCCESS,
+//				null, null, null, null, null,null, null,null);
 	}
 
 	/**
 	 * 查看当前运维人员下的所有机构；超管看所有
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:57:58
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -112,7 +112,7 @@ public class SystemLogController {
 
 	/***
 	 * 当前机构下所有用户的操作日志
-	 * 
+	 *
 	 * @param organizationId
 	 *            机构id
 	 * @param timeLimited
@@ -148,7 +148,7 @@ public class SystemLogController {
 
 	/***
 	 * 当前机构的所有用户
-	 * 
+	 *
 	 * @param organizationId
 	 *            机构id  查询速度慢的原因
 	 * @return
@@ -163,7 +163,7 @@ public class SystemLogController {
 
 	/***
 	 * 所有的操作名称 or 操作路径
-	 * 
+	 *
 	 * @return
 	 */
 	@ApiOperation("所有的操作名称 or 操作路径")
@@ -175,7 +175,7 @@ public class SystemLogController {
 
 	/***
 	 * 查看当前日志详细
-	 * 
+	 *
 	 * @param id
 	 *            system_log 表的id
 	 * @return
@@ -188,7 +188,7 @@ public class SystemLogController {
 	//
 	/**
 	 * 日志统计分析
-	 * 
+	 *
 	 * @date Created at 2018年11月2日 下午3:36:44
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -224,7 +224,7 @@ public class SystemLogController {
 
 	/**
 	 * 查看详细日志
-	 * 
+	 *
 	 * @date Created at 2018年11月5日 上午10:20:36
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -241,7 +241,7 @@ public class SystemLogController {
 
 	/**
 	 * 浏览器使用占比
-	 * 
+	 *
 	 * @date Created at 2018年11月5日 上午10:20:22
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -285,7 +285,7 @@ public class SystemLogController {
  *
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2018年7月27日 谷泽昊 creat
