@@ -2,24 +2,12 @@ package com.trs.netInsight.util;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.trs.netInsight.widget.special.service.ISpecialService;
-import com.trs.netInsight.widget.user.entity.User;
-import com.trs.netInsight.widget.user.service.IUserService;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.config.IniSecurityManagerFactory;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.Factory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.Calendar;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,25 +15,14 @@ import java.util.Map;
  * @author lilyy
  * @date 2020/4/2 10:40
  */
-@Component
-public class ReadDayBaogao {
-
-    @Autowired
-    private IUserService userService;
-    @Autowired
-    private ISpecialService specialService;
+public class ReadDayBaogao_bak {
 
     public static void main(String args[]){
 //        new ReadDayBaogao().readTxt(null);
-//        new ReadDayBaogao().getAreaData(1);
-        new ReadDayBaogao().yAxisData401_3();
-
-//        String s1 = "12,12,12,12,12,12,12,12,12,12,14,18,38,57,100,130,191,212,285,423,613,949,1126,1412,1784,2281,2876,3667,4500,5423,6650,7730,9134,10995,12612,14459,16018,19856,22302,25233,29566,33414,38105,40723,45170,52836,57763,59929,83029,90853,93780,98984,110070,113982,118783,125931,130730,133670,137877,143303,147863";
-//        String ss1[] = s1.split(",");
-//        System.out.println(ss1.length);
-//        String ss = "2月15日, 2月16日, 2月17日,2月18日, 2月19日, 2月20日,2月21日,2月22日,2月23日,2月24日,2月25日,2月26日,2月27日,2月28日,2月29日,3月1日,3月2日,3月3日,3月4日,3月5日,3月6日,3月7日,3月8日,3月9日,3月10日,3月11日,3月12日,3月13日,3月14日,3月15日,3月16日,3月17日,3月18日,3月19日,3月20日,3月21日,3月22日,3月23日,3月24日,3月25日,3月26日,3月27日,3月28日,3月29日,3月30日,3月30日,3月31日,4月1日,4月2日,4月3日,4月4日,4月5日,4月6日,4月7日,4月8日,4月9日,4月10日,4月11日,4月12日,4月13日,4月14日,4月15日,4月16日";
-//        String sss[] = ss.split(",");
-//        System.out.println(sss.length);
+        new ReadDayBaogao_bak().getAreaData();
+//        new ReadDayBaogao().yAxisData401_3();
+//        String ss="119100 ,66678 ,63210 ,52816 ,41943 ,31159 ,70437 ,143142 ,223387 ,312520 ,242751 ,209632 ,204221 ,180206 ,179584 ,179593 ,199324 ,181402 ,182119 ,206179 ,219843 ,239505 ,231466 ,180573,121465 ,65756 ,41620 ,29377 ,26309 ,34414 ,68186 ,143104 ,205168 ,252571 ,213617 ,198790 ,198316 ,173007 ,158693 ,185661 ,153886";
+//        System.out.println(ss.split(",").length);
     }
 
     /**传入txt路径读取txt文件
@@ -58,7 +35,6 @@ public class ReadDayBaogao {
         File file = new File(txtPath);
         if (file.isFile() && file.exists()) {
             try {
-
                 FileInputStream fileInputStream = new FileInputStream(file);
                 InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream,"UTF-8");
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -218,7 +194,7 @@ public class ReadDayBaogao {
                                 break;
                             }
                             if(tt.startsWith("舆情概述")){
-                                yqcbfx.put("yuqinggaishu",tt.replace("舆情概述：",""));
+                                yqcbfx.put("yuqinggaishu",tt.replace("舆情概述：",""));continue;
                             }
                             if(tt.startsWith("publicSaynote401==")){
                                 yqcbfx.put("publicSaynote401",tt.replace("publicSaynote401==",""));continue;
@@ -228,11 +204,19 @@ public class ReadDayBaogao {
                             }
                             //昨日走势今日走势图
                             if(tt.startsWith("areaData401")){
-                                yqcbfx.put("areaData401",getAreaData(0));
-                                continue;
+                                StringBuffer sb2 = new StringBuffer();
+                                while (true){
+                                    String ttt = bufferedReader.readLine();
+                                    if(ttt.contains("yAxisData401_4")){
+                                        key = "yAxisData401_4";
+                                        break;
+                                    }
+                                    sb2.append(ttt);
+                                }
+                                yqcbfx.put("areaData401",JSONArray.parseArray(sb2.toString()));
                             }
                             //昨日走势今日走势图
-                            if(tt.startsWith("yAxisData401_4")){
+                            if(key.equals("yAxisData401_4")){
                                 StringBuffer sb2 = new StringBuffer();
                                 while (true){
                                     String ttt = bufferedReader.readLine();
@@ -246,8 +230,15 @@ public class ReadDayBaogao {
                             }
                             //地图右侧数据
                             if(key.equals("tableData401")){
-                                yqcbfx.put("tableData401",getAreaData(1));
-                                key = "";
+                                StringBuffer sb2 = new StringBuffer();
+                                while (true){
+                                    String ttt = bufferedReader.readLine();
+                                    sb2.append(ttt);
+                                    if(ttt.contains("]")){
+                                        break;
+                                    }
+                                }
+                                yqcbfx.put("tableData401",JSONArray.parseArray(sb2.toString()));
                                 continue;
                             }
                         }
@@ -487,13 +478,13 @@ public class ReadDayBaogao {
     /**
      *
      */
-    public JSONArray getAreaData(int istable){
-        String txtPath = "D:\\工作文档\\文档\\tableArea.txt";
+    public void getAreaData(){
+        String txtPath = "D:\\工作文档\\文档\\temp.txt";
         File file = new File(txtPath);
         if (file.isFile() && file.exists()) {
             try {
                 FileInputStream fileInputStream = new FileInputStream(file);
-                InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream, "gb2312");
+                InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream, "UTF-8");
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String text1 = null;
                 JSONArray jsonArray = new JSONArray();
@@ -507,15 +498,14 @@ public class ReadDayBaogao {
                 map.put("浙江","河南");
                 map.put("四川","江苏");
                 map.put("江苏","四川");
+                map.put("香港","1");
                 map.put("黑龙江","1");
-                map.put("河南","1");
                 while ((text1 = bufferedReader.readLine()) != null) {
                     if(text1.contains("--->") || text1.equals("")) continue; //备注和空格直接跳过
                     JSONObject jsonObject = new JSONObject();
                     String area[] = text1.split("\t");
                     jsonObject.put("name",area[0]);
                     jsonObject.put("value",Integer.parseInt(area[1]));
-                    jsonArray.add(jsonObject);
                     if(map.get(area[0].trim())!=null){
                         jsonArrayTop.add(jsonObject);
                     }
@@ -523,13 +513,10 @@ public class ReadDayBaogao {
                 }
                 System.out.println(jsonArray.toString());
                 System.out.println(jsonArrayTop.toString());
-                if(istable==1) return jsonArrayTop;
-                else return jsonArray;
             }catch (Exception e){
                 e.printStackTrace();
             }
         }
-        return null;
     }
     public void yAxisData401_3(){
         String txtPath = "D:\\工作文档\\文档\\temp.txt";

@@ -16,7 +16,7 @@ import com.trs.netInsight.widget.user.service.IUserService;
 
 /**
  * 日志检索抽象类
- * 
+ *
  * @Type AbstractSystemLog.java
  * @Desc
  * @author 北京拓尔思信息技术股份有限公司
@@ -54,7 +54,7 @@ public abstract class AbstractSystemLog {
 
 	/**
 	 * 添加日志
-	 * 
+	 *
 	 * @date Created at 2018年7月26日 下午2:42:19
 	 * @Author 谷泽昊
 	 * @param systemLog requestParams
@@ -90,7 +90,7 @@ public abstract class AbstractSystemLog {
 
 	/**
 	 * 查看当前运维人员下的所有机构；超管看所有
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:58:05
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -107,7 +107,7 @@ public abstract class AbstractSystemLog {
 
 	/**
 	 * 当前机构下所有用户的操作日志
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:58:17
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -124,7 +124,7 @@ public abstract class AbstractSystemLog {
 
 	/**
 	 * 查看机构下所有用户
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:58:25
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -135,7 +135,7 @@ public abstract class AbstractSystemLog {
 
 	/**
 	 * 日志统计分析
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:58:35
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -155,7 +155,7 @@ public abstract class AbstractSystemLog {
 
 	/**
 	 * 查看单个日志
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:57:29
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -166,7 +166,7 @@ public abstract class AbstractSystemLog {
 
 	/**
 	 * 浏览器图
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:57:20
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊

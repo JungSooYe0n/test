@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2018年7月25日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 
 /**
  * 日志存入 mysql 实现类
- * 
+ *
  * @Type MysqlSystemLog.java
  * @author 谷泽昊
  * @date 2018年7月25日 下午4:26:45
@@ -65,7 +65,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	@Override
 	public SystemLog add(SystemLog systemLog) {
-		return mysqlSystemLogRepository.save(systemLog);
+		return mysqlSystemLogRepository.saveAndFlush(systemLog);
 	}
 
 	@Override
@@ -241,7 +241,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	/**
 	 * 获取超管所有机构
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:59:32
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -272,7 +272,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	/**
 	 * 获取运维所有项目
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午4:59:42
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -477,7 +477,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	/***
 	 * 给每一条记录加上机构名和系统名
-	 * 
+	 *
 	 * @param sysLogs
 	 * @return
 	 */
@@ -606,7 +606,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	/**
 	 * 获取系统日志
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午5:00:13
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -717,7 +717,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	/***
 	 * 转换时间
-	 * 
+	 *
 	 * @param timeNode
 	 *            1h 近1小时 or 15min 近15分钟
 	 * @return
@@ -734,7 +734,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	/***
 	 * 获取当前机构的同时在线人数
-	 * 
+	 *
 	 * @param activeSessions
 	 * @param org
 	 * @return
@@ -763,7 +763,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	/***
 	 * 获取当前机构当日总登陆次数
-	 * 
+	 *
 	 * @return
 	 */
 	private int getLoginCount(Organization org) {
@@ -778,7 +778,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	/**
 	 * 将字符串转换为时间
-	 * 
+	 *
 	 * @date Created at 2018年11月6日 下午3:19:17
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -808,7 +808,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
  *
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2018年7月25日 谷泽昊 creat
