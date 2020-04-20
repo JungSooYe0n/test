@@ -79,7 +79,7 @@ public class SystemLogController {
 				systemLogOperation.getValue(), systemLogTabId, NetworkUtil.getIpAddress(request),  request.getRequestURI(), new Date(), new Date(), timeConsumed,
 				ResultCode.SUCCESS, null, null, null, null, null, null,
 				UserUtils.getUser().getUserName(), null,null,0);
-
+		abstractSystemLog.add(systemLog);
 	}
 
 	/**
