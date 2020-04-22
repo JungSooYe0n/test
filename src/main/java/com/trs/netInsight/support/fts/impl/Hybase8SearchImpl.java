@@ -1361,7 +1361,7 @@ private String isArticleDelete(String startTrsl,String... indices){
 		ArticleDeleteGroupName groupName = ArticleDeleteGroupName.chuantong;
 		String resultTrsl = "";
 		for (String db : list) {
-			if (db.contains(Const.HYBASE_NI)) {
+			if (db.contains(Const.HYBASE_NI_INDEX)) {
 				trsl = FtsFieldConst.FIELD_SID;
 				groupName = ArticleDeleteGroupName.chuantong;
 			} else if (db.contains(Const.WEIBO)) {

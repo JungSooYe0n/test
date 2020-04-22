@@ -1292,8 +1292,8 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
         for (Favourites favourites : favouritesList) {
             if (ObjectUtil.isNotEmpty(favourites)) {
 
-                if (Const.FAVOURITES_SOURCE_GROUPNAME.containsKey(favourites.getGroupName())) {
-                    String groupName = Const.FAVOURITES_SOURCE_GROUPNAME.get(favourites.getGroupName());
+                if (Const.SOURCE_GROUPNAME_CONTRAST.containsKey(favourites.getGroupName())) {
+                    String groupName = Const.SOURCE_GROUPNAME_CONTRAST.get(favourites.getGroupName());
                     favourites.setGroupName(groupName);
                 }
 

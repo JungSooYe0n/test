@@ -1297,7 +1297,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			}
 			break;
 		}
-		countBuilder.setDatabase(Const.HYBASE_NI);
+		countBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 		log.info(builder.asTRSL());
 		log.error("开始查询海贝:" + System.currentTimeMillis());
 		InfoListResult<FtsDocument> docList = infoListService.getDocList(builder, loginUser, simflag,irSimflag,irSimflagAll,false,"alert");

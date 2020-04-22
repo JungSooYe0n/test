@@ -446,7 +446,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
         queryBuilder.filterByTRSL(trsl);
         queryBuilder.filterByTRSL(" (IR_EMOTION:(\"怒\" OR \"恶\" OR \"惧\" OR \"喜\" OR \"哀\"))");
         GroupResult emtionResult = hybase8SearchService.categoryQuery(false, queryBuilder.asTRSL(), false, false,false,
-                FtsFieldConst.FIELD_EMOTION, 5, Const.HYBASE_NI);
+                FtsFieldConst.FIELD_EMOTION, 5, Const.HYBASE_NI_INDEX);
 
         if (ObjectUtil.isNotEmpty(emtionResult)){
             List<GroupInfo> groupList = emtionResult.getGroupList();

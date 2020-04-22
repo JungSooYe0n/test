@@ -774,7 +774,7 @@ public class HomeServiceImpl implements IHomeService {
 			log.info(queryBuilder.asTRSL());
 			String startGroup = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
 			GroupResult categoryQuery = hybase8SearchService.categoryQuery(queryBuilder, true,false, false,"IR_URLTIME_HOUR",null,
-					Const.HYBASE_NI);
+					Const.HYBASE_NI_INDEX);
 			String endGroup = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
 			log.warn("首页  专项趋势 本次分类统计 耗时"
 					+ (Integer.parseInt(endGroup.substring(8, 17)) - Integer.parseInt(startGroup.substring(8, 17)))

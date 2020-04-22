@@ -243,7 +243,7 @@ public class CommonListColumn extends AbstractColumn {
 					throw new TRSSearchException(e);
 				}
 			} else {// 传统
-				queryBuilder.setDatabase(Const.HYBASE_NI);
+				queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 				try {
 					return infoListService.getDocList(queryBuilder, loginUser, sim,irSimflag,irSimflagAll,false,"column");
 				} catch (TRSException e) {

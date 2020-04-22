@@ -13,6 +13,7 @@ import java.util.Map;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.builder.condition.SearchCondition;
 
+import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
-public class QueryBuilder implements Cloneable{
+public class QueryBuilder extends IQueryBuilder implements Cloneable{
 
 	private String groupName;
 

@@ -9,6 +9,8 @@ import com.trs.netInsight.support.knowledgeBase.service.IKnowledgeBaseService;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 
@@ -42,6 +44,9 @@ public abstract class AbstractColumn {
 	protected FullTextSearch hybase8SearchService;
 	protected IDistrictInfoService districtInfoService;
 	protected ChartAnalyzeService chartAnalyzeService;
+
+	protected ICommonListService commonListService;
+	protected ICommonChartService commonChartService;
 	
 	/**
 	 * 预警 收藏

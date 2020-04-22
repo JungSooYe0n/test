@@ -3,6 +3,7 @@ package com.trs.netInsight.support.fts.entity;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.support.fts.annotation.FtsClient;
 import com.trs.netInsight.support.fts.annotation.FtsField;
+import com.trs.netInsight.support.fts.annotation.enums.FtsHybaseType;
 import com.trs.netInsight.support.fts.model.result.IDocument;
 
 import lombok.Getter;
@@ -19,7 +20,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @NoArgsConstructor
-@FtsClient(indices = Const.HYBASE_NI)
+@FtsClient(hybaseType = FtsHybaseType.TRADITIONAL)
 public class ESDocumentNew extends IDocument{
 
     @FtsField("IR_SID")

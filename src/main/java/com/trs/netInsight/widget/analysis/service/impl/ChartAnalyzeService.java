@@ -15,10 +15,8 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.ckm.ICkmService;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
-import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.FtsDocument;
-import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
@@ -26,7 +24,6 @@ import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.model.result.GroupWordInfo;
 import com.trs.netInsight.support.fts.model.result.GroupWordResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
-import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.*;
@@ -35,7 +32,7 @@ import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.base.enums.ESGroupName;
-import com.trs.netInsight.widget.special.entity.InfoListResult;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.spread.entity.GraphMap;
@@ -57,7 +54,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.trs.netInsight.config.constant.ChartConst.*;
-import static java.util.stream.Collectors.toList;
 
 /**
  * 图表分析服务
@@ -82,6 +78,9 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Autowired
 	private ICkmService ckmService;
+
+	@Autowired
+	private ICommonListService commonListService;
 
 	@Override
 	public Object mediaLevel(QueryBuilder builder) throws TRSException {
@@ -1148,8 +1147,9 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			}
 
 			log.warn("stattal接口：" + builder.asTRSL());
-			GroupResult categoryQuery = hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,
-					FtsFieldConst.FIELD_GROUPNAME, "special",Const.MIX_DATABASE);
+			builder.setDatabase(Const.MIX_DATABASE);
+			GroupResult categoryQuery = commonListService.categoryQuery(builder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME,"special");
+					//hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME, "special",Const.MIX_DATABASE);
 			List<GroupInfo> groupList = categoryQuery.getGroupList();
 			Map<String, Long> map = new LinkedHashMap<>();
 			map.put("国内新闻", 0L);
@@ -1572,7 +1572,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 									+ tieba(groupName) + ") AND IR_APPRAISE:" + appraise[j] + " AND "
 									+ searchBuilder.asTRSL();
 							queryBuilder.filterByTRSL(esSql);
-							queryBuilder.setDatabase(Const.HYBASE_NI);
+							queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 						}
 						Long l = hybase8SearchService.ftsCount(queryBuilder, isSimilar, false,false,"special");
 						String count = String.valueOf(l);
@@ -2683,37 +2683,9 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			}else {
 				return null;
 			}
-//			List<GroupInfo> list = result.getGroupList();
-//			// 数据清理
-//			for (int i = 0; i < list.size(); i++) {
-//				String name = list.get(i).getFieldValue();
-//				if (name.endsWith("html")) {
-//					list.remove(i);
-//					break;
-//				}
-//				if (name.contains(";")) {
-//					String[] split = name.split(";");
-//					name = split[split.length - 1];
-//				}
-//				if (name.contains("\\")) {
-//					String[] split = name.split("\\\\");
-//					name = split[split.length - 1];
-//				}
-//				if (name.contains(".")) {
-//					String[] split = name.split("\\.");
-//					name = split[split.length - 1];
-//				}
-//				list.get(i).setFieldValue(name);
-//			}
 		} catch (TRSSearchException e) {
 			throw new TRSSearchException(e);
 		}
-//		if (ObjectUtil.isNotEmpty(result) && result.getGroupList().size() > 0){
-//			return result;
-//		}else {
-//			return null;
-//		}
-
 	}
 
 	@Override
@@ -3236,8 +3208,9 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 				}
 			}
 			log.info(builder.asTRSL());
-			GroupResult categoryQuery = hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,
-					FtsFieldConst.FIELD_GROUPNAME, null,Const.MIX_DATABASE);
+			GroupResult categoryQuery = commonListService.categoryQuery(builder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME,null);
+			/*GroupResult categoryQuery = hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,
+					FtsFieldConst.FIELD_GROUPNAME, null,Const.MIX_DATABASE);*/
 			List<GroupInfo> groupList = categoryQuery.getGroupList();
 			Map<String, Long> map = new LinkedHashMap<>();
 			map.put("国内新闻", 0L);

@@ -47,11 +47,14 @@ public class HostListColumn extends AbstractColumn {
 		QueryBuilder builder = this.createQueryBuilder();
 		// 选择数据库
 		selectDatabase(builder);
-		String uid = UUID.randomUUID().toString();
-		RedisUtil.setString(uid, builder.asTRSL());
 
 		// 根据MD5分类统计
 		try {
+
+			list = (List<Map<String, Object>>) commonChartService.getHotListColumnData(builder,config.getMaxSize(),"column");
+
+			/*String uid = UUID.randomUUID().toString();
+			RedisUtil.setString(uid, builder.asTRSL());
 			//逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-4
 			GroupResult categoryQuery = hybase8SearchService.categoryQuery(builder.isServer(), builder.asTRSL(), false,true
 					,false, FtsFieldConst.FIELD_MD5TAG, config.getMaxSize(),"column", builder.getDatabase());
@@ -99,37 +102,12 @@ public class HostListColumn extends AbstractColumn {
 					map.put("urlTime", doc.getUrlTime());
 					list.add(map);
 				}
-			}
+			}*/
 		} catch (TRSSearchException e) {
 			throw new TRSSearchException(e);
 		} catch (TRSException e) {
 			throw new TRSSearchException(e);
 		}
-		// finally{
-		// //最后把数据库赋值回去
-		// //通过反射修改indices属性 不然混合查询太慢
-		// FtsClient ftsClient =
-		// FtsDocumentCommonVO.class.getAnnotation(FtsClient.class);
-		// InvocationHandler h = Proxy.getInvocationHandler(ftsClient);
-		// // 获取 AnnotationInvocationHandler 的 memberValues 字段
-		// // 获取 memberValues
-		// Map<String,String> memberValues = null;
-		// try {
-		// Field hField = h.getClass().getDeclaredField("memberValues");
-		// hField.setAccessible(true);
-		// try {
-		// memberValues = (Map) hField.get(h);
-		// } catch (IllegalArgumentException | IllegalAccessException e) {
-		// throw new TRSSearchException(e);
-		// }
-		// // 修改 value 属性值
-		// memberValues.put("indices", Const.MIX_DATABASE);
-		// } catch (NoSuchFieldException e) {
-		// throw new TRSSearchException(e);
-		// } catch (SecurityException e) {
-		// throw new TRSSearchException(e);
-		// }
-		// }
 		return list;
 	}
 

@@ -1331,8 +1331,8 @@ public class ReportServiceImpl implements IReportService {
 		List<Favourites> favouritesList = favouritesRepository.findAll(criteria);
 
 		for(Favourites fav : favouritesList){
-			if(Const.FAVOURITES_SOURCE_GROUPNAME.containsKey(fav.getGroupName())){
-				String groupName = Const.FAVOURITES_SOURCE_GROUPNAME.get(fav.getGroupName());
+			if(Const.SOURCE_GROUPNAME_CONTRAST.containsKey(fav.getGroupName())){
+				String groupName = Const.SOURCE_GROUPNAME_CONTRAST.get(fav.getGroupName());
 				fav.setGroupName(groupName);
 			}
 		}

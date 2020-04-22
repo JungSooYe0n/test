@@ -374,4 +374,17 @@ public class TrslUtil {
 		}
 		return groupNameSets.toArray(new String[] {});
 	}
+
+
+	public static String removeSimflag(String trslk) {
+		if(trslk.indexOf("AND SIMFLAG:(1000 OR \"\")") != -1){
+			trslk = trslk.replace(" AND SIMFLAG:(1000 OR \"\")","");
+		}else if (trslk.indexOf("AND (IR_SIMFLAGALL:(\"0\" OR \"\"))") != -1){
+			trslk = trslk.replace(" AND (IR_SIMFLAGALL:(\"0\" OR \"\"))","");
+		}
+		trslk = trslk.replaceAll("AND \\(IR_SIMFLAGALL:\\(\"0\" OR \"\"\\)\\)","");
+		return trslk;
+	}
+
+
 }
