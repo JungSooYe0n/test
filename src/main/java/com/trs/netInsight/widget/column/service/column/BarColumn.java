@@ -412,7 +412,7 @@ public class BarColumn extends AbstractColumn {
 
 			// 辨别普通模式与专家模式
 			if (StringUtil.isNotEmpty(indexTab.getXyTrsl())) {
-				List<CategoryBean> mediaType = chartAnalyzeService.getMediaType(indexTab.getXyTrsl());
+				List<CategoryBean> mediaType = chartAnalyzeService.getMediaType(indexTab.getXyTrsl(),false);
 				for (CategoryBean categoryBean : mediaType) {
 
 					builder = new QueryCommonBuilder();
@@ -428,11 +428,11 @@ public class BarColumn extends AbstractColumn {
 					builder.setDatabase(data);
 					builder.setServer(indexTab.isServer());
 					long ftsCount = hybase8SearchService.ftsCountCommon(builder, sim, irSimflag,irSimflagAll,"column");
-					if (ftsCount > 0L){
-						Map<String, Object> putValue = MapUtil.putValue(new String[] { "groupName", "group", "num" },
+
+					Map<String, Object> putValue = MapUtil.putValue(new String[] { "groupName", "group", "num" },
 								categoryBean.getKey(), categoryBean.getKey(), String.valueOf(ftsCount));
-						list.add(putValue);
-					}
+					list.add(putValue);
+
 				}
 			} else {
 

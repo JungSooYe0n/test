@@ -4,13 +4,17 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.trs.netInsight.support.log.entity.SystemLog;
 import com.trs.netInsight.support.log.entity.SystemLogException;
 import com.trs.netInsight.support.log.repository.SystemLogExceptionRepository;
+import com.trs.netInsight.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -67,9 +71,13 @@ public class SystemLogAspectFilter {
 	@Autowired
 	private SystemLogExceptionRepository systemLogExceptionRepository;
 
+
+	ExecutorService singleThreadExecutor = Executors.newFixedThreadPool(10);
+
+
 	/**
 	 * 拦截被Api标注的方法
-	 * 
+	 *
 	 * @date Created at 2018年7月25日 下午5:53:11
 	 * @Author 谷泽昊
 	 * @param pjp
@@ -136,10 +144,15 @@ public class SystemLogAspectFilter {
 			endTime = new Date();
 			trsl = getTrsl(request);
 
-			AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(log.depositPattern());
-			abstractSystemLog.add(parames, methodDescription, systemLogType, systemLogOperation, null, requestIp,
-					requestUri, startTime, endTime, ResultCode.SUCCESS, null, osInfo, browserInfo, sessionId,
-					operationPosition, user.getUserName(), trsl,num);
+			long timeConsumed = endTime.getTime() - startTime.getTime();
+			String simpleStatus = 500 == ResultCode.SUCCESS ? "失败" : "成功";
+			SystemLog systemLog = new SystemLog(parames, methodDescription, systemLogType.getValue(),
+					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
+					ResultCode.SUCCESS, simpleStatus, null, osInfo, browserInfo, sessionId, operationPosition,
+					user.getUserName() == null ? UserUtils.getUser().getUserName():user.getUserName(), trsl,num,0);
+			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,log.depositPattern());
+			singleThreadExecutor.execute(runnableThreadTest);
+
 			return proceed;
 		} catch (Throwable throwable) {
 			endTime = new Date();
@@ -178,7 +191,7 @@ public class SystemLogAspectFilter {
 
 	/**
 	 * 获取操作位置
-	 * 
+	 *
 	 * @date Created at 2018年11月7日 下午6:42:15
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
@@ -188,7 +201,7 @@ public class SystemLogAspectFilter {
 	 * @return
 	 */
 	private String getOperationPosition(SystemLogType systemLogType, SystemLogOperation systemLogOperation,
-			Map<String, String[]> parameterMap, String operationPosition) {
+										Map<String, String[]> parameterMap, String operationPosition) {
 		AbstractSystemLogOperation abstractSystemLogOperation = SystemLogOperationFactory
 				.createSystemLogOperation(systemLogType);
 		if (abstractSystemLogOperation != null) {
@@ -200,7 +213,7 @@ public class SystemLogAspectFilter {
 
 	/**
 	 * 获取所有参数
-	 * 
+	 *
 	 * @date Created at 2018年7月25日 下午3:45:06
 	 * @Author 谷泽昊
 	 * @param reqMap
@@ -229,7 +242,7 @@ public class SystemLogAspectFilter {
 
 	/**
 	 * 抛出异常
-	 * 
+	 *
 	 * @date Created at 2018年7月26日 下午2:40:54
 	 * @Author 谷泽昊
 	 * @param throwable
@@ -250,15 +263,21 @@ public class SystemLogAspectFilter {
 	 * @throws TRSException
 	 */
 	private void throwNewTRSException(Throwable throwable, DepositPattern depositPattern, String requestParams,
-			String methodDescription, SystemLogType systemLogType, SystemLogOperation systemLogOperation,
-			String requestIp, String requestUri, Date startTime, Date endTime, String osInfo, String browserInfo,
-			String sessionId, String operationPosition, String operationUserName, String trsl) throws TRSException {
+									  String methodDescription, SystemLogType systemLogType, SystemLogOperation systemLogOperation,
+									  String requestIp, String requestUri, Date startTime, Date endTime, String osInfo, String browserInfo,
+									  String sessionId, String operationPosition, String operationUserName, String trsl) throws TRSException {
 		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(depositPattern);
+		long timeConsumed = endTime.getTime() - startTime.getTime();
+		String simpleStatus = 500 == ResultCode.SUCCESS ? "失败" : "成功";
 		if (throwable instanceof TRSException) {
 			TRSException t = (TRSException) throwable;
-			SystemLog systemLog = abstractSystemLog.add(requestParams, methodDescription, systemLogType, systemLogOperation, null, requestIp,
-					requestUri, startTime, endTime, t.getCode(), StringUtils.substring(t.getMessage(), START, END),
-					osInfo, browserInfo, sessionId, operationPosition, operationUserName, trsl,null);
+
+			SystemLog systemLog = new SystemLog(requestParams, methodDescription, systemLogType.getValue(),
+					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
+					t.getCode(), simpleStatus, StringUtils.substring(t.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
+					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
+			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern);
+			singleThreadExecutor.execute(runnableThreadTest);
 			try {
 				SystemLogException systemLogException = new SystemLogException(systemLog.getId(),getTrace(t));
 				systemLogExceptionRepository.save(systemLogException);
@@ -268,10 +287,12 @@ public class SystemLogAspectFilter {
 			}
 			throw t;
 		} else {
-			SystemLog systemLog = abstractSystemLog.add(requestParams, methodDescription, systemLogType, systemLogOperation, null, requestIp,
-					requestUri, startTime, endTime, ResultCode.OPERATION_EXCEPTION,
-					StringUtils.substring(throwable.getMessage(), START, END), osInfo, browserInfo, sessionId,
-					operationPosition, operationUserName, trsl,null);
+			SystemLog systemLog = new SystemLog(requestParams, methodDescription, systemLogType.getValue(),
+					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
+					ResultCode.OPERATION_EXCEPTION, simpleStatus, StringUtils.substring(throwable.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
+					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
+			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern);
+			singleThreadExecutor.execute(runnableThreadTest);
 			try {
 				System.out.println(getTrace(throwable));
 				SystemLogException systemLogException = new SystemLogException(systemLog.getId(),getTrace(throwable));
@@ -300,7 +321,7 @@ public class SystemLogAspectFilter {
 	/***
 	 * params在数据库中的存储字段是TEXT，最大64KB，即65536个字符
 	 * UTF-8下，1个汉字可能占2个、3个、4个字符，所以统一按照最大长度65536/4 处理。
-	 * 
+	 *
 	 * @param parames
 	 *            参数
 	 * @return
@@ -335,4 +356,18 @@ public class SystemLogAspectFilter {
 		return methodDescription;
 	}
 
+}
+class RunnableThreadTest implements Runnable{
+	private SystemLog systemLog;
+	private DepositPattern depositPattern;
+
+	public RunnableThreadTest(SystemLog systemLog1,DepositPattern depositPattern1){
+		systemLog = systemLog1;
+		depositPattern = depositPattern1;
+	}
+	@Override
+	public void run() {
+		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(depositPattern);
+		abstractSystemLog.add(systemLog);
+	}
 }

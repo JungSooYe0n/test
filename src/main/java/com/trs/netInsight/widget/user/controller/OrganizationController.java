@@ -798,10 +798,7 @@ public class OrganizationController {
 					// 此时 若pictureName也是null 说明该机构需要换回原有默认网察logo
 					fileName = pictureName;
 				}
-				//自动添加的名称前加前缀,显示的时候前缀去掉了,修改机构则重新加上
-				if(organization.getAutoAdd() != null && organization.getAutoAdd().equals("1")){
-					organizationName = ChartConst.AUTOLOGIN+organizationName;
-				}
+
 				hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,null,id);
 				organizationService.updateOrganization(id, organizationType, organizationName,fileName,userName,password, displayName, email,
 						phone, expireAt, customerSource, headOfSales, rolePlatforms, descriptions, userLimit,columnNum,specialNum,alertNum,alertAccountNum,
@@ -1322,7 +1319,7 @@ public class OrganizationController {
 
 	/**
 	 * 根据机构id获取机构权限和是否同时登录
-	 * 
+	 *
 	 * @date Created at 2018年9月26日 下午10:14:56
 	 * @Author 谷泽昊
 	 * @param organizationId
@@ -1338,7 +1335,7 @@ public class OrganizationController {
 
 	/**
 	 * 删除机构时获取的验证码
-	 * 
+	 *
 	 * @date Created at 2018年9月29日 下午2:33:17
 	 * @Author 谷泽昊
 	 * @param organizationId
@@ -1427,7 +1424,7 @@ public class OrganizationController {
  *
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2017年11月20日 谷泽昊 creat

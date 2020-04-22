@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Administrator
  * @Type Const.java
  * @Desc 系统公共常量类
  * @date 2017年11月24日 下午4:07:17

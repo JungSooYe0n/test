@@ -73,9 +73,9 @@ public class OrganAutoRegisterController {
     public static final int isAutoAdd = 1;
 
     /**
-     * 天目云 使用接口
+     * 天目云 使用接口 --下面有个共用接口
      * 自动添加登录接口--也是走Nginx
-     * http://localhost:28088/netInsight/autoLogin?userName=tt001&msec=2019&tenantId=123456&isAdmin=1&encrypting=e531b4f05e3d3bfdd79ae9eec81bb4ae
+     * http://localhost:28088/netInsight/autoLogin?username=tt001&msec=2019&tenantId=123456&isAdmin=1&encrypting=e531b4f05e3d3bfdd79ae9eec81bb4ae&tenantName=测11
      * 等会成功后,用户请求该地址即可直接登录进去
      * http://localhost:28088/#/CustomizeMenus
      * http://www.netinsight.com.cn/#/CustomizeMenus
@@ -101,10 +101,10 @@ public class OrganAutoRegisterController {
         String token = PasswordUtil.getToken(userName,msec);
         log.info("token--------->"+token);
         log.info("encrypting---->"+encrypting);
-//        if(!encrypting.equals(token)){
-//            log.error("自动添加,验证失败");
-//            return "密文验证失败!";
-//        }
+        if(!encrypting.equals(token)){
+            log.error("自动添加,验证失败");
+            return "密文验证失败!";
+        }
         // 判断账号是否为空
         if (StringUtils.isBlank(userName)) {
             log.info("账号不能为空!");
@@ -134,6 +134,132 @@ public class OrganAutoRegisterController {
                     90,365,90,null,"网察",
                     "网察大数据分析平台","010-64859900",null,
                     null,true,true,isAdmin,isAutoAdd,tenantId,null,null,null,null);
+
+            //修改状态
+            List<Organization> organizations = organizationService.findByOrganizationName(tenantName);
+            Organization organ1 = null;
+            for(Organization oo : organizations){
+                if(oo.getAutoAdd()!=null && oo.getAutoAdd().equals("1")){
+                    organ1 = oo;
+                    oo.setStatus(Status.getStatusByValue("0"));
+                    organizationService.update(oo);
+                    break;
+                }
+            }
+            ///////////////////////////////
+            /////////////1.如果用户是管理员上面直接添加了,不是管理员则要添加分组以及用户//////////////////
+            if(isAdmin==0){
+                addSubGroup(organ1.getId(),tenantName,userName,dispname,0,tenantId);
+            }
+        }else{
+            //////判断用户是否存在,如果存在则返回  admin创建的机构只能添加一个管理员
+            ////////用户不存在,是否是管理员-->是管理员查看上层机构中是否存在用户,不存在添加到上层机构中
+            ////////1.上层用户存在,添加分组以及用户
+            User userIsexit = userService.findByUserName(userName);
+            if(userIsexit==null){//用户不存在
+                if(isAdmin==0){ //是普通用户,分组添加用户和权限---没有新建和编辑权限
+                    addSubGroup(organization.getId(),tenantName,userName,dispname,0,tenantId);
+                }else{
+                    //用户是管理员,判断顶层机构是否有管理员,没有添加到顶层机构管理员,存在则添加子机构管理员
+                    List<User> users = userService.findByOrganizationId(organization.getId());
+                    if(users.size()==0){
+                        User user = addUser(userName,dispname,organization.getId());
+                        String add = userService.add(user, false);
+                        organization = organizationService.findById(organization.getId());
+                        if (organization != null) {
+                            organization.setAdminUserId(add);
+                            organizationService.update(organization);
+                        }
+                    }else{
+                        addSubGroup(organization.getId(),tenantName,userName,dispname,1,tenantId);
+                    }
+                }
+            }else{
+                log.info(userName+"该用户已经存在,可以直接登录!"); //权限修改后
+                if(isAdmin==1 && userIsexit.getCheckRole().equals(CheckRole.ROLE_ORDINARY.toString())
+                    && userIsexit.getRoles().size()<=0){
+                    log.info(userName+"管理员与否修改,更新权限,自动登录接口!"); //权限修改后
+                    List<Role> roles = roleService.findByDescriptions("日常监测、专题分析、预警中心");
+                    userIsexit.setRoles(new HashSet<>(roles));
+                    userService.update(userIsexit,false);
+                }
+            }
+        }
+        //免登录暂时注释
+        //免登录暂时注释
+        boolean flag = login(userName,request);
+        if(!flag){
+            return "登录失败,请稍后再试!";
+        }
+        //重定向的地址--第一次可能来源选择 需要刷新出来,第二种可以解决,但是有个登录过程
+        String radd = autoRegisterRedirect.replace("{userName}",userName).replace("{password}",autopwd);
+        log.info("--->一键登录登录成功!,跳转到-->"+radd);
+        return "redirect:"+radd;
+    }
+    /**
+     * 浙报宣管平台 使用接口
+     * 自动添加登录接口--也是走Nginx
+     * http://localhost:28088/netInsight/autoLoginGen?username=tt001&msec=2019&tenantId=123456&isAdmin=1&encrypting=e531b4f05e3d3bfdd79ae9eec81bb4ae&tenantName=测211
+     * 等会成功后,用户请求该地址即可直接登录进去
+     * http://localhost:28088/#/CustomizeMenus
+     * http://www.netinsight.com.cn/#/CustomizeMenus
+     * @param userName  一点登录用户名
+     * @param msec  时间戳
+     * @param encrypting  验证蜜月
+     * @param tenantId  /机构名
+     * @param isAdmin  是否管理员--具有新建/编辑权限
+     * @param platId  默认浙报宣管平台 如果以后需要其他平台,区分即可
+     * @return
+     */
+    @ApiOperation("根据用户名自动添加机构")
+    @RequestMapping(value = "autoLoginGen", method = { RequestMethod.POST,RequestMethod.GET })
+    public String autoLoginGen(@ApiParam("管理员账号") @RequestParam(value = "username") String userName,
+                            @ApiParam("时间戳") @RequestParam("msec") String msec,
+                            @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting,
+                            @ApiParam("租户ID") @RequestParam("tenantId") String tenantId,
+                            @ApiParam("网察机构名") @RequestParam("tenantName") String tenantName,
+                            @ApiParam("是否租户管理员") @RequestParam("isAdmin") int isAdmin,
+                            @ApiParam("区分平台") @RequestParam(value = "platId",required = false,defaultValue = "0") int platId,
+                            HttpServletRequest request) throws TRSException{
+
+        log.info("根据用户名自动添加机构,并自动登录");
+        String token = PasswordUtil.getToken(userName,msec);
+        log.info("token--------->"+token);
+        log.info("encrypting---->"+encrypting);
+        if(!encrypting.equals(token)){
+            log.error("自动添加,验证失败");
+            return "密文验证失败!";
+        }
+        // 判断账号是否为空
+        if (StringUtils.isBlank(userName)) {
+            log.info("账号不能为空!");
+            return "账号不能为空！";
+        }
+        String dispname = userName;
+        //添加标识,防止和原有的机构,账号冲突
+        userName = ChartConst.AUTOLOGINUSERNAME_ZB+userName;
+        tenantName = ChartConst.AUTOLOGIN_ZB+tenantName;
+        // 判断机构名是否存在--存在直接登录
+        // 可以在结构和用户前加标识,防止冲突
+        List<Organization> orgg = organizationService.findByOrganizationName(tenantName);
+        Organization organization = null;
+        for(Organization oo : orgg){
+            if(oo.getAutoAdd()!=null && oo.getAutoAdd().equals("1")) organization = oo;
+        }
+        if (organization == null) {
+            log.info(tenantName+"机构不存在,自动添加");
+            Organization.OrganizationType organizationType = Organization.OrganizationType.formal;
+            String[] rolePlatformIds = {"4028b8736ca8942e016ca89fa98b001b"};
+            String[] dataSource = {"新闻","微博","微信","客户端","论坛","博客","电子报","国外新闻"};
+            organizationService.add(organizationType, tenantName,null, userName,autopwd,
+                    dispname, null, null, "2050-01-01 00:00:00", "其他",
+                    "天目云接口", rolePlatformIds,
+                    null, 5, 50, 10,10,
+                    5,500, dataSource,
+                    90,365,90,null,"网察",
+                    "网察大数据分析平台","010-64859900",null,
+                    null,true,true,isAdmin,isAutoAdd,tenantId,null,null,null,null);
+
             //修改状态
             List<Organization> organizations = organizationService.findByOrganizationName(tenantName);
             Organization organ1 = null;

@@ -1751,6 +1751,10 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	 * @return
 	 */
 	public List<CategoryBean> getMediaType(String trsl) {
+		return getMediaType(trsl, true);
+	}
+
+	public List<CategoryBean> getMediaType(String trsl,Boolean changeKey) {
 		List<CategoryBean> list = new ArrayList<>();
 		String newXyTrsl = trsl.replaceAll("\n", "");
 		String[] medias = newXyTrsl.split("[;|；]");
@@ -1758,8 +1762,10 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			for (String str : medias) {
 				if (StringUtils.isNotBlank(str)) {
 					String key = str.substring(0, str.indexOf("="));
-					if ("手机客户端".equals(key)) {
-						key = "国内新闻_手机客户端";
+					if(changeKey){
+						if ("手机客户端".equals(key)) {
+							key = "国内新闻_手机客户端";
+						}
 					}
 					String val = str.substring(str.indexOf("=") + 1, str.length());
 					list.add(new CategoryBean(key, val));

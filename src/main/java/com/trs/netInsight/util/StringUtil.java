@@ -508,7 +508,6 @@ public final class StringUtil {
 	 */
 	public static String toString(List<Map<String, String>> list,int start) {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("\\n");
 		if (list != null && list.size() > 0) {
 			int i = start;
 			for (Map<String, String> map : list) {

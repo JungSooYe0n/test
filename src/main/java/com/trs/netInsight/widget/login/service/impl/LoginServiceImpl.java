@@ -55,7 +55,7 @@ public class LoginServiceImpl implements ILoginService {
 	@Override
 	public String login(UsernamePasswordToken token, String userName, String ip) throws TRSException {
 		// 调用接口获取access_token
-		log.error("用户[" + userName + "]登录认证通过(这里可以进行一些认证通过后的一些系统参数初始化操作)");
+		//log.error("用户[" + userName + "]登录认证通过(这里可以进行一些认证通过后的一些系统参数初始化操作)");
 		Subject currentUser = SecurityUtils.getSubject();
 		Session session = currentUser.getSession();
 		try {
@@ -123,7 +123,7 @@ public class LoginServiceImpl implements ILoginService {
 			}
 			// 将登录次数存入redis（按用户）
 			Integer count = UserUtils.setLoginCount(userName+user.getId());
-			loginFrequencyLogService.save(count,user.getId());
+			//loginFrequencyLogService.save(count,user.getId());
 			// 将登录次数存入redis（按分组）
 			String subGroupId = user.getSubGroupId();
 			UserUtils.setLoginCount(subGroupId);
