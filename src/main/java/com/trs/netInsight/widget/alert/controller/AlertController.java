@@ -84,15 +84,14 @@ public class AlertController {
 						  @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
 						  @ApiParam("步长") @RequestParam(value = "pageSize", defaultValue = "3", required = false) int pageSize)
 			throws OperationException {
-		return null;
-	    /*Boolean isAlert = UserUtils.getUser().getIsAlert();
+	    Boolean isAlert = UserUtils.getUser().getIsAlert();
 		if(isAlert == null || isAlert){
-			*//*
+			/*
 			20200107修改
 			刚登陆进来，返回列表前三条
 			刷新页面时，首先查询十分钟内的数据，如果有则返回，没有则返回列表前三条.
 			页面定时请求  首先查询十分钟内的数据，如果有，则返回，没有则返回列表前三条
-		 *//*
+		 */
 			pageSize = pageSize >= 1 ? pageSize : 3;
 			int i = 0;
 			if (justLogin) {
@@ -131,7 +130,7 @@ public class AlertController {
 		} else {
 			//预警弹框不在提醒  ---  如果设置了不再提醒，当前次登录中不再提醒，再次登录状态重置，继续提醒
 			return null;
-		}*/
+		}
 	}
 
 	/**
