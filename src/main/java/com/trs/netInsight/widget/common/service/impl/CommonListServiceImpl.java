@@ -33,6 +33,7 @@ import com.trs.netInsight.widget.special.entity.AsyncInfo;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -142,15 +143,20 @@ public class CommonListServiceImpl implements ICommonListService {
      */
     @Override
     public InfoListResult queryPageList(QueryCommonBuilder builder, boolean sim,
-                                        boolean irSimflag, boolean irSimflagAll, String type, User user, Boolean isCalculateSimNum) throws TRSException {
+                                        boolean irSimflag, boolean irSimflagAll,String groupName, String type, User user, Boolean isCalculateSimNum) throws TRSException {
 
         final String pageId = GUIDGenerator.generate(CommonListServiceImpl.class);
         final String nextPageId = GUIDGenerator.generate(CommonListServiceImpl.class);
         try {
-            String[] database = builder.getDatabase();
+            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+            String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
+            String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
+            builder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
+            String[] database = TrslUtil.chooseDatabases(groupArray);
             if (database == null || database.length == 0) {
                 builder.setDatabase(Const.MIX_DATABASE.split(";"));
             }
+            builder.setDatabase(database);
             builder.setPageSize(builder.getPageSize()>=1?builder.getPageSize():10);
             builder.setPageNo(builder.getPageNo()>=0?builder.getPageNo():0);
 
@@ -245,11 +251,20 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSException
      */
     @Override
-    public <T extends IQueryBuilder> InfoListResult queryPageListForHot(T queryBuilder, User user, String type, Boolean isCalculateSimNum) throws TRSException {
+    public <T extends IQueryBuilder> InfoListResult queryPageListForHot(T queryBuilder,String groupName, User user, String type, Boolean isCalculateSimNum) throws TRSException {
         final String pageId = GUIDGenerator.generate(CommonListServiceImpl.class);
         final String nextPageId = GUIDGenerator.generate(CommonListServiceImpl.class);
         try {
             QueryBuilder builder = CommonListChartUtil.formatQueryBuilder(queryBuilder);
+            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+            String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
+            String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
+            builder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
+            String[] database = TrslUtil.chooseDatabases(groupArray);
+            builder.setDatabase(StringUtil.join(database,";"));
+            if (database == null) {
+                builder.setDatabase(Const.MIX_DATABASE);
+            }
             int pageSize = builder.getPageSize();
             if (pageSize > 50) {
                 builder.setPageSize(50);
@@ -257,10 +272,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 builder.setPageSize(10);
             }
             builder.setPageNo(builder.getPageNo()>=0?builder.getPageNo():0);
-            String database = builder.getDatabase();
-            if (database == null) {
-                builder.setDatabase(Const.MIX_DATABASE);
-            }
+
             String trslk = pageId + "trslk";
             RedisUtil.setString(trslk, builder.asTRSL());
             builder.setKeyRedis(trslk);
@@ -358,6 +370,52 @@ public class CommonListServiceImpl implements ICommonListService {
         }
 
     }
+
+    /**
+     * 列表数据统计分析  统计各个数据源所占数据条数
+     * @param builder  查询表达式
+     * @param sim   单一媒体排重
+     * @param irSimflag  站内排重
+     * @param irSimflagAll  全网排重
+     * @param groupName  数据源，用;分号分割
+     * @param type  查询类型，对应用户限制查询时间的模块相同
+     * @param <T>
+     * @return
+     * @throws TRSException
+     */
+    public <T extends IQueryBuilder> Object queryListGroupNameStattotal(T builder, boolean sim,
+                                              boolean irSimflag, boolean irSimflagAll,String groupName, String type) throws TRSException{
+        QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
+        Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+        String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
+        String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
+        queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
+        String[] database = TrslUtil.chooseDatabases(groupArray);
+        queryBuilder.setDatabase(StringUtil.join(database, ";"));
+        queryBuilder.setPageSize(queryBuilder.getPageSize()>=1?queryBuilder.getPageSize():15);
+        GroupResult groupResult = categoryQuery(queryBuilder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME,type);
+
+        Map<String, Long> map = new LinkedHashMap<>();
+        for (GroupInfo groupInfo : groupResult.getGroupList()) {
+            map.put(Const.SOURCE_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()), groupInfo.getCount());
+        }
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        Set<String> showGroup = CommonListChartUtil.formatGroupName(Const.STATTOTAL_GROUP);
+        for(String group: sourceList){
+            Map<String, Object> groupMap = new HashMap<>();
+            groupMap.put("groupName",group);
+            if(map.containsKey(group)){
+                groupMap.put("count",map.get(group));
+            }else{
+                groupMap.put("count",0L);
+            }
+            list.add(groupMap);
+        }
+
+        return list;
+    }
+
 
     /**
      * 相似文章计算   ---  基于列表页查询

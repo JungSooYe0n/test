@@ -24,7 +24,7 @@ public interface ICommonListService {
      * 需要在builder中写好要查询数据库
      * 需要在builder中放入页码和当前页显示条数
      *
-     * @param builder           查询构造器
+     * @param builder           查询构造器 - 拼接完表达式
      * @param sim               单一媒体排重
      * @param irSimflag         站内排重
      * @param irSimflagAll      全网排重
@@ -35,7 +35,7 @@ public interface ICommonListService {
      * @throws TRSException
      */
     public InfoListResult queryPageList(QueryCommonBuilder builder, boolean sim,
-                                        boolean irSimflag, boolean irSimflagAll, String type, User user, Boolean isCalculateSimNum) throws TRSException;
+                                        boolean irSimflag, boolean irSimflagAll,String groupName, String type, User user, Boolean isCalculateSimNum) throws TRSException;
 
     /**
      * 普通信息列表  - 导出时使用
@@ -96,7 +96,7 @@ public interface ICommonListService {
      * @return
      * @throws TRSException
      */
-    public <T extends IQueryBuilder> InfoListResult queryPageListForHot(T builder, User user, String type, Boolean isCalculateSimNum) throws TRSException;
+    public <T extends IQueryBuilder> InfoListResult queryPageListForHot(T builder,String groupName, User user, String type, Boolean isCalculateSimNum) throws TRSException;
 
     /**
      * 导出时使用
@@ -114,6 +114,22 @@ public interface ICommonListService {
      * @throws TRSException
      */
     public <T extends IQueryBuilder> PagedList<FtsDocumentCommonVO> queryPageListForHotBase(T builder, String type) throws TRSException;
+
+    /**
+     * 列表数据统计分析  统计各个数据源所占数据条数
+     * @param builder  查询表达式
+     * @param sim   单一媒体排重
+     * @param irSimflag  站内排重
+     * @param irSimflagAll  全网排重
+     * @param groupName  数据源，用;分号分割
+     * @param type  查询类型，对应用户限制查询时间的模块相同
+     * @param <T>
+     * @return
+     * @throws TRSException
+     */
+    public <T extends IQueryBuilder> Object queryListGroupNameStattotal(T builder, boolean sim,
+                                                                        boolean irSimflag, boolean irSimflagAll,String groupName, String type) throws TRSException;
+
 
     /**
      * 统计 - 获取到当前条件符合数量的总数

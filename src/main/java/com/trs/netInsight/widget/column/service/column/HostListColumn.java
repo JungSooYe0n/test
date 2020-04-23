@@ -50,8 +50,9 @@ public class HostListColumn extends AbstractColumn {
 
 		// 根据MD5分类统计
 		try {
-
-			list = (List<Map<String, Object>>) commonChartService.getHotListColumnData(builder,config.getMaxSize(),"column");
+			IndexTab indexTab = super.config.getIndexTab();
+			String groupName = StringUtil.join(indexTab.getTradition(),";");
+			list = (List<Map<String, Object>>) commonChartService.getHotListColumnData(builder,groupName,config.getMaxSize(),"column");
 
 			/*String uid = UUID.randomUUID().toString();
 			RedisUtil.setString(uid, builder.asTRSL());

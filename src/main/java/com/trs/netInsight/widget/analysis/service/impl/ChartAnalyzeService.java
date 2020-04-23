@@ -1148,7 +1148,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 			log.warn("stattal接口：" + builder.asTRSL());
 			builder.setDatabase(Const.MIX_DATABASE);
-			GroupResult categoryQuery = commonListService.categoryQuery(builder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME,"special");
+			/*GroupResult categoryQuery = commonListService.categoryQuery(builder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME,"special");
 					//hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME, "special",Const.MIX_DATABASE);
 			List<GroupInfo> groupList = categoryQuery.getGroupList();
 			Map<String, Long> map = new LinkedHashMap<>();
@@ -1179,6 +1179,15 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 				String key = entry.getKey();
 				classInfo.add(new ClassInfo(key, entry.getValue().intValue()));
 			}
+			*/
+
+			List<Map<String, Object>> cateqoryQuery = (List<Map<String, Object>>) commonListService.queryListGroupNameStattotal(builder,sim,irSimflag,irSimflagAll,"ALL","special");
+			for(Map<String, Object> map : cateqoryQuery){
+				classInfo.add(new ClassInfo((String)map.get("groupName"), (Long)map.get("count")));
+
+
+			}
+
 
 		} catch (Exception e) {
 			log.error("statByClassification error ", e);

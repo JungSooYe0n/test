@@ -5601,7 +5601,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (ObjectUtil.isNotEmpty(database)){
 						hotBuilder.setDatabase(StringUtil.join(database,";"));
 					}
-					InfoListResult list = commonListService.queryPageListForHot(hotBuilder,loginUser,type,true);
+					InfoListResult list = commonListService.queryPageListForHot(hotBuilder,source,loginUser,type,true);
 					/*QueryBuilder hotCountBuilder = new QueryBuilder();
 					hotCountBuilder.filterByTRSL(countBuilder.asTRSL());
 					hotCountBuilder.page(countBuilder.getPageNo(),countBuilder.getPageSize());
@@ -5630,7 +5630,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					break;
 			}
 			log.info("综合："+builder.asTRSL());
-			InfoListResult sectionList = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,type,loginUser,true);
+			InfoListResult sectionList = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,source,type,loginUser,true);
 			// (InfoListResult) getDocListContrast(builder, loginUser, sim, irSimflag,irSimflagAll,type,searchPage);
 			if(isExport){
 				//存入缓存  以便混合列表导出时使用
@@ -6024,7 +6024,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (ObjectUtil.isNotEmpty(database)){
 						hotBuilder.setDatabase(StringUtil.join(database,";"));
 					}
-					InfoListResult list = commonListService.queryPageListForHot(hotBuilder,loginUser,type,true);
+					InfoListResult list = commonListService.queryPageListForHot(hotBuilder,sources,loginUser,type,true);
 					/*QueryBuilder hotCountBuilder = new QueryBuilder();
 					hotCountBuilder.filterByTRSL(countBuilder.asTRSL());
 					hotCountBuilder.page(countBuilder.getPageNo(),countBuilder.getPageSize());
@@ -6047,7 +6047,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 					break;
 			}
-			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,type,loginUser,true);
+			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,sources,type,loginUser,true);
 			// getDocListContrast(builder, loginUser, sim, irSimflag,irSimflagAll,type);
 			if (isExport) {
 				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();

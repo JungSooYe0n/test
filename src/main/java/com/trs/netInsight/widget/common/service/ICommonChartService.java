@@ -75,13 +75,14 @@ public interface ICommonChartService {
     /**
      * 热点信息查询
      * @param builder  查询构造器  需要拼接好要查询数据源，需要将可查询数据库放入对应字段
+     * @param groupName 要查询的数据源类型，用;分割
      * @param pageSize  查询条数
      * @param type  查询类型，对应用户限制查询时间的模块相同
      * @param <T>
      * @return
      * @throws TRSException
      */
-    <T extends IQueryBuilder> Object getHotListColumnData(T builder, Integer pageSize, String type) throws TRSException;
+    <T extends IQueryBuilder> Object getHotListColumnData(T builder,String groupName, Integer pageSize, String type) throws TRSException;
 
 
 }

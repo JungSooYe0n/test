@@ -10,7 +10,9 @@ import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CommonListChartUtil {
 
@@ -64,10 +66,12 @@ public class CommonListChartUtil {
         return list;
     }
 
-    public static List<String> formatGroupName(String groupName) throws TRSException{
-
+    public static Set<String> formatGroupName(String groupName) throws TRSException{
+        if("ALL".equals(groupName)){
+            groupName = Const.STATTOTAL_GROUP;
+        }
         String[] split = groupName.split("[;|；]");
-        List<String> sourceList = new ArrayList<>();
+        Set<String> sourceList = new HashSet<>();
         for (String str : split) {
             if (Const.SOURCE_GROUPNAME_CONTRAST.containsKey(str)) {
                 sourceList.add(Const.SOURCE_GROUPNAME_CONTRAST.get(str));

@@ -56,7 +56,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
     private <T extends IQueryBuilder> GroupResult getCategoryQueryData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
                                                                        String xyTrsl, String contrastField, String type) throws TRSException {
         QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
-        List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+        Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
         String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
         String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
         queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
@@ -123,7 +123,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
         }
         List<Map<String, Object>> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(groupName)) {
-            List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
             if (sourceList.size() > 0) {
                 try {
                     //用统一方法进行统计
@@ -259,7 +259,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
         }
         List<Map<String, Object>> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(groupName)) {
-            List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
             if (sourceList.size() > 0) {
                 try {
                     //用统一方法进行统计
@@ -333,7 +333,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
             GroupWordResult wordInfos = new GroupWordResult();
             QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
 
-            List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
             String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
             String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
             queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
@@ -424,16 +424,27 @@ public class CommonChartServiceImpl implements ICommonChartService {
     /**
      * 热点信息查询
      * @param builder  查询构造器  需要拼接好要查询数据源，需要将可查询数据库放入对应字段
+     * @param source 要查询的数据源类型，用;分割
      * @param pageSize  查询条数
      * @param type  查询类型，对应用户限制查询时间的模块相同
      * @param <T>
      * @return
      * @throws TRSException
      */
-    public <T extends IQueryBuilder> Object getHotListColumnData(T builder, Integer pageSize, String type) throws TRSException {
+    public <T extends IQueryBuilder> Object getHotListColumnData(T builder,String source,Integer pageSize, String type) throws TRSException {
         List<Map<String, Object>> list = new ArrayList<>();
         try {
             QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
+            Set<String> sourceList = CommonListChartUtil.formatGroupName(source);
+            String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
+            String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
+            queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
+            String[] database = TrslUtil.chooseDatabases(groupArray);
+            queryBuilder.setDatabase(StringUtil.join(database,";"));
+            if (database == null) {
+                queryBuilder.setDatabase(Const.MIX_DATABASE);
+            }
+
             queryBuilder.setPageSize(pageSize);
             String uid = UUID.randomUUID().toString();
             RedisUtil.setString(uid, queryBuilder.asTRSL());
