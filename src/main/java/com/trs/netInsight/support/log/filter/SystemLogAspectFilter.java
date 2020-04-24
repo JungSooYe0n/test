@@ -143,14 +143,14 @@ public class SystemLogAspectFilter {
 			proceed = pjp.proceed();
 			endTime = new Date();
 			trsl = getTrsl(request);
-
+			User currentUser = UserUtils.getUser();
 			long timeConsumed = endTime.getTime() - startTime.getTime();
 			String simpleStatus = 500 == ResultCode.SUCCESS ? "失败" : "成功";
 			SystemLog systemLog = new SystemLog(parames, methodDescription, systemLogType.getValue(),
 					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					ResultCode.SUCCESS, simpleStatus, null, osInfo, browserInfo, sessionId, operationPosition,
 					user.getUserName() == null ? UserUtils.getUser().getUserName():user.getUserName(), trsl,num,0);
-			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,log.depositPattern());
+			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,log.depositPattern(),currentUser);
 			singleThreadExecutor.execute(runnableThreadTest);
 
 			return proceed;
@@ -266,6 +266,7 @@ public class SystemLogAspectFilter {
 									  String methodDescription, SystemLogType systemLogType, SystemLogOperation systemLogOperation,
 									  String requestIp, String requestUri, Date startTime, Date endTime, String osInfo, String browserInfo,
 									  String sessionId, String operationPosition, String operationUserName, String trsl) throws TRSException {
+		User user = UserUtils.getUser();
 		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(depositPattern);
 		long timeConsumed = endTime.getTime() - startTime.getTime();
 		String simpleStatus = 500 == ResultCode.SUCCESS ? "失败" : "成功";
@@ -276,7 +277,7 @@ public class SystemLogAspectFilter {
 					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					t.getCode(), simpleStatus, StringUtils.substring(t.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
 					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
-			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern);
+			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern,user);
 			singleThreadExecutor.execute(runnableThreadTest);
 			try {
 				SystemLogException systemLogException = new SystemLogException(systemLog.getId(),getTrace(t));
@@ -291,7 +292,7 @@ public class SystemLogAspectFilter {
 					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					ResultCode.OPERATION_EXCEPTION, simpleStatus, StringUtils.substring(throwable.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
 					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
-			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern);
+			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern,user);
 			singleThreadExecutor.execute(runnableThreadTest);
 			try {
 				System.out.println(getTrace(throwable));
@@ -360,14 +361,16 @@ public class SystemLogAspectFilter {
 class RunnableThreadTest implements Runnable{
 	private SystemLog systemLog;
 	private DepositPattern depositPattern;
+	private User user;
 
-	public RunnableThreadTest(SystemLog systemLog1,DepositPattern depositPattern1){
+	public RunnableThreadTest(SystemLog systemLog1,DepositPattern depositPattern1,User user1){
 		systemLog = systemLog1;
 		depositPattern = depositPattern1;
+		user = user1;
 	}
 	@Override
 	public void run() {
 		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(depositPattern);
-		abstractSystemLog.add(systemLog);
+		abstractSystemLog.add(systemLog,user);
 	}
 }

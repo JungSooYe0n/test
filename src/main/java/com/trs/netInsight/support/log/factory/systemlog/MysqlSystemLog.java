@@ -64,7 +64,12 @@ import java.util.stream.Collectors;
 public class MysqlSystemLog extends AbstractSystemLog {
 
 	@Override
-	public SystemLog add(SystemLog systemLog) {
+	public SystemLog add(SystemLog systemLog, User user) {
+		systemLog.setCreatedUserId(user.getId());
+		systemLog.setCreatedUserName(user.getUserName());
+		systemLog.setOrganizationId(user.getOrganizationId());
+		systemLog.setDisplayName(user.getDisplayName());
+		systemLog.setSubGroupId(user.getSubGroupId());
 		return mysqlSystemLogRepository.saveAndFlush(systemLog);
 	}
 
@@ -74,17 +79,8 @@ public class MysqlSystemLog extends AbstractSystemLog {
 		//多个字段排序
 		List<Sort.Order> listSort = new ArrayList();
 		Sort.Order order =  null;
-		if(sortBy == 1 ){
-			if("asc".equals(ascDesc)){
-				order = new Sort.Order(Sort.Direction.ASC,"loginCount");
-			}else if("desc".equals(ascDesc)){
-				order = new Sort.Order(Sort.Direction.DESC,"loginCount");
-			}else{
-				order =new Sort.Order(Sort.Direction.DESC,"createdTime");
-			}
-		}else{
-			order =new Sort.Order(Sort.Direction.DESC,"createdTime");
-		}
+		order =new Sort.Order(Sort.Direction.DESC,"createdTime");
+
 
 		listSort.add(order);
 		PageRequest pageable = new PageRequest(pageNum, pageSize, new Sort(listSort));
@@ -143,15 +139,18 @@ public class MysqlSystemLog extends AbstractSystemLog {
 				return query.where(predicate.toArray(pre)).getRestriction();
 			}
 		};
-
+		Boolean isOrderByLoginCount = false;
+		if(sortBy == 1 && StringUtil.isNotEmpty(ascDesc)){
+			isOrderByLoginCount = true;
+		}
 		Page<Organization> organizations;
 		Collection<Organization> orgs;
-		//排序走此方法 1登录次数
-		if(onLine == 1 ){
+		//排序走此方法 筛选仅在线，或按登录次数排序
+		if(onLine == 1 || isOrderByLoginCount){
 			pageable = new PageRequest(0, 2000,new Sort(listSort));
 			organizations = organizationService.findByCriteria(criteria, pageable);
 			orgs = organizations.getContent();
-			return sortOrgByNumber(orgs,pageNum,pageSize,ascDesc);
+			return sortOrgByNumber(orgs,pageNum,pageSize,ascDesc,isOrderByLoginCount,onLine);
 		}else{
 			organizations = organizationService.findByCriteria(criteria, pageable);
 			orgs = organizations.getContent();
@@ -187,7 +186,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 	}
 
 	public Map<String, Object> sortOrgByNumber(Collection<Organization> orgs,
-								Integer pageNum, Integer pageSize,String ascDesc) throws Exception{
+								Integer pageNum, Integer pageSize,String ascDesc,Boolean isOrderByLoginCount,Integer onLine) throws Exception{
 		log.info("---------->走排序方法:sortOrgByNumber");
 		//原本 在线人数和登录次数都不存Mysql，所以查询所有单独排序，现在 - 登录次数存库，则在线人数筛选单独筛选
 		ArrayList<HashMap<String, Object>> resultDataList = new ArrayList<>();
@@ -198,10 +197,22 @@ public class MysqlSystemLog extends AbstractSystemLog {
 			e.setLoginCount(getLoginCount(e));
 			e.setOnlineUserCount(getOnlineUserCount(activeSessions, e));
 			e.setAscDesc(ascDesc);
-			if(e.getOnlineUserCount() > 0){
+			if(onLine ==1){
+				if(e.getOnlineUserCount() > 0){
+					orgList.add(e);
+				}
+			}else{
 				orgList.add(e);
 			}
 		}
+		if(isOrderByLoginCount){
+			if("asc".equals(ascDesc)){
+				orgList = orgList.stream().sorted(Comparator.comparing(Organization::getLoginCount)).collect(Collectors.toList());
+			}else if("desc".equals(ascDesc)){
+				orgList = orgList.stream().sorted(Comparator.comparing(Organization::getLoginCount).reversed()).collect(Collectors.toList());
+			}
+		}
+		//Collections.sort(orgList);
 		//计算页数
 		int totalPages;
 		int totalElements = orgList.size();

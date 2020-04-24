@@ -52,13 +52,13 @@ public abstract class SystemLogBaseEntity implements Serializable {
 	/**
 	 * 授权用户分组id
 	 */
-	@Column(name = "`sub_group_id`")
+	@Column(name = "`sub_group_id`", updatable = false)
 	private String subGroupId;
 
 	/**
 	 * 对象创建时间
 	 */
-	@Column(name = "`created_time`", updatable = true)
+	@Column(name = "`created_time`", updatable = false)
 	private Date createdTime;
 
 	/**
@@ -81,12 +81,15 @@ public abstract class SystemLogBaseEntity implements Serializable {
 		createdTime = new Date();
 		// 用户
 		User user = UserUtils.getUser();
-		createdUserId = user.getId();
-		if (StringUtils.isBlank(createdUserId)) {
+		if(StringUtils.isBlank(createdUserId)){
 			createdUserId = user.getId();
 		}
-		createdUserName = user.getUserName();
-		displayName = user.getDisplayName();
+		if(StringUtils.isBlank(createdUserName)){
+			createdUserName = user.getUserName();
+		}
+		if(StringUtils.isBlank(displayName)){
+			displayName = user.getDisplayName();
+		}
 		if (StringUtils.isBlank(organizationId)) {
 			organizationId = user.getOrganizationId();
 		}

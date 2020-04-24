@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.trs.netInsight.widget.user.entity.User;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.springframework.data.domain.Page;
 
@@ -86,7 +87,7 @@ public abstract class AbstractSystemLog {
 	 * @param systemLog trsl
 	 * @return
 	 */
-	public abstract SystemLog add(SystemLog systemLog);
+	public abstract SystemLog add(SystemLog systemLog, User user);
 
 	/**
 	 * 查看当前运维人员下的所有机构；超管看所有
