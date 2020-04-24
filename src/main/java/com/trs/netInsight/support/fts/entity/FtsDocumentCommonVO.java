@@ -289,7 +289,7 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
     /**
      * 相似文章数
      */
-    private long sim;
+    private long simCount;
 
     /**
      * 相似文章数

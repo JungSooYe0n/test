@@ -950,7 +950,7 @@ public class ChartAnalyzeController {
 				for (FtsDocument ftsDocument : ftsQuery) {
 					String md5 = ftsDocument.getMd5Tag();
 					QueryBuilder builder = new QueryBuilder();
-					builder.setDatabase(Const.HYBASE_NI);
+					builder.setDatabase(Const.HYBASE_NI_INDEX);
 					builder.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.Equal);
 					long ftsCount = hybase8SearchService.ftsCount(builder, sim, irSimflag,irSimflagAll,"special");
 					if (ftsCount == 1L) {
@@ -1062,7 +1062,7 @@ public class ChartAnalyzeController {
 				statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeRange, Operator.Between);
 				statBuilder.page(0, 10);
 				statBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				statBuilder.setDatabase(Const.HYBASE_NI);
+				statBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 				RedisUtil.setString(trslk, statBuilder.asTRSL());
 
 				List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(statBuilder, FtsDocument.class, sim,
@@ -1083,7 +1083,7 @@ public class ChartAnalyzeController {
 				// 算相似文章数
 				String md52 = ftsStatus2.getMd5Tag();
 				QueryBuilder builder2 = new QueryBuilder();
-				builder2.setDatabase(Const.HYBASE_NI);
+				builder2.setDatabase(Const.HYBASE_NI_INDEX);
 				builder2.filterField(FtsFieldConst.FIELD_MD5TAG, md52, Operator.Equal);
 				long ftsCount2 = hybase8SearchService.ftsCount(builder2, false, irSimflag,irSimflagAll,"special");
 				if (ftsCount2 == 1L) {
@@ -1190,10 +1190,10 @@ public class ChartAnalyzeController {
 				statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeRange, Operator.Between);
 				statBuilder.setPageSize(10);
 				statBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				statBuilder.setDatabase(Const.HYBASE_NI);
+				statBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 				log.info(statBuilder.asTRSL());
 				GroupResult categoryChuan = hybase8SearchService.categoryQuery(statBuilder, false, irSimflag,irSimflagAll,
-						FtsFieldConst.FIELD_MD5TAG, Const.HYBASE_NI);
+						FtsFieldConst.FIELD_MD5TAG, Const.HYBASE_NI_INDEX);
 				log.info(statBuilder.asTRSL());
 				List<FtsDocument> listChuan = new ArrayList<>();
 				if (categoryChuan.size() > 0) {
@@ -1201,7 +1201,7 @@ public class ChartAnalyzeController {
 						QueryBuilder queryMd5 = new QueryBuilder();
 						queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, group.getFieldValue(), Operator.Equal);
 						queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeRange, Operator.Between);
-						queryMd5.setDatabase(Const.HYBASE_NI);
+						queryMd5.setDatabase(Const.HYBASE_NI_INDEX);
 						queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
 						log.info(queryMd5.asTRSL());
 						List<FtsDocument> ftsQueryWeiBo = hybase8SearchService.ftsQuery(queryMd5, FtsDocument.class,

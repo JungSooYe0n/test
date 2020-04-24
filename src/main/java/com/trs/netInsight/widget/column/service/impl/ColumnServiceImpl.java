@@ -617,7 +617,7 @@ public class ColumnServiceImpl implements IColumnService {
 			String groupName = indexTab.getGroupName();
 			return infoListService.getWeChatList(queryBuilder, loginUser,sim,irSimflag,false,false,"column");
 		} else {// 传统
-			queryBuilder.setDatabase(Const.HYBASE_NI);
+			queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 			switch (sort) { // 排序
 			case "desc":
 				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
@@ -634,7 +634,7 @@ public class ColumnServiceImpl implements IColumnService {
 				countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 				break;
 			}
-			countBuiler.setDatabase(Const.HYBASE_NI);
+			countBuiler.setDatabase(Const.HYBASE_NI_INDEX);
 			return infoListService.getDocList(queryBuilder, loginUser, true,false,false,false,"column");
 		}
 	}
@@ -757,8 +757,8 @@ public class ColumnServiceImpl implements IColumnService {
 				countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 				break;
 			}
-			countBuiler.setDatabase(Const.HYBASE_NI);
-			indexBuilder.setDatabase(Const.HYBASE_NI);
+			countBuiler.setDatabase(Const.HYBASE_NI_INDEX);
+			indexBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 			return infoListService.getDocList(indexBuilder, loginUser, false,false,false,false,"column");
 		}
 	}
@@ -882,7 +882,7 @@ public class ColumnServiceImpl implements IColumnService {
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
 				break;
 			}
-			builder.setDatabase(Const.HYBASE_NI);
+			builder.setDatabase(Const.HYBASE_NI_INDEX);
 			log.info("热搜列表" + builder.asTRSL());
 			return infoListService.getDocList(builder, loginUser, false,false,false,false,"column");
 		}

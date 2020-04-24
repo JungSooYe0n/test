@@ -2280,7 +2280,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 									+ tieba(groupName) + ") AND IR_APPRAISE:" + appraise[j] + " AND "
 									+ searchBuilder.asTRSL();
 							queryBuilder.filterByTRSL(esSql);
-							queryBuilder.setDatabase(Const.HYBASE_NI);
+							queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 						}
 						Long l = hybase8SearchService.ftsCount(queryBuilder, isSimilar, false,false,"special");
 						String count = String.valueOf(l);
@@ -4002,7 +4002,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
         HashMap<String, Object> resultData = new HashMap<>();
 		try {
 			searchBuilder.filterByTRSL(" (IR_EMOTION:(\"怒\" OR \"恶\" OR \"惧\" OR \"喜\" OR \"哀\"))");
-			searchBuilder.setDatabase(Const.HYBASE_NI);
+			searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 			//positive and negative result
 
 //			GroupResult posAndNegResult = hybase8SearchService.categoryQuery(specialProject.isServer(), searchBuilder.asTRSL(), sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),
@@ -4021,7 +4021,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //			String posCatTrsl = searchBuilder.asTRSL() + " AND (IR_APPRAISE:\"正面\")";
 			String posCatTrsl = searchBuilder.asTRSL();
 			GroupResult posResult = hybase8SearchService.categoryQuery(specialProject.isServer(), posCatTrsl, sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),
-					FtsFieldConst.FIELD_EMOTION, 5, "special",Const.HYBASE_NI);
+					FtsFieldConst.FIELD_EMOTION, 5, "special",Const.HYBASE_NI_INDEX);
 
 //			String negCatTrsl = searchBuilder.asTRSL() + " AND (IR_APPRAISE : \"负面\")";
 //			GroupResult negResult = hybase8SearchService.categoryQuery(specialProject.isServer(), negCatTrsl, sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),

@@ -28,6 +28,7 @@ import java.util.Map;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.builder.condition.SearchCondition;
 
+import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Data
 @Slf4j
-public class QueryCommonBuilder implements Cloneable {
+public class QueryCommonBuilder extends IQueryBuilder implements Cloneable {
 	
 	private String[] database;
 
@@ -215,7 +216,7 @@ public class QueryCommonBuilder implements Cloneable {
 	 *
 	 * @param trsl
 	 *            表达式
-	 * @param result
+	 * @param
 	 */
 	public static String fmtTrsl(String trsl) {
 		StringBuilder builder = new StringBuilder();

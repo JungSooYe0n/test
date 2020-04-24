@@ -11,8 +11,6 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.cache.RedisFactory;
 import com.trs.netInsight.support.cache.TimingCachePool;
 import com.trs.netInsight.support.fts.FullTextSearch;
-import com.trs.netInsight.support.fts.annotation.FtsClient;
-import com.trs.netInsight.support.fts.annotation.enums.FtsHybaseType;
 import com.trs.netInsight.support.fts.annotation.parser.FtsParser;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
@@ -23,15 +21,13 @@ import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.model.result.IDocument;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
-import com.trs.netInsight.support.knowledgeBase.entity.KnowledgeBase;
-import com.trs.netInsight.support.knowledgeBase.service.IKnowledgeBaseService;
-import com.trs.netInsight.support.knowledgeBase.service.impl.KnowledgeBaseServiceImpl;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.enums.Store;
 import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.service.IFavouritesService;
 import com.trs.netInsight.widget.special.entity.*;
@@ -84,6 +80,8 @@ public class InfoListServiceImpl implements IInfoListService {
 	@Autowired
 	private IOrganizationService organizationService;
 
+	@Autowired
+	private ICommonListService commonListService;
 
 	/**
 	 * 是否走独立预警服务
@@ -3482,7 +3480,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 					break;
 			}
-			builder.setDatabase(Const.HYBASE_NI);
+			builder.setDatabase(Const.HYBASE_NI_INDEX);
 			return getDocList(builder, loginUser, sim, irSimflag,irSimflagAll,false,type);
 			} catch (TRSException e) {
 			throw e;
@@ -3585,32 +3583,6 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 
 			}
-			// 已经预警
-			//不查预警
-			/*List<String> sidAlert = new ArrayList<>();
-			long alertBefore = System.currentTimeMillis();
-			List<AlertEntity> alertList = null;
-			if (httpClient){
-				String aSids = "";
-				if (sb.length() > 0){
-					aSids = sb.substring(0,sb.length()-1);
-				}
-				alertList = AlertUtil.getAlerts(userId,aSids,alertNetinsightUrl);
-			}else {
-				alertList = alertRepository.findByUserIdAndSidIn(userId, sids);
-			}
-			long alertAfter = System.currentTimeMillis();
-			log.info("预警表查询用了" + (alertAfter - alertBefore));
-			String userName = UserUtils.getUser().getUserName();
-			if (userName != null && userName.equals("xiaoying")) {
-				log.info("xiaoying预警表查询用了" + (alertAfter - alertBefore));
-			}
-			if (null != alertList && alertList.size() > 0){
-				for (AlertEntity alertEntity : alertList) {
-					sidAlert.add(alertEntity.getSid());
-				}
-			}*/
-
 			// 检验收藏
 
 			List<Favourites> favouritesList = favouritesService.findAll(user);
@@ -5629,13 +5601,15 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (ObjectUtil.isNotEmpty(database)){
 						hotBuilder.setDatabase(StringUtil.join(database,";"));
 					}
-					QueryBuilder hotCountBuilder = new QueryBuilder();
+					InfoListResult list = commonListService.queryPageListForHot(hotBuilder,source,loginUser,type,true);
+					/*QueryBuilder hotCountBuilder = new QueryBuilder();
 					hotCountBuilder.filterByTRSL(countBuilder.asTRSL());
 					hotCountBuilder.page(countBuilder.getPageNo(),countBuilder.getPageSize());
 					if (ObjectUtil.isNotEmpty(database)){
 						hotCountBuilder.setDatabase(StringUtil.join(database,";"));
 					}
 					InfoListResult list = getHotList(hotBuilder, hotCountBuilder, loginUser,type,searchPage);
+					*/
 					if (isExport) {
 						PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
 						List<FtsDocumentCommonVO> listVo = content.getPageItems();
@@ -5656,7 +5630,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					break;
 			}
 			log.info("综合："+builder.asTRSL());
-			InfoListResult sectionList = (InfoListResult) getDocListContrast(builder, loginUser, sim, irSimflag,irSimflagAll,type,searchPage);
+			InfoListResult sectionList = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,source,type,loginUser,true);
+			// (InfoListResult) getDocListContrast(builder, loginUser, sim, irSimflag,irSimflagAll,type,searchPage);
 			if(isExport){
 				//存入缓存  以便混合列表导出时使用
 				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>)sectionList.getContent();
@@ -6049,14 +6024,15 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (ObjectUtil.isNotEmpty(database)){
 						hotBuilder.setDatabase(StringUtil.join(database,";"));
 					}
-					QueryBuilder hotCountBuilder = new QueryBuilder();
+					InfoListResult list = commonListService.queryPageListForHot(hotBuilder,sources,loginUser,type,true);
+					/*QueryBuilder hotCountBuilder = new QueryBuilder();
 					hotCountBuilder.filterByTRSL(countBuilder.asTRSL());
 					hotCountBuilder.page(countBuilder.getPageNo(),countBuilder.getPageSize());
 					if (ObjectUtil.isNotEmpty(database)){
 						hotCountBuilder.setDatabase(StringUtil.join(database,";"));
 					}
 
-					InfoListResult list = getHotList(hotBuilder, hotCountBuilder, loginUser,type);
+					InfoListResult list = getHotList(hotBuilder, hotCountBuilder, loginUser,type);*/
 					if (isExport) {
 						PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
 						List<FtsDocumentCommonVO> listVo = content.getPageItems();
@@ -6071,7 +6047,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 					break;
 			}
-			InfoListResult list = getDocListContrast(builder, loginUser, sim, irSimflag,irSimflagAll,type);
+			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,sources,type,loginUser,true);
+			// getDocListContrast(builder, loginUser, sim, irSimflag,irSimflagAll,type);
 			if (isExport) {
 				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
 				List<FtsDocumentCommonVO> listVo = content.getPageItems();
@@ -6425,7 +6402,7 @@ public class InfoListServiceImpl implements IInfoListService {
 		for(String groupName : Const.MEDIA_TYPE_NEWS){
 			if(groupName.contains(source)){
 				//传统  IR_CHANNEL_INDUSTRY  ;分组  AND关系查找
-				builderOne.setDatabase(Const.HYBASE_NI);
+				builderOne.setDatabase(Const.HYBASE_NI_INDEX);
 				String idTrsl = new StringBuffer().append(FtsFieldConst.FIELD_SID).append(":").append(sid).toString();
 				builderOne.filterByTRSL(idTrsl);
 				List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocument.class, false, false,false,null);

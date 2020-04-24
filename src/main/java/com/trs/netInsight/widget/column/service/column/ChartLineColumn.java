@@ -60,7 +60,7 @@ public class ChartLineColumn extends AbstractColumn{
 			GroupResult result = null;
 			try {
 				result = hybase8SearchService.categoryQuery(indexTab.isServer(),trslCategoryQuery, sim,irSimflag,irSimflagAll,
-						FtsFieldConst.FIELD_SITENAME, 8,"column", Const.HYBASE_NI);
+						FtsFieldConst.FIELD_SITENAME, 8,"column", Const.HYBASE_NI_INDEX);
 			} catch (TRSSearchException e) {
 				throw new TRSSearchException(e);
 			}
@@ -683,7 +683,7 @@ public class ChartLineColumn extends AbstractColumn{
 				builder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
 	
 			} else if (Const.MEDIA_TYPE_FINAL_NEWS.contains(source)) {
-				builder.setDatabase(Const.HYBASE_NI);
+				builder.setDatabase(Const.HYBASE_NI_INDEX);
 				if (source.equals("境外媒体")) {
 					source = "国外新闻";
 				}
@@ -694,7 +694,7 @@ public class ChartLineColumn extends AbstractColumn{
 				builder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
 	
 			} else {
-				builder.setDatabase(Const.HYBASE_NI);
+				builder.setDatabase(Const.HYBASE_NI_INDEX);
 				builder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
 				//如果是 站点统计
 				if (StringUtils.equals(contrast, ColumnConst.CONTRAST_TYPE_SITE) && StringUtil.isNotEmpty(key)){

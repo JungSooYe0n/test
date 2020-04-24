@@ -40,14 +40,25 @@ public class MapColumn extends AbstractColumn {
 		boolean sim = indexTab.isSimilar();
 		boolean irSimflag = indexTab.isIrSimflag();
 		boolean irSimflagAll = indexTab.isIrSimflagAll();
+		String groupNames = super.config.getIndexTab().getGroupName();//本身存储的来源;
+		if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {
+			//站点对比
+			String[] tradition = indexTab.getTradition();
+			groupNames = StringUtil.join(tradition, ";");
+		}
 		GroupResult categoryInfos = null;
 		List<Map<String, Object>> list = new ArrayList<>();
-		List<GroupResult> groupResults = new ArrayList<>();
+		builder.setPageSize(Integer.MAX_VALUE);
+		try {
+			list = (List<Map<String, Object>>) commonChartService.getMapColumnData(builder, sim, irSimflag, irSimflagAll, groupNames, FtsFieldConst.FIELD_CATALOG_AREA, "column");
+		} catch (TRSException | TRSSearchException e) {
+			throw new TRSSearchException(e);
+		}
 
+		/*
 		try {
 			categoryInfos = hybase8SearchService.categoryQuery(builder.isServer(), builder.asTRSL(), sim, irSimflag,irSimflagAll,
 					FtsFieldConst.FIELD_CATALOG_AREA, Integer.MAX_VALUE, "column",builder.getDatabase());
-			groupResults.add(categoryInfos);
 		} catch (TRSSearchException e) {
 			throw new TRSSearchException(e);
 		}
@@ -57,7 +68,6 @@ public class MapColumn extends AbstractColumn {
 			Map<String, Object> reMap = new HashMap<String, Object>();
 			int num = 0;
 			// 查询结果之间相互对比 所以把城市放开也不耽误查询速度
-			for (GroupResult groupResult : groupResults) {
 				for (GroupInfo classEntry : groupResult) {
 					String area = classEntry.getFieldValue();
 					if(area.contains(";")){
@@ -73,40 +83,12 @@ public class MapColumn extends AbstractColumn {
 						}
 					}
 				}
-			}
 
-			/*
-			List<Map<String, String>> citys = new ArrayList<Map<String, String>>();
-			for (String city : entry.getValue()) {
-			  Map<String, String> cityMap = new HashMap<String, String>();
-			  int num2 = 0;
-			  int numJiLin = 0;
-			  // 因为吉林省市同名,单独拿出,防止按区域名称分类统计错误
-			  for (GroupInfo classEntry : categoryInfos) {
-				 if (classEntry.getFieldValue().contains(city) && !classEntry.getFieldValue().contains("吉林省\\吉林市")) {
-					num2 += classEntry.getCount();
-				 } else if (classEntry.getFieldValue().contains("吉林省\\吉林市")) {
-					numJiLin += classEntry.getCount();
-				 }
-			  }
-			  // 把.之前的去掉
-			  String[] citySplit = city.split(".");
-			  if (citySplit.length > 1) {
-				 city = citySplit[citySplit.length - 1];
-			  }
-			  cityMap.put("areaName", city);
-			  cityMap.put("areaCount", String.valueOf(num2));
-			  if ("吉林".equals(city)) {
-				 cityMap.put("areaCount", String.valueOf(numJiLin));
-			  }
-			  citys.add(cityMap);
-			}
-			*/
 			reMap.put("areaName", entry.getKey());
 			reMap.put("areaCount", num);
 			//reMap.put("citys", citys);
 			list.add(reMap);
-		}
+		}*/
 		return list;
 	}
 
@@ -209,7 +191,7 @@ public class MapColumn extends AbstractColumn {
 					throw new TRSSearchException(e);
 				}
 			} else {// 传统
-				queryBuilder.setDatabase(Const.HYBASE_NI);
+				queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 				try {
 					return infoListService.getDocList(queryBuilder, loginUser, sim,irSimflag,irSimflagAll,false,"column");
 				} catch (TRSException e) {

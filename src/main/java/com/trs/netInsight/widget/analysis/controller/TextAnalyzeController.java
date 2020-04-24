@@ -114,7 +114,7 @@ public class TextAnalyzeController {
 		long start = new Date().getTime();
 		log.info("原生通用查询"+trsl);
 		try{
-			String[] databases = {Const.HYBASE_NI, Const.WECHAT, Const.WEIBO, Const.HYBASE_OVERSEAS, Const.INSERT};
+			String[] databases = {Const.HYBASE_NI_INDEX, Const.WECHAT, Const.WEIBO, Const.HYBASE_OVERSEAS, Const.INSERT};
 			
 			QueryCommonBuilder builder = new QueryCommonBuilder();
 			builder.filterByTRSL(trsl);

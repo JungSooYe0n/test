@@ -103,8 +103,8 @@ public class ReportController {
 			String[] groupNameArray = groupName.split(";");
 
 			for(String str : groupNameArray){
-				if(Const.FAVOURITES_SOURCE_GROUPNAME.containsKey(str)){
-					source.add(Const.FAVOURITES_SOURCE_GROUPNAME.get(str));
+				if(Const.SOURCE_GROUPNAME_CONTRAST.containsKey(str)){
+					source.add(Const.SOURCE_GROUPNAME_CONTRAST.get(str));
 				}else{
 					throw new OperationException("所传参数：groupName值有误，为:"+str+"，获取我的收藏列表出错");
 				}
@@ -161,8 +161,8 @@ public class ReportController {
 			}
 
 			for(int i = 0 ;i < groupNameArray.length ;i++ ){
-				if(Const.FAVOURITES_SOURCE_GROUPNAME.containsKey(groupNameArray[i])){
-					groupNameArray[i] = Const.FAVOURITES_SOURCE_GROUPNAME.get(groupNameArray[i]);
+				if(Const.SOURCE_GROUPNAME_CONTRAST.containsKey(groupNameArray[i])){
+					groupNameArray[i] = Const.SOURCE_GROUPNAME_CONTRAST.get(groupNameArray[i]);
 				}else{
 					return new OperationException("所传参数：groupName值有误，获取我的收藏列表出错");
 				}

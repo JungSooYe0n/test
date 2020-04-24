@@ -42,6 +42,8 @@ import com.trs.netInsight.widget.column.factory.ColumnConfig;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
 import com.trs.netInsight.widget.column.repository.IndexPageRepository;
 import com.trs.netInsight.widget.column.service.*;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -118,6 +120,11 @@ public class ColumnController {
 
 	@Autowired
 	private IOrganizationService organizationService;
+
+	@Autowired
+	private ICommonListService commonListService;
+	@Autowired
+	private ICommonChartService commonChartService;
 	/**
 	 * 刚加载页面时查询所有栏目（分组）
 	 */
@@ -975,6 +982,8 @@ public class ColumnController {
 		column.setDistrictInfoService(districtInfoService);
 		column.setAlertRepository(alertRepository);
 		column.setFavouritesRepository(favouritesRepository);
+		column.setCommonListService(commonListService);
+		column.setCommonChartService(commonChartService);
 		column.setConfig(config);
 		if (mix) {
 			return column.getSectionList(); //混合大列表报错

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.user.entity.User;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,8 +46,33 @@ public class PieColumn extends AbstractColumn {
 		List<Map<String, Object>> list = new ArrayList<>();
 		IndexTab indexTab = super.config.getIndexTab();
 		try {
+			QueryCommonBuilder builder = super.config.getCommonBuilder();
+			boolean sim = indexTab.isSimilar();
+			// url排重
+			boolean irSimflag = indexTab.isIrSimflag();
+			boolean irSimflagAll = indexTab.isIrSimflagAll();
+			String groupName = indexTab.getGroupName();
+			builder.setPageSize(8);
 			if (StringUtils.isNotBlank(indexTab.getContrast())) {// 对比类别不为空,断言简单模式
+				String contrastField = FtsFieldConst.FIELD_GROUPNAME;
 				// 来源分类对比图
+				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_GROUP)) {
+					builder.setPageSize(Integer.MAX_VALUE);
+				}
+
+				// 站点对比图
+				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_SITE)) {
+					contrastField = FtsFieldConst.FIELD_SITENAME;
+					groupName = StringUtil.join(indexTab.getTradition(),";");
+				}
+
+				//微信公众号对比
+				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT)){
+					contrastField = FtsFieldConst.FIELD_SITENAME;
+					groupName = Const.GROUPNAME_WEIXIN;
+				}
+				list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,groupName,null,contrastField,"column");
+				/*// 来源分类对比图
 				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_GROUP)) {
 					list = getDataBarCommon();
 				}
@@ -59,11 +85,11 @@ public class PieColumn extends AbstractColumn {
 				//微信公众号对比
 				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT)){
 					list = getContrastChartByWeChat();
-				}
+				}*/
 			} else {// 专家模式
-				list = getDataBarCommon();
+				list = (List<Map<String, Object>>)commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,groupName, indexTab.getXyTrsl(),null,"column");
 			}
-		} catch (OperationException | TRSSearchException e) {
+		} catch (TRSException | TRSSearchException e) {
 			throw new TRSSearchException(e);
 		}
 		return list;

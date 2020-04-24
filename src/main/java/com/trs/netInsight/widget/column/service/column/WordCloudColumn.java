@@ -46,10 +46,12 @@ public class WordCloudColumn extends AbstractColumn {
 		boolean sim = indexTab.isSimilar();
 		boolean irSimflagAll = indexTab.isIrSimflagAll();
 		Object wordCloud = null;
-		try {
+		/*try {
 			String[] timeArray = DateUtil.formatTimeRange(timeRaneg);
-			String time0 = timeArray[0];
-			if (!DateUtil.isExpire("2019-10-01 00:00:00",time0)){
+			String time0 = timeArray[0];*/
+			//时间比较
+			/*if (!DateUtil.isExpire("2019-10-01 00:00:00",time0)){*/
+				//这个是指统计2019-10-01之后的
 				QueryCommonBuilder queryBuilder = this.createQueryCommonBuilder();
 				queryBuilder.page(0,50);
 				String metas = indexTab.getGroupName();
@@ -58,11 +60,13 @@ public class WordCloudColumn extends AbstractColumn {
 				data = TrslUtil.chooseDatabases(split);
 
 				try {
-					wordCloud = chartAnalyzeService.getWordCloud(indexTab.isServer(),queryBuilder.asTRSL(), sim,irSimflag,irSimflagAll, config.getEntityType(), queryBuilder.getPageSize(),"column", data);
-				} catch (TRSSearchException e) {
+					wordCloud = commonChartService.getWordCloudColumnData(queryBuilder,sim,irSimflag,irSimflagAll,metas,config.getEntityType(),"column");
+
+//					wordCloud = chartAnalyzeService.getWordCloud(indexTab.isServer(),queryBuilder.asTRSL(), sim,irSimflag,irSimflagAll, config.getEntityType(), queryBuilder.getPageSize(),"column", data);
+				} catch (TRSException |TRSSearchException e) {
 					throw new TRSSearchException(e);
 				}
-			}else {
+			/*}else {
 				QueryBuilder queryBuilder = this.createQueryBuilder();
 				try {
 					wordCloud = chartAnalyzeService.getWordCloud(indexTab.isServer(),queryBuilder.asTRSL(), sim,irSimflag,irSimflagAll, config.getEntityType(), queryBuilder.getPageSize(),"column", queryBuilder.getDatabase());
@@ -73,6 +77,7 @@ public class WordCloudColumn extends AbstractColumn {
 		} catch (OperationException e) {
 			e.printStackTrace();
 		}
+		*/
 
 		return wordCloud;
 	}
@@ -198,7 +203,7 @@ public class WordCloudColumn extends AbstractColumn {
 					throw new TRSSearchException(e);
 				}
 			} else {// 传统
-				queryBuilder.setDatabase(Const.HYBASE_NI);
+				queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 				try {
 					return infoListService.getDocList(queryBuilder, loginUser, sim,irSimflag,irSimflagAll,false,"column");
 				} catch (TRSException e) {
