@@ -4,6 +4,7 @@ import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
@@ -11,17 +12,20 @@ import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 /**
  * 栏目配置类
- * 
+ *
  * @author 北京拓尔思信息技术股份有限公司
  * @since changjiang @ 2018年4月4日
  *
@@ -34,6 +38,11 @@ public class ColumnConfig {
 	 * 栏目实体
 	 */
 	private IndexTab indexTab;
+
+	/**
+	 * 栏目实体
+	 */
+	private ChartPageInfo chartPage;
 
 	/**
 	 * 页码
@@ -136,7 +145,7 @@ public class ColumnConfig {
 
 	/**
 	 * 初始化配置(不对hybase数据源负责)
-	 * 
+	 *
 	 * @since changjiang @ 2018年4月4日
 	 * @param indexTab
 	 * @param timeRange
@@ -146,20 +155,17 @@ public class ColumnConfig {
 	 * @Return : void
 	 */
 	public void init(IndexTab indexTab, String timeRange, int pageNo, int pageSize, String entityType, String orderBy,
-			String fuzzyValue) throws OperationException {
+					 String fuzzyValue) throws OperationException {
 		queryBuilder = new QueryBuilder();
 		commonBuilder = new QueryCommonBuilder();
 
 		this.indexTab = indexTab;
 		String timerange = indexTab.getTimeRange();
-		String timeRecent = indexTab.getTimeRecent();
 		if (StringUtils.isNotEmpty(timeRange)) {
 			timeArray = DateUtil.formatTimeRangeMinus1(timeRange);
 		} else {
 			if (StringUtils.isNotEmpty(timerange)) {
 				timeArray = DateUtil.formatTimeRangeMinus1(timerange);
-			} else if (StringUtils.isNotEmpty(timeRecent)) {
-				timeArray = DateUtil.formatTimeRangeMinus1(timeRecent);
 			}
 		}
 		this.entityType = entityType;
@@ -171,13 +177,6 @@ public class ColumnConfig {
 
 		// 检索关键词转换为trsl
 		createFilter(keyWords, keyWordindex, excludeWords, weight);
-		/*// 结果中搜索
-		if (StringUtil.isNotEmpty(fuzzyValue)) {
-			String trsl = new StringBuffer().append( FtsFieldConst.FIELD_TITLE).append(":(").append(fuzzyValue)
-					.append(")").append(" OR (").append(FtsFieldConst.FIELD_CONTENT)
-					.append(":(").append(fuzzyValue).append(")) ").toString();
-			queryBuilder.filterByTRSL(trsl);
-		}*/
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
 			String[] split = fuzzyValue.split(",");
@@ -218,11 +217,10 @@ public class ColumnConfig {
 		}
 		// 构造检索条件
 		// 时间
-		String[] type = indexTab.getType();
-		List<String> strings = Arrays.asList(type);
+		String type = indexTab.getType();
 		String dataStartTime = null;
 		String dateEndTime = null;
-		if (StringUtils.isNotEmpty(dataTime) && strings.size()==1 && strings.contains(ColumnConst.CHART_LINE)){
+		if (StringUtils.isNotEmpty(dataTime) && ColumnConst.CHART_LINE.equals(type)){
 			if(dataTime.length() == 16 ){
 				dataTime = dataTime.replace("-", "").replace("/", "")
 						.replace(":", "").replace(" ", "").trim();
@@ -286,19 +284,6 @@ public class ColumnConfig {
 				}
 			}
 		}else {
-			//折线图 24h 当前时间点 分类统计 数据 与 跳列表 时间段不一致问题
-		/*	if (StringUtils.equals(timeRange, "24h") && strings.size()==1 && strings.contains(ColumnConst.CHART_LINE)){
-				timeArray[0] = timeArray[0].substring(0,10)+"0000";
-				int i = Integer.parseInt(timeArray[1].substring(8,10))-1;
-				String repalceHour = String.valueOf(i);
-				if (i < 10){
-					repalceHour = "0" + String.valueOf(i);
-				}
-				timeArray[1] = new StringBuilder(timeArray[1].substring(0,10)+"5959").replace(8,10,repalceHour).toString();
-
-			}else if(!StringUtils.equals(timeRange, "24h") && strings.size()==1 && strings.contains(ColumnConst.CHART_LINE)){
-				timeArray[0] = timeArray[0].substring(0,8)+"000000";
-			}*/
 			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 		}
 
@@ -307,45 +292,79 @@ public class ColumnConfig {
 		queryBuilder.setStartTime(startToDate);
 		queryBuilder.setEndTime(endToDate);
 		// 排除网站
-		if (this.indexTab.getExcludeWeb() != null && this.indexTab.getExcludeWeb().length > 0) {
+		if (this.indexTab.getExcludeWeb() != null && this.indexTab.getExcludeWeb().split(";").length > 0) {
 			addExcloudSite();
-		}
-		//主回帖
-		if ("0".equals(invitationCard)){
-			//主贴
-			queryBuilder.filterField(FtsFieldConst.FIELD_NRESERVED1, "(0 OR \"\")", Operator.Equal);
-		}else if ("1".equals(invitationCard)){//回帖
-			queryBuilder.filterField(FtsFieldConst.FIELD_NRESERVED1, invitationCard, Operator.Equal);
 		}
 		// 情感值
 		if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
 			// 处理中性问题
-			if("中性".equals(emotion)){
+			if ("中性".equals(emotion)) {
 				queryBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, "(\"正面\" OR \"负面\")", Operator.NotEqual);
-			}else{
+			} else {
 				queryBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
 			}
 		}
+		String source = indexTab.getGroupName();
+		if(StringUtil.isNotEmpty(groupName)){
+			List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+			if (!"ALL".equals(groupName) ) {
+				List<String> checkSourceList = CommonListChartUtil.formatGroupName(groupName);
+				Boolean isSearch = false;
+				for (String group : checkSourceList) {
+					if (sourceList.contains(group)) {
+						isSearch = true;
+					}
+				}
+				if (!isSearch) {
+					throw new TRSSearchException("当前栏目无法查询该数据源");
+				}
+			} else {
+				groupName = StringUtils.join(sourceList, ";");
+			}
 
-		// 转发 / 原发
+			List<String> searchSourceList = CommonListChartUtil.formatGroupName(groupName);
 
-		String builderTRSL = queryBuilder.asTRSL();
-		StringBuilder builderTrsl = new StringBuilder(builderTRSL);
-		if ("primary".equals(forwarPrimary)) {
-			// 原发
-			queryBuilder.filterByTRSL(Const.PRIMARY_WEIBO);
-		} else if ("forward".equals(forwarPrimary)) {
-			// 转发
-			queryBuilder = new QueryBuilder();
-			builderTrsl.append(" NOT ").append(Const.PRIMARY_WEIBO);
-			queryBuilder.filterByTRSL(builderTrsl.toString());
-
+			//只在原转发和主回帖筛选时添加要查询数据源，因为底层方法通过参数中的groupName去添加了对应的数据源和数据库信息
+			if ((searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) ||
+					(searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwarPrimary))) {
+				StringBuffer sb = new StringBuffer();
+				if (searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) {
+					sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+					if ("0".equals(invitationCard)) {// 主贴
+						sb.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+					} else if ("1".equals(invitationCard)) {// 回帖
+						sb.append(" AND (").append(FtsFieldConst.FIELD_NRESERVED1).append(":(1)").append(")");
+					}
+					sb.append(")");
+					searchSourceList.remove(Const.GROUPNAME_LUNTAN);
+				}
+				if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwarPrimary)) {
+					if (sb.length() > 0) {
+						sb.append(" OR ");
+					}
+					sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+					if ("primary".equals(forwarPrimary)) {
+						// 原发
+						sb.append(" AND ").append(Const.PRIMARY_WEIBO);
+					} else if ("forward".equals(forwarPrimary)) {
+						//转发
+						sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
+					}
+					sb.append(")");
+					searchSourceList.remove(Const.GROUPNAME_WEIBO);
+				}
+				if (searchSourceList.size() > 0) {
+					if (sb.length() > 0) {
+						sb.append(" OR ");
+					}
+					sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
+				}
+				queryBuilder.filterByTRSL(sb.toString());
+			}
 		}
-
-
 		String sidsTrsl = queryBuilder.asTRSL();
 		StringBuilder sidsTrslNew = new StringBuilder(sidsTrsl);
-		if (StringUtil.isNotEmpty(indexTab.getNotSids())){
+		if (StringUtil.isNotEmpty(indexTab.getNotSids())) {
 			sidsTrslNew.append(indexTab.getNotSids());
 			queryBuilder.filterByTRSL(sidsTrslNew.toString());
 		}
@@ -357,7 +376,7 @@ public class ColumnConfig {
 
 	/**
 	 * 列表查询初始化配置
-	 * 
+	 *
 	 * @since changjiang @ 2018年4月11日
 	 * @param indexTab
 	 * @param timeRange
@@ -380,8 +399,8 @@ public class ColumnConfig {
 	 * @Return : void
 	 */
 	public void initSection(IndexTab indexTab, String timeRange, int pageNo, int pageSize, String groupName,
-			String emotion, String entityType, String dataTime, String key, String orderBy, String area,
-			String irKeyword, String invitationCard, String fuzzyValue,String fuzzyValueScope, String forwarPrimary)
+							String emotion, String entityType, String dataTime, String key, String orderBy, String area,
+							String irKeyword, String invitationCard, String fuzzyValue,String fuzzyValueScope, String forwarPrimary)
 			throws OperationException {
 		this.orderBy = orderBy;
 		this.dataTime = dataTime;
@@ -431,101 +450,8 @@ public class ColumnConfig {
 					this.queryBuilder.filterByTRSL(exbuilder.toString());
 				}
 			}
-		//	}
 		} else {// 专家模式
 			queryBuilder.filterByTRSL(this.indexTab.getTrsl());// 专家模式
-
-			if(this.indexTab.isServer()){
-				queryBuilder.setServer(true);
-			}
-		}
-		switch (this.orderBy) { // 排序
-		case "commtCount":// 评论
-			queryBuilder.orderBy(FtsFieldConst.FIELD_COMMTCOUNT, true);
-			break;
-		case "rttCount":// 转发
-			queryBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
-			break;
-		case "asc":
-			queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			break;
-		case "desc":
-			queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			break;
-		case "relevance":// 相关性排序
-			queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-			break;
-		default:
-			if (weight) {
-				queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_RELEVANCE + ";-" + FtsFieldConst.FIELD_URLTIME);
-			} else {
-				queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_URLTIME + ";-" + FtsFieldConst.FIELD_RELEVANCE);
-			}
-			break;
-		}
-	}
-
-	/**
-	 * @Desc : 为通用联合检索构造器赋值
-	 * @since changjiang @ 2018年4月8日
-	 * @Return : void
-	 */
-	private void convertCommonBuilder() {
-		this.commonBuilder.filterByTRSL(this.queryBuilder.asTRSL());
-		this.commonBuilder.page(queryBuilder.getPageNo(), queryBuilder.getPageSize());
-		// this.commonBuilder.orderBy(ESFieldConst.IR_URLTIME, true);
-		switch (this.orderBy) { // 排序
-		case "commtCount":// 评论
-			commonBuilder.orderBy(FtsFieldConst.FIELD_COMMTCOUNT, true);
-			break;
-		case "rttCount":// 转发
-			commonBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
-			break;
-		case "asc":
-			commonBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			break;
-		case "desc":
-			commonBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			break;
-		case "relevance":// 相关性排序
-			commonBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-			break;
-		default:
-			if (weight) {
-				commonBuilder.setOrderBy("-" + FtsFieldConst.FIELD_RELEVANCE + ";-" + FtsFieldConst.FIELD_URLTIME);
-			} else {
-				commonBuilder.setOrderBy("-" + FtsFieldConst.FIELD_URLTIME + ";-" + FtsFieldConst.FIELD_RELEVANCE);
-			}
-			break;
-		}
-		commonBuilder.setServer(queryBuilder.isServer());
-		this.commonBuilder.setStartTime(this.queryBuilder.getStartTime());
-		this.commonBuilder.setEndTime(this.queryBuilder.getEndTime());
-	}
-
-	/**
-	 * 增加排除站点
-	 * 
-	 * @since changjiang @ 2018年4月9日
-	 * @Return : void
-	 */
-	private void addExcloudSite() {
-		String[] excludeWeb = this.indexTab.getExcludeWeb();
-		String asTRSL = this.queryBuilder.asTRSL();
-		String notSite = "";
-		for (String site : excludeWeb) {
-			notSite += site + " OR ";
-		}
-		if (notSite.endsWith(" OR ")) {
-			notSite = notSite.substring(0, notSite.length() - 4);
-		}
-		asTRSL += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME).append(":(").append(notSite)
-				.append(")").toString();
-
-		this.queryBuilder = new QueryBuilder();
-		queryBuilder.filterByTRSL(asTRSL);
-		if(this.indexTab.isServer()){
-			queryBuilder.setServer(true);
 		}
 		switch (this.orderBy) { // 排序
 			case "commtCount":// 评论
@@ -545,9 +471,94 @@ public class ColumnConfig {
 				break;
 			default:
 				if (weight) {
-					queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_RELEVANCE + ";-" + FtsFieldConst.FIELD_URLTIME);
+					queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_RELEVANCE);
 				} else {
-					queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_URLTIME + ";-" + FtsFieldConst.FIELD_RELEVANCE);
+					queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_URLTIME );
+				}
+				break;
+		}
+	}
+
+	/**
+	 * @Desc : 为通用联合检索构造器赋值
+	 * @since changjiang @ 2018年4月8日
+	 * @Return : void
+	 */
+	private void convertCommonBuilder() {
+		this.commonBuilder.filterByTRSL(this.queryBuilder.asTRSL());
+		this.commonBuilder.page(pageNo, pageSize!= 0 ? pageSize: maxSize);
+		switch (this.orderBy) { // 排序
+			case "commtCount":// 评论tairele
+				commonBuilder.orderBy(FtsFieldConst.FIELD_COMMTCOUNT, true);
+				break;
+			case "rttCount":// 转发
+				commonBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
+				break;
+			case "asc":
+				commonBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				break;
+			case "desc":
+				commonBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "relevance":// 相关性排序
+				commonBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+				break;
+			default:
+				if (weight) {
+					commonBuilder.setOrderBy("-" + FtsFieldConst.FIELD_RELEVANCE );
+				} else {
+					commonBuilder.setOrderBy("-" + FtsFieldConst.FIELD_URLTIME);
+				}
+				break;
+		}
+		this.commonBuilder.setStartTime(this.queryBuilder.getStartTime());
+		this.commonBuilder.setEndTime(this.queryBuilder.getEndTime());
+	}
+
+	/**
+	 * 增加排除站点
+	 *
+	 * @since changjiang @ 2018年4月9日
+	 * @Return : void
+	 */
+	private void addExcloudSite() {
+		String[] excludeWeb = this.indexTab.getExcludeWeb(true);
+		String asTRSL = this.queryBuilder.asTRSL();
+		if(excludeWeb != null && excludeWeb.length >0){
+			String notSite = "";
+			for (String site : excludeWeb) {
+				notSite += site + " OR ";
+			}
+			if (notSite.endsWith(" OR ")) {
+				notSite = notSite.substring(0, notSite.length() - 4);
+			}
+			asTRSL += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME).append(":(").append(notSite)
+					.append(")").toString();
+		}
+
+		this.queryBuilder = new QueryBuilder();
+		queryBuilder.filterByTRSL(asTRSL);
+		switch (this.orderBy) { // 排序
+			case "commtCount":// 评论
+				queryBuilder.orderBy(FtsFieldConst.FIELD_COMMTCOUNT, true);
+				break;
+			case "rttCount":// 转发
+				queryBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
+				break;
+			case "asc":
+				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				break;
+			case "desc":
+				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "relevance":// 相关性排序
+				queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+				break;
+			default:
+				if (weight) {
+					queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_RELEVANCE );
+				} else {
+					queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_URLTIME);
 				}
 				break;
 		}

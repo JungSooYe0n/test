@@ -13,15 +13,14 @@
  */
 package com.trs.netInsight.widget.column.service;
 
-import java.util.List;
-import java.util.Map;
-
 import com.trs.netInsight.support.appApi.entity.AppApiAccessToken;
+import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.user.entity.SubGroup;
+import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.data.domain.Sort;
 
-import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.user.entity.User;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Type IIndexPageService.java
@@ -88,22 +87,15 @@ public interface IIndexPageService {
 	 * @return
 	 */
 	public List<IndexPage> findByOrganizationId(String organizationId, Sort sort);
-	
-	/**
-	 * 复制page和tab
-	 * @date Created at 2018年3月22日  上午10:28:37
-	 * @Author 谷泽昊
-	 * @param userId 赋权给那个用户的id
-	 */
-	public void copyPageAndTab(User orgUser,User user);
+
 
 	/**
 	 * 同步 选中的 栏目组 及 栏目组包含的 栏目
 	 * @param pageIds
 	 * @param subGroup
 	 */
-	public void copySomePageAndTabToUserGroup(List<String> pageIds ,SubGroup subGroup);
-	
+	public void copySomePageAndTabToUserGroup(List<String> pageIds, SubGroup subGroup);
+
 	/**
 	 * 根据资源拥有者及pageId检索
 	 * @since changjiang @ 2018年7月17日
@@ -115,7 +107,7 @@ public interface IIndexPageService {
 	 * @Return : IndexPage
 	 */
 	public IndexPage findOne(String ownerId, String indexPageId);
-	
+
 	/**
 	 * 根据用户id及共享状态检索栏目组
 	 * @since changjiang @ 2018年9月20日
@@ -125,15 +117,14 @@ public interface IIndexPageService {
 	 * @Return : List<IndexPage>
 	 */
 	public List<IndexPage> findByUserIdAndShare(String userId, boolean share);
-	
+
 	/**
 	 * 根据导航栏id检索栏目组
 	 * @since changjiang @ 2018年10月11日
-	 * @param typeId
 	 * @return
 	 * @Return : List<IndexPage>
 	 */
-	public List<Map<String, Object>> findByTypeId(String typeId, boolean one, boolean definedself);
+	public List<Map<String, Object>> findByTypeId();
 
 	/**
 	 * 获取栏目组，带着导航信息,专为api；目前只是默认日常监测下，自定义不算
@@ -171,6 +162,12 @@ public interface IIndexPageService {
 
 	public void deleteByUserId(String userId);
 
+	/**
+	 * 修改历史数据 - 栏目分组 当前分组只有一层，将分组的parentid重置，并添加层级信息、修改parentname 为name
+	 * @return
+	 */
+	Object updateHistoryIndexPage();
+	IndexPage addIndexPage(String parentId, String name, String typeId, User user);
 }
 
 /**

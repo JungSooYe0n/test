@@ -78,7 +78,7 @@ public class InfoListServiceImpl implements IInfoListService {
 	private IAlertService alertService;
 
 	@Autowired
-	private OrganizationRepository organizationRepository;
+	private OrganizationRepository organizationService;
 
 	@Autowired
 	private ICommonListService commonListService;
@@ -394,12 +394,12 @@ public class InfoListServiceImpl implements IInfoListService {
 	}
 
 
-    @Override
-    public InfoListResult getHotList(QueryBuilder builder, QueryBuilder countBuilder, User user,String type)
-            throws TRSException{
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-	    return getHotList(builder, countBuilder, user, type,searchPage);
-    }
+	@Override
+	public InfoListResult getHotList(QueryBuilder builder, QueryBuilder countBuilder, User user,String type)
+			throws TRSException{
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		return getHotList(builder, countBuilder, user, type,searchPage);
+	}
 	/**
 	 * 热度排序
 	 *
@@ -450,10 +450,10 @@ public class InfoListServiceImpl implements IInfoListService {
 				groupList = list;
 			} else {
 				builder.page(0, 50);
-                //单独算法,已修改
-                GroupResult md5TAG = hybase8SearchService.categoryQuery(builder, false, true,
-                        false, "MD5TAG",type,
-                        builder.getDatabase());
+				//单独算法,已修改
+				GroupResult md5TAG = hybase8SearchService.categoryQuery(builder, false, true,
+						false, "MD5TAG",type,
+						builder.getDatabase());
 				groupList = md5TAG.getGroupList();
 				TimingCachePool.put(key, groupList);
 			}
@@ -595,12 +595,12 @@ public class InfoListServiceImpl implements IInfoListService {
 		}
 	}
 
-    @Override
-    public InfoListResult getDocList(QueryBuilder builder, User user, boolean sim, boolean irSimflag,boolean irSimflagAll,boolean isExport,String type)
-            throws TRSException{
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-        return getDocList(builder, user, sim, irSimflag, irSimflagAll, isExport, type,searchPage);
-    }
+	@Override
+	public InfoListResult getDocList(QueryBuilder builder, User user, boolean sim, boolean irSimflag,boolean irSimflagAll,boolean isExport,String type)
+			throws TRSException{
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		return getDocList(builder, user, sim, irSimflag, irSimflagAll, isExport, type,searchPage);
+	}
 	/**
 	 * 获取信息列表数据
 	 *
@@ -803,7 +803,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 
 					List<Favourites> favouritesList = favouritesService.findAll(user);
-				//	List<Favourites> library = favouritesRepository.findByUserIdAndSidIn(userId, sids);
+					//	List<Favourites> library = favouritesRepository.findByUserIdAndSidIn(userId, sids);
 					// 把已经预警的装里边
 					/*List<String> sidAlert = new ArrayList<>();
 					long alertBefore = System.currentTimeMillis();
@@ -878,11 +878,11 @@ public class InfoListServiceImpl implements IInfoListService {
 		return object;
 	}
 
-    @Override
-    public InfoListResult getDocTFList(QueryBuilder builder, User user, boolean sim,boolean irSimflag,boolean irSimflagAll,String type) throws TRSException{
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-        return getDocTFList(builder, user, sim, irSimflag, irSimflagAll, type,searchPage);
-    }
+	@Override
+	public InfoListResult getDocTFList(QueryBuilder builder, User user, boolean sim,boolean irSimflag,boolean irSimflagAll,String type) throws TRSException{
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		return getDocTFList(builder, user, sim, irSimflag, irSimflagAll, type,searchPage);
+	}
 
 	@Override
 	public InfoListResult getDocTFList(QueryBuilder builder, User user, boolean sim,boolean irSimflag,boolean irSimflagAll,String type,String searchPage) throws TRSException {
@@ -1408,11 +1408,11 @@ public class InfoListServiceImpl implements IInfoListService {
 		return object;
 	}
 
-    @Override
-    public Object getHotListStatus(QueryBuilder builder, QueryBuilder countBuilder, User user,String type) throws TRSException{
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-        return getHotListStatus(builder, countBuilder, user, type,searchPage);
-    }
+	@Override
+	public Object getHotListStatus(QueryBuilder builder, QueryBuilder countBuilder, User user,String type) throws TRSException{
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		return getHotListStatus(builder, countBuilder, user, type,searchPage);
+	}
 	@Override
 	public Object getHotListStatus(QueryBuilder builder, QueryBuilder countBuilder, User user,String type,String searchPage) throws TRSException {
 		try {
@@ -1578,11 +1578,11 @@ public class InfoListServiceImpl implements IInfoListService {
 			throw new OperationException("listByHot error:" + e);
 		}
 	}
-    @Override
-    public Object getHotListWeChat(QueryBuilder builder, QueryBuilder countBuilder, User user,String type) throws TRSException{
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-        return getHotListWeChat(builder, countBuilder, user, type,searchPage);
-    }
+	@Override
+	public Object getHotListWeChat(QueryBuilder builder, QueryBuilder countBuilder, User user,String type) throws TRSException{
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		return getHotListWeChat(builder, countBuilder, user, type,searchPage);
+	}
 
 	@Override
 	public Object getHotListWeChat(QueryBuilder builder, QueryBuilder countBuilder, User user,String type,String searchPage) throws TRSException {
@@ -1751,15 +1751,15 @@ public class InfoListServiceImpl implements IInfoListService {
 	}
 
 
-    @Override
-    public InfoListResult<FtsDocumentStatus> getStatusList(QueryBuilder builder, User user, boolean sim,
-                                                           boolean irSimflag,boolean irSimflagAll,boolean isExport,String type) throws TRSException{
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-        return getStatusList(builder, user, sim, irSimflag, irSimflagAll, isExport, type,searchPage);
-    }
 	@Override
 	public InfoListResult<FtsDocumentStatus> getStatusList(QueryBuilder builder, User user, boolean sim,
-			boolean irSimflag,boolean irSimflagAll,boolean isExport,String type,String searchPage) throws TRSException {
+														   boolean irSimflag,boolean irSimflagAll,boolean isExport,String type) throws TRSException{
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		return getStatusList(builder, user, sim, irSimflag, irSimflagAll, isExport, type,searchPage);
+	}
+	@Override
+	public InfoListResult<FtsDocumentStatus> getStatusList(QueryBuilder builder, User user, boolean sim,
+														   boolean irSimflag,boolean irSimflagAll,boolean isExport,String type,String searchPage) throws TRSException {
 		// 暂时不用了
 		List<FtsDocumentStatus> ftsList = new ArrayList<>();
 		// List<String> md5List = new ArrayList<>();
@@ -2028,16 +2028,16 @@ public class InfoListServiceImpl implements IInfoListService {
 		}
 		return TimingCachePool.get(pageId);
 	}
-    @Override
-    public InfoListResult<FtsDocumentWeChat> getWeChatList(QueryBuilder builder, User user, boolean sim,
-                                                           boolean irSimflag,boolean irSimflagAll,boolean isExport,String type) throws TRSException{
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-	    return getWeChatList(builder,user,sim,irSimflag,irSimflagAll,isExport,type,searchPage);
-    }
+	@Override
+	public InfoListResult<FtsDocumentWeChat> getWeChatList(QueryBuilder builder, User user, boolean sim,
+														   boolean irSimflag,boolean irSimflagAll,boolean isExport,String type) throws TRSException{
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		return getWeChatList(builder,user,sim,irSimflag,irSimflagAll,isExport,type,searchPage);
+	}
 
 	@Override
 	public InfoListResult<FtsDocumentWeChat> getWeChatList(QueryBuilder builder, User user, boolean sim,
-			boolean irSimflag,boolean irSimflagAll,boolean isExport,String type,String searchPage) throws TRSException {
+														   boolean irSimflag,boolean irSimflagAll,boolean isExport,String type,String searchPage) throws TRSException {
 		// 暂时不用
 		List<FtsDocumentWeChat> ftsList = new ArrayList<>();
 		final String pageId = GUIDGenerator.generate(InfoListServiceImpl.class);
@@ -2123,7 +2123,7 @@ public class InfoListServiceImpl implements IInfoListService {
 							ftsDocumentWeChat.setFavourite(false);
 						}
 						if (StringUtil.isNotEmpty(ftsDocumentWeChat.getContent())) {
-						//ftsDocumentWeChat.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
+							//ftsDocumentWeChat.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
 							ftsDocumentWeChat.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(ftsDocumentWeChat.getContent()),  Const.CONTENT_LENGTH));
 						}
 						ftsDocumentWeChat.setTrslk(trslk);
@@ -2177,7 +2177,7 @@ public class InfoListServiceImpl implements IInfoListService {
 	@SuppressWarnings("unused")
 
 	private void nextListForReport(String specialId, QueryBuilder builder, int index, String pageId,
-			List<String> md5List, List<FtsDocument> ftsList, User user) {
+								   List<String> md5List, List<FtsDocument> ftsList, User user) {
 		try {
 			List<FtsDocument> childFtsList = new ArrayList<>();
 			if (ftsList == null) {
@@ -2443,7 +2443,7 @@ public class InfoListServiceImpl implements IInfoListService {
 	 * @param trslk
 	 */
 	private void calculateSimNum(String pageId, final List<FtsDocument> documentList, User user, String trslk,
-			boolean server,String type) {
+								 boolean server,String type) {
 		try {
 			ObjectUtil.assertNull(documentList, "FtsDocumentList ");
 			String trsl = RedisUtil.getString(trslk);
@@ -2492,8 +2492,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.setDatabase(indices);
 					// 算相似文章数时 如果值为1 置 0
 					searchBuilder.setServer(server);
-                    //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
-                    long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
+					//逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
+					long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 
 					if (ftsCount == 1L) {
 						asyncDocument.setSimNum(0L);
@@ -2516,13 +2516,13 @@ public class InfoListServiceImpl implements IInfoListService {
 			log.error("setSimNumAndPicUrl error", e);
 		}
 	}
-    private void calculateSimNum(String pageId, final List<FtsDocument> documentList, User user, String trslk,
-                                 boolean server, boolean sim, boolean irSimflag,String type){
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-        calculateSimNum(pageId, documentList, user, trslk, server, sim, irSimflag, type,searchPage);
-    }
 	private void calculateSimNum(String pageId, final List<FtsDocument> documentList, User user, String trslk,
-			boolean server, boolean sim, boolean irSimflag,String type,String searchPage) {
+								 boolean server, boolean sim, boolean irSimflag,String type){
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		calculateSimNum(pageId, documentList, user, trslk, server, sim, irSimflag, type,searchPage);
+	}
+	private void calculateSimNum(String pageId, final List<FtsDocument> documentList, User user, String trslk,
+								 boolean server, boolean sim, boolean irSimflag,String type,String searchPage) {
 		try {
 			log.info("相似文章数计算-传统媒体："+"async:" + pageId+"开始");
 			ObjectUtil.assertNull(documentList, "FtsDocumentList ");
@@ -2586,8 +2586,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.setDatabase(indices);
 					// 算相似文章数时 如果值为1 置 0
 					searchBuilder.setServer(server);
-                    //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
-                    long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
+					//逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
+					long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 
 					if (ftsCount == 1L) {
 						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
@@ -2625,11 +2625,11 @@ public class InfoListServiceImpl implements IInfoListService {
 		}
 	}
 
-    private void calculateSimNumStatus(String pageId, final List<FtsDocumentStatus> documentList, User user,
-                                       String trslk,String type){
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-        calculateSimNumStatus(pageId, documentList, user, trslk, type,searchPage);
-    }
+	private void calculateSimNumStatus(String pageId, final List<FtsDocumentStatus> documentList, User user,
+									   String trslk,String type){
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		calculateSimNumStatus(pageId, documentList, user, trslk, type,searchPage);
+	}
 	/**
 	 * 计算相似文章数和头像url
 	 *
@@ -2638,7 +2638,7 @@ public class InfoListServiceImpl implements IInfoListService {
 	 * @param trslk
 	 */
 	private void calculateSimNumStatus(String pageId, final List<FtsDocumentStatus> documentList, User user,
-			String trslk,String type,String searchPage) {
+									   String trslk,String type,String searchPage) {
 		try {
 			log.info("相似文章数计算-微博："+"async:" + pageId+"开始");
 			ObjectUtil.assertNull(documentList, "FtsDocumentStatus ");
@@ -2705,8 +2705,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 					searchBuilder.setDatabase(indices);
 					// 算相似文章数时 如果值为1 置 0
-                    //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
-                    long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
+					//逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
+					long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 					if (ftsCount == 1L) {
 						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
 							asyncDocument.setSimNum(ftsCount);
@@ -2745,11 +2745,11 @@ public class InfoListServiceImpl implements IInfoListService {
 		}
 	}
 
-    private void calculateSimNumTF(String pageId, final List<FtsDocumentTF> documentList, User user, String trslk,
-                                   boolean server,String type){
-	    String searchPage = SearchPage.COMMON_SEARCH.toString();
-        calculateSimNumTF(pageId, documentList, user, trslk, server, type,searchPage);
-    }
+	private void calculateSimNumTF(String pageId, final List<FtsDocumentTF> documentList, User user, String trslk,
+								   boolean server,String type){
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		calculateSimNumTF(pageId, documentList, user, trslk, server, type,searchPage);
+	}
 	/**
 	 * 计算相似文章数和头像url
 	 *
@@ -2758,7 +2758,7 @@ public class InfoListServiceImpl implements IInfoListService {
 	 * @param trslk
 	 */
 	private void calculateSimNumTF(String pageId, final List<FtsDocumentTF> documentList, User user, String trslk,
-			boolean server,String type,String searchPage) {
+								   boolean server,String type,String searchPage) {
 		try {
 			log.info("相似文章数计算-TF数据："+"async:" + pageId+"开始");
 			ObjectUtil.assertNull(documentList, "FtsDocumentTF ");
@@ -2826,8 +2826,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.setDatabase(indices);
 					searchBuilder.setServer(server);
 					// 算相似文章数时 如果值为1 置 0
-                    //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
-                    long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
+					//逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
+					long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 					if (ftsCount == 1L) {
 						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
 							asyncDocument.setSimNum(ftsCount);
@@ -2866,11 +2866,11 @@ public class InfoListServiceImpl implements IInfoListService {
 		}
 	}
 
-    private void calculateSimNumWeChat(String pageId, final List<FtsDocumentWeChat> documentList, User user,
-                                       String trslk, boolean server,String type){
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-        calculateSimNumWeChat(pageId,documentList,user,trslk,server,type,searchPage);
-    }
+	private void calculateSimNumWeChat(String pageId, final List<FtsDocumentWeChat> documentList, User user,
+									   String trslk, boolean server,String type){
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		calculateSimNumWeChat(pageId,documentList,user,trslk,server,type,searchPage);
+	}
 	/**
 	 * 计算相似文章数和头像url
 	 *
@@ -2879,7 +2879,7 @@ public class InfoListServiceImpl implements IInfoListService {
 	 * @param trslk
 	 */
 	private void calculateSimNumWeChat(String pageId, final List<FtsDocumentWeChat> documentList, User user,
-			String trslk, boolean server,String type,String searchPage) {
+									   String trslk, boolean server,String type,String searchPage) {
 		try {
 			log.info("相似文章数计算-微信："+"async:" + pageId+"开始");
 			ObjectUtil.assertNull(documentList, "FtsDocumentWeChat ");
@@ -2944,8 +2944,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.setDatabase(indices);
 					searchBuilder.setServer(server);
 					// 算相似文章数时 如果值为1 置 0
-                    //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
-                    long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
+					//逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-3
+					long ftsCount = hybase8SearchService.ftsCount(searchBuilder, false, true,false,type);
 					if (ftsCount == 1L) {
 						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
 							asyncDocument.setSimNum(ftsCount);
@@ -2990,7 +2990,7 @@ public class InfoListServiceImpl implements IInfoListService {
 	 */
 	@Override
 	public Object weChatSearch(String specialId, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex,String type)
+							   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex,String type)
 			throws TRSException {
 		log.warn("专项检测信息列表，微信，  开始调用接口");
 		try {
@@ -3106,7 +3106,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 					break;
 				case "hot":
-					return getHotListWeChat(builder, countBuilder, loginUser,type);
+					return commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIXIN,loginUser,type,true);
+//					return getHotListWeChat(builder, countBuilder, loginUser,type);
 				case "relevance":// 相关性排序
 					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 					break;
@@ -3121,8 +3122,9 @@ public class InfoListServiceImpl implements IInfoListService {
 			log.warn(builder.asTRSL());
 			//因微信库出现groupName字段值为空情况  导致专题分析数据统计与信息数据量不一致，故 builder加groupname
 			builder.filterField(FtsFieldConst.FIELD_GROUPNAME,"国内微信",Operator.Equal);
-
-			return getWeChatList(builder, loginUser, sim, irSimflag,irSimflagAll,false,type);
+			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,source,type,loginUser,true);
+			return list;
+//			return getWeChatList(builder, loginUser, sim, irSimflag,irSimflagAll,false,type);
 		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
@@ -3132,8 +3134,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public Object statusSearch(String specialId, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex,
-			String forwarPrimary,String type) throws TRSException {
+							   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex,
+							   String forwarPrimary,String type) throws TRSException {
 		log.warn("专项检测信息列表，微博，  开始调用接口");
 		try {
 			QueryBuilder builder = new QueryBuilder();
@@ -3284,7 +3286,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					countBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
 					break;
 				case "hot":
-					return getHotListStatus(builder, countBuilder, loginUser,type);
+					return commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIBO,loginUser,type,true);
+//					return getHotListStatus(builder, countBuilder, loginUser,type);
 				case "relevance":// 相关性排序
 					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 					break;
@@ -3299,7 +3302,9 @@ public class InfoListServiceImpl implements IInfoListService {
 			// countBuiler.setDatabase(Const.WEIBO);
 			//因微信库出现groupName字段值为空情况  导致专题分析数据统计与信息数据量不一致，防止微博出现上述情况 builder加groupname
 			builder.filterField(FtsFieldConst.FIELD_GROUPNAME,"微博",Operator.Equal);
-			return getStatusList(builder, loginUser, sim,irSimflag,irSimflagAll,false,type);
+			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,source,type,loginUser,true);
+//			return getStatusList(builder, loginUser, sim,irSimflag,irSimflagAll,false,type);
+			return list;
 
 		} catch (TRSException e) {
 			throw e;
@@ -3310,8 +3315,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public Object documentSearch(String specialId, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String invitationCard, String keywords,String fuzzyValueScope, String notKeyWords,
-			String keyWordIndex, String foreign,String type) throws TRSException {
+								 String industry, String emotion, String sort, String invitationCard, String keywords,String fuzzyValueScope, String notKeyWords,
+								 String keyWordIndex, String foreign,String type) throws TRSException {
 		log.warn("专项检测信息列表  开始调用接口");
 		try {
 			QueryBuilder builder = new QueryBuilder();
@@ -3468,7 +3473,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 					break;
 				case "hot":
-					return getHotList(builder, countBuilder, loginUser,type);
+					return commonListService.queryPageListForHot(builder,Const.TYPE_NEWS,loginUser,type,true);
+//					return getHotList(builder, countBuilder, loginUser,type);
 				case "relevance":// 相关性排序
 					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 					break;
@@ -3481,8 +3487,10 @@ public class InfoListServiceImpl implements IInfoListService {
 					break;
 			}
 			builder.setDatabase(Const.HYBASE_NI_INDEX);
-			return getDocList(builder, loginUser, sim, irSimflag,irSimflagAll,false,type);
-			} catch (TRSException e) {
+			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,source,type,loginUser,true);
+			return list;
+//			return getDocList(builder, loginUser, sim, irSimflag,irSimflagAll,false,type);
+		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new OperationException("查询出错："+e, e);
@@ -3529,11 +3537,11 @@ public class InfoListServiceImpl implements IInfoListService {
 		RedisFactory.setValueToRedis("async:" + pageId, asyncList);
 	}
 
-    public InfoListResult<IDocument> getDocListContrast(QueryCommonBuilder builder, User user, boolean sim,
-                                                        boolean irSimflag, boolean irSimflagAll, String type) throws TRSException{
-        String searchPage = SearchPage.COMMON_SEARCH.toString();
-	    return getDocListContrast(builder, user, sim, irSimflag, irSimflagAll, type,searchPage);
-    }
+	public InfoListResult<IDocument> getDocListContrast(QueryCommonBuilder builder, User user, boolean sim,
+														boolean irSimflag, boolean irSimflagAll, String type) throws TRSException{
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		return getDocListContrast(builder, user, sim, irSimflag, irSimflagAll, type,searchPage);
+	}
 
 	@Override
 	public InfoListResult<IDocument> getDocListContrast(QueryCommonBuilder builder, User user, boolean sim,
@@ -3659,13 +3667,13 @@ public class InfoListServiceImpl implements IInfoListService {
 		return object;
 	}
 
-    private void calculateSimNumCommon(String database, String pageId, final List<FtsDocumentCommonVO> documentList,
-                                       User user, String trslk, boolean server,String type){
-	    String searchPage = SearchPage.COMMON_SEARCH.toString();
-        calculateSimNumCommon(database, pageId, documentList, user, trslk, server, type,searchPage);
-    }
-    private void calculateSimNumCommon(String database, String pageId, final List<FtsDocumentCommonVO> documentList,
-			User user, String trslk, boolean server,String type,String searchPage) {
+	private void calculateSimNumCommon(String database, String pageId, final List<FtsDocumentCommonVO> documentList,
+									   User user, String trslk, boolean server,String type){
+		String searchPage = SearchPage.COMMON_SEARCH.toString();
+		calculateSimNumCommon(database, pageId, documentList, user, trslk, server, type,searchPage);
+	}
+	private void calculateSimNumCommon(String database, String pageId, final List<FtsDocumentCommonVO> documentList,
+									   User user, String trslk, boolean server,String type,String searchPage) {
 		try {
 			log.info("相似文章数计算-全部数据源："+"async:" + pageId+"开始");
 			String trsl = RedisUtil.getString(trslk);
@@ -3716,27 +3724,27 @@ public class InfoListServiceImpl implements IInfoListService {
 					searchBuilder.setPageSize(1);
 					// 算相似文章数时 如果值为1 置 0
 
-                    long ftsCount;
-                    //逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-2
-                    if (searchBuilder.getDatabase()
-                            .equals(FtsParser.getDatabases(FtsDocument.class))) {
-                        ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocument.class, false,true, false,type);
-                    } else if (searchBuilder.getDatabase()
-                            .equals(FtsParser.getDatabases(FtsDocumentStatus.class))) {
-                        ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocumentStatus.class, false,true,
-                                false,type);
-                    } else if (searchBuilder.getDatabase()
-                            .equals(FtsParser.getDatabases(FtsDocumentWeChat.class))) {
-                        ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocumentWeChat.class, false,true,
-                                false,type);
-                    }else if (searchBuilder.getDatabase()
+					long ftsCount;
+					//逻辑修改:热度值及相似文章数计算之前先进行站内排重  2019-12-2
+					if (searchBuilder.getDatabase()
+							.equals(FtsParser.getDatabases(FtsDocument.class))) {
+						ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocument.class, false,true, false,type);
+					} else if (searchBuilder.getDatabase()
+							.equals(FtsParser.getDatabases(FtsDocumentStatus.class))) {
+						ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocumentStatus.class, false,true,
+								false,type);
+					} else if (searchBuilder.getDatabase()
+							.equals(FtsParser.getDatabases(FtsDocumentWeChat.class))) {
+						ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocumentWeChat.class, false,true,
+								false,type);
+					}else if (searchBuilder.getDatabase()
 							.equals(FtsParser.getDatabases(FtsDocumentTF.class))) {
 						ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocumentTF.class, false,true,
 								false,type);
 					} else {
-                        ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocumentCommonVO.class, false,true,
-                                false,type);
-                    }
+						ftsCount = hybase8SearchService.ftsCountNoRtt(searchBuilder, FtsDocumentCommonVO.class, false,true,
+								false,type);
+					}
 					RedisUtil.setString(searchBuilder.getKeyRedis(), trsl, 30, TimeUnit.MINUTES);
 					if (ftsCount == 1L) {
 						if(SearchPage.ORDINARY_SEARCH.toString().equals(searchPage)){
@@ -3777,8 +3785,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public Object documentTFSearch(String specialId, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,String notKeyWords,
-			String keyWordIndex,String type) throws TRSException {
+								   String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,String notKeyWords,
+								   String keyWordIndex,String type) throws TRSException {
 		try {
 			QueryBuilder builder = new QueryBuilder();
 			builder.setPageNo(pageNo);
@@ -3889,7 +3897,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
 					break;
 				case "hot":
-					return getHotList(builder, countBuilder, loginUser,type);
+					return commonListService.queryPageListForHot(builder,Const.GROUPNAME_TWITTER,loginUser,type,true);
+//					return getHotList(builder, countBuilder, loginUser,type);
 				case "relevance":// 相关性排序
 					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 					break;
@@ -3902,7 +3911,9 @@ public class InfoListServiceImpl implements IInfoListService {
 					break;
 			}
 			// countBuilder.setDatabase(Const.HYBASE_OVERSEAS);
-			return getDocTFList(builder, loginUser, sim,irSimflag,irSimflagAll,type);
+			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,source,type,loginUser,true);
+			return list;
+//			return getDocTFList(builder, loginUser, sim,irSimflag,irSimflagAll,type);
 
 		} catch (TRSException e) {
 			throw e;
@@ -3913,8 +3924,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public Object weChatForSearchList(boolean sim, boolean irSimflag,boolean irSimflagAll, int pageNo, int pageSize, String source,String checkedSource,
-			String time, String area, String industry, String emotion, String sort, String keywords, String notKeyWords,
-			String keyWordIndex, boolean weight, String fuzzyValue,String fuzzyValueScope,String fromWebSite,String excludeWeb,String type,String searchPage,String searchType) throws TRSException {
+									  String time, String area, String industry, String emotion, String sort, String keywords, String notKeyWords,
+									  String keyWordIndex, boolean weight, String fuzzyValue,String fuzzyValueScope,String fromWebSite,String excludeWeb,String type,String searchPage,String searchType) throws TRSException {
 		log.warn("专项检测信息列表，微信，  开始调用接口");
 		try {
 			QueryBuilder builder = new QueryBuilder();
@@ -3928,9 +3939,9 @@ public class InfoListServiceImpl implements IInfoListService {
 
 			Boolean isFuzzySearch = false;
 			if("fuzzy".equals(searchType)){
-                //是否是模糊搜索  是
-                isFuzzySearch = true;
-            }
+				//是否是模糊搜索  是
+				isFuzzySearch = true;
+			}
 			String originKeyword = "";
 			if ("ordinarySearch".equals(searchPage)) {
 				originKeyword = keywords;
@@ -3991,12 +4002,12 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (StringUtil.isNotEmpty(notKeyWords)) {
 						StringBuilder exbuilder = new StringBuilder();
 						exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						builder.filterByTRSL(exbuilder.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 						StringBuilder exbuilder2 = new StringBuilder();
 						exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
 						builder.filterByTRSL(exbuilder2.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 					}
@@ -4008,7 +4019,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (StringUtil.isNotEmpty(notKeyWords)) {
 						StringBuilder exbuilder = new StringBuilder();
 						exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						builder.filterByTRSL(exbuilder.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 					}
@@ -4106,10 +4117,10 @@ public class InfoListServiceImpl implements IInfoListService {
 				countBuilder.filterByTRSL(fuzzyBuilder.toString());
 			}
 
-            //来源网站
-            if (null != fromWebSite && !fromWebSite.isEmpty()){
-                addFieldValue(fromWebSite,builder,countBuilder," OR ",FtsFieldConst.FIELD_SITENAME,null,null);
-            }
+			//来源网站
+			if (null != fromWebSite && !fromWebSite.isEmpty()){
+				addFieldValue(fromWebSite,builder,countBuilder," OR ",FtsFieldConst.FIELD_SITENAME,null,null);
+			}
 			//排除网站
 			if (null != excludeWeb && !excludeWeb.isEmpty()){
 				String builderTrsl = builder.asTRSL();
@@ -4136,7 +4147,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 				//addExcloudSite(excludeWeb,builder,countBuilder,null,null);
 			}
-            //排除网站
+			//排除网站
             /*if (null != excludeWeb){
                 addExcloudSite(excludeWeb,builder,countBuilder,null,null);
             }*/
@@ -4160,11 +4171,11 @@ public class InfoListServiceImpl implements IInfoListService {
 				countBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
 			}
 			log.info("微信："+builder.asTRSL());
-            if("ordinarySearch".equals(searchPage)){
-                searchPage = SearchPage.ORDINARY_SEARCH.toString();
-            }else{
-                searchPage = SearchPage.COMMON_SEARCH.toString();
-            }
+			if("ordinarySearch".equals(searchPage)){
+				searchPage = SearchPage.ORDINARY_SEARCH.toString();
+			}else{
+				searchPage = SearchPage.COMMON_SEARCH.toString();
+			}
 			builder.filterField(FtsFieldConst.FIELD_GROUPNAME,"国内微信",Operator.Equal);
 			switch (sort) { // 排序
 				case "desc":
@@ -4201,8 +4212,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public Object statusForSearchList(boolean sim, boolean irSimflag,boolean irSimflagAll, int pageNo, int pageSize, String source,String checkedSource,
-			String time, String area, String industry, String emotion, String sort, String keywords, String notKeyWords,
-			String keyWordIndex, String forwardPrimary,String forwardPrimary1, boolean weight, String fuzzyValue,String fuzzyValueScope,String fromWebSite,String excludeWeb,String type,String searchPage,String searchType) throws TRSException {
+									  String time, String area, String industry, String emotion, String sort, String keywords, String notKeyWords,
+									  String keyWordIndex, String forwardPrimary,String forwardPrimary1, boolean weight, String fuzzyValue,String fuzzyValueScope,String fromWebSite,String excludeWeb,String type,String searchPage,String searchType) throws TRSException {
 		log.warn("专项检测信息列表，微博，  开始调用接口");
 		try {
 			QueryBuilder builder = new QueryBuilder();
@@ -4218,10 +4229,10 @@ public class InfoListServiceImpl implements IInfoListService {
 			countBuiler.setPageSize(pageSize);
 			User loginUser = UserUtils.getUser();
 			Boolean isFuzzySearch = false;
-            if("fuzzy".equals(searchType)){
-                //是否是模糊搜索  是
-                isFuzzySearch = true;
-            }
+			if("fuzzy".equals(searchType)){
+				//是否是模糊搜索  是
+				isFuzzySearch = true;
+			}
 			String originKeyword = "";
 			if ("ordinarySearch".equals(searchPage)) {
 				originKeyword = keywords;
@@ -4286,12 +4297,12 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (StringUtil.isNotEmpty(notKeyWords)) {
 						StringBuilder exbuilder = new StringBuilder();
 						exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						builder.filterByTRSL(exbuilder.toString());
 						countBuiler.filterByTRSL(exbuilder.toString());
 						StringBuilder exbuilder2 = new StringBuilder();
 						exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
 						builder.filterByTRSL(exbuilder2.toString());
 						countBuiler.filterByTRSL(exbuilder.toString());
 					}
@@ -4303,7 +4314,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (StringUtil.isNotEmpty(notKeyWords)) {
 						StringBuilder exbuilder = new StringBuilder();
 						exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						builder.filterByTRSL(exbuilder.toString());
 						countBuiler.filterByTRSL(exbuilder.toString());
 					}
@@ -4402,10 +4413,10 @@ public class InfoListServiceImpl implements IInfoListService {
 				builder.filterByTRSL(fuzzyBuilder.toString());
 				countBuiler.filterByTRSL(fuzzyBuilder.toString());
 			}
-            //来源网站
-            if (null != fromWebSite && !fromWebSite.isEmpty()){
-                addFieldValue(fromWebSite,builder,countBuiler," OR ",FtsFieldConst.FIELD_SITENAME,null,null);
-            }
+			//来源网站
+			if (null != fromWebSite && !fromWebSite.isEmpty()){
+				addFieldValue(fromWebSite,builder,countBuiler," OR ",FtsFieldConst.FIELD_SITENAME,null,null);
+			}
 			//排除网站
 			if (null != excludeWeb && !excludeWeb.isEmpty()){
 				String builderTrsl = builder.asTRSL();
@@ -4432,7 +4443,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 				//addExcloudSite(excludeWeb,builder,countBuilder,null,null);
 			}
-            //排除网站
+			//排除网站
            /* if (null != excludeWeb){
                 addExcloudSite(excludeWeb,builder,countBuiler,null,null);
             }*/
@@ -4537,11 +4548,11 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 			}
 			log.info("微博："+builder.asTRSL());
-            if("ordinarySearch".equals(searchPage)){
-                searchPage = SearchPage.ORDINARY_SEARCH.toString();
-            }else{
-                searchPage = SearchPage.COMMON_SEARCH.toString();
-            }
+			if("ordinarySearch".equals(searchPage)){
+				searchPage = SearchPage.ORDINARY_SEARCH.toString();
+			}else{
+				searchPage = SearchPage.COMMON_SEARCH.toString();
+			}
 			builder.filterField(FtsFieldConst.FIELD_GROUPNAME,"微博",Operator.Equal);
 			switch (sort) { // 排序
 				case "desc":
@@ -4579,8 +4590,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public Object documentForSearchList(boolean sim, boolean irSimflag,boolean irSimflagAll, int pageNo, int pageSize, String source,String checkedSource,
-			String time, String area, String mediaIndustry, String emotion, String sort, String invitationCard,String invitationCard1,
-			String keywords, String notKeyWords, String keyWordIndex, boolean weight, String fuzzyValue,String fuzzyValueScope,
+										String time, String area, String mediaIndustry, String emotion, String sort, String invitationCard,String invitationCard1,
+										String keywords, String notKeyWords, String keyWordIndex, boolean weight, String fuzzyValue,String fuzzyValueScope,
 										String fromWebSite,String excludeWeb,String newsInformation,String reprintPortal,String siteType,String type,String searchPage,String searchType)
 			throws TRSException {
 		log.warn("专项检测信息列表  开始调用接口");
@@ -4594,10 +4605,10 @@ public class InfoListServiceImpl implements IInfoListService {
 			User loginUser = UserUtils.getUser();
 
 			Boolean isFuzzySearch = false;
-            if("fuzzy".equals(searchType)){
-                //是否是模糊搜索  是
-                isFuzzySearch = true;
-            }
+			if("fuzzy".equals(searchType)){
+				//是否是模糊搜索  是
+				isFuzzySearch = true;
+			}
 			String originKeyword = "";
 			if ("ordinarySearch".equals(searchPage)) {
 				originKeyword = keywords;
@@ -4663,12 +4674,12 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (StringUtil.isNotEmpty(notKeyWords)) {
 						StringBuilder exbuilder = new StringBuilder();
 						exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						builder.filterByTRSL(exbuilder.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 						StringBuilder exbuilder2 = new StringBuilder();
 						exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
 						builder.filterByTRSL(exbuilder2.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 					}
@@ -4680,7 +4691,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (StringUtil.isNotEmpty(notKeyWords)) {
 						StringBuilder exbuilder = new StringBuilder();
 						exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						builder.filterByTRSL(exbuilder.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 					}
@@ -4890,11 +4901,11 @@ public class InfoListServiceImpl implements IInfoListService {
 			}
 
 			log.info(builder.asTRSL());
-            if("ordinarySearch".equals(searchPage)){
-                searchPage = SearchPage.ORDINARY_SEARCH.toString();
-            }else{
-                searchPage = SearchPage.COMMON_SEARCH.toString();
-            }
+			if("ordinarySearch".equals(searchPage)){
+				searchPage = SearchPage.ORDINARY_SEARCH.toString();
+			}else{
+				searchPage = SearchPage.COMMON_SEARCH.toString();
+			}
 			switch (sort) { // 排序
 				case "desc":
 					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
@@ -4932,26 +4943,26 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public Object documentTFForSearchList(boolean sim, boolean irSimflag,boolean irSimflagAll, int pageNo, int pageSize, String source,String checkedSource,
-										String time, String area, String mediaIndustry, String emotion, String sort,
-										String keywords, String notKeyWords, String keyWordIndex, boolean weight, String fuzzyValue,String fuzzyValueScope,
-										String fromWebSite,String excludeWeb,String newsInformation,String reprintPortal,String siteType,String type,String searchPage,String searchType)
+										  String time, String area, String mediaIndustry, String emotion, String sort,
+										  String keywords, String notKeyWords, String keyWordIndex, boolean weight, String fuzzyValue,String fuzzyValueScope,
+										  String fromWebSite,String excludeWeb,String newsInformation,String reprintPortal,String siteType,String type,String searchPage,String searchType)
 			throws TRSException {
 		log.warn("专项检测信息列表  开始调用接口");
 		try {
 			QueryBuilder builder = new QueryBuilder();
 			builder.setPageNo(pageNo);
 			builder.setPageSize(pageSize);
-            builder.setDatabase(Const.HYBASE_OVERSEAS);
+			builder.setDatabase(Const.HYBASE_OVERSEAS);
 			QueryBuilder countBuilder = new QueryBuilder();
 			countBuilder.setPageNo(pageNo);
 			countBuilder.setPageSize(pageSize);
 			User loginUser = UserUtils.getUser();
 
 			Boolean isFuzzySearch = false;
-            if("fuzzy".equals(searchType)){
-                //是否是模糊搜索  是
-                isFuzzySearch = true;
-            }
+			if("fuzzy".equals(searchType)){
+				//是否是模糊搜索  是
+				isFuzzySearch = true;
+			}
 			String originKeyword = "";
 			if ("ordinarySearch".equals(searchPage)) {
 				originKeyword = keywords;
@@ -5200,11 +5211,11 @@ public class InfoListServiceImpl implements IInfoListService {
 			}
 
 			log.info(builder.asTRSL());
-            if("ordinarySearch".equals(searchPage)){
-                searchPage = SearchPage.ORDINARY_SEARCH.toString();
-            }else{
-                searchPage = SearchPage.COMMON_SEARCH.toString();
-            }
+			if("ordinarySearch".equals(searchPage)){
+				searchPage = SearchPage.ORDINARY_SEARCH.toString();
+			}else{
+				searchPage = SearchPage.COMMON_SEARCH.toString();
+			}
 			switch (sort) { // 排序
 				case "desc":
 					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
@@ -5215,7 +5226,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 					break;
 				case "hot":
-                    builder.setDatabase(Const.HYBASE_OVERSEAS);
+					builder.setDatabase(Const.HYBASE_OVERSEAS);
 					return getHotList(builder, countBuilder, loginUser,type,searchPage);
 				case "relevance":// 相关性排序
 					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
@@ -5260,10 +5271,10 @@ public class InfoListServiceImpl implements IInfoListService {
 			StringBuilder childBuilder = new StringBuilder();
 			// 关键词中搜索
 			Boolean isFuzzySearch = false;
-            if("fuzzy".equals(searchType)){
-                //是否是模糊搜索  是
-                isFuzzySearch = true;
-            }
+			if("fuzzy".equals(searchType)){
+				//是否是模糊搜索  是
+				isFuzzySearch = true;
+			}
 			String originKeyword = "";
 			if ("ordinarySearch".equals(searchPage)) {
 				originKeyword = keywords;
@@ -5327,12 +5338,12 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (StringUtil.isNotEmpty(notKeyWords)) {
 						StringBuilder exbuilder = new StringBuilder();
 						exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						builder.filterByTRSL(exbuilder.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 						StringBuilder exbuilder2 = new StringBuilder();
 						exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
 						builder.filterByTRSL(exbuilder2.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 					}
@@ -5347,7 +5358,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (StringUtil.isNotEmpty(notKeyWords)) {
 						StringBuilder exbuilder = new StringBuilder();
 						exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+								.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						builder.filterByTRSL(exbuilder.toString());
 						countBuilder.filterByTRSL(exbuilder.toString());
 					}
@@ -5537,7 +5548,7 @@ public class InfoListServiceImpl implements IInfoListService {
 
 			//新闻信息资质
 			if (!"ALL".equals(newsInformation)){
-			addFieldValue(newsInformation,null,null," OR ",FtsFieldConst.FIELD_WXB_GRADE,builder,countBuilder);
+				addFieldValue(newsInformation,null,null," OR ",FtsFieldConst.FIELD_WXB_GRADE,builder,countBuilder);
 			}
 
 			//网站类型
@@ -5576,10 +5587,10 @@ public class InfoListServiceImpl implements IInfoListService {
 			log.info(builder.asTRSL());
 
 			if("ordinarySearch".equals(searchPage)){
-			    searchPage = SearchPage.ORDINARY_SEARCH.toString();
-            }else{
-			    searchPage = SearchPage.COMMON_SEARCH.toString();
-            }
+				searchPage = SearchPage.ORDINARY_SEARCH.toString();
+			}else{
+				searchPage = SearchPage.COMMON_SEARCH.toString();
+			}
 			switch (sort) { // 排序
 				case "desc":
 					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
@@ -5798,8 +5809,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public Object documentCommonSearch(String specialId, int pageNo, int pageSize, String source, String time,
-			String area, String industry, String emotion, String sort, String invitationCard, String forwarPrimary, String keywords,
-			String fuzzyValueScope,String notKeyWords, String keyWordIndex, String foreign, boolean isExport,String type) throws TRSException {
+									   String area, String industry, String emotion, String sort, String invitationCard, String forwarPrimary, String keywords,
+									   String fuzzyValueScope,String notKeyWords, String keyWordIndex, String foreign, boolean isExport,String type) throws TRSException {
 		try {
 			SpecialProject specialProject = specialProjectService.findOne(specialId);
 			User loginUser = UserUtils.getUser();
@@ -5820,7 +5831,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				//全选的时候应该根据所属机构的dataSources来，若机构dataSources为ALL，sources = Const.ALL_GROUP;
 				String organizationId = specialProject.getOrganizationId();
 				if (StringUtil.isNotEmpty(organizationId) && !"platformId".equals(organizationId)){
-					Organization organization = organizationRepository.findOne(organizationId);
+					Organization organization = organizationService.findOne(organizationId);
 					if (ObjectUtil.isNotEmpty(organization)){
 						sources = organization.getDataSources();
 					}
@@ -6024,7 +6035,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					if (ObjectUtil.isNotEmpty(database)){
 						hotBuilder.setDatabase(StringUtil.join(database,";"));
 					}
-					InfoListResult list = commonListService.queryPageListForHot(hotBuilder,sources,loginUser,type,true);
+					InfoListResult list = commonListService.queryPageListForHot(hotBuilder,specialProject.getSource(),loginUser,type,true);
 					/*QueryBuilder hotCountBuilder = new QueryBuilder();
 					hotCountBuilder.filterByTRSL(countBuilder.asTRSL());
 					hotCountBuilder.page(countBuilder.getPageNo(),countBuilder.getPageSize());
@@ -6047,7 +6058,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 					break;
 			}
-			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,sources,type,loginUser,true);
+			String groupName = "ALL".equals(source) ? specialProject.getSource() : source;
+			InfoListResult list = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,groupName,type,loginUser,true);
 			// getDocListContrast(builder, loginUser, sim, irSimflag,irSimflagAll,type);
 			if (isExport) {
 				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
@@ -6055,7 +6067,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				RedisUtil.setMix(specialId, listVo);
 			}
 			return list;
-			} catch (TRSException e) {
+		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new OperationException("查询出错：" + e.getMessage(), e);
@@ -6064,7 +6076,7 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Override
 	public void setForeignData(String foreign, QueryBuilder builder, QueryBuilder countBuilder,
-			QueryCommonBuilder builderCom, QueryCommonBuilder countBuilderCom) {
+							   QueryCommonBuilder builderCom, QueryCommonBuilder countBuilderCom) {
 		if (foreign != null) {
 			String[] split = foreign.split(";");
 			StringBuffer sb = new StringBuffer();
@@ -6544,13 +6556,13 @@ public class InfoListServiceImpl implements IInfoListService {
 		if (null != countCommonBuilder){
 			asCountCommonTRSL = countCommonBuilder.asTRSL();
 		}
-        excludeWeb = excludeWeb.replaceAll("[;|；]"," OR ");
+		excludeWeb = excludeWeb.replaceAll("[;|；]"," OR ");
 		/*String notSite = "";
 		for (String site : excludeWeb) {
 			notSite += site + " OR ";
 		}*/
 		if (excludeWeb.endsWith(" OR ")) {
-            excludeWeb = excludeWeb.substring(0, excludeWeb.length() - 4);
+			excludeWeb = excludeWeb.substring(0, excludeWeb.length() - 4);
 		}
 		if (!"".equals(asTRSL)){
 			asTRSL += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME).append(":(").append(excludeWeb)
@@ -6594,9 +6606,9 @@ public class InfoListServiceImpl implements IInfoListService {
 			}else {
 				value = value.replaceAll("[;|；]",replacePoiont);
 			}
-            if (value.endsWith(replacePoiont)) {
-                value = value.substring(0, value.length() - replacePoiont.length());
-            }
+			if (value.endsWith(replacePoiont)) {
+				value = value.substring(0, value.length() - replacePoiont.length());
+			}
 			if (null != queryBuilder){
 				queryBuilder.filterField(fieldValue,value,Operator.Equal);
 			}
@@ -6615,11 +6627,11 @@ public class InfoListServiceImpl implements IInfoListService {
 	}
 	@Override
 	public List<Object> getOriginalData(String trsl,String statusTrsl,String weChatTrsl,String requestTime,Integer period,
-								 boolean isSimilar, boolean irSimflag,boolean irSimflagAll)throws TRSException, TRSSearchException{
-	    List<Object> listData = new ArrayList<>();
+										boolean isSimilar, boolean irSimflag,boolean irSimflagAll)throws TRSException, TRSSearchException{
+		List<Object> listData = new ArrayList<>();
 		String[] timeRange = DateUtil.setTimeForSomeMinute(requestTime,period);
 		QueryCommonBuilder searchBuilder = getSearchBuilder("",timeRange,trsl,weChatTrsl,statusTrsl);
-        log.info("平安金服预警接口 ----- 查询表达式："+searchBuilder.asTRSL());
+		log.info("平安金服预警接口 ----- 查询表达式："+searchBuilder.asTRSL());
 		try{
 			if(searchBuilder != null){
 				PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchService.pageListCommon(searchBuilder, isSimilar, irSimflag,irSimflagAll,null);

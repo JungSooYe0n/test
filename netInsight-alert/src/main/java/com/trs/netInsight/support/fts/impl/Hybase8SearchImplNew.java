@@ -295,19 +295,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         if (databaseArr != null && databaseArr.length > 0) {
             databases = String.join(";", databaseArr);
         }
-        if ("weixin".equals(databases)) {
-            databases = Const.WECHAT_COMMON;
-        }
         String db = addHybaseInsert(databases);
         // 判断是否排重
         trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, resultClass);
-        //这里这么改的原因是因为只有预警中心的列表页需要按照入库时间去查询，所以类型为预警时不能替换字段
-        //type是为了进行查询时间限制的，不存在alert情况下的时间限制，所以如果是alert时，值为null,且不替换查询时间的字段
-        if ("alert".equals(type)) {
-            type = null;
-        } else {
-            trsl = trsl.replace(FtsFieldConst.FIELD_HYLOAD_TIME, FtsFieldConst.FIELD_URLTIME);
-        }
         log.warn(trsl);
         TRSConnection connection = null;
         try {
@@ -891,7 +881,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                         buffer.append(FtsFieldConst.FIELD_GROUPNAME).append(":(");
                         int beginLength = buffer.length();
                         for (String dataSource : dataSourcesArr) {
-                            buffer.append(Const.DATA_SOURCES.get(dataSource)).append(" OR ");
+                            buffer.append(Const.SOURCE_GROUPNAME_CONTRAST.get(dataSource)).append(" OR ");
                         }
                         int endLength = buffer.length();
                         // 去掉最后的OR
@@ -1508,7 +1498,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                                 if (groupName.endsWith("\"")) {
                                     groupName = groupName.substring(0, groupName.length() - 1);
                                 }
-                                if (StringUtils.equals(Const.DATA_SOURCES.get(dataSource), groupName)) {
+                                if (StringUtils.equals(Const.SOURCE_GROUPNAME_CONTRAST.get(dataSource), groupName)) {
                                     groupNameSet.add(groupName);
                                 }
                             }

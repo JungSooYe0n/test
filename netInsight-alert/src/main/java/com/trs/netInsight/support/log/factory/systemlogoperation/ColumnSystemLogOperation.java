@@ -100,7 +100,7 @@ public class ColumnSystemLogOperation extends AbstractSystemLogOperation {
 			if (StringUtils.isNotBlank(id)) {
 				IndexPage indexPage = indexPageService.findOne(id);
 				if (indexPage != null) {
-					buffer.insert(0, indexPage.getParentName());
+					buffer.insert(0, indexPage.getName());
 					String typeId = indexPage.getTypeId();
 					if (StringUtils.isNotBlank(typeId)) {
 						NavigationConfig navigationConfig = navigationService.findOne(typeId);
@@ -119,7 +119,7 @@ public class ColumnSystemLogOperation extends AbstractSystemLogOperation {
 			if (StringUtils.isNotBlank(id)) {
 				IndexPage indexPage = indexPageService.findOne(id);
 				if (indexPage != null) {
-					buffer.insert(0, indexPage.getParentName());
+					buffer.insert(0, indexPage.getName());
 					String typeId = indexPage.getTypeId();
 					if (StringUtils.isNotBlank(typeId)) {
 						NavigationConfig navigationConfig = navigationService.findOne(typeId);
@@ -160,7 +160,7 @@ public class ColumnSystemLogOperation extends AbstractSystemLogOperation {
 						IndexPage indexPage = indexPageService.findOne(indexPageId);
 						if (indexPage != null) {
 							buffer.insert(0, "/");
-							buffer.insert(0, indexPage.getParentName());
+							buffer.insert(0, indexPage.getName());
 							String typeId = indexPage.getTypeId();
 							if (StringUtils.isNotBlank(typeId)) {
 								NavigationConfig navigationConfig = navigationService.findOne(typeId);

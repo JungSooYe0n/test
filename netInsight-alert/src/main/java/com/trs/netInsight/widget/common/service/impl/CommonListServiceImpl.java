@@ -13,15 +13,17 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
-import com.trs.netInsight.support.fts.entity.*;
+import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
+import com.trs.netInsight.support.fts.model.result.IDocument;
 import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.RedisUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.Favourites;
@@ -91,10 +93,13 @@ public class CommonListServiceImpl implements ICommonListService {
                     document.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
                     document.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
                 }
+                if (StringUtil.isNotEmpty(document.getAbstracts())) {
+                    document.setAbstracts(StringUtil.cutContentPro(StringUtil.replaceImg(document.getAbstracts()), Const.CONTENT_LENGTH));
+                }
                 if (StringUtil.isNotEmpty(document.getTitle())) {
                     document.setTitle(StringUtil.replaceAnnotation(document.getTitle()).replace("&amp;nbsp;", ""));
                 }
-                if ("国内微信".equals(document.getGroupName())) {
+                if (Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())) {
                     document.setGroupName("微信");
                     document.setSid(document.getHkey());
                     // 检验收藏
@@ -103,11 +108,14 @@ public class CommonListServiceImpl implements ICommonListService {
                     // 检验收藏
                     document.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(document.getSid())));
                 }
-                if ("Twitter".equals(document.getGroupName()) || "FaceBook".equals(document.getGroupName()) || "Facebook".equals(document.getGroupName())) {
+                if (Const.MEDIA_TYPE_TF.contains(document.getGroupName())) {
                     document.setSiteName(document.getGroupName());
+                    document.setTitle(content);
+                }else if(Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())){
                     document.setTitle(content);
                 }
                 // 控制标题长度
+                document.setId(document.getSid());
                 document.setTrslk(trslk);
                 md5List.add(document.getMd5Tag());
                 ftsList.add(document);
@@ -126,13 +134,15 @@ public class CommonListServiceImpl implements ICommonListService {
 
 
     /**
-     * 分页查询信息列表数据  --  混合列表（需要标注要查询的数据源）
+     * 分页查询信息列表数据  --  混合列表
      * 返回数据被处理
+     * 要查询的数据源和数据库通过参数groupName控制，querybuilder中尽量少出现数据源
      *
-     * @param builder           查询构造器
+     * @param queryBuilder      查询构造器
      * @param sim               单一媒体排重
      * @param irSimflag         站内排重
      * @param irSimflagAll      全网排重
+     * @param groupName         要查询的数据源，用;分割，当前列表的可查询数据源的总的
      * @param type              查询类型，对应用户限制查询时间的模块相同
      * @param user              当前用户信息
      * @param isCalculateSimNum 是否计算相似文章数
@@ -140,23 +150,23 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSException
      */
     @Override
-    public InfoListResult queryPageList(QueryCommonBuilder builder, boolean sim,
-                                        boolean irSimflag, boolean irSimflagAll,String groupName, String type, User user, Boolean isCalculateSimNum) throws TRSException {
+    public <T extends IQueryBuilder> InfoListResult queryPageList(T queryBuilder, boolean sim,
+                                                                  boolean irSimflag, boolean irSimflagAll, String groupName, String type, User user, Boolean isCalculateSimNum) throws TRSException {
 
         final String pageId = GUIDGenerator.generate(CommonListServiceImpl.class);
         final String nextPageId = GUIDGenerator.generate(CommonListServiceImpl.class);
         try {
-            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
-            String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
-            String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
-            builder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-            String[] database = TrslUtil.chooseDatabases(groupArray);
-            if (database == null || database.length == 0) {
-                builder.setDatabase(Const.MIX_DATABASE.split(";"));
+            QueryCommonBuilder builder = null;
+            if (StringUtil.isNotEmpty(groupName)) {
+                builder = (QueryCommonBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 1);
+            } else {
+                builder = CommonListChartUtil.formatQueryCommonBuilder(builder);
             }
-            builder.setDatabase(database);
-            builder.setPageSize(builder.getPageSize()>=1?builder.getPageSize():10);
-            builder.setPageNo(builder.getPageNo()>=0?builder.getPageNo():0);
+            if (builder == null) {
+                return null;
+            }
+            builder.setPageSize(builder.getPageSize() >= 1 ? builder.getPageSize() : 10);
+            builder.setPageNo(builder.getPageNo() >= 0 ? builder.getPageNo() : 0);
 
             String trslk = pageId + "trslk";
             RedisUtil.setString(trslk, builder.asTRSL());
@@ -165,7 +175,7 @@ public class CommonListServiceImpl implements ICommonListService {
             String trslkHot = pageId + "hot";
             RedisUtil.setString(trslkHot, builder.asTRSL());
             PagedList<FtsDocumentCommonVO> pagedList = queryPageListBase(builder, sim, irSimflag, irSimflagAll, type);
-            if (pagedList != null && pagedList.getPageItems() != null) {
+            if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() >0) {
                 //统一处理返回数据的格式
                 return formatPageListResult(user, pageId, nextPageId, pagedList, StringUtil.join(builder.getDatabase(), ";"), type, isCalculateSimNum);
             } else {
@@ -177,6 +187,41 @@ public class CommonListServiceImpl implements ICommonListService {
 
     }
 
+    /**
+     * 普通信息列表
+     * 调用hybase查询数据，直接查询，不做处理  --  混合列表
+     * 返回数据未被处理
+     * 当查询数据的条数超过10000条时，查询的数据必定为无序的
+     * 要查询的数据源和数据库通过参数groupName控制，querybuilder中尽量少出现数据源
+     *
+     * @param queryBuilder 查询构造器
+     * @param sim          单一媒体排重
+     * @param irSimflag    站内排重
+     * @param irSimflagAll 全网排重
+     * @param type         查询类型，对应用户限制查询时间的模块相同
+     * @param groupName    要查询的数据源，用;分割，当前列表的可查询数据源的总的
+     * @return
+     * @throws TRSException
+     */
+    @Override
+    public <T extends IQueryBuilder> PagedList<FtsDocumentCommonVO> queryPageListNoFormat(T queryBuilder, boolean sim,
+                                                                                          boolean irSimflag, boolean irSimflagAll, String type, String groupName) throws TRSException {
+        QueryCommonBuilder builder = null;
+        if (StringUtil.isNotEmpty(groupName)) {
+            builder = (QueryCommonBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 1);
+        } else {
+            builder = CommonListChartUtil.formatQueryCommonBuilder(builder);
+        }
+        if (builder == null) {
+            return null;
+        }
+        PagedList<FtsDocumentCommonVO> pagedList =  queryPageListBase(builder, sim, irSimflag, irSimflagAll, type);
+        if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
+            return null;
+        }else{
+            return pagedList;
+        }
+    }
 
     /**
      * 普通信息列表
@@ -192,10 +237,13 @@ public class CommonListServiceImpl implements ICommonListService {
      * @return
      * @throws TRSException
      */
-    @Override
-    public PagedList<FtsDocumentCommonVO> queryPageListBase(QueryCommonBuilder builder, boolean sim,
-                                                            boolean irSimflag, boolean irSimflagAll, String type) throws TRSException {
+
+    private PagedList<FtsDocumentCommonVO> queryPageListBase(QueryCommonBuilder builder, boolean sim,
+                                                             boolean irSimflag, boolean irSimflagAll, String type) throws TRSException {
         try {
+            if (builder == null) {
+                return null;
+            }
             long startTime = System.currentTimeMillis();
             PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchServiceNew.pageListCommon(builder, sim, irSimflag, irSimflagAll, type);
             long endTime = System.currentTimeMillis();
@@ -208,28 +256,45 @@ public class CommonListServiceImpl implements ICommonListService {
 
 
     /**
-     * 分页查询信息列表数据  --  混合列表（需要标注要查询的数据源）
+     * 分页查询信息列表数据  --  混合列表
      * -- 列表无序，从hybase拿到的数据为：符合条件的随机数据，混合库可能只拿其中某个库
      * 当查询数据的条数超过10000条时，查询的数据必定为无序的
      * 返回数据未被处理
+     * <p>
+     * 要查询的数据源和数据库通过参数groupName控制，querybuilder中尽量少出现数据源
      *
-     * @param builder      查询构造器
+     * @param queryBuilder 查询构造器
      * @param sim          单一媒体排重
      * @param irSimflag    站内排重
      * @param irSimflagAll 全网排重
      * @param type         查询类型，对应用户限制查询时间的模块相同
+     * @param type         查询类型，对应用户限制查询时间的模块相同
+     * @param groupName    要查询的数据源，用;分割，当前列表的可查询数据源的总的
      * @return
      * @throws TRSException
      */
     @Override
-    public PagedList<FtsDocumentCommonVO> queryPageListNoSort(QueryCommonBuilder builder, boolean sim,
-                                                              boolean irSimflag, boolean irSimflagAll, String type) throws TRSException {
+    public <T extends IQueryBuilder> PagedList<FtsDocumentCommonVO> queryPageListNoSort(T queryBuilder, boolean sim,
+                                                                                        boolean irSimflag, boolean irSimflagAll, String type, String groupName) throws TRSException {
         try {
+            QueryCommonBuilder builder = null;
+            if (StringUtil.isNotEmpty(groupName)) {
+                builder = (QueryCommonBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 1);
+            } else {
+                builder = CommonListChartUtil.formatQueryCommonBuilder(queryBuilder);
+            }
+            if (builder == null) {
+                return null;
+            }
             long startTime = System.currentTimeMillis();
             PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchServiceNew.pageListCommonForExport(builder, sim, irSimflag, irSimflagAll, type);
             long endTime = System.currentTimeMillis();
             log.error("间隔HY时间：" + (endTime - startTime));
-            return pagedList;
+            if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
+                return null;
+            }else{
+                return pagedList;
+            }
         } catch (Exception e) {
             throw new OperationException("检索异常：", e);
         }
@@ -237,11 +302,14 @@ public class CommonListServiceImpl implements ICommonListService {
     }
 
     /**
-     * 分页查询热度信息列表  --  混合列表（需要标注要查询的数据源）
+     * 分页查询热度信息列表  --  混合列表
      * 返回数据被处理 - 主要是前端页面展示
      * 列表按热度进行排序
+     * <p>
+     * *要查询的数据源和数据库通过参数groupName控制，querybuilder中尽量少出现数据源
      *
-     * @param queryBuilder           查询构造器
+     * @param queryBuilder      查询构造器
+     * @param groupName         要查询的数据源，用;分割，当前列表的可查询数据源的总的  -- 统一处理数据源
      * @param user              当前用户信息
      * @param type              查询类型，对应用户限制查询时间的模块相同
      * @param isCalculateSimNum 是否计算相似文章数
@@ -249,17 +317,21 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSException
      */
     @Override
-    public <T extends IQueryBuilder> InfoListResult queryPageListForHot(T queryBuilder,String groupName, User user, String type, Boolean isCalculateSimNum) throws TRSException {
+    public <T extends IQueryBuilder> InfoListResult queryPageListForHot(T queryBuilder, String groupName, User user, String type, Boolean isCalculateSimNum) throws TRSException {
         final String pageId = GUIDGenerator.generate(CommonListServiceImpl.class);
         final String nextPageId = GUIDGenerator.generate(CommonListServiceImpl.class);
         try {
-            QueryBuilder builder = CommonListChartUtil.formatQueryBuilder(queryBuilder);
-            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
-            String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
-            String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
-            builder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-            String[] database = TrslUtil.chooseDatabases(groupArray);
-            builder.setDatabase(StringUtil.join(database,";"));
+            QueryBuilder builder = null;
+            if (StringUtil.isNotEmpty(groupName)) {
+                builder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 0);
+
+            } else {
+                builder = CommonListChartUtil.formatQueryBuilder(builder);
+            }
+            if (builder == null) {
+                return null;
+            }
+            String database = builder.getDatabase();
             if (database == null) {
                 builder.setDatabase(Const.MIX_DATABASE);
             }
@@ -269,7 +341,7 @@ public class CommonListServiceImpl implements ICommonListService {
             } else if (pageSize <= 0) {
                 builder.setPageSize(10);
             }
-            builder.setPageNo(builder.getPageNo()>=0?builder.getPageNo():0);
+            builder.setPageNo(builder.getPageNo() >= 0 ? builder.getPageNo() : 0);
 
             String trslk = pageId + "trslk";
             RedisUtil.setString(trslk, builder.asTRSL());
@@ -277,7 +349,7 @@ public class CommonListServiceImpl implements ICommonListService {
             log.info("正式列表查询表达式：" + builder.asTRSL());
             String trslkHot = pageId + "hot";
             RedisUtil.setString(trslkHot, builder.asTRSL());
-
+            //在方法开始时拼接过数据源，则这个不再拼接
             PagedList<FtsDocumentCommonVO> pagedList = queryPageListForHotBase(builder, type);
             if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
                 return null;
@@ -291,24 +363,58 @@ public class CommonListServiceImpl implements ICommonListService {
 
     /**
      * 热点信息列表  -- 按热度排序时，默认为站内排重
-     * 调用hybase查询数据，直接查询，不做处理  --  混合列表（需要标注要查询的数据源）
+     * 调用hybase查询数据，直接查询，不做处理  --  混合列表
      * 返回数据未被处理
      * 列表按热度进行排序
+     * 要查询的数据源和数据库通过参数groupName控制，querybuilder中尽量少出现数据源
      *
      * @param queryBuilder 查询构造器
-     * @param type    查询类型，对应用户限制查询时间的模块相同
+     * @param type         查询类型，对应用户限制查询时间的模块相同
+     * @param groupName    要查询的数据源，用;分割，当前列表的可查询数据源的总的  -- 统一处理数据源*
      * @return
      * @throws TRSException
      */
     @Override
-    public <T extends IQueryBuilder> PagedList<FtsDocumentCommonVO> queryPageListForHotBase(T queryBuilder, String type) throws TRSException {
+    public <T extends IQueryBuilder> PagedList<FtsDocumentCommonVO> queryPageListForHotNoFormat(T queryBuilder, String type, String groupName) throws TRSException {
+        QueryBuilder builder = null;
+        if (StringUtil.isNotEmpty(groupName)) {
+            builder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 0);
+
+        } else {
+            builder = CommonListChartUtil.formatQueryBuilder(builder);
+        }
+        if (builder == null) {
+            return null;
+        }
+        PagedList<FtsDocumentCommonVO> pagedList =  queryPageListForHotBase(builder, type);
+        if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
+            return null;
+        }else{
+            return pagedList;
+        }
+    }
+
+
+    /**
+     * 热点信息列表  -- 按热度排序时，默认为站内排重
+     * 调用hybase查询数据，直接查询，不做处理  --  混合列表（需要标注要查询的数据源）
+     * 返回数据未被处理
+     * 列表按热度进行排序
+     *
+     * @param builder 查询构造器
+     * @param type    查询类型，对应用户限制查询时间的模块相同
+     * @return
+     * @throws TRSException
+     */
+    private <T extends IQueryBuilder> PagedList<FtsDocumentCommonVO> queryPageListForHotBase(QueryBuilder builder, String type) throws TRSException {
         try {
             //热度排序按站内排重查询
             Boolean sim = false;
             Boolean irSimflag = true;
             Boolean irSimflagAll = false;
-
-            QueryBuilder builder = CommonListChartUtil.formatQueryBuilder(queryBuilder);
+            if (builder == null) {
+                return null;
+            }
             //页面的 页数和条数
             long pageNo = builder.getPageNo();
             int pageSize = builder.getPageSize();
@@ -366,51 +472,84 @@ public class CommonListServiceImpl implements ICommonListService {
         } catch (Exception e) {
             throw new OperationException("listByHot error:" + e);
         }
+    }
 
+    /**
+     *
+     * 查询特定库，返回数据类型不同于信息列表类
+     * 例如微博用户库，话题榜等库，但仍需要继承IDocument
+     * 返回数据未被处理
+     *
+     *
+     * @param builder      查询构造器  需要制定数据类型和要查询数据库
+     * @param resultClass  返回对象数据类型类
+     * @param sim          单一媒体排重
+     * @param irSimflag    站内排重
+     * @param irSimflagAll 全网排重
+     * @param type         查询类型，对应用户限制查询时间的模块相同
+     * @return
+     * @throws TRSException
+     */
+    @Override
+    public <T extends IDocument> PagedList<T> queryPageListForClass(QueryBuilder builder, Class<T> resultClass, boolean sim,
+                                                                    boolean irSimflag, boolean irSimflagAll, String type) throws TRSException {
+        try {
+            if (builder == null) {
+                return null;
+            }
+            long startTime = System.currentTimeMillis();
+            PagedList<T> pagedList = hybase8SearchServiceNew.ftsPageList(builder,resultClass, sim, irSimflag, irSimflagAll, type);
+            long endTime = System.currentTimeMillis();
+            log.error("间隔HY时间：" + (endTime - startTime));
+            return pagedList;
+        } catch (Exception e) {
+            throw new OperationException("检索异常：", e);
+        }
     }
 
     /**
      * 列表数据统计分析  统计各个数据源所占数据条数
-     * @param builder  查询表达式
-     * @param sim   单一媒体排重
-     * @param irSimflag  站内排重
-     * @param irSimflagAll  全网排重
-     * @param groupName  数据源，用;分号分割
-     * @param type  查询类型，对应用户限制查询时间的模块相同
+     * 要查询的数据源和数据库通过参数groupName控制，querybuilder中尽量少出现数据源
+     *
+     * @param builder      查询表达式
+     * @param sim          单一媒体排重
+     * @param irSimflag    站内排重
+     * @param irSimflagAll 全网排重
+     * @param groupName    数据源，用;分号分割
+     * @param type         查询类型，对应用户限制查询时间的模块相同
+     * @param resultField  这个是返回数据中对应的数据存储的key名
      * @param <T>
      * @return
      * @throws TRSException
      */
+    @Override
     public <T extends IQueryBuilder> Object queryListGroupNameStattotal(T builder, boolean sim,
-                                              boolean irSimflag, boolean irSimflagAll,String groupName, String type) throws TRSException{
-        QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
-        Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
-        String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
-        String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
-        queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-        String[] database = TrslUtil.chooseDatabases(groupArray);
-        queryBuilder.setDatabase(StringUtil.join(database, ";"));
-        queryBuilder.setPageSize(queryBuilder.getPageSize()>=1?queryBuilder.getPageSize():15);
-        GroupResult groupResult = categoryQuery(queryBuilder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME,type);
+                                                                        boolean irSimflag, boolean irSimflagAll, String groupName, String type, ChartResultField resultField) throws TRSException {
+        //列表统计只会出现一组数据源，所以只写一个数据源即可
+        QueryBuilder queryBuilder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(builder, groupName, 0);
+        if (builder == null) {
+            return null;
+        }
+        queryBuilder.setPageSize(queryBuilder.getPageSize() >= 1 ? queryBuilder.getPageSize() : 15);
+        GroupResult groupResult = categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, FtsFieldConst.FIELD_GROUPNAME, type, null);
 
         Map<String, Long> map = new LinkedHashMap<>();
         for (GroupInfo groupInfo : groupResult.getGroupList()) {
-            map.put(Const.SOURCE_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()), groupInfo.getCount());
+            map.put(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()), groupInfo.getCount());
         }
 
         List<Map<String, Object>> list = new ArrayList<>();
-        Set<String> showGroup = CommonListChartUtil.formatGroupName(Const.STATTOTAL_GROUP);
-        for(String group: sourceList){
+        List<String> showGroup = Const.PAGE_SHOW_DATASOURCE_SORT;
+        for (String group : showGroup) {
             Map<String, Object> groupMap = new HashMap<>();
-            groupMap.put("groupName",group);
-            if(map.containsKey(group)){
-                groupMap.put("count",map.get(group));
-            }else{
-                groupMap.put("count",0L);
+            groupMap.put(resultField.getContrastField(), group);
+            if (map.containsKey(group)) {
+                groupMap.put(resultField.getCountField(), map.get(group));
+            } else {
+                groupMap.put(resultField.getCountField(), 0L);
             }
             list.add(groupMap);
         }
-
         return list;
     }
 
@@ -562,13 +701,13 @@ public class CommonListServiceImpl implements ICommonListService {
                         searchBuilder_wxb.filterByTRSL("(" + FtsFieldConst.FIELD_WXB_LIST + ":(0))");
                         searchBuilder_wxb.filterByTRSL(searchBuilder.asTRSL());
                         searchBuilder_wxb.setDatabase(database);
-                        searchBuilder_wxb.page(0,3);
+                        searchBuilder_wxb.page(0, 3);
                         List<GroupInfo> list = new ArrayList<>();
                         GroupResult categoryInfos = null;
                         try {
                             //计算网信办白名单的
                             categoryInfos = categoryQuery(searchBuilder_wxb, sim, irSimflag, irSimflagAll,
-                                    FtsFieldConst.FIELD_SITENAME, type);
+                                    FtsFieldConst.FIELD_SITENAME, type, null);
                         } catch (TRSSearchException e) {
                             throw new TRSSearchException(e);
                         }
@@ -582,11 +721,11 @@ public class CommonListServiceImpl implements ICommonListService {
                             searchBuilder_industry.filterByTRSL(searchBuilder.asTRSL());
                             searchBuilder_industry.filterByTRSL_NOT(FtsFieldConst.FIELD_WXB_LIST + ":(0)");
                             searchBuilder_industry.setDatabase(database);
-                            searchBuilder_industry.page(0,3);
+                            searchBuilder_industry.page(0, 3);
                             try {
                                 //计算五大商业媒体
                                 categoryInfos = categoryQuery(searchBuilder_industry, sim, irSimflag, irSimflagAll,
-                                        FtsFieldConst.FIELD_SITENAME, type);
+                                        FtsFieldConst.FIELD_SITENAME, type, null);
                             } catch (TRSSearchException e) {
                                 throw new TRSSearchException(e);
                             }
@@ -598,11 +737,11 @@ public class CommonListServiceImpl implements ICommonListService {
                             searchBuilder.filterByTRSL_NOT(FtsFieldConst.FIELD_WXB_LIST + ":(0)");
                             searchBuilder.filterByTRSL_NOT(FtsFieldConst.FIELD_INDUSTRY + ":(1)");
                             searchBuilder.setDatabase(database);
-                            searchBuilder.page(0,3);
+                            searchBuilder.page(0, 3);
                             try {
                                 //计算普通媒体的
                                 categoryInfos = categoryQuery(searchBuilder, sim, irSimflag, irSimflagAll,
-                                        FtsFieldConst.FIELD_SITENAME, type);
+                                        FtsFieldConst.FIELD_SITENAME, type, null);
                             } catch (TRSSearchException e) {
                                 throw new TRSSearchException(e);
                             }
@@ -644,9 +783,37 @@ public class CommonListServiceImpl implements ICommonListService {
         }
     }
 
+    /**
+     * 统计 - 获取到当前条件符合数量的总数
+     * 要查询的数据源和数据库通过参数groupName控制，querybuilder中尽量少出现数据源
+     *
+     * @param builder      查询构造器
+     * @param isSimilar    单一媒体排重
+     * @param irSimflag    站内排重
+     * @param irSimflagAll 全网排重
+     * @param type         查询类型，对应用户限制查询时间的模块相同
+     * @param groupName    要查询的数据源，用;分割，当前列表的可查询数据源的总的-- 统一处理数据源
+     * @return
+     * @throws TRSSearchException
+     */
+    @Override
+    public <T extends IQueryBuilder> Long ftsCount(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String type, String groupName) throws TRSException {
+        QueryBuilder queryBuilder = null;
+        if (StringUtil.isNotEmpty(groupName)) {
+            queryBuilder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(builder, groupName, 0);
+        } else {
+            queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
+        }
+        if (queryBuilder == null) {
+            return null;
+        }
+        return ftsCount(queryBuilder, isSimilar, irSimflag, irSimflagAll, type);
+
+    }
 
     /**
      * 统计 - 获取到当前条件符合数量的总数
+     * 需要在builder中拼接要查询的数据源和数据库
      *
      * @param builder      查询构造器
      * @param isSimilar    单一媒体排重
@@ -661,6 +828,9 @@ public class CommonListServiceImpl implements ICommonListService {
         long count = 0L;
         try {
             QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
+            if (queryBuilder == null) {
+                return null;
+            }
             count = hybase8SearchServiceNew.ftsCount(queryBuilder, isSimilar, irSimflag, irSimflagAll, type);
             return count;
         } catch (Exception e) {
@@ -670,6 +840,36 @@ public class CommonListServiceImpl implements ICommonListService {
 
     /**
      * 分类统计  --- 根据条件进行分类统计
+     * 要查询的数据源和数据库通过参数groupName控制，querybuilder中尽量少出现数据源
+     *
+     * @param builder      查询构造器
+     * @param isSimilar    单一媒体排重
+     * @param irSimflag    站内排重
+     * @param irSimflagAll 全网排重
+     * @param groupField   分类字段
+     * @param type         查询类型，对应用户限制查询时间的模块相同
+     * @param groupName    要查询的数据源，用;分割，当前列表的可查询数据源的总的  -- 统一处理数据源
+     * @return
+     * @throws TRSSearchException
+     */
+    @Override
+    public <T extends IQueryBuilder> GroupResult categoryQuery(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String groupField, String type, String groupName) throws TRSException {
+        QueryBuilder queryBuilder = null;
+        if (StringUtil.isNotEmpty(groupName)) {
+            queryBuilder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(builder, groupName, 0);
+        } else {
+            queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
+        }
+        if (queryBuilder == null) {
+            return null;
+        }
+        return categoryQuery(queryBuilder, isSimilar, irSimflag, irSimflagAll, groupField, type);
+    }
+
+    /**
+     * 分类统计  --- 根据条件进行分类统计
+     * 需要拼接好表达式，拼接要查询的数据源类型
+     * 需要在builder中写好要查询数据库
      *
      * @param builder      查询构造器
      * @param isSimilar    单一媒体排重
@@ -681,9 +881,13 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSSearchException
      */
     @Override
-    public <T extends IQueryBuilder> GroupResult categoryQuery(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String groupField, String type) throws TRSSearchException {
+    public <T extends IQueryBuilder> GroupResult categoryQuery(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String groupField, String type) throws TRSException {
         try {
             QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
+
+            if (queryBuilder == null) {
+                return null;
+            }
             GroupResult groupInfos = hybase8SearchServiceNew.categoryQuery(queryBuilder, isSimilar, irSimflag, irSimflagAll, groupField, type, queryBuilder.getDatabase());
 
             return groupInfos;
@@ -691,6 +895,4 @@ public class CommonListServiceImpl implements ICommonListService {
             throw new TRSSearchException("分类统计失败:" + e);
         }
     }
-
-
 }

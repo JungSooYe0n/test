@@ -40,7 +40,7 @@ public class SourceUtil {
             }else{
                 List<String> groupList = new ArrayList<>();
                 for(String g :groupName.split(";")){
-                    groupList.add(Const.DATA_SOURCES.get(g));
+                    groupList.add(Const.SOURCE_GROUPNAME_CONTRAST.get(g));
                 }
                 return StringUtils.join(groupList,";");
             }
@@ -48,7 +48,7 @@ public class SourceUtil {
         //判断传进来的数据源是否在用户拥有的数据源权限中
         Set<String> sourceList = new HashSet<>();
         for(String s :source.split(";")){
-            sourceList.add(Const.DATA_SOURCES.get(s));
+            sourceList.add(Const.SOURCE_GROUPNAME_CONTRAST.get(s));
         }
         if("ALL".equals(groupName)){
             return StringUtils.join(sourceList,";");
@@ -57,7 +57,7 @@ public class SourceUtil {
         String[] groupArr = groupName.split(";");
         Set<String> result = new HashSet<>();
         for(String group:groupArr){
-            String g = Const.DATA_SOURCES.get(group);
+            String g = Const.SOURCE_GROUPNAME_CONTRAST.get(group);
             if(sourceList.contains(g)){
                 result.add(g);
             }

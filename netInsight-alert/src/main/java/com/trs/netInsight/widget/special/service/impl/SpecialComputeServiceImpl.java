@@ -13,6 +13,7 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.special.entity.SpecialExponent;
 import com.trs.netInsight.widget.special.entity.SpecialExponentVO;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
@@ -51,6 +52,8 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
 
     @Autowired
     private FullTextSearch hybase8SearchService;
+    @Autowired
+    private ICommonListService commonListService;
 
     /**
      * 线程池跑任务
@@ -60,7 +63,7 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
     @Override
     @Transactional
     public boolean compute() throws ParseException, TRSSearchException {
-       // return this.computeSpecial(null);
+        // return this.computeSpecial(null);
         return this.computeByCondition(null);
     }
 
@@ -177,48 +180,48 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
     }
 
     private void computeThread(final List<SpecialProject> projects, User user, final int threadNo) {
-       // try {
-            // 计算各专题指数
-            if (threadNo == 10) {
-                log.error("线程10的专题数：" + projects.size());
-            }
-            if (projects != null && projects.size() > 0) {
+        // try {
+        // 计算各专题指数
+        if (threadNo == 10) {
+            log.error("线程10的专题数：" + projects.size());
+        }
+        if (projects != null && projects.size() > 0) {
 
-                Criteria<SpecialExponent> criteria = null;
-                for (SpecialProject specialProject : projects) {
-                    try {
-                        SpecialExponent exponent = null;
-                        Date begin = new Date();
-                        log.error("当前线程:[" + threadNo + "],计算专题->" + specialProject.getSpecialName());
-                        // 检查该专题在当前日期是否存在数据,存在覆盖,不存在保存
-                        // 更新为检查并计算前一天数据
-                        criteria = new Criteria<>();
-                        String nowDay = DateUtil.formatDateAfter(begin,"yyyy-MM-dd",-1);
+            Criteria<SpecialExponent> criteria = null;
+            for (SpecialProject specialProject : projects) {
+                try {
+                    SpecialExponent exponent = null;
+                    Date begin = new Date();
+                    log.error("当前线程:[" + threadNo + "],计算专题->" + specialProject.getSpecialName());
+                    // 检查该专题在当前日期是否存在数据,存在覆盖,不存在保存
+                    // 更新为检查并计算前一天数据
+                    criteria = new Criteria<>();
+                    String nowDay = DateUtil.formatDateAfter(begin,"yyyy-MM-dd",-1);
 //                        String nowDay = DateUtil.formatCurrentTime("yyyy-MM-dd");
-                        criteria.add(Restrictions.eq("specialId", specialProject.getId()));
-                        criteria.add(Restrictions.eq("computeTime", DateUtils.parseDate(nowDay, "yyyy-MM-dd")));
-                        List<SpecialExponent> findAll = this.exponentRepository.findAll(criteria);
-                        if (findAll != null && findAll.size() > 0) {
-                            exponent = findAll.get(0);
-                        } else {
-                            exponent = new SpecialExponent();
-                            exponent.setSpecialId(specialProject.getId());
-                            exponent.setComputeTime(DateUtils.parseDate(nowDay, "yyyy-MM-dd"));
-                        }
-                        exponent.setHotDegree(this.computeHotDegree(specialProject));
-                        exponent.setMetaDegree(this.computeMetaDegree(specialProject));
-                        exponent.setNetizenDegree(this.computeNetizenDegree(specialProject));
-                        exponent.setSpecialName(specialProject.getSpecialName());
-                        exponent.setCreatedUserId(user.getId());
-                        exponent.setOrganizationId(user.getOrganizationId());
-                        exponent.setSubGroupId(user.getSubGroupId());
-                        exponent = this.exponentRepository.saveAndFlush(exponent);
-                        log.error(exponent.getSpecialName() + "指数计算成功,共用时" + (new Date().getTime() - begin.getTime()) / 1000);
-                    } catch (Exception e) {
-                        log.error(specialProject.getSpecialName() + "指数计算失败,专题ID："+specialProject.getId(),e);
+                    criteria.add(Restrictions.eq("specialId", specialProject.getId()));
+                    criteria.add(Restrictions.eq("computeTime", DateUtils.parseDate(nowDay, "yyyy-MM-dd")));
+                    List<SpecialExponent> findAll = this.exponentRepository.findAll(criteria);
+                    if (findAll != null && findAll.size() > 0) {
+                        exponent = findAll.get(0);
+                    } else {
+                        exponent = new SpecialExponent();
+                        exponent.setSpecialId(specialProject.getId());
+                        exponent.setComputeTime(DateUtils.parseDate(nowDay, "yyyy-MM-dd"));
                     }
+                    exponent.setHotDegree(this.computeHotDegree(specialProject));
+                    exponent.setMetaDegree(this.computeMetaDegree(specialProject));
+                    exponent.setNetizenDegree(this.computeNetizenDegree(specialProject));
+                    exponent.setSpecialName(specialProject.getSpecialName());
+                    exponent.setCreatedUserId(user.getId());
+                    exponent.setOrganizationId(user.getOrganizationId());
+                    exponent.setSubGroupId(user.getSubGroupId());
+                    exponent = this.exponentRepository.saveAndFlush(exponent);
+                    log.error(exponent.getSpecialName() + "指数计算成功,共用时" + (new Date().getTime() - begin.getTime()) / 1000);
+                } catch (Exception e) {
+                    log.error(specialProject.getSpecialName() + "指数计算失败,专题ID："+specialProject.getId(),e);
                 }
             }
+        }
 //        } catch (Exception e) {
 //            log.error("计算专题指数失败!", e);
 //        }
@@ -481,7 +484,12 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
             String thisDay = DateUtil.formatDateAfter(new Date(),"yyyy-MM-dd",-1);
 //            String thisDay = DateUtil.formatCurrentTime("yyyy-MM-dd");
             commonBuilder.filterField(FtsFieldConst.FIELD_URLDATE, thisDay, Operator.Equal);
-            number = hybase8SearchService.ftsCountCommon(commonBuilder, specialProject.isSimilar(), false,false,null);
+//            number = hybase8SearchService.ftsCountCommon(commonBuilder, specialProject.isSimilar(), false,false,null);
+            try {
+                number = commonListService.ftsCount(commonBuilder, specialProject.isSimilar(), false,false,null);
+            } catch (TRSException e) {
+                e.printStackTrace();
+            }
         }
 
         return number;
@@ -522,7 +530,12 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
                         countBuilder = commonBuilder;
                         countBuilder.filterField(FtsFieldConst.FIELD_URLDATE, day, Operator.Equal);
                         System.out.println(countBuilder.asTRSL());
-                        ftsCountCommon = hybase8SearchService.ftsCountCommon(countBuilder, specialProject.isSimilar(), false,false,null);
+//                        ftsCountCommon = hybase8SearchService.ftsCountCommon(countBuilder, specialProject.isSimilar(), false,false,null);
+                        try {
+                            ftsCountCommon = commonListService.ftsCount(countBuilder,specialProject.isSimilar(), false,false,null);
+                        } catch (TRSException e) {
+                            e.printStackTrace();
+                        }
                         specialExponent.setHotDegree(ftsCountCommon);
                     }
                 }
@@ -562,17 +575,29 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
             String thisDay = DateUtil.formatDateAfter(new Date(),"yyyy-MM-dd",-1);
 //            String thisDay = DateUtil.formatCurrentTime("yyyy-MM-dd");
             commonBuilder.filterField(FtsFieldConst.FIELD_URLDATE, thisDay, Operator.Equal);
-
-            GroupResult groupResult = hybase8SearchService.categoryQuery(specialProject.isServer(), commonBuilder.asTRSL(),
-                    specialProject.isSimilar(), false,false, FtsFieldConst.FIELD_AUTHORS, Integer.MAX_VALUE,null, database);
+            GroupResult groupResult = null;
+            try {
+                groupResult = commonListService.categoryQuery(commonBuilder, specialProject.isSimilar(), false,false,FtsFieldConst.FIELD_AUTHORS,null);
+            } catch (TRSException e) {
+                e.printStackTrace();
+            }
+//            GroupResult groupResult = hybase8SearchService.categoryQuery(specialProject.isServer(), commonBuilder.asTRSL(),
+//                    specialProject.isSimilar(), false,false, FtsFieldConst.FIELD_AUTHORS, Integer.MAX_VALUE,null, database);
             number = groupResult.size();
 
             // 微博用户,使用uid进行统计
             if (groupNames.contains("微博")) {
                 countWeibo.filterField(FtsFieldConst.FIELD_URLDATE, thisDay, Operator.Equal);
-                groupResult = hybase8SearchService.categoryQuery(countWeibo, specialProject.isSimilar(), false,false,
-                        FtsFieldConst.FIELD_UID, null,Const.WEIBO);
-                number += groupResult.size();
+//                groupResult = hybase8SearchService.categoryQuery(countWeibo, specialProject.isSimilar(), false,false,
+//                        FtsFieldConst.FIELD_UID, null,Const.WEIBO);
+                countWeibo.setDatabase(Const.WEIBO);
+                try {
+                    groupResult = commonListService.categoryQuery(countWeibo, specialProject.isSimilar(), false,false,FtsFieldConst.FIELD_UID,null);
+                    number += groupResult.size();
+                } catch (TRSException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
         return number;
@@ -620,16 +645,26 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
                             countBuilder = commonBuilder;
                             countBuilder.setDatabase(database);
                             countBuilder.filterField(FtsFieldConst.FIELD_URLDATE, day, Operator.Equal);
-                            groupResult = hybase8SearchService.categoryQuery(specialProject.isServer(), countBuilder.asTRSL(),
-                                    specialProject.isSimilar(), false,false, FtsFieldConst.FIELD_AUTHORS, Integer.MAX_VALUE,null,
-                                    database);
+//                            groupResult = hybase8SearchService.categoryQuery(specialProject.isServer(), countBuilder.asTRSL(),
+//                                    specialProject.isSimilar(), false,false, FtsFieldConst.FIELD_AUTHORS, Integer.MAX_VALUE,null,
+//                                    database);
+                            try {
+                                groupResult = commonListService.categoryQuery(countBuilder, specialProject.isSimilar(), false,false,FtsFieldConst.FIELD_AUTHORS,null);
+                            } catch (TRSException e) {
+                                e.printStackTrace();
+                            }
                             count += groupResult.size();
 
                             // 微博用户,使用uid进行统计
                             if (containsWeibo) {
                                 countWeibo.filterField(FtsFieldConst.FIELD_URLDATE, day, Operator.Equal);
-                                groupResult = hybase8SearchService.categoryQuery(countWeibo, specialProject.isSimilar(), false,false,
-                                        FtsFieldConst.FIELD_UID,null, Const.WEIBO);
+//                                groupResult = hybase8SearchService.categoryQuery(countWeibo, specialProject.isSimilar(), false,false,
+//                                        FtsFieldConst.FIELD_UID,null, Const.WEIBO);
+                                try {
+                                    groupResult = commonListService.categoryQuery(countWeibo, specialProject.isSimilar(), false,false,FtsFieldConst.FIELD_UID,null,Const.GROUPNAME_WEIBO);
+                                } catch (TRSException e) {
+                                    e.printStackTrace();
+                                }
                                 count += groupResult.size();
                             }
 
@@ -674,9 +709,16 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
                 commonBuilder.filterField(FtsFieldConst.FIELD_URLDATE, thisDay, Operator.Equal);
 
                 commonBuilder.filterField(FtsFieldConst.FIELD_URLDATE, thisDay, Operator.Equal);
-                GroupResult groupResult = hybase8SearchService.categoryQuery(specialProject.isServer(), commonBuilder.asTRSL(),
-                        specialProject.isSimilar(), false,false, FtsFieldConst.FIELD_SITENAME, Integer.MAX_VALUE, null,database);
-                number = groupResult.size();
+//                GroupResult groupResult = hybase8SearchService.categoryQuery(specialProject.isServer(), commonBuilder.asTRSL(),
+//                        specialProject.isSimilar(), false,false, FtsFieldConst.FIELD_SITENAME, Integer.MAX_VALUE, null,database);
+                GroupResult groupResult = null;
+                try {
+                    groupResult = commonListService.categoryQuery(commonBuilder, specialProject.isSimilar(), false,false,FtsFieldConst.FIELD_SITENAME,null);
+                    number = groupResult.size();
+                } catch (TRSException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
         return number;
@@ -717,9 +759,14 @@ public class SpecialComputeServiceImpl implements ISpecialComputeService {
                             if (thisDay.getTime() == (specialExponent.getComputeTime().getTime())) {
                                 countBuilder = commonBuilder;
                                 countBuilder.filterField(FtsFieldConst.FIELD_URLDATE, day, Operator.Equal);
-                                groupResult = hybase8SearchService.categoryQuery(specialProject.isServer(), countBuilder.asTRSL(),
-                                        specialProject.isSimilar(), false,false, FtsFieldConst.FIELD_SITENAME, Integer.MAX_VALUE,
-                                       null, database);
+//                                groupResult = hybase8SearchService.categoryQuery(specialProject.isServer(), countBuilder.asTRSL(),
+//                                        specialProject.isSimilar(), false,false, FtsFieldConst.FIELD_SITENAME, Integer.MAX_VALUE,
+//                                       null, database);
+                                try {
+                                    groupResult = commonListService.categoryQuery(countBuilder, specialProject.isSimilar(), false,false,FtsFieldConst.FIELD_SITENAME,null);
+                                } catch (TRSException e) {
+                                    e.printStackTrace();
+                                }
                                 specialExponent.setMetaDegree(groupResult.size());
                             }
                         }

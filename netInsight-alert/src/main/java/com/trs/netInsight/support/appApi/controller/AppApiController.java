@@ -35,6 +35,8 @@ import com.trs.netInsight.widget.column.factory.ColumnFactory;
 import com.trs.netInsight.widget.column.service.IColumnService;
 import com.trs.netInsight.widget.column.service.IIndexPageService;
 import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.report.service.IReportService;
@@ -109,6 +111,11 @@ public class AppApiController {
 
     @Autowired
     private IThinkTankDataService thinkTankDataService;
+
+    @Autowired
+    private ICommonListService commonListService;
+    @Autowired
+    private ICommonChartService commonChartService;
 
     // @Autowired
     // private LogPrintUtil loginpool;
@@ -224,21 +231,18 @@ public class AppApiController {
         AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
         ColumnConfig config = new ColumnConfig();
         config.initSection(indexTab, timeRan, pageNo, pageSize ,"ALL","ALL", entityType,null,null,"default","ALL","ALL", "","","","");
-        column.setHybase8SearchService(hybase8SearchService);
-        column.setChartAnalyzeService(chartAnalyzeService);
-        column.setInfoListService(infoListService);
+        column.setCommonListService(commonListService);
+        column.setCommonChartService(commonChartService);
         column.setDistrictInfoService(districtInfoService);
-        column.setAlertRepository(alertRepository);
-        column.setFavouritesRepository(favouritesRepository);
         column.setConfig(config);
         String userId = authService.findByAccessToken(accessToken).getGrantSourceOwnerId();
         log.error("userId为："+userId);
         InfoListResult infoListResult = null;
-        if (indexTab.getType().length == 1 && "listStatusCommon".equals(indexTab.getType()[0])){
+        if (indexTab.getType().contains("List")){
             log.info("查询方法走了：getAppSectionList");
             User user = userRepository.findOne(userId);
             infoListResult = (InfoListResult)column.getAppSectionList(user);
-        }else if (indexTab.getType()[0].contains("Chart")){
+        }else if (indexTab.getType().contains("Chart")){
             log.info("柱状图-->查询方法走了：getColumnData");
             return column.getColumnData(timeRan);
         }else {

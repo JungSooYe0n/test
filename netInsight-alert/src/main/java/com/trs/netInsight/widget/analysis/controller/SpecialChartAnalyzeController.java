@@ -2,6 +2,7 @@ package com.trs.netInsight.widget.analysis.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.ESFieldConst;
 import com.trs.netInsight.config.constant.FtsFieldConst;
@@ -15,8 +16,10 @@ import com.trs.netInsight.support.cache.RedisFactory;
 import com.trs.netInsight.support.ckm.ICkmService;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.FtsDocument;
+import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
@@ -31,6 +34,9 @@ import com.trs.netInsight.widget.analysis.entity.*;
 import com.trs.netInsight.widget.analysis.enums.ChartType;
 import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
 import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
@@ -75,6 +81,11 @@ public class SpecialChartAnalyzeController {
 	@Autowired
 	private ICkmService ckmService;
 
+	@Autowired
+	private ICommonListService commonListService;
+	@Autowired
+	private ICommonChartService commonChartService;
+
 	// @Autowired
 	// private LogPrintUtil loginpool;
 
@@ -99,9 +110,9 @@ public class SpecialChartAnalyzeController {
 	@RequestMapping(value = "/webCount", method = RequestMethod.GET)
 	@ApiOperation("来源类型统计")
 	public Object webCountnew(@RequestParam(value = "timeRange", required = false) String timeRange,
-			@RequestParam(value = "specialId", required = true) String specialId,
-			@RequestParam(value = "area", defaultValue = "ALL") String area,
-			@RequestParam(value = "industry", defaultValue = "ALL") String industry) throws Exception {
+							  @RequestParam(value = "specialId", required = true) String specialId,
+							  @RequestParam(value = "area", defaultValue = "ALL") String area,
+							  @RequestParam(value = "industry", defaultValue = "ALL") String industry) throws Exception {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
 		ObjectUtil.assertNull(specialProject, "专题ID");
@@ -157,10 +168,10 @@ public class SpecialChartAnalyzeController {
 	@RequestMapping(value = "/trendMessage", method = RequestMethod.GET)
 	@ApiOperation("信息走势图")
 	public Object trendMessage(@RequestParam(value = "timeRange", required = false) String timeRange,
-			@RequestParam(value = "specialId", required = true) String specialId,
-			@RequestParam(value = "area", defaultValue = "ALL") String area,
-			@RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@RequestParam(value = "showType", required = false,defaultValue = "") String showType) throws Exception {
+							   @RequestParam(value = "specialId", required = true) String specialId,
+							   @RequestParam(value = "area", defaultValue = "ALL") String area,
+							   @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							   @RequestParam(value = "showType", required = false,defaultValue = "") String showType) throws Exception {
 		long start = new Date().getTime();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		long id = Thread.currentThread().getId();
@@ -230,12 +241,10 @@ public class SpecialChartAnalyzeController {
 
 	}
 
-		/**
+	/**
 	 *  微博top5
 	 * @param specialId  专题id
-	 * @param area       地域筛选
 	 * @param sortType   排序方式：最新、评论、转发
-	 * @param industry   行业筛选
 	 * @param timeRange  时间段
 	 * @return
 	 * @throws Exception
@@ -272,22 +281,22 @@ public class SpecialChartAnalyzeController {
 			builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(timeRange), Operator.Between);
 			//builder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange(timeRange), Operator.Between);
 			//行业
-			if (!"ALL".equals(industry)) {
-				builder.filterField(FtsFieldConst.FIELD_INDUSTRY, industry.split(";"), Operator.Equal);
-			}
+//			if (!"ALL".equals(industry)) {
+//				builder.filterField(FtsFieldConst.FIELD_INDUSTRY, industry.split(";"), Operator.Equal);
+//			}
 			//地域
-			if (!"ALL".equals(area)) {
-				String[] areaSplit = area.split(";");
-				String contentArea = "";
-				for (int i = 0; i < areaSplit.length; i++) {
-					areaSplit[i] = "中国\\\\" + areaSplit[i] + "*";
-					if (i != areaSplit.length - 1) {
-						areaSplit[i] += " OR ";
-					}
-					contentArea += areaSplit[i];
-				}
-				builder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
-			}
+//			if (!"ALL".equals(area)) {
+//				String[] areaSplit = area.split(";");
+//				String contentArea = "";
+//				for (int i = 0; i < areaSplit.length; i++) {
+//					areaSplit[i] = "中国\\\\" + areaSplit[i] + "*";
+//					if (i != areaSplit.length - 1) {
+//						areaSplit[i] += " OR ";
+//					}
+//					contentArea += areaSplit[i];
+//				}
+//				builder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
+//			}
 //
 			List<MBlogAnalyzeEntity> mBlogTop5 = specialChartAnalyzeService.mBlogTop5(builder,
 					Top5Tab.valueOf(sortType), specialProject.isSimilar(), specialProject.isIrSimflag(),specialProject.isIrSimflagAll());
@@ -341,7 +350,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 地域分布
-	 * 
+	 *
 	 * @param specialId
 	 * @param area
 	 * @param timeRange
@@ -355,9 +364,9 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("地域分布")
 	@RequestMapping(value = "/area", method = RequestMethod.GET)
 	public Object area(@RequestParam(value = "specialId", required = true) String specialId,
-			@RequestParam(value = "area", defaultValue = "ALL") String area,
-			@RequestParam(value = "timeRange", required = false) String timeRange,
-			@RequestParam(value = "industry", defaultValue = "ALL") String industry) throws Exception {
+					   @RequestParam(value = "area", defaultValue = "ALL") String area,
+					   @RequestParam(value = "timeRange", required = false) String timeRange,
+					   @RequestParam(value = "industry", defaultValue = "ALL") String industry) throws Exception {
 		long start = new Date().getTime();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		if (specialProject != null) {
@@ -374,7 +383,7 @@ public class SpecialChartAnalyzeController {
 					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 				}
 			}
-            String groupName = specialProject.getSource();//多个以;隔开
+			String groupName = specialProject.getSource();//多个以;隔开
 			if(groupName.contains("微信") && !groupName.contains("国内微信")){
 				groupName = groupName.replaceAll("微信","国内微信");
 			}
@@ -386,7 +395,7 @@ public class SpecialChartAnalyzeController {
 			}
 			QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
 
-            searchBuilder.setGroupName(groupName);
+			searchBuilder.setGroupName(groupName);
 			if (!"ALL".equals(industry)) {
 				searchBuilder.filterField(FtsFieldConst.FIELD_INDUSTRY, industry.split(";"), Operator.Equal);
 			}
@@ -422,7 +431,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 情感分析
-	 * 
+	 *
 	 * @param specialId
 	 * @param timeRange
 	 * @param industry
@@ -436,9 +445,9 @@ public class SpecialChartAnalyzeController {
 	@EnableRedis
 	@RequestMapping(value = "/emotionOption", method = RequestMethod.GET)
 	public Object weiboOption(@RequestParam(value = "specialId") String specialId,
-			@RequestParam(value = "timeRange", required = false) String timeRange,
-			@RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
+							  @RequestParam(value = "timeRange", required = false) String timeRange,
+							  @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							  @RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		String groupName = specialProject.getSource();//多个以;隔开
 		if (StringUtils.isBlank(timeRange)) {
@@ -455,7 +464,7 @@ public class SpecialChartAnalyzeController {
 		}
 		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
 		searchBuilder.setGroupName(groupName);
-		
+
 		if (!"ALL".equals(industry)) {
 			searchBuilder.filterField(ESFieldConst.IR_VRESERVED5, industry.split(";"), Operator.Equal);
 		}
@@ -472,7 +481,7 @@ public class SpecialChartAnalyzeController {
 			}
 			searchBuilder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
 		}
-		
+
 		List<Map<String, String>> list =specialChartAnalyzeService.emotionOption(searchBuilder,specialProject);
 
 		SpecialParam specParam = getSpecParam(specialProject);
@@ -503,10 +512,10 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("媒体活跃等级图")
 	@RequestMapping(value = "/active_level", method = RequestMethod.GET)
 	public Object getActiveLevel(@RequestParam("specialId") String specialId,
-			@RequestParam(value = "area", defaultValue = "ALL") String area,
-			@RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@RequestParam(value = "source", required = true) String source,
-			@RequestParam(value = "timeRange", required = false) String timeRange) throws TRSException {
+								 @RequestParam(value = "area", defaultValue = "ALL") String area,
+								 @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+								 @RequestParam(value = "source", required = true) String source,
+								 @RequestParam(value = "timeRange", required = false) String timeRange) throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -604,11 +613,11 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("词云分析")
 	@RequestMapping(value = "/wordCloud", method = RequestMethod.GET)
 	public Object getWordYun(@ApiParam("专题ID") @RequestParam("specialId") String specialId,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("实体类型（通用：keywords；人名:people；地名:location；机构名:agency；）") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
-			@ApiParam("文章类型（全部：all；新闻：news；微博：weibo；微信：weixin；客户端：app 目前前端都传了all）") @RequestParam(value = "articleType", defaultValue = "all") String articleType)
+							 @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
+							 @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							 @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							 @ApiParam("实体类型（通用：keywords；人名:people；地名:location；机构名:agency；）") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+							 @ApiParam("文章类型（全部：all；新闻：news；微博：weibo；微信：weixin；客户端：app 目前前端都传了all）") @RequestParam(value = "articleType", defaultValue = "all") String articleType)
 			throws Exception {
 		long start = new Date().getTime();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
@@ -687,8 +696,9 @@ public class SpecialChartAnalyzeController {
 				data = Const.MIX_DATABASE.split(";");
 			}
 
-			wordCloud = specialChartAnalyzeService.getWordCloud(specialProject.isServer(), searchBuilder.asTRSL(),
-					sim, irSimflag,irSimflagAll, entityType, searchBuilder.getPageSize(),"special", data);
+//			wordCloud = specialChartAnalyzeService.getWordCloud(specialProject.isServer(), searchBuilder.asTRSL(),
+//					sim, irSimflag,irSimflagAll, entityType, searchBuilder.getPageSize(),"special", data);
+			wordCloud = commonChartService.getWordCloudColumnData(searchBuilder,sim, irSimflag,irSimflagAll,specialProject.getSource(),entityType,"special");
 		}else {
 			wordCloud = specialChartAnalyzeService.getWordCloud(specialProject.isServer(), searchBuilder.asTRSL(),
 					sim, irSimflag,irSimflagAll, entityType, searchBuilder.getPageSize(),"special", searchBuilder.getDatabase());
@@ -712,7 +722,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 事件溯源
-	 * 
+	 *
 	 * @param specialId
 	 * @param pageSize
 	 * @param type
@@ -729,11 +739,11 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("走势最新那条")
 	@RequestMapping(value = "/trendTime", method = RequestMethod.GET)
 	public Object trendTime(@ApiParam("专项id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("") @RequestParam(value = "pageSize", defaultValue = "1") Integer pageSize,
-			@ApiParam("类型") @RequestParam(value = "type", required = false) String type,
-			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws TRSException {
+							@ApiParam("") @RequestParam(value = "pageSize", defaultValue = "1") Integer pageSize,
+							@ApiParam("类型") @RequestParam(value = "type", required = false) String type,
+							@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -788,113 +798,135 @@ public class SpecialChartAnalyzeController {
 			final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
 			String trslk = "redisKey" + pageId;
 			switch (type) {
-			case "weibo":
-				statBuilder.filterField(FtsFieldConst.FIELD_CREATED_AT, timeArray, Operator.Between);
-				statBuilder.page(0, 10);
-				statBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
-				statBuilder.setDatabase(Const.WEIBO);
+				case "weibo":
+					statBuilder.filterField(FtsFieldConst.FIELD_CREATED_AT, timeArray, Operator.Between);
+					statBuilder.page(0, 10);
+					statBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
+					statBuilder.setDatabase(Const.WEIBO);
 
-				RedisUtil.setString(trslk, statBuilder.asTRSL());
-				if(StringUtil.isNotEmpty(groupName)){
-					statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-							.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-				}
-				List<FtsDocumentStatus> ftsQueryWeiBo = hybase8SearchService.ftsQuery(statBuilder,
-						FtsDocumentStatus.class, sim, irSimflag,irSimflagAll,"special");
-				log.info(statBuilder.asTRSL());
-				FtsDocumentStatus ftsStatus = null;
-				if (ftsQueryWeiBo != null && ftsQueryWeiBo.size() > 0) {
-					ftsStatus = ftsQueryWeiBo.get(0);
-					// 上边过滤完了还是空就按照loadtime查
-					if (null == ftsStatus) {
-						statBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
+					RedisUtil.setString(trslk, statBuilder.asTRSL());
+					if(StringUtil.isNotEmpty(groupName)){
+						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+								.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+					}
+//				List<FtsDocumentStatus> ftsQueryWeiBo = hybase8SearchService.ftsQuery(statBuilder,
+//						FtsDocumentStatus.class, sim, irSimflag,irSimflagAll,"special");
+					InfoListResult infoListResult = commonListService.queryPageList(statBuilder,sim,irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,type,UserUtils.getUser(),true);
+					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+					List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
+					log.info(statBuilder.asTRSL());
+					FtsDocumentCommonVO ftsStatus = null;
+					if (ftsQueryWeiBo != null && ftsQueryWeiBo.size() > 0) {
+//					ftsStatus = ftsQueryWeiBo.get(0);
+						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hhmmss");
+						for(FtsDocumentCommonVO fts:ftsQueryWeiBo){
+							//取时分秒不完全为0的数据
+							String m = sdf.format(fts.getUrlTime());
+							if(!m.endsWith("000000") && !m.endsWith("120000")){
+								ftsStatus = fts;
+								break;
+							}
+						}
+						// 上边过滤完了还是空就按照loadtime查
+						if (null == ftsStatus) {
+							statBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
 						/*
 						 * final String chartId =
 						 * GUIDGenerator.generate(SpecialChartAnalyzeController.
 						 * class); String trslKey = "redisKey" + chartId;
 						 */
-						RedisUtil.setString(trslk, statBuilder.asTRSL());
-						List<FtsDocumentStatus> ftsQueryWeiBo2 = hybase8SearchService.ftsQuery(statBuilder,
-								FtsDocumentStatus.class, sim, irSimflag,irSimflagAll,"special");
-						ftsStatus = ftsQueryWeiBo2.get(0);
+							RedisUtil.setString(trslk, statBuilder.asTRSL());
+							InfoListResult infoListResult2 = commonListService.queryPageList(statBuilder,sim,irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,type,UserUtils.getUser(),true);
+							PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+							List<FtsDocumentCommonVO> ftsQueryWeiBo2 = content2.getPageItems();
+//						List<FtsDocumentStatus> ftsQueryWeiBo2 = hybase8SearchService.ftsQuery(statBuilder,
+//								FtsDocumentStatus.class, sim, irSimflag,irSimflagAll,"special");
+							ftsStatus = ftsQueryWeiBo2.get(0);
+						}
+
+						String md5 = ftsStatus.getMd5Tag();
+						QueryBuilder builder = new QueryBuilder();
+						builder.setDatabase(Const.WEIBO);
+						builder.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.Equal);
+						if(StringUtil.isNotEmpty(groupName)){
+							builder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+									.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+						}
+//					long ftsCount = hybase8SearchService.ftsCount(builder, sim, irSimflag,irSimflagAll,"special");
+						long ftsCount = commonListService.ftsCount(builder, sim, irSimflag,irSimflagAll,"special");
+						if (ftsCount == 1L) {
+							ftsCount = 0L;
+						}
+						ftsStatus.setSim((int) ftsCount);
+						ftsStatus.setTrslk(trslk);
+						return ftsStatus;
 					}
 
-					String md5 = ftsStatus.getMd5Tag();
-					QueryBuilder builder = new QueryBuilder();
-					builder.setDatabase(Const.WEIBO);
-					builder.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.Equal);
+				case "tradition":
+					// 1.传统走势 分三步：
+					// ①查关媒（重点媒体） 后期会有数据支持 ②groupname 只按国内新闻*查，不关注创建专题时来源的选择
+					// ③urltime loadtime 排序 最早的
+					// 以上三条 决定事件溯源的root 节点
+					// 关媒 还没加入条件 等数据推入再加
 					if(StringUtil.isNotEmpty(groupName)){
-						builder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
 								.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
 					}
-					long ftsCount = hybase8SearchService.ftsCount(builder, sim, irSimflag,irSimflagAll,"special");
-					if (ftsCount == 1L) {
-						ftsCount = 0L;
+					if (statBuilder.isServer()) {
+						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
+					} else {
+						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
 					}
-					ftsStatus.setSim((int) ftsCount);
-					ftsStatus.setTrslk(trslk);
-					return ftsStatus;
-				}
-
-			case "tradition":
-				// 1.传统走势 分三步：
-				// ①查关媒（重点媒体） 后期会有数据支持 ②groupname 只按国内新闻*查，不关注创建专题时来源的选择
-				// ③urltime loadtime 排序 最早的
-				// 以上三条 决定事件溯源的root 节点
-				// 关媒 还没加入条件 等数据推入再加
-				if(StringUtil.isNotEmpty(groupName)){
-					statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-							.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-				}
-				if (statBuilder.isServer()) {
-					statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
-				} else {
-					statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
-				}
-				statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 //				statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, "%000000", Operator.NotLike);//*:*-作者:""
-				statBuilder.page(0, 10);
-				statBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
-				statBuilder.setDatabase(Const.HYBASE_NI_INDEX);
+					statBuilder.page(0, 10);
+					statBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
+					statBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 
-				RedisUtil.setString(trslk, statBuilder.asTRSL());
-				log.info("最新走势：" + statBuilder.asTRSL());
-				List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(statBuilder, FtsDocument.class, sim,
-						irSimflag,irSimflagAll,"special");
-				log.info(statBuilder.asTRSL());
-				FtsDocument ftsDocument = null;
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hhmmss"); 
-				for(FtsDocument fts:ftsQuery){
-					//取时分秒不完全为0的数据
-					if(!sdf.format(fts.getUrlTime()).endsWith("000000")){
-						ftsDocument = fts;
-						break;
+					RedisUtil.setString(trslk, statBuilder.asTRSL());
+					log.info("最新走势：" + statBuilder.asTRSL());
+//				List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(statBuilder, FtsDocument.class, sim,
+//						irSimflag,irSimflagAll,"special");
+					InfoListResult infoListResultD = commonListService.queryPageList(statBuilder,sim,irSimflag,irSimflagAll,Const.TYPE_NEWS,type,UserUtils.getUser(),true);
+					PagedList<FtsDocumentCommonVO> contentD = (PagedList<FtsDocumentCommonVO>) infoListResultD.getContent();
+					List<FtsDocumentCommonVO> ftsQuery = contentD.getPageItems();
+					log.info(statBuilder.asTRSL());
+					FtsDocumentCommonVO ftsDocument = null;
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hhmmss");
+					for(FtsDocumentCommonVO fts:ftsQuery){
+						//取时分秒不完全为0的数据
+						String m = sdf.format(fts.getUrlTime());
+						log.info(m);
+						if(!m.endsWith("000000") && !m.endsWith("120000")){
+							ftsDocument = fts;
+							break;
+						}
 					}
-				}
-				if (ftsQuery != null && ftsQuery.size() > 0) {
-					
-					// 算相似文章数
-					String md52 = ftsDocument.getMd5Tag();
-					QueryBuilder builder2 = new QueryBuilder();
-					builder2.setDatabase(Const.HYBASE_NI_INDEX);
-					builder2.filterField(FtsFieldConst.FIELD_MD5TAG, md52, Operator.Equal);
-					if(StringUtil.isNotEmpty(groupName)){
-						builder2.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-								.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-					}
-					long ftsCount2 = hybase8SearchService.ftsCount(builder2, false, false,false,"special");
-					if (ftsCount2 == 1L) {
-						ftsCount2 = 0L;
-					}
-					ftsDocument.setSim(ftsCount2);
-					ftsDocument.setTrslk(trslk);
-					return ftsDocument;
-				}
+					if (ftsQuery != null && ftsQuery.size() > 0) {
 
-			case "all":
-				statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-			default:
-				statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+						// 算相似文章数
+						String md52 = ftsDocument.getMd5Tag();
+						QueryBuilder builder2 = new QueryBuilder();
+						builder2.setDatabase(Const.HYBASE_NI_INDEX);
+						builder2.filterField(FtsFieldConst.FIELD_MD5TAG, md52, Operator.Equal);
+						if(StringUtil.isNotEmpty(groupName)){
+							builder2.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+									.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+						}
+//					long ftsCount2 = hybase8SearchService.ftsCount(builder2, false, false,false,"special");
+						long ftsCount2 = commonListService.ftsCount(builder2, sim, irSimflag,irSimflagAll,"special");
+						if (ftsCount2 == 1L) {
+							ftsCount2 = 0L;
+						}
+						ftsDocument.setSim((int)ftsCount2);
+						ftsDocument.setTrslk(trslk);
+						return ftsDocument;
+					}
+
+				case "all":
+					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+				default:
+					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 			}
 			long end = new Date().getTime();
 			long time = end - start;
@@ -923,12 +955,12 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("走势后边的九条")
 	@RequestMapping(value = "/trendMd5", method = RequestMethod.GET)
 	public Object trendMd5(@ApiParam("专项id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("pageSize") @RequestParam(value = "pageSize", defaultValue = "9") Integer pageSize,
-			@ApiParam("类型") @RequestParam(value = "type", required = false) String type,
-			@ApiParam("md5Tag") @RequestParam(value = "md5Tag", required = false) String md5,
-			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws TRSException {
+						   @ApiParam("pageSize") @RequestParam(value = "pageSize", defaultValue = "9") Integer pageSize,
+						   @ApiParam("类型") @RequestParam(value = "type", required = false) String type,
+						   @ApiParam("md5Tag") @RequestParam(value = "md5Tag", required = false) String md5,
+						   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+						   @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+						   @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -980,133 +1012,139 @@ public class SpecialChartAnalyzeController {
 			List<Map> resultList = new ArrayList<>();
 
 			switch (type) {
-			case "weibo":
-				//找十个转发数量最多的原发 按时间排序
-				statBuilder.filterField(FtsFieldConst.FIELD_CREATED_AT, timeArray, Operator.Between);
+				case "weibo":
+					//找十个转发数量最多的原发 按时间排序
+					statBuilder.filterField(FtsFieldConst.FIELD_CREATED_AT, timeArray, Operator.Between);
 //				statBuilder.filterField(FtsFieldConst.FIELD_RETWEETED_MID, "", Operator.Equal);
-				statBuilder.filterByTRSL(FtsFieldConst.FIELD_RETWEETED_MID+":(0 OR \"\")");
-				statBuilder.setPageSize(10);
-				statBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
-				statBuilder.setDatabase(Const.WEIBO);
-				log.info(statBuilder.asTRSL());
-				statBuilder.setServer(specialProject.isServer());
-				if(StringUtil.isNotEmpty(groupName)){
-					statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-							.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-				}
-				List<FtsDocumentStatus> ftsQueryWeiBo = hybase8SearchService.ftsQuery(statBuilder,
-						FtsDocumentStatus.class, sim, irSimflag,irSimflagAll,"special");
-				SortListWeiBo sortListWeiBo = new SortListWeiBo();
-				//按时间排序
-				Collections.sort(ftsQueryWeiBo, sortListWeiBo);
-				// 防止这个的第一条和时间的那一条重复
-				//微博走势 不走special/chart/trendTime接口，不需要去掉第一条数据
-//				if (ftsQueryWeiBo.size() > 0) {
-//					ftsQueryWeiBo.remove(0);
+					statBuilder.filterByTRSL(FtsFieldConst.FIELD_RETWEETED_MID+":(0 OR \"\")");
+					statBuilder.setPageSize(10);
+					statBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
+					statBuilder.setDatabase(Const.WEIBO);
+					log.info(statBuilder.asTRSL());
+					statBuilder.setServer(specialProject.isServer());
+					if(StringUtil.isNotEmpty(groupName)){
+						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+								.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+					}
+					InfoListResult infoListResult = commonListService.queryPageList(statBuilder,sim,irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,type,UserUtils.getUser(),true);
+					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+					List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
+
+//				List<FtsDocumentStatus> ftsQueryWeiBo = hybase8SearchService.ftsQuery(statBuilder,
+//						FtsDocumentStatus.class, sim, irSimflag,irSimflagAll,"special");
+					SortListAll sortListWeiBo = new SortListAll();
+					//按时间排序
+					Collections.sort(ftsQueryWeiBo, sortListWeiBo);
+					// 防止这个的第一条和时间的那一条重复
+					//微博走势 不走special/chart/trendTime接口，不需要去掉第一条数据
+					for (FtsDocumentCommonVO ftsStatus : ftsQueryWeiBo) {
+						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSimCount(), ftsStatus));
+					}
+//				for (FtsDocumentStatus ftsStatus : ftsQueryWeiBo) {
+//					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSim(), ftsStatus));
 //				}
-				for (FtsDocumentStatus ftsStatus : ftsQueryWeiBo) {
-					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSim(), ftsStatus));
-				}
-				return resultList;
-			case "tradition":
+					return resultList;
+				case "tradition":
 				/*
 				 * String trsl = FtsFieldConst.FIELD_GROUPNAME +
 				 * ":((国内新闻) OR (国内论坛) OR (国内新闻_手机客户端) OR (国内新闻_电子报) OR (国内博客))"
 				 * ; statBuilder.filterByTRSL(trsl);
 				 */
-				List<FtsDocument> listChuan = new ArrayList<>();
-				// statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,
-				// "国内新闻*", Operator.Equal);
-				if (statBuilder.isServer()) {
-					statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
-				} else {
-					statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
-				}
-				// for (String[] time : timeList) {
+					List<FtsDocumentCommonVO> listChuan = new ArrayList<>();
+					// statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,
+					// "国内新闻*", Operator.Equal);
+					if (statBuilder.isServer()) {
+						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
+					} else {
+						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
+					}
+					// for (String[] time : timeList) {
 
-				QueryBuilder queryFts = new QueryBuilder();
-				String trsl = statBuilder.asTRSL();
-				queryFts.filterByTRSL(trsl);
-				// 不同小时间段
-				// queryFts.filterField(FtsFieldConst.FIELD_URLTIME, time,
-				// Operator.Between);
-				queryFts.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-				queryFts.setPageSize(10);
-				queryFts.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				queryFts.setDatabase(Const.HYBASE_NI_INDEX);
-				log.info(queryFts.asTRSL());
-				queryFts.setServer(specialProject.isServer());
-				if(StringUtil.isNotEmpty(md5)){
-					queryFts.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.NotEqual);
-				}
-				//找原发
-				if(StringUtil.isNotEmpty(groupName)){
-					queryFts.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-							.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-				}
-				GroupResult categoryChuan = hybase8SearchService.categoryQuery(queryFts, sim, irSimflag,irSimflagAll,
-						FtsFieldConst.FIELD_MD5TAG,"special", Const.HYBASE_NI_INDEX);
-				log.info(queryFts.asTRSL());
-				List<GroupInfo> groupList = categoryChuan.getGroupList();
-				if (groupList != null && groupList.size() > 0) {
-					for (GroupInfo groupInfo : groupList) {
-						QueryBuilder queryMd5 = new QueryBuilder();
-						// 小时间段里MD5分类统计 时间排序取第一个结果 去查
-						queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
-						// queryMd5.filterField(FtsFieldConst.FIELD_URLTIME,
-						// time, Operator.Between);
-						queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-						queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-						if (specialProject.isServer()) {
-							queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
-						} else {
-							queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
-						}
-						queryMd5.setDatabase(Const.HYBASE_NI_INDEX);
-						queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
-						log.info(queryMd5.asTRSL());
+					QueryBuilder queryFts = new QueryBuilder();
+					String trsl = statBuilder.asTRSL();
+					queryFts.filterByTRSL(trsl);
+					// 不同小时间段
+					// queryFts.filterField(FtsFieldConst.FIELD_URLTIME, time,
+					// Operator.Between);
+					queryFts.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+					queryFts.setPageSize(10);
+					queryFts.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					queryFts.setDatabase(Const.HYBASE_NI_INDEX);
+					log.info(queryFts.asTRSL());
+					queryFts.setServer(specialProject.isServer());
+					if(StringUtil.isNotEmpty(md5)){
+						queryFts.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.NotEqual);
+					}
+					//找原发
+//				if(StringUtil.isNotEmpty(groupName)){
+//					queryFts.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+//							.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+//				}
+					GroupResult categoryChuan = commonListService.categoryQuery(queryFts,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_MD5TAG,"special",Const.TYPE_NEWS);
+//				GroupResult categoryChuan = hybase8SearchService.categoryQuery(queryFts, sim, irSimflag,irSimflagAll,
+//						FtsFieldConst.FIELD_MD5TAG,"special", Const.HYBASE_NI_INDEX);
+					log.info(queryFts.asTRSL());
+					List<GroupInfo> groupList = categoryChuan.getGroupList();
+					if (groupList != null && groupList.size() > 0) {
+						for (GroupInfo groupInfo : groupList) {
+							QueryBuilder queryMd5 = new QueryBuilder();
+							// 小时间段里MD5分类统计 时间排序取第一个结果 去查
+							queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
+							// queryMd5.filterField(FtsFieldConst.FIELD_URLTIME,
+							// time, Operator.Between);
+							queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+							queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+							if (specialProject.isServer()) {
+								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
+							} else {
+								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
+							}
+							queryMd5.setDatabase(Const.HYBASE_NI_INDEX);
+							queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
+							log.info(queryMd5.asTRSL());
 
-						final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
-						String trslk = "redisKey" + pageId;
-						RedisUtil.setString(trslk, queryMd5.asTRSL());
-						if(StringUtil.isNotEmpty(groupName)){
-							queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-									.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-						}
-						//找原发
-						List<FtsDocument> ftsQueryChuan = hybase8SearchService.ftsQuery(queryMd5, FtsDocument.class,
-								sim, irSimflag,irSimflagAll,"special");
-//						for(FtsDocument ff: ftsQueryChuan){
-//							String dd = DateUtil.date2String(ff.getUrlTime(),DateUtil.FMT_TRS_yMdhms);
-//							System.out.println(dd+"-->"+ff.getTitle());
-//						}
-//						System.out.println("---------------------都是第一天");
-						// 再取第一个MD5结果集的第一个数据
-						if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
-							ftsQueryChuan.get(0).setSim((int) groupInfo.getCount());
-							ftsQueryChuan.get(0).setTrslk(trslk);
-							listChuan.add(ftsQueryChuan.get(0));
+							final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
+							String trslk = "redisKey" + pageId;
+							RedisUtil.setString(trslk, queryMd5.asTRSL());
+							if(StringUtil.isNotEmpty(groupName)){
+								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+										.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+							}
+							InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5,sim,irSimflag,irSimflagAll,Const.TYPE_NEWS,"special",UserUtils.getUser(),true);
+							PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+							List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
+							//找原发
+//						List<FtsDocument> ftsQueryChuan = hybase8SearchService.ftsQuery(queryMd5, FtsDocument.class,
+//								sim, irSimflag,irSimflagAll,"special");
+							// 再取第一个MD5结果集的第一个数据
+							if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
+								ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
+								ftsQueryChuan.get(0).setTrslk(trslk);
+								listChuan.add(ftsQueryChuan.get(0));
+							}
 						}
 					}
-				}
-				// }
+					// }
 
-				// 按urltime降序
-				SortList sort = new SortList();
-				// Collections.sort(listChuan, sort);
-				Collections.sort(listChuan, sort);
-				// 防止这个的第一条和时间的那一条重复
-				if (listChuan.size() > 0) {
-					listChuan.remove(0);
-				}
-				for (FtsDocument ftsDocument : listChuan) {
-					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSim(), ftsDocument));
-				}
-				return resultList;
-			case "all":
-				statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-			default:
-				statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+					// 按urltime降序
+					SortListAll sort = new SortListAll();
+					// Collections.sort(listChuan, sort);
+					Collections.sort(listChuan, sort);
+					// 防止这个的第一条和时间的那一条重复
+					if (listChuan.size() > 0) {
+						listChuan.remove(0);
+					}
+					for (FtsDocumentCommonVO ftsDocument : listChuan) {
+						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
+					}
+//				for (FtsDocument ftsDocument : listChuan) {
+//					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSim(), ftsDocument));
+//				}
+					return resultList;
+				case "all":
+					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+				default:
+					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 			}
 			return resultList;
 		} catch (Exception e) {
@@ -1129,7 +1167,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 网民参与趋势图
-	 * 
+	 *
 	 * @param timeRange
 	 * @param specialId
 	 * @param area
@@ -1143,10 +1181,10 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("网民参与趋势图")
 	@RequestMapping(value = "/netTendency", method = RequestMethod.GET)
 	public Object netTendency(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("数据展示类型") @RequestParam(value = "showType", required = false,defaultValue = "") String showType)
+							  @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+							  @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
+							  @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							  @ApiParam("数据展示类型") @RequestParam(value = "showType", required = false,defaultValue = "") String showType)
 			throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
@@ -1212,7 +1250,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 媒体参与趋势图
-	 * 
+	 *
 	 * @param timeRange
 	 * @param specialId
 	 * @param area
@@ -1226,10 +1264,10 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("媒体参与趋势图")
 	@RequestMapping(value = "/metaTendency", method = RequestMethod.GET)
 	public Object metaTendency(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("数据展示类型") @RequestParam(value = "showType", required = false,defaultValue = "") String showType)
+							   @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+							   @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
+							   @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							   @ApiParam("数据展示类型") @RequestParam(value = "showType", required = false,defaultValue = "") String showType)
 			throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
@@ -1293,7 +1331,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 情感分析曲线趋势图
-	 * 
+	 *
 	 * @param specialId
 	 * @param timeRange
 	 * @param industry
@@ -1307,10 +1345,10 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("情感分析曲线趋势图")
 	@RequestMapping(value = "/volume", method = RequestMethod.GET)
 	public Object getVolumeNew(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
-			@ApiParam("数据展示类型") @RequestParam(value = "showType", defaultValue = "") String showType) throws TRSException {
+							   @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							   @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							   @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
+							   @ApiParam("数据展示类型") @RequestParam(value = "showType", defaultValue = "") String showType) throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -1405,9 +1443,9 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("引爆点")
 	@RequestMapping(value = "/tippingpoint", method = RequestMethod.GET)
 	public Object getTippingPoint(@RequestParam(value = "specialId") String specialId,
-			@RequestParam(value = "timeRange", required = false) String timeRange,
-			@RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@RequestParam(value = "area", defaultValue = "ALL") String area) throws TRSException {
+								  @RequestParam(value = "timeRange", required = false) String timeRange,
+								  @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+								  @RequestParam(value = "area", defaultValue = "ALL") String area) throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -1465,20 +1503,34 @@ public class SpecialChartAnalyzeController {
 						.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
 			}
 			String trl = queryBuilder.asTRSL();
-			List<FtsDocumentStatus> list = hybase8SearchService.ftsQuery(queryBuilder, FtsDocumentStatus.class, sim,
-					irSimflag,irSimflagAll,"special");
+			InfoListResult infoListResult2 = commonListService.queryPageList(queryBuilder,sim,irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,"special",UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+			List<FtsDocumentCommonVO> list = content2.getPageItems();
+//			List<FtsDocumentStatus> list = hybase8SearchService.ftsQuery(queryBuilder, FtsDocumentStatus.class, sim,
+//					irSimflag,irSimflagAll,"special");
+			QueryBuilder queryCommonBuilder = new QueryBuilder();
+			queryCommonBuilder.filterByTRSL(searchBuilder.asTRSL());
+			queryCommonBuilder.filterField(ESFieldConst.IR_URLTIME, timeArray, Operator.Between);
+			queryCommonBuilder.page(0, 50);
+			queryCommonBuilder.orderBy(ESFieldConst.IR_RTTCOUNT, true);
+			if(StringUtil.isNotEmpty(groupName)){
+				queryCommonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+						.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+			}
+//			String trl = queryCommonBuilder.asTRSL();
+			//todo
 			String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
 			String trslk = "redisKey" + pageId;
-			RedisUtil.setString(trslk, queryBuilder.asTRSL());
+			RedisUtil.setString(trslk, queryCommonBuilder.asTRSL());
 			if (list.size() <= 0) {
 				throw new NullException("获取url为空");
 			}
 			// url = list.get(0).baseUrl();
-			FtsDocumentStatus status = list.get(0);
+			FtsDocumentCommonVO status = list.get(0);
 			RedisFactory.setValueToRedis(spreadKey, url, 7, TimeUnit.DAYS);
-			queryBuilder.setServer(specialProject.isServer());
-			List<TippingPoint> tippingPoint = specialChartAnalyzeService.getTippingPoint(queryBuilder, status,
-					DateUtil.stringToDate(timeArray[0], DateUtil.yyyyMMddHHmmss), irSimflag,irSimflagAll);
+			queryCommonBuilder.setServer(specialProject.isServer());
+			List<TippingPoint> tippingPoint = specialChartAnalyzeService.getTippingPoint(queryCommonBuilder, status,
+					DateUtil.stringToDate(timeArray[0], DateUtil.yyyyMMddHHmmss),sim,irSimflag,irSimflagAll);
 			if (tippingPoint != null && tippingPoint.size() > 0) {
 				for (TippingPoint point : tippingPoint) {
 					point.setTrslk(trslk);
@@ -1511,7 +1563,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 微博传播路径
-	 * 
+	 *
 	 * @param specialId
 	 * @param timeRange
 	 * @param industry
@@ -1524,9 +1576,9 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("微博传播路径")
 	@RequestMapping(value = "/weiboPath", method = RequestMethod.GET)
 	public Object weiboPath(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
+							@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
 
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		ObjectUtil.assertNull(specialProject, "专题ID");
@@ -1608,9 +1660,9 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("网友观点")
 	@RequestMapping(value = "/userViews")
 	public Object userViews(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
+							@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -1642,9 +1694,9 @@ public class SpecialChartAnalyzeController {
 
 	@Deprecated
 	public Object userViewsDeprecated(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
+									  @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+									  @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+									  @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -1730,7 +1782,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 热词探索 （目前仅做传统库）
-	 * 
+	 *
 	 * @param specialId
 	 * @param timeRange
 	 * @param industry
@@ -1744,10 +1796,10 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("热词探索")
 	@RequestMapping(value = "/topicEvoExplor", method = RequestMethod.GET)
 	public Object topicEvoExplor(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
-			@ApiParam("文章类型（全部：all；新闻：news；微博：weibo；微信：weixin；客户端：app）") @RequestParam(value = "articleType", defaultValue = "all") String articleType)
+								 @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+								 @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+								 @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
+								 @ApiParam("文章类型（全部：all；新闻：news；微博：weibo；微信：weixin；客户端：app）") @RequestParam(value = "articleType", defaultValue = "all") String articleType)
 			throws TRSException, TRSSearchException {
 		LogPrintUtil loginpool = new LogPrintUtil();
 		long start = new Date().getTime();
@@ -1809,9 +1861,9 @@ public class SpecialChartAnalyzeController {
 				// ":" + contentArea);
 			}
 			searchBuilder.page(0, 100);
-			GroupResult categoryQuery = hybase8SearchService.categoryQuery(searchBuilder, sim, irSimflag,irSimflagAll,
-					FtsFieldConst.FIELD_KEYWORDS,"special", Const.HYBASE_NI_INDEX);
-//			System.err.println("热点11111"+searchBuilder.asTRSL());
+			GroupResult categoryQuery = commonListService.categoryQuery(searchBuilder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_KEYWORDS,"special",Const.TYPE_NEWS);
+//			GroupResult categoryQuery = hybase8SearchService.categoryQuery(searchBuilder, sim, irSimflag,irSimflagAll,
+//					FtsFieldConst.FIELD_KEYWORDS,"special", Const.HYBASE_NI_INDEX);
 			// 数据清理
 			List<Topic> returnList = new ArrayList<>();
 			List<GroupInfo> categoryList = categoryQuery.getGroupList();
@@ -1931,9 +1983,9 @@ public class SpecialChartAnalyzeController {
 					builder.filterByTRSL(specialProject.getTrsl());
 				}
 				// System.out.println("更改逻辑后话题演变表达式："+builder.asTRSL());
-				GroupResult groupInfos = hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,
-						FtsFieldConst.FIELD_KEYWORDS,"special",Const.HYBASE_NI_INDEX);
-
+//				GroupResult groupInfos = hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,
+//						FtsFieldConst.FIELD_KEYWORDS,"special",Const.HYBASE_NI_INDEX);
+				GroupResult groupInfos = commonListService.categoryQuery(builder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_KEYWORDS,"special",Const.TYPE_NEWS);
 				List<GroupInfo> groupList = groupInfos.getGroupList();
 
 				for (int j = 0; j < groupList.size(); j++) {
@@ -1999,23 +2051,23 @@ public class SpecialChartAnalyzeController {
 			}
 			log.info("调用接口用了" + timeApi + "ms");
 		}
-        
-    }
 
-    /**
-     * 专题监测统计表格
-     *
-     * @param specialId
-     *            专项id
-     * @param days
-     *            时间
-     * @param industryType
-     *            行业
-     * @param area
-     *            地域
-     * @author mawen 2017年12月2日 Object
-     *
-     */
+	}
+
+	/**
+	 * 专题监测统计表格
+	 *
+	 * @param specialId
+	 *            专项id
+	 * @param days
+	 *            时间
+	 * @param industryType
+	 *            行业
+	 * @param area
+	 *            地域
+	 * @author mawen 2017年12月2日 Object
+	 *
+	 */
   /*  @FormatResult
     @ApiOperation("专题监测统计表格")
     @ApiImplicitParams({
@@ -2055,58 +2107,58 @@ public class SpecialChartAnalyzeController {
             throw new OperationException("专题监测统计表格错误,message: " + e);
         }
     }*/
-    /**
-     * 图表跳列表
-     * @param specialId
-     * 			专项id
-     * @param timeRange
-     * 			高级筛选时间段
-     * @param industryType
-     * 			行业类型
-     * @param area
-     * 			地域分布
-     * @param chartType
-     * 			图表类型
-     * @param dateTime
-     * 			数据时间
-     * @param xType
-     * 			数据参数
-     * @param source
-     * 			数据来源
-     * @param pageNo
-     * 			页码
-     * @param pageSize
-     * 			步长
-     * @return
-     * @throws Exception
-     */
-    //@EnableRedis 有文章删除的时候不能用,否则删除无效
-    @FormatResult
-    @ApiOperation("专题图表通用列表跳转方法")
-    @RequestMapping(value = "/chart2list", method = RequestMethod.GET)
-    public Object chart2list(@ApiParam("专题id")@RequestParam(value = "specialId") String specialId,
-                             @ApiParam("高级筛选时间段") @RequestParam(value = "timeRange", defaultValue = "3d") String timeRange,
-                             @ApiParam("行业类型")@RequestParam(value = "industryType", defaultValue = "ALL") String industryType,
-                             @ApiParam("地域分布")@RequestParam(value = "area", defaultValue = "ALL") String area,
-                             @ApiParam("图表类型")@RequestParam(value = "chartType") String chartType,
-                         	 @ApiParam("热词：用户点击的外圈词（共30个）")@RequestParam(value = "thirdWord", required = false)String thirdWord,
-                             @ApiParam("数据时间")@RequestParam(value = "dateTime", required = false) String dateTime,
-                             @ApiParam("数据参数")@RequestParam(value = "xType",required = false ) String xType,
-                             @ApiParam("数据来源")@RequestParam(value = "source",required = false ) String source,
-                             @ApiParam("通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
-                             @ApiParam("排序")@RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
-                             @ApiParam("情感")@RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
-                             @ApiParam("结果中搜索") @RequestParam(value="fuzzyValue",required=false) String fuzzyValue,
+	/**
+	 * 图表跳列表
+	 * @param specialId
+	 * 			专项id
+	 * @param timeRange
+	 * 			高级筛选时间段
+	 * @param industryType
+	 * 			行业类型
+	 * @param area
+	 * 			地域分布
+	 * @param chartType
+	 * 			图表类型
+	 * @param dateTime
+	 * 			数据时间
+	 * @param xType
+	 * 			数据参数
+	 * @param source
+	 * 			数据来源
+	 * @param pageNo
+	 * 			页码
+	 * @param pageSize
+	 * 			步长
+	 * @return
+	 * @throws Exception
+	 */
+	//@EnableRedis 有文章删除的时候不能用,否则删除无效
+	@FormatResult
+	@ApiOperation("专题图表通用列表跳转方法")
+	@RequestMapping(value = "/chart2list", method = RequestMethod.GET)
+	public Object chart2list(@ApiParam("专题id")@RequestParam(value = "specialId") String specialId,
+							 @ApiParam("高级筛选时间段") @RequestParam(value = "timeRange", defaultValue = "3d") String timeRange,
+							 @ApiParam("行业类型")@RequestParam(value = "industryType", defaultValue = "ALL") String industryType,
+							 @ApiParam("地域分布")@RequestParam(value = "area", defaultValue = "ALL") String area,
+							 @ApiParam("图表类型")@RequestParam(value = "chartType") String chartType,
+							 @ApiParam("热词：用户点击的外圈词（共30个）")@RequestParam(value = "thirdWord", required = false)String thirdWord,
+							 @ApiParam("数据时间")@RequestParam(value = "dateTime", required = false) String dateTime,
+							 @ApiParam("数据参数")@RequestParam(value = "xType",required = false ) String xType,
+							 @ApiParam("数据来源")@RequestParam(value = "source",required = false ) String source,
+							 @ApiParam("通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+							 @ApiParam("排序")@RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
+							 @ApiParam("情感")@RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
+							 @ApiParam("结果中搜索") @RequestParam(value="fuzzyValue",required=false) String fuzzyValue,
 							 @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
-                             @ApiParam("页码")@RequestParam(value = "pageNo",defaultValue = "0") int pageNo,
-                             @ApiParam("步长")@RequestParam(value = "pageSize",defaultValue = "10") int pageSize,
-                             @ApiParam("微博原发/转发")@RequestParam(value = "forwarPrimary",defaultValue = "") String forwarPrimary,
-                             @ApiParam("是否导出") @RequestParam(value = "isExport", defaultValue = "false") boolean isExport,
-                             @ApiParam("主回帖")@RequestParam(value = "invitationCard",defaultValue = "") String invitationCard
-                             ) throws Exception{
+							 @ApiParam("页码")@RequestParam(value = "pageNo",defaultValue = "0") int pageNo,
+							 @ApiParam("步长")@RequestParam(value = "pageSize",defaultValue = "10") int pageSize,
+							 @ApiParam("微博原发/转发")@RequestParam(value = "forwarPrimary",defaultValue = "") String forwarPrimary,
+							 @ApiParam("是否导出") @RequestParam(value = "isExport", defaultValue = "false") boolean isExport,
+							 @ApiParam("主回帖")@RequestParam(value = "invitationCard",defaultValue = "") String invitationCard
+	) throws Exception{
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
-        SpecialProject specialProject = this.specialProjectNewRepository.findOne(specialId);
+		SpecialProject specialProject = this.specialProjectNewRepository.findOne(specialId);
 		//页面展示 国外新闻 变为 境外网站  2019-12-10
 		if (StringUtil.isNotEmpty(source)){
 			if ("境外网站".equals(source) || "境外媒体".equals(source)){
@@ -2125,69 +2177,69 @@ public class SpecialChartAnalyzeController {
 				source = "国内新闻_电子报";
 			}
 		}
-        if (specialProject != null) {
-            // 初步高级删选时间范围
-            specialProject.setTimeRange(timeRange);
-            String[] timeArray = DateUtil.formatTimeRange(timeRange);
-            if (timeArray != null && timeArray.length == 2) {
-                specialProject.setStart(timeArray[0]);
-                specialProject.setEnd(timeArray[1]);
-            }
-            return this.specialChartAnalyzeService.getDataByChart(specialProject, industryType, area, chartType, dateTime, xType, source, entityType,sort,emotion,fuzzyValue,fuzzyValueScope,pageNo, pageSize,forwarPrimary,invitationCard,isExport,thirdWord);
-        }
-        return null;
-    }
-    /**
-     *  为前端返回各级专题名字
-     * @param specialProject
-     * @return
-     */
-    public SpecialParam getSpecParam(SpecialProject specialProject){
-        String firstName = "";
-        String secondName = "";
-        String thirdName = "";
-        if (null != specialProject){
-            if (null != specialProject.getGroupName()){
-                SpecialSubject specialSubject = this.specialSubjectRepository.findOne(specialProject.getGroupId());
-                if (null != specialSubject){
-                    int flag = specialSubject.getFlag();
-                    if (flag == 0){//一级
-                        firstName = specialSubject.getName();
-                    }else if (flag == 1){//二级
-                        SpecialSubject subject = this.specialSubjectRepository.findOne(specialSubject.getSubjectId());//一级
-                        firstName = subject.getName();
-                        secondName = specialSubject.getName();
-                    }
-                }
+		if (specialProject != null) {
+			// 初步高级删选时间范围
+			specialProject.setTimeRange(timeRange);
+			String[] timeArray = DateUtil.formatTimeRange(timeRange);
+			if (timeArray != null && timeArray.length == 2) {
+				specialProject.setStart(timeArray[0]);
+				specialProject.setEnd(timeArray[1]);
+			}
+			return this.specialChartAnalyzeService.getDataByChart(specialProject, industryType, area, chartType, dateTime, xType, source, entityType,sort,emotion,fuzzyValue,fuzzyValueScope,pageNo, pageSize,forwarPrimary,invitationCard,isExport,thirdWord);
+		}
+		return null;
+	}
+	/**
+	 *  为前端返回各级专题名字
+	 * @param specialProject
+	 * @return
+	 */
+	public SpecialParam getSpecParam(SpecialProject specialProject){
+		String firstName = "";
+		String secondName = "";
+		String thirdName = "";
+		if (null != specialProject){
+			if (null != specialProject.getGroupName()){
+				SpecialSubject specialSubject = this.specialSubjectRepository.findOne(specialProject.getGroupId());
+				if (null != specialSubject){
+					int flag = specialSubject.getFlag();
+					if (flag == 0){//一级
+						firstName = specialSubject.getName();
+					}else if (flag == 1){//二级
+						SpecialSubject subject = this.specialSubjectRepository.findOne(specialSubject.getSubjectId());//一级
+						firstName = subject.getName();
+						secondName = specialSubject.getName();
+					}
+				}
 
-            }
-            thirdName = specialProject.getSpecialName();
-        }
-        SpecialParam specialParam = new SpecialParam(firstName, secondName, thirdName);
-        return specialParam;
-    }
-    
-    /**
-     * 传统媒体传播路径分析图
-     * @since changjiang @ 2018年5月9日
-     * @param specialId
-     * @param timeRange
-     * @param industry
-     * @param area
-     * @param articleType
-     * @return
-     * @throws Exception 
-     * @Return : Object
-     */
-    @EnableRedis
+			}
+			thirdName = specialProject.getSpecialName();
+		}
+		SpecialParam specialParam = new SpecialParam(firstName, secondName, thirdName);
+		return specialParam;
+	}
+
+	/**
+	 * 传统媒体传播路径分析图
+	 * @since changjiang @ 2018年5月9日
+	 * @param specialId
+	 * @param timeRange
+	 * @param industry
+	 * @param area
+	 * @param articleType
+	 * @return
+	 * @throws Exception
+	 * @Return : Object
+	 */
+	@EnableRedis
 	@FormatResult
 	@ApiOperation("传统媒体传播路径分析图")
 	@RequestMapping(value = "/pathByNews", method = RequestMethod.GET)
 	public Object pathByNews(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
-			@ApiParam("文章类型（全部：all；新闻：news；微博：weibo；微信：weixin；客户端：app）") @RequestParam(value = "articleType", defaultValue = "all") String articleType)
+							 @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							 @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+							 @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
+							 @ApiParam("文章类型（全部：all；新闻：news；微博：weibo；微信：weixin；客户端：app）") @RequestParam(value = "articleType", defaultValue = "all") String articleType)
 			throws Exception {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
@@ -2283,7 +2335,7 @@ public class SpecialChartAnalyzeController {
 
 	/**
 	 * 新闻传播站点分析
-	 * 
+	 *
 	 * @date Created at 2018年9月5日 上午9:53:56
 	 * @Author 谷泽昊
 	 * @param specialId
@@ -2299,10 +2351,10 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("新闻传播站点分析")
 	@RequestMapping(value = "/newsSiteAnalysis", method = RequestMethod.GET)
 	public Object newsSiteAnalysis(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-			@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-			@ApiParam("每日最多展示网站个数，主要配合api，网察页面不需要理会此参数") @RequestParam(value = "isApi", defaultValue = "false",required = false) boolean isApi,
-			@ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws OperationException {
+								   @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+								   @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+								   @ApiParam("每日最多展示网站个数，主要配合api，网察页面不需要理会此参数") @RequestParam(value = "isApi", defaultValue = "false",required = false) boolean isApi,
+								   @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws OperationException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();

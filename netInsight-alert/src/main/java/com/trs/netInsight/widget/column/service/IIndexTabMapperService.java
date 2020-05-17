@@ -1,12 +1,12 @@
 package com.trs.netInsight.widget.column.service;
 
-import java.util.List;
-import java.util.Map;
-
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 日常监测栏目映射关系实体操作相关接口
@@ -114,7 +114,7 @@ public interface IIndexTabMapperService {
 	 * @Return : void
 	 */
 	public void delete(String mapperId);
-	public void deleteByUserId(String userId) throws TRSException ;
+	public void deleteByUserId(String userId) throws TRSException;
 	/**
 	 * 批量删除关联关系
 	 * 
@@ -176,14 +176,14 @@ public interface IIndexTabMapperService {
 	 * @param indexMapperId
 	 * @param tabWidth 50为半栏，100为通栏
 	 */
-	public void changeTabWidth(String indexMapperId,String tabWidth);
+	public void changeTabWidth(String indexMapperId, String tabWidth);
 
 	/**
 	 * 栏目隐藏
 	 * 
 	 * @since changjiang @ 2018年10月10日
 	 * @param indexMapperId
-	 * @throws TRSException 
+	 * @throws TRSException
 	 * @Return : void
 	 */
 	public void hide(String indexMapperId, String hide) throws TRSException;
@@ -219,5 +219,9 @@ public interface IIndexTabMapperService {
 	 */
 	public List<IndexTabMapper> findByUserId(String userId);
 
-
+	/**
+	 * 修改历史数据 - 栏目 给indextab类添加导航栏id
+	 * @return
+	 */
+	Object updateHistortIndexTab();
 }

@@ -1,9 +1,7 @@
 package com.trs.netInsight.widget.column.repository;
 
-import com.trs.netInsight.widget.analysis.entity.ClassInfo;
-import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.column.entity.IndexTab;
-import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import java.util.List;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,11 +10,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.trs.netInsight.widget.alert.entity.AlertRule;
+import com.trs.netInsight.widget.analysis.entity.ClassInfo;
+import com.trs.netInsight.widget.column.entity.IndexPage;
+import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 
 /**
  * 栏目映射关系实体持久层接口
- * 
+ *
  * @author 北京拓尔思信息技术股份有限公司
  * @since changjiang @ 2018年9月17日
  *
@@ -26,7 +28,7 @@ public interface IndexTabMapperRepository extends JpaRepository<IndexTabMapper, 
 
 	/**
 	 * 根据机用户id、共享关系检索映射
-	 * 
+	 *
 	 * @since changjiang @ 2018年9月18日
 	 * @param userId
 	 *            用户id
@@ -37,7 +39,7 @@ public interface IndexTabMapperRepository extends JpaRepository<IndexTabMapper, 
 	 * @return
 	 * @Return : List<IndexTabMapper>
 	 */
-	public List<IndexTabMapper> findByUserIdAndShareAndIsMeAndOrganizationId(String userId, boolean share, boolean isMe, String orgId, Sort sort);
+	public List<IndexTabMapper> findByUserIdAndShareAndIsMeAndOrganizationId(String userId, boolean share, boolean isMe,String orgId, Sort sort);
 
 	/**
 	 * 根据栏目组id判断之下是否存在共享栏目
@@ -136,11 +138,11 @@ public interface IndexTabMapperRepository extends JpaRepository<IndexTabMapper, 
 	 * @Return : long
 	 */
 	public long countByOrganizationIdAndIsMeAndShareAndUserIdNot(String organizationId, boolean isMe, boolean share,
-                                                                 String userId);
+																 String userId);
 
 	/**
 	 * 统计指定分组下栏目数量
-	 * 
+	 *
 	 * @since changjiang @ 2018年9月20日
 	 * @param indexPage
 	 * @return
@@ -150,7 +152,7 @@ public interface IndexTabMapperRepository extends JpaRepository<IndexTabMapper, 
 
 	/**
 	 * 根据栏目组加载栏目映射关系
-	 * 
+	 *
 	 * @since changjiang @ 2018年10月9日
 	 * @param indexPage
 	 * @return
@@ -171,11 +173,11 @@ public interface IndexTabMapperRepository extends JpaRepository<IndexTabMapper, 
 
 	/**
 	 * 根据栏目实体加载
-	 * @param indexTab 
+	 * @param indexTab
 	 * @return
 	 */
 	public List<IndexTabMapper> findByIndexTab(IndexTab indexTab);
-	
+
 	/**
 	 * 检索栏目组下自身所有的共享栏目（非引用）
 	 * @param indexPage
@@ -199,4 +201,11 @@ public interface IndexTabMapperRepository extends JpaRepository<IndexTabMapper, 
 	 */
 	public List<IndexTabMapper> findByUserId(String userId);
 	public List<IndexTabMapper> findByUserIdAndSubGroupIdIsNull(String userId);
+
+	/**
+	 * 根据模块id查找对应栏目
+	 * @param typeId
+	 * @return
+	 */
+	List<IndexTabMapper> findByTypeId(String typeId);
 }

@@ -8,6 +8,7 @@ import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.login.service.ILoginService;
 import com.trs.netInsight.widget.user.entity.*;
 import com.trs.netInsight.widget.user.entity.enums.CheckRole;
@@ -36,6 +37,8 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URLEncoder;
 import java.util.*;
+
+import static com.trs.netInsight.util.LoginUtil.rangeExpiret;
 
 /**
  * 登录controller
@@ -315,19 +318,24 @@ public class LoginController {
 			}
 			user.setIsAlert(isAlert);
 			// 到期提醒
-			LoginUtil.rangeExpiret(user);
+			rangeExpiret(user);
 			//一些权限信息
 			user = UserUtils.checkOrganization(user);
 			String dataSource = user.getDataSources();
 			if(StringUtil.isNotEmpty(dataSource) && !"ALL".equals(dataSource)){
 				StringBuffer dataSourceNew = new StringBuffer();
-				List<String> dataSourceList = Arrays.asList(dataSource.split(","));
-				for(String source : Const.USER_ROLES_DATASOURCE){
-					if(dataSourceList.contains(source)){
-						if(dataSourceNew.length() == 0){
-							dataSourceNew.append(source);
-						}else{
-							dataSourceNew.append(",").append(source);
+				String source = CommonListChartUtil.formatPageShowGroupName(dataSource);
+				if(source != null){
+
+
+					List<String> dataSourceList = Arrays.asList(source.split(","));
+					for(String pageShow: Const.PAGE_SHOW_DATASOURCE_SORT){
+						if(dataSourceList.contains(pageShow)){
+							if(dataSourceNew.length() == 0){
+								dataSourceNew.append(source);
+							}else{
+								dataSourceNew.append(",").append(source);
+							}
 						}
 					}
 				}

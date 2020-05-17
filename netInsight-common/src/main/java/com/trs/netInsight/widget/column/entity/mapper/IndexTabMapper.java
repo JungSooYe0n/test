@@ -1,17 +1,19 @@
 package com.trs.netInsight.widget.column.entity.mapper;
 
+import javax.persistence.*;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
+
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
-
 /**
  * 栏目映射表
- * <p> indexTab、indexPage两个属性在使用懒加载获取时，获取的对象均为持久态对象，<br> 
+ * <p> indexTab、indexPage两个属性在使用懒加载获取时，获取的对象均为持久态对象，<br>
  * 修改属性值时应注意，在未加载该属性时，可通过置null的方式，拒绝进行懒加载;在已加载<br>
  * 的情况下，可通过复制对象的方式（主键除外）进行进行状态转换
  * @author 北京拓尔思信息技术股份有限公司
@@ -25,7 +27,7 @@ import javax.persistence.*;
 public class IndexTabMapper extends BaseEntity {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -2880083565994872996L;
 
@@ -37,7 +39,7 @@ public class IndexTabMapper extends BaseEntity {
 	private IndexTab indexTab;
 
 	/**
-	 * 断言是否为引用数据
+	 * 断言是否为引用数据   为0 为引用，默认为1
 	 */
 	@Column(name = "isme")
 	private boolean isMe;
@@ -60,7 +62,7 @@ public class IndexTabMapper extends BaseEntity {
 	 * 排序字段
 	 */
 	@Column(name = "sequence")
-	private int sequence;
+	private Integer sequence;
 
 	/**
 	 * App排序字段
@@ -88,4 +90,15 @@ public class IndexTabMapper extends BaseEntity {
 		return this.share;
 	}
 
+	/**
+	 * 自定义类型导航栏的id
+	 */
+	@Column(name = "type_id")
+	private String typeId;
+
+	/**
+	 * 标识是分组还是栏目  -  前端使用
+	 */
+	@Transient
+	private Integer flag = ColumnFlag.IndexTabFlag.ordinal();
 }

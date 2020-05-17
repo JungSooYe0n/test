@@ -14,6 +14,27 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum IndexTabType {
 
+    /*
+    饼图
+        pieChart
+        emotionPieChart
+    柱状图
+        barGraphChart
+        crossBarGraphChart
+    折线图
+        brokenLineChart
+    词云
+        wordCloudChart
+    地图
+        mapChart
+    微博热点
+        hotTopicSort
+    热点列表
+        md5ListInfo
+    普通信息列表
+        timeListInfo
+     */
+
     /**
      * 列表栏目
      */
@@ -21,23 +42,29 @@ public enum IndexTabType {
     /**
      * 热点栏目
      */
-    HOT_LIST(ColumnConst.LIST_SIM, "传统媒体热点栏目", "com.trs.netInsight.widget.column.service.column.HostListColumn"),
+    HOT_LIST(ColumnConst.LIST_SIM, "热点栏目", "com.trs.netInsight.widget.column.service.column.HostListColumn"),
     /**
      * 词云栏目
      */
-    WORD_CLOUD(ColumnConst.CHART_WORD_CLOUD, "传统媒体词云栏目", "com.trs.netInsight.widget.column.service.column.WordCloudColumn"),
+    WORD_CLOUD(ColumnConst.CHART_WORD_CLOUD, "词云图", "com.trs.netInsight.widget.column.service.column.WordCloudColumn"),
     /**
      * 地域热力图
      */
-    MAP(ColumnConst.CHART_MAP, "传统媒体地域热力图栏目", "com.trs.netInsight.widget.column.service.column.MapColumn"),
+    MAP(ColumnConst.CHART_MAP, "地域热力图", "com.trs.netInsight.widget.column.service.column.MapColumn"),
+    /**
+     * 微博热点话题榜  ---  统计方式与统计柱状图的方式一样，所以用同一个方法
+     */
+    HOT_TOPIC_SORT(ColumnConst.HOT_TOPIC_SORT, "微博热点话题榜", "com.trs.netInsight.widget.column.service.column.BarColumn"),
+
     /**
      * 柱状图
      */
     CHART_BAR(ColumnConst.CHART_BAR, "柱状图", "com.trs.netInsight.widget.column.service.column.BarColumn"),
     /**
-     * 分类对比柱状图
+     * 柱状图  横向柱状图，主要为展示效果不同，则
      */
-    CHART_BAR_BY_META(ColumnConst.CHART_BAR_BY_META, "分类对比柱状图", "com.trs.netInsight.widget.column.service.column.BarColumn"),
+    CHART_BAR_CROSS(ColumnConst.CHART_BAR_CROSS, "活跃账号图", "com.trs.netInsight.widget.column.service.column.BarColumn"),
+
     /**
      * 折线图
      */
@@ -46,11 +73,12 @@ public enum IndexTabType {
     /**
      * 饼状图
      */
-    CHART_PIE(ColumnConst.CHART_PIE, "饼状图", "com.trs.netInsight.widget.column.service.column.BarColumn"),
+    CHART_PIE(ColumnConst.CHART_PIE, "饼状图", "com.trs.netInsight.widget.column.service.column.PieColumn"),
+
     /**
-     * 饼状对比图
+     * 饼状图
      */
-    CHART_PIE_BY_META(ColumnConst.CHART_PIE_BY_META, "饼状对比图", "com.trs.netInsight.widget.column.service.column.PieColumn"),
+    CHART_PIE_EMOTION(ColumnConst.CHART_PIE_EMOTION, "情感分析饼状图", "com.trs.netInsight.widget.column.service.column.PieColumn"),
 
 
     /**

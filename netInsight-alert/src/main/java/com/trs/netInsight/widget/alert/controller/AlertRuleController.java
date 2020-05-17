@@ -709,10 +709,10 @@ public class AlertRuleController {
 				String[] groupArr = groupName.split(";");
 				List<String> groupList = new ArrayList<>();
 				for(String group : groupArr){
-					group = Const.DATA_SOURCES.get(group);
+					group = Const.SOURCE_GROUPNAME_CONTRAST.get(group);
 					groupList.add(group);
 				}
-				if(!groupList.contains(Const.DATA_SOURCES.get(source))){
+				if(!groupList.contains(Const.SOURCE_GROUPNAME_CONTRAST.get(source))){
 					return null;
 				}
 			}
@@ -732,8 +732,8 @@ public class AlertRuleController {
 				return alertRuleService.documentSearch(alertRule, pageNo, pageSize, source, time, area, industry,
 						emotion, sort, invitationCard, keywords, fuzzyValueScope,null, keywordIndex);
 			} else if (Const.MEDIA_TYPE_TF.contains(source)
-                    && (SpecialType.COMMON.equals(specialType) || StringUtil.isNotEmpty(alertRule.getTrsl()))) {
-                //TF类型数据是用传统表达式查询的
+					&& (SpecialType.COMMON.equals(specialType) || StringUtil.isNotEmpty(alertRule.getTrsl()))) {
+				//TF类型数据是用传统表达式查询的
 				log.error("进入" + source + "方法:" + System.currentTimeMillis());
 				return alertRuleService.documentTFSearch(alertRule, pageNo, pageSize, source, time, area, industry,
 						emotion, sort, keywords, fuzzyValueScope,null, keywordIndex);

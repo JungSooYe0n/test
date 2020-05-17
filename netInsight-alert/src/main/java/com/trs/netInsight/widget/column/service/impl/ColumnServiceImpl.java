@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.column.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.jpa.utils.Criteria;
@@ -28,6 +29,7 @@ import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.Columns;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
@@ -36,18 +38,31 @@ import com.trs.netInsight.widget.column.repository.ColumnRepository;
 import com.trs.netInsight.widget.column.repository.IndexPageRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabRepository;
+import com.trs.netInsight.widget.column.service.IColumnChartService;
 import com.trs.netInsight.widget.column.service.IColumnService;
 import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
 import com.trs.netInsight.widget.column.service.IIndexTabService;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.microblog.entity.SpreadObject;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
+import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.User;
+import com.trs.netInsight.widget.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.annotation.Obsolete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -55,6 +70,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 栏目相关接口服务实现类
@@ -88,41 +104,460 @@ public class ColumnServiceImpl implements IColumnService {
 	private IInfoListService infoListService;
 
 	@Autowired
-	private FavouritesRepository favouritesRepository;
-
-	@Autowired
-	private AlertRepository alertRepository;
-	
-	@Autowired
-	private IIndexTabService indexTabService;
-	
-	@Autowired
 	private IIndexTabMapperService indexTabMapperService;
-	
+
 	@Autowired
 	private IndexTabMapperRepository tabMapperRepository;
+	@Autowired
+	private ICommonListService commonListService;
+	@Autowired
+	private ICommonChartService commonChartService;
+	@Autowired
+	private UserRepository userService;
+	@Autowired
+	private IColumnChartService columnChartService;
+
+
+	/**
+	 * 获取层级下最的排序值
+	 * @param parentPageId 要获取排序值的对象的上级分组id ，如果没有上级分组，则为空
+	 * @param navigationId 对应的模块id，默认日常监测模块为""，
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	public Integer getMaxSequenceForColumn(String parentPageId,String navigationId,User user){
+		Integer seq = 0;
+		List<IndexPage> indexPage = new ArrayList<>();
+		List<IndexTabMapper> indexTabMapper = new ArrayList<>();
+		if(StringUtil.isEmpty(parentPageId)){
+			Map<String,Object> oneColumn = this.getOneLevelColumnForMap(navigationId,user);
+			if (oneColumn.containsKey("page")) {
+				indexPage = (List<IndexPage>) oneColumn.get("page");
+			}
+			if (oneColumn.containsKey("tab")) {
+				indexTabMapper = (List<IndexTabMapper>) oneColumn.get("tab");
+			}
+		}else{
+			IndexPage parentPage =indexPageRepository.findOne(parentPageId);
+			indexPage = parentPage.getChildrenPage();
+			indexTabMapper = parentPage.getIndexTabMappers();
+		}
+		List<Object> sortColumn = this.sortColumn(indexTabMapper,indexPage,false,false);
+		if(sortColumn != null && sortColumn.size() > 0){
+			Object column = sortColumn.get(sortColumn.size()-1);
+			if (column instanceof IndexTabMapper) {
+				seq = ((IndexTabMapper)column).getSequence();
+			} else if (column instanceof IndexPage) {
+				seq = ((IndexPage)column).getSequence();
+			}
+		}
+
+		return seq;
+	}
+
+
+	/**
+	 * 对日常监测分组和栏目进行排序展示
+	 * @param mapperList  栏目数据List
+	 * @param indexPageList 分组数据List
+	 * @param sortAll 是否对所有层进行排序，包括当前数据及其子类， 查询列表时对整个列表排序，则为true，如果只是拖拽修改顺序则只排一层即可，为false
+	 * @param onlySortPage 是否只对分组进行排序，因为有时需要获取日常监测下的所有分组，但不需要栏目
+	 * @return
+	 */
+	public List<Object> sortColumn(List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
+		List<Object> result = new ArrayList<>();
+
+		List<Map<String,Object>> sortList = new ArrayList<>();
+		if(!onlySortPage){
+			if(mapperList != null && mapperList.size() >0){
+				for(int i =0;i<mapperList.size();i++){
+					Map<String,Object> map = new HashMap<>();
+					map.put("id",mapperList.get(i).getId());
+					map.put("sequence",mapperList.get(i).getSequence());
+					map.put("index",i);
+					//栏目类型为1
+					map.put("flag",ColumnFlag.IndexTabFlag);
+					sortList.add(map);
+				}
+			}
+		}
+		if(indexPageList != null && indexPageList.size() > 0){
+			for(int i =0;i<indexPageList.size();i++){
+				Map<String,Object> map = new HashMap<>();
+				map.put("id",indexPageList.get(i).getId());
+				map.put("sequence",indexPageList.get(i).getSequence());
+				map.put("index",i);
+				//分组类型为0
+				map.put("flag", ColumnFlag.IndexPageFlag);
+				sortList.add(map);
+			}
+		}
+		if(sortList.size() >0){
+			Collections.sort(sortList, (o1, o2) -> {
+				Integer seq1 = (Integer) o1.get("sequence");
+				Integer seq2 = (Integer) o2.get("sequence");
+				return seq1.compareTo(seq2);
+			});
+			//sortList 排序过后的数据
+			//只排序当前层，排序过后的数据，按顺序取出并返回
+			for(Map<String,Object> map : sortList){
+				ColumnFlag flag = (ColumnFlag) map.get("flag");
+				Integer index = (Integer) map.get("index");
+				if(flag.equals(ColumnFlag.IndexPageFlag)){
+					IndexPage indexPage = indexPageList.get(index);
+					if(sortAll){
+						//获取子类的数据进行排序
+						List<IndexPage> child_page = indexPage.getChildrenPage();
+						List<IndexTabMapper> child_mapper = null;
+						if(!onlySortPage){
+							child_mapper = indexPage.getIndexTabMappers();
+						}
+						if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
+							indexPage.setColumnList(sortColumn(child_mapper,child_page,sortAll,onlySortPage));
+						}
+					}
+					result.add(indexPage);
+				}else if(flag.equals(ColumnFlag.IndexTabFlag)){
+					IndexTabMapper mapper = mapperList.get(index);
+					//栏目只有一层，直接添加就行
+					result.add(mapper);
+				}
+			}
+		}
+
+		return result;
+	}
 
 	@Override
-	public String updateOne(User user, String name, String oneId) throws OperationException {
-		try {
-			// 修改一级二级表中所有关于一级栏目的名字字段 不管他的二级栏目是否为空
-			Criteria<IndexPage> criteria = new Criteria<>();
-			if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
-				criteria.add(Restrictions.eq("userId", user.getId()));
-			}else {
-				criteria.add(Restrictions.eq("subGroupId", user.getSubGroupId()));
+	public List<Object> selectColumn(User user,String typeId) throws OperationException {
+		List<IndexPage> oneIndexPage = null;
+		List<IndexTabMapper> oneIndexTab = null;
+		Map<String,Object> oneColumn = this.getOneLevelColumnForMap(typeId,user);
+		if (oneColumn.containsKey("page")) {
+			oneIndexPage = (List<IndexPage>) oneColumn.get("page");
+		}
+		if (oneColumn.containsKey("tab")) {
+			oneIndexTab = (List<IndexTabMapper>) oneColumn.get("tab");
+		}
+		//获取到了第一层的栏目和分组信息，现在对信息进行排序
+		List<Object> result =  sortColumn(oneIndexTab,oneIndexPage,true,false);
+		List<Boolean> isGetOne = new ArrayList<>();
+		isGetOne.add(false);
+		return formatResultColumn(result,0,isGetOne,false);
+	}
+
+	/**
+	 * 对日常监测左侧树形菜单进行格式统一，返回数据
+	 * @param list  当前层级的数据
+	 * @param level  当前的层级
+	 * @param isGetOne  是否找到了要显示的第一个栏目
+	 * @return
+	 */
+	private List<Object> formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
+		//前端需要字段
+		/*
+		id
+		name
+		flag
+		flagSort
+		show
+		children
+		 */
+		List<Object> result = new ArrayList<>();
+		Map<String, Object> map = null;
+		if (list != null && list.size() > 0) {
+			for (Object obj : list) {
+				map = new HashMap<>();
+				if (obj instanceof IndexTabMapper) {
+
+					IndexTabMapper mapper = (IndexTabMapper) obj;
+					IndexTab tab = mapper.getIndexTab();
+					map.put("id", mapper.getId());
+					map.put("name", tab.getName());
+					map.put("flag", ColumnFlag.IndexTabFlag.ordinal());
+					map.put("flagSort", level);
+					map.put("show", false);//前端需要，与后端无关
+					map.put("hide", mapper.isHide());
+					map.put("isMe", mapper.isMe());
+					map.put("share", mapper.getShare());
+
+					map.put("type", tab.getType());
+					map.put("contrast", tab.getContrast());
+					map.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
+					map.put("keyWord", tab.getKeyWord());
+					map.put("keyWordIndex", tab.getKeyWordIndex());
+					map.put("weight", tab.isWeight());
+					map.put("excludeWords", tab.getExcludeWords());
+					map.put("excludeWeb", tab.getExcludeWeb());
+					//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
+					if (tab.isSimilar()) {
+						map.put("simflag", "netRemove");
+					} else if (tab.isIrSimflag()) {
+						map.put("simflag", "urlRemove");
+					} else if (tab.isIrSimflagAll()) {
+						map.put("simflag", "sourceRemove");
+					} else {
+						map.put("simflag", "no");
+					}
+					map.put("tabWidth", mapper.getTabWidth());
+					map.put("timeRange", tab.getTimeRange());
+					map.put("trsl", tab.getTrsl());
+					map.put("xyTrsl", tab.getXyTrsl());
+					map.put("active", false);
+
+					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
+						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
+						if(!mapper.isHide() && !parentHide){
+							map.put("active", true);
+							isGetOne.set(0,true);
+						}
+					}
+
+				} else if (obj instanceof IndexPage) {
+					IndexPage page = (IndexPage) obj;
+					map.put("id", page.getId());
+					map.put("name", page.getName());
+					map.put("flag", ColumnFlag.IndexPageFlag.ordinal());
+					map.put("flagSort", level);
+					map.put("show", false);//前端需要，与后端无关
+					map.put("hide", page.isHide());
+					map.put("active", false);
+					List<Object> childColumn = page.getColumnList();
+					List<Object> child = new ArrayList<>();
+					//如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值
+					//如果父级没被隐藏，当前级被隐藏，则用当前级的隐藏值
+					//如果父级没隐藏，当前级没隐藏，用没隐藏，父级则可
+					if(!parentHide){
+						if(page.isHide()){
+							parentHide = true;
+						}
+					}
+					//如果分组被隐藏了，前端不会显示，所以这里不查询了
+					if (childColumn != null && childColumn.size() > 0) {
+						child = this.formatResultColumn(childColumn,level+1,isGetOne,parentHide);
+					}
+					map.put("children", child);
+				}
+				result.add(map);
 			}
-			criteria.add(Restrictions.eq("id", oneId));
-			List<IndexPage> findAll = indexPageRepository.findAll(criteria);
-			for (IndexPage oneAndTwo : findAll) {
-				oneAndTwo.setParentName(name);
-				indexPageRepository.save(oneAndTwo);
+		}
+		return result;
+	}
+
+	public Map<String,Object> getOneLevelColumnForMap(String typeId,User loginUser){
+		Sort sort = new Sort(Sort.Direction.ASC,"sequence");
+		Specification<IndexPage> criteria_page = new Specification<IndexPage>(){
+
+			@Override
+			public Predicate toPredicate(Root<IndexPage> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				List<Predicate> predicate = new ArrayList<>();
+				if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+					predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+				}else {
+					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
+				}
+				predicate.add(cb.equal(root.get("typeId"),typeId));
+				List<Predicate> predicateParent = new ArrayList<>();
+				predicateParent.add(cb.isNull(root.get("parentId")));
+				predicateParent.add(cb.equal(root.get("parentId"),""));
+
+				predicate.add(cb.or(predicateParent.toArray(new Predicate[predicateParent.size()])));
+				Predicate[] pre = new Predicate[predicate.size()];
+				return query.where(predicate.toArray(pre)).getRestriction();
+			}
+		};
+		Specification<IndexTabMapper> criteria_tab_mapper = new Specification<IndexTabMapper>(){
+
+			@Override
+			public Predicate toPredicate(Root<IndexTabMapper> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				List<Predicate> predicate = new ArrayList<>();
+				if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+					predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+				}else {
+					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
+				}
+				predicate.add(cb.equal(root.get("typeId"),typeId));
+				predicate.add(cb.isNull(root.get("indexPage")));
+				Predicate[] pre = new Predicate[predicate.size()];
+				return query.where(predicate.toArray(pre)).getRestriction();
+			}
+		};
+
+		Map<String,Object> result = new HashMap<>();
+		//获取当前用户一层分组内的所有内容
+		List<IndexPage> oneIndexPage = null;
+		List<IndexTabMapper> oneIndexTab = null;
+
+		oneIndexPage = indexPageRepository.findAll(criteria_page,sort);
+		oneIndexTab = tabMapperRepository.findAll(criteria_tab_mapper,sort);
+		if(oneIndexPage != null && oneIndexPage.size() >0){
+			result.put("page",oneIndexPage);
+		}
+		if(oneIndexTab != null && oneIndexTab.size() >0){
+			result.put("tab",oneIndexTab);
+		}
+		return  result;
+	}
+
+	@Override
+	public Object getOneLevelColumn(String typeId,User user){
+
+		Map<String,Object> map = getOneLevelColumnForMap(typeId,user);
+		List<Object> result = new ArrayList<>();
+		if(map.containsKey("page")){
+			result.addAll((List<Object>)map.get("page"));
+		}
+		if(map.containsKey("tab")){
+			result.addAll((List<Object>)map.get("tab"));
+		}
+		return result;
+	}
+
+	@Override
+	public Object moveSequenceForColumn(String moveId,ColumnFlag flag, User user) throws OperationException{
+		try {
+			IndexPage movePage = null;
+			IndexTabMapper moveMapper = null;
+			String parentId = "";
+			String typeId = "";
+			if (flag.equals(ColumnFlag.IndexTabFlag)) {
+				moveMapper = tabMapperRepository.findOne(moveId);
+				if(ObjectUtil.isNotEmpty(moveMapper.getIndexPage())){
+					parentId = moveMapper.getIndexPage().getId();
+				}
+				typeId = moveMapper.getTypeId();
+			} else if (flag.equals(ColumnFlag.IndexPageFlag)) {
+				movePage = indexPageRepository.findOne(moveId);
+				parentId = movePage.getParentId();
+				typeId = movePage.getTypeId();
+			}
+
+			List<IndexTabMapper> mapperList = null;
+			List<IndexPage> pageList = null;
+			if (StringUtil.isEmpty(parentId)) {
+				//无父分组，则为一级，直接获取一级的内容
+				Map<String, Object> oneColumn = getOneLevelColumnForMap(typeId, user);
+				if (oneColumn.containsKey("page")) {
+					pageList = (List<IndexPage>) oneColumn.get("page");
+				}
+				if (oneColumn.containsKey("tab")) {
+					mapperList = (List<IndexTabMapper>) oneColumn.get("tab");
+				}
+			} else {
+				IndexPage parentPage = indexPageRepository.findOne(parentId);
+				pageList = parentPage.getChildrenPage();
+				mapperList = parentPage.getIndexTabMappers();
+			}
+			List<Object> sortColumn = this.sortColumn(mapperList, pageList, false,false);
+			int seq = 1;
+			for (Object o : sortColumn) {
+				if (o instanceof IndexTabMapper) {
+					IndexTabMapper seqMapper = (IndexTabMapper) o;
+					if (flag.equals(ColumnFlag.IndexTabFlag) && !moveMapper.getId().equals(seqMapper.getId())) {
+						seqMapper.setSequence(seq);
+						if(seqMapper.isMe()){
+							IndexTab seqTab = seqMapper.getIndexTab();
+							seqTab.setSequence(seq);
+							indexTabRepository.saveAndFlush(seqTab);
+						}
+						seq++;
+						tabMapperRepository.saveAndFlush(seqMapper);
+					}
+				} else if (o instanceof IndexPage) {
+					IndexPage seqPage = (IndexPage) o;
+					if (flag.equals(ColumnFlag.IndexPageFlag) && !movePage.getId().equals(seqPage.getId())) {
+						seqPage.setSequence(seq);
+						seq++;
+						indexPageRepository.saveAndFlush(seqPage);
+					}
+				}
 			}
 			return "success";
 		} catch (Exception e) {
-			throw new OperationException("修改一级栏目出错");
+			throw new OperationException("重新对分组和栏目排序失败："+e.getMessage());
 		}
 	}
+
+
+
+	@Override
+	public Object moveIndexSequence(String data, String moveData, String parentId, User user) throws OperationException {
+		try {
+
+			IndexPage parent = null;
+			if (StringUtil.isNotEmpty(parentId)) {
+				parent = indexPageRepository.findOne(parentId);
+			}
+			JSONObject move = JSONObject.parseObject(moveData);
+			String moveId = move.getString("id");
+			ColumnFlag moveFlag = ColumnFlag.values()[move.getInteger("flag")];
+			String moveParentId = null;
+
+			//修改同级下的其他分组的顺序
+			if (moveFlag.equals(ColumnFlag.IndexPageFlag)) {
+				IndexPage indexPage = indexPageRepository.findOne(moveId);
+				moveParentId = indexPage.getParentId();
+			} else if (moveFlag.equals(ColumnFlag.IndexTabFlag)) {
+				IndexTabMapper mapper = tabMapperRepository.findOne(moveId);
+				if(ObjectUtil.isNotEmpty(mapper.getIndexPage())){
+					moveParentId = mapper.getIndexPage().getId();
+				}
+
+			}
+			if (parentId == null) {
+				parentId = "";
+			}
+			if (moveParentId == null) {
+				moveParentId = "";
+			}
+			//被拖拽的元素更换了层级，需要对元素本来的层级的数据重新排序
+			if (!parentId.equals(moveParentId)) {
+				//对原来的同层级的数据排序
+				this.moveSequenceForColumn(moveId,moveFlag, user);
+			}
+
+			JSONArray array = JSONArray.parseArray(data);
+			Integer sequence = 0;
+			for (Object json : array) {
+				sequence += 1;
+				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
+				String id = parseObject.getString("id");
+				//如果是分组为0 ，如果是栏目为1
+				ColumnFlag flag = ColumnFlag.values()[parseObject.getInteger("flag")];
+				if (flag.equals(ColumnFlag.IndexPageFlag)) {
+					IndexPage indexPage = indexPageRepository.findOne(id);
+					indexPage.setParentId(null);
+					if (parent != null) {
+						indexPage.setParentId(parentId);
+					}
+					indexPage.setSequence(sequence);
+					indexPageRepository.save(indexPage);
+				} else if (flag.equals(ColumnFlag.IndexTabFlag)) {
+					IndexTabMapper mapper = tabMapperRepository.findOne(id);
+					IndexTab indexTab = mapper.getIndexTab();
+					if (parent != null) {
+						mapper.setIndexPage(parent);
+						indexTab.setParentId(parent.getId());
+					} else {
+						mapper.setIndexPage(null);
+					}
+					mapper.setSequence(sequence);
+					if (mapper.isMe()) {
+						indexTab.setSequence(sequence);
+						indexTabRepository.save(indexTab);
+					}
+					tabMapperRepository.save(mapper);
+				}
+			}
+			indexPageRepository.flush();
+			tabMapperRepository.flush();
+			indexTabRepository.flush();
+			return "success";
+		} catch (Exception e) {
+			throw new OperationException("移动失败：" + e.getMessage());
+		}
+	}
+
 
 	@Override
 	public Object updateTwo(String userId, String name, String twoId) throws OperationException {
@@ -133,7 +568,6 @@ public class ColumnServiceImpl implements IColumnService {
 			criteria.add(Restrictions.eq("sonId", twoId));
 			List<IndexPage> findAll = indexPageRepository.findAll(criteria);
 			for (IndexPage oneAndTwo : findAll) {
-				// oneAndTwo.setSonName(name);
 				indexPageRepository.save(oneAndTwo);
 			}
 			return "success";
@@ -159,130 +593,73 @@ public class ColumnServiceImpl implements IColumnService {
 	@Override
 	@Transactional
 	public Object deleteOne(String indexPageId) throws OperationException {
-		int i=0;
+
 		try {
 			// 删除栏目组及下级子栏目
-			try {
-				List<IndexTabMapper> mappers = indexTabMapperService.findByIndexPageId(indexPageId);
-				if (CollectionsUtil.isNotEmpty(mappers)) {
-					for (IndexTabMapper mapper : mappers) {
-						if(mapper.getShare()){//表示为共享
-							i++;
-						}
-						// 删除栏目映射关系，isMe为true的栏目关系须级联删除栏目实体
-						List<IndexTabMapper> findByIndexTab = indexTabMapperService.findByIndexTab(mapper.getIndexTab());
-						//删除所有与indexTab关联的  否则剩余关联则删除indexTab时失败
-						tabMapperRepository.delete(findByIndexTab);
-						if (mapper.isMe()) {
-							indexTabRepository.delete(mapper.getIndexTab());
-						}
-					}
-				}
-			} catch (Exception e) {
-				throw new OperationException("子栏目为空！",e);
+			//删除时需要重新排序
+
+			IndexPage indexPage = indexPageRepository.findOne(indexPageId);
+			if(ObjectUtil.isEmpty(indexPage)){
+				throw new OperationException("当前分组不存在");
 			}
-			// 删除栏目组
-			indexPageRepository.delete(indexPageId);
+			//重新排序
+			User user = userService.findOne(indexPage.getUserId());
+			this.moveSequenceForColumn(indexPageId, ColumnFlag.IndexPageFlag, user);
+			List<IndexPage> list = new ArrayList<>();
+			list.add(indexPage);
+			//删除栏目
+			this.deleteIndexPage(list);
+			return "success";
 		} catch (Exception e) {
-			throw new OperationException("删除一级级栏目时出错",e);
+			throw new OperationException("删除分组时出错", e);
 		}
-		Map<String,Integer> data = new HashMap<String,Integer>();
-		data.put("delCount",i);
-		return data;
 	}
 
-	@Override
-	public List<Map<String, Object>> selectColumn(User user,String typeId) throws OperationException {
-		String userId = user.getId();
-		String subGroupId = user.getSubGroupId();
-		// 从一级开始找
-		// 把sonId为空的找出来 这是一级的
-		Criteria<IndexPage> criteria = new Criteria<>();
-		if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
-			criteria.add(Restrictions.eq("userId", userId));
-		}else {
-			criteria.add(Restrictions.eq("subGroupId", subGroupId));
-		}
-		criteria.orderByASC("sequence");
-		criteria.add(Restrictions.eq("typeId", typeId));
-		List<IndexPage> list1 = indexPageRepository.findAll(criteria);
-		List<IndexPage> oneList = new ArrayList<>();
-		oneList = list1;
-		// 通过一级找三级
-		List<Map<String, Object>> addTwo = new ArrayList<>();
-//		for (IndexPage one : oneList) {
-//			String id = one.getId();
-//			Criteria<IndexTab> criteriaThree = new Criteria<>();
-//			criteriaThree.add(Restrictions.eq("userId", userId));
-//			if (StringUtil.isNotEmpty(id)) {
-//				criteriaThree.add(Restrictions.eq("parentId", id));
-//			}
-//			criteriaThree.orderByASC("sequence");
-//			List<IndexTab> threeList = indexTabRepository.findAll(criteriaThree);
-//			List<IndexTab> addThree = new ArrayList<>();
-//			if (ObjectUtil.isNotEmpty(threeList)) {
-//				for (IndexTab three : threeList) {
-//					String[] tradition = three.getTradition();
-//					if (tradition != null && tradition.length > 0) {
-//						if (tradition[0].equals("境外媒体")) {
-//							three.setGroupName("境外媒体");
-//						}
-//					}
-//					addThree.add(three);
-//				}
-//			}
-//			Map<String, Object> putValue = MapUtil.putValue(new String[] { "threeList", "oneName", "oneId", "hide" },
-//					addThree, one.getParentName(), one.getId(), one.isHide());
-//			addTwo.add(putValue);
-//		}
-		for (IndexPage indexPage : oneList) {
-			List<IndexTabMapper> mappers = this.indexTabMapperService.findByIndexPage(indexPage);
-			if (CollectionsUtil.isNotEmpty(mappers)) {
-				int min = mappers.get(0).getSequence();
-				for (IndexTabMapper indexTabMapper : mappers) {
-					if(min > indexTabMapper.getSequence()){
-						min = indexTabMapper.getSequence();
+	private Object deleteIndexPage(List<IndexPage> indexPages)throws OperationException{
+		// 删除栏目组及下级子栏目
+		try {
+			if(indexPages != null && indexPages.size() >0){
+				for(IndexPage indexPage : indexPages){
+					List<IndexPage> chidPage = indexPage.getChildrenPage();
+					List<IndexTabMapper> chidMapper = indexPage.getIndexTabMappers();
+					//删除当前分组对应的栏目
+					if (CollectionsUtil.isNotEmpty(chidMapper)) {
+						for (IndexTabMapper mapper : chidMapper) {
+							//删除当前栏目对应的自定义图表
+							Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+							log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
+							if (mapper.isMe()) {
+								// 删除栏目映射关系，isMe为true的栏目关系须级联删除栏目实体
+								List<IndexTabMapper> findByIndexTab = indexTabMapperService.findByIndexTab(mapper.getIndexTab());
+								//删除相关栏目映射的相关图表
+								Integer deleteAbMapperColumnChart = 0;
+								for(IndexTabMapper abMapper : findByIndexTab){
+									deleteAbMapperColumnChart+= columnChartService.deleteCustomChartForTabMapper(abMapper.getId());
+								}
+								log.info("删除当前栏目相关统计和自定义图表共："+deleteAbMapperColumnChart +"条");
+								//删除所有与indexTab关联的  否则剩余关联则删除indexTab时失败
+								tabMapperRepository.delete(findByIndexTab);
+								indexTabRepository.delete(mapper.getIndexTab());
+							}else{
+								//如果是引用，则只删除当前引用即可
+								tabMapperRepository.delete(mapper);
+							}
+						}
 					}
-				}
-				//前端首先加载四个栏目，如果顺序大于4时，会导致前端加载不出来
-				//在每次返回给前端时判断顺序，避免前端出现问题
-				if(min >1){
-					for (IndexTabMapper indexTabMapper : mappers) {
-						indexTabMapper.setSequence(indexTabMapper.getSequence()- min +1);
+					//删除当前分组对应的子分组
+					if (CollectionsUtil.isNotEmpty(chidPage)) {
+						deleteIndexPage(chidPage);
 					}
-					tabMapperRepository.save(mappers);
+					// 删除栏目组
+					indexPageRepository.delete(indexPage.getId());
 				}
 			}
-			// 考虑加锁 一个一个存
-//			if (CollectionsUtil.isNotEmpty(mappers)) {
-//				IndexTab indexTab = null;
-//				for (IndexTabMapper mapper : mappers) {
-//					indexTab = mapper.getIndexTab();
-//					if (indexTab != null) {
-//						String[] tradition = indexTab.getTradition();
-//						if (tradition != null && tradition.length > 0 ) {
-//							if (tradition[0].equals("境外媒体")) {
-//								indexTab.setGroupName("境外媒体");
-//							}
-//						}
-//					}
-//				}
-//			}
-			//不做3个月限制，具体查询范围，只以机构查询范围为准
-//			for(IndexTabMapper mapper : mappers){
-//				IndexTab indexTab = mapper.getIndexTab();
-//				String timeRange = indexTab.getTimeRange();
-//				timeRange = com.trs.netInsight.util.DateUtil.getStartToThreeMonth(timeRange);
-//				indexTab.setTimeRange(timeRange);
-//				mapper.setIndexTab(indexTab);
-//			}
-			Map<String, Object> putValue = MapUtil.putValue(new String[] { "threeList", "oneName", "oneId", "hide" },
-					mappers, indexPage.getParentName(), indexPage.getId(), indexPage.isHide());
-			addTwo.add(putValue);
-		}
-		return addTwo;
-	}
+			return "success";
+		} catch (Exception e) {
+			throw new OperationException("删除分组失败",e);
 
+		}
+	}
 
 	/**
 	 * TODO 获取无相似文章列表数据,传统媒体类型
@@ -342,7 +719,7 @@ public class ColumnServiceImpl implements IColumnService {
 	 * @return
 	 */
 	private void appendTrsl(IndexTab indexTab, QueryBuilder queryBuilder, QueryBuilder queryBuilderStatus,
-			QueryBuilder queryBuilderWeChat) {
+							QueryBuilder queryBuilderWeChat) {
 		String keyWords = indexTab.getKeyWord();
 		String keyWordindex = indexTab.getKeyWordIndex();
 		String excludeWords = indexTab.getExcludeWords();
@@ -379,49 +756,49 @@ public class ColumnServiceImpl implements IColumnService {
 					childTrsl.append(" NOT (\"").append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 				}
 				switch (source.trim()) {
-				// 仅标题
-				case "0":
-					queryBuilder.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(), Operator.Equal);
-					queryBuilderWeChat.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(),
-							Operator.Equal);
-					queryBuilderStatus.filterChildField(FtsFieldConst.FIELD_STATUS_CONTENT, childTrsl.toString(),
-							Operator.Equal);
-					queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);// 传统
-					queryBuilderWeChat.setDatabase(Const.WECHAT);// 微信
-					queryBuilderStatus.setDatabase(Const.WEIBO);// 微博
-					queryBuilder.orderBy(ESFieldConst.IR_URLTIME, true);
-					queryBuilderWeChat.orderBy(ESFieldConst.IR_URLTIME, true);
-					queryBuilderStatus.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-					continue;
-				case "1":// 标题 + 正文
-					queryBuilder.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(), Operator.Equal);
-					queryBuilder.filterChildField(FtsFieldConst.FIELD_CONTENT, childTrsl.toString(), Operator.Equal);
-					queryBuilderWeChat.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(),
-							Operator.Equal);
-					queryBuilderWeChat.filterChildField(FtsFieldConst.FIELD_CONTENT, childTrsl.toString(),
-							Operator.Equal);
-					queryBuilderStatus.filterChildField(FtsFieldConst.FIELD_STATUS_CONTENT, childTrsl.toString(),
-							Operator.Equal);
-					queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);// 传统
-					queryBuilderWeChat.setDatabase(Const.WECHAT);// 微信
-					queryBuilderStatus.setDatabase(Const.WEIBO);// 微博
-					queryBuilder.orderBy(ESFieldConst.IR_URLTIME, true);
-					queryBuilderWeChat.orderBy(ESFieldConst.IR_URLTIME, true);
-					queryBuilderStatus.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-					continue;
-				default:// 仅标题
-					queryBuilder.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(), Operator.Equal);
-					queryBuilderWeChat.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(),
-							Operator.Equal);
-					queryBuilderStatus.filterChildField(FtsFieldConst.FIELD_STATUS_CONTENT, childTrsl.toString(),
-							Operator.Equal);
-					queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);// 传统
-					queryBuilderWeChat.setDatabase(Const.WECHAT);// 微信
-					queryBuilderStatus.setDatabase(Const.WEIBO);// 微博
-					queryBuilder.orderBy(ESFieldConst.IR_URLTIME, true);
-					queryBuilderWeChat.orderBy(ESFieldConst.IR_URLTIME, true);
-					queryBuilderStatus.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-					continue;
+					// 仅标题
+					case "0":
+						queryBuilder.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(), Operator.Equal);
+						queryBuilderWeChat.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(),
+								Operator.Equal);
+						queryBuilderStatus.filterChildField(FtsFieldConst.FIELD_STATUS_CONTENT, childTrsl.toString(),
+								Operator.Equal);
+						queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);// 传统
+						queryBuilderWeChat.setDatabase(Const.WECHAT);// 微信
+						queryBuilderStatus.setDatabase(Const.WEIBO);// 微博
+						queryBuilder.orderBy(ESFieldConst.IR_URLTIME, true);
+						queryBuilderWeChat.orderBy(ESFieldConst.IR_URLTIME, true);
+						queryBuilderStatus.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+						continue;
+					case "1":// 标题 + 正文
+						queryBuilder.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(), Operator.Equal);
+						queryBuilder.filterChildField(FtsFieldConst.FIELD_CONTENT, childTrsl.toString(), Operator.Equal);
+						queryBuilderWeChat.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(),
+								Operator.Equal);
+						queryBuilderWeChat.filterChildField(FtsFieldConst.FIELD_CONTENT, childTrsl.toString(),
+								Operator.Equal);
+						queryBuilderStatus.filterChildField(FtsFieldConst.FIELD_STATUS_CONTENT, childTrsl.toString(),
+								Operator.Equal);
+						queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);// 传统
+						queryBuilderWeChat.setDatabase(Const.WECHAT);// 微信
+						queryBuilderStatus.setDatabase(Const.WEIBO);// 微博
+						queryBuilder.orderBy(ESFieldConst.IR_URLTIME, true);
+						queryBuilderWeChat.orderBy(ESFieldConst.IR_URLTIME, true);
+						queryBuilderStatus.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+						continue;
+					default:// 仅标题
+						queryBuilder.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(), Operator.Equal);
+						queryBuilderWeChat.filterChildField(FtsFieldConst.FIELD_URLTITLE, childTrsl.toString(),
+								Operator.Equal);
+						queryBuilderStatus.filterChildField(FtsFieldConst.FIELD_STATUS_CONTENT, childTrsl.toString(),
+								Operator.Equal);
+						queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);// 传统
+						queryBuilderWeChat.setDatabase(Const.WECHAT);// 微信
+						queryBuilderStatus.setDatabase(Const.WEIBO);// 微博
+						queryBuilder.orderBy(ESFieldConst.IR_URLTIME, true);
+						queryBuilderWeChat.orderBy(ESFieldConst.IR_URLTIME, true);
+						queryBuilderStatus.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+						continue;
 				}
 			}
 		} else {// 时间倒序
@@ -482,7 +859,7 @@ public class ColumnServiceImpl implements IColumnService {
 				}
 			}
 			Map<String, Object> putValue = MapUtil.putValue(new String[] { "threeList", "oneName", "oneId", "hide" },
-					addThree, one.getParentName(), one.getId(), one.isHide());
+					addThree, one.getName(), one.getId(), one.isHide());
 			addTwo.add(putValue);
 		}
 		return addTwo;
@@ -502,7 +879,7 @@ public class ColumnServiceImpl implements IColumnService {
 
 	@Override
 	public Object list(IndexTab indexTab, QueryBuilder queryBuilder, QueryBuilder countBuiler, int pagesize, int pageno,
-			String fenlei, String sort, String key, String area) throws TRSException {
+					   String fenlei, String sort, String key, String area) throws TRSException {
 		//从实体里取是否排重
 		//boolean sim = indexTab.isSimilar();
 		boolean irSimflag = indexTab.isIrSimflag();
@@ -573,43 +950,43 @@ public class ColumnServiceImpl implements IColumnService {
 		if ("微博".equals(fenlei)) {
 			// 然后还得分是否是按照热度排序
 			switch (sort) { // 排序
-			case "desc":
-				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotListStatus(queryBuilder, countBuiler, loginUser,"column");
-			case "commtCount": // 微博按照 评论数 排序
-				queryBuilder.orderBy(FtsFieldConst.FIELD_COMMTCOUNT, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_COMMTCOUNT, true);
-				break;
-			case "rttCount": // 微博按照评论数 转发数 排序
-				queryBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
-				break;
-			default:
-				queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotListStatus(queryBuilder, countBuiler, loginUser,"column");
+				case "commtCount": // 微博按照 评论数 排序
+					queryBuilder.orderBy(FtsFieldConst.FIELD_COMMTCOUNT, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_COMMTCOUNT, true);
+					break;
+				case "rttCount": // 微博按照评论数 转发数 排序
+					queryBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
+					break;
+				default:
+					queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			return infoListService.getStatusList(queryBuilder, loginUser,sim,irSimflag,false,false,"column");
 		} else if ("微信".equals(fenlei)) {
 			switch (sort) { // 排序
-			case "desc":
-				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotListWeChat(queryBuilder, countBuiler, loginUser,"column");
-			default:
-				queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotListWeChat(queryBuilder, countBuiler, loginUser,"column");
+				default:
+					queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			countBuiler.setDatabase(Const.WECHAT);
 			String groupName = indexTab.getGroupName();
@@ -617,20 +994,20 @@ public class ColumnServiceImpl implements IColumnService {
 		} else {// 传统
 			queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 			switch (sort) { // 排序
-			case "desc":
-				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotList(queryBuilder, countBuiler, loginUser,"column");
-			default:
-				queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotList(queryBuilder, countBuiler, loginUser,"column");
+				default:
+					queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			countBuiler.setDatabase(Const.HYBASE_NI_INDEX);
 			return infoListService.getDocList(queryBuilder, loginUser, true,false,false,false,"column");
@@ -642,7 +1019,7 @@ public class ColumnServiceImpl implements IColumnService {
 	 */
 	@Override
 	public Object arealist(QueryBuilder indexBuilder, QueryBuilder countBuiler, String sort, String area, String source,
-			String timeRange, String keywords) throws TRSException {
+						   String timeRange, String keywords) throws TRSException {
 		// 取地域名
 		if (StringUtil.isNotEmpty(area)) {
 			String province = districtInfoService.province(area);
@@ -667,20 +1044,20 @@ public class ColumnServiceImpl implements IColumnService {
 					Operator.Between);
 			// 然后还得分是否是按照热度排序
 			switch (sort) { // 排序
-			case "desc":
-				indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				indexBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
-				countBuiler.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
-				break;
-			case "hot":
-				return infoListService.getHotListStatus(indexBuilder, countBuiler, loginUser,"column");
-			default:
-				indexBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					indexBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
+					countBuiler.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
+					break;
+				case "hot":
+					return infoListService.getHotListStatus(indexBuilder, countBuiler, loginUser,"column");
+				default:
+					indexBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			return infoListService.getStatusList(indexBuilder, loginUser,true,false,false,false,"column");
 		} else if ("微信".equals(source)) {
@@ -695,17 +1072,17 @@ public class ColumnServiceImpl implements IColumnService {
 				countBuiler.filterByTRSL(trsl);
 			}
 			switch (sort) { // 排序
-			case "desc":
-				indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotListWeChat(indexBuilder, countBuiler, loginUser,"column");
-			default:
-				indexBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotListWeChat(indexBuilder, countBuiler, loginUser,"column");
+				default:
+					indexBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			countBuiler.setDatabase(Const.WECHAT);
 			log.info(indexBuilder.asTRSL());
@@ -740,20 +1117,20 @@ public class ColumnServiceImpl implements IColumnService {
 				}
 			}
 			switch (sort) { // 排序
-			case "desc":
-				indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotList(indexBuilder, countBuiler, loginUser,"column");
-			default:
-				indexBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					indexBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					countBuiler.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotList(indexBuilder, countBuiler, loginUser,"column");
+				default:
+					indexBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					countBuiler.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			countBuiler.setDatabase(Const.HYBASE_NI_INDEX);
 			indexBuilder.setDatabase(Const.HYBASE_NI_INDEX);
@@ -763,7 +1140,7 @@ public class ColumnServiceImpl implements IColumnService {
 
 	@Override
 	public Object hotKeywordList(QueryBuilder builder, String sort, String area, String source, String timeRange,
-			String hotKeywords, String keywords) throws TRSException {
+								 String hotKeywords, String keywords) throws TRSException {
 		QueryBuilder countBuiler = new QueryBuilder();
 		// 取地域名
 		if (!"ALL".equals(area)) {
@@ -790,17 +1167,17 @@ public class ColumnServiceImpl implements IColumnService {
 			builder.filterField(FtsFieldConst.FIELD_CREATED_AT, DateUtil.formatTimeRange(timeRange), Operator.Between);
 			// 然后还得分是否是按照热度排序
 			switch (sort) { // 排序
-			case "desc":
-				builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, true);
-				break;
-			case "asc":
-				builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
-				break;
-			case "hot":
-				return infoListService.getHotListStatus(builder, countBuiler, loginUser,"column");
-			default:
-				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, true);
+					break;
+				case "asc":
+					builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
+					break;
+				case "hot":
+					return infoListService.getHotListStatus(builder, countBuiler, loginUser,"column");
+				default:
+					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			return infoListService.getStatusList(builder, loginUser,true,false,false,false,"column");
 		} else if ("微信".equals(source)) {
@@ -817,17 +1194,17 @@ public class ColumnServiceImpl implements IColumnService {
 				builder.filterByTRSL(trsl);
 			}
 			switch (sort) { // 排序
-			case "desc":
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotListWeChat(builder, countBuiler, loginUser,"column");
-			default:
-				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotListWeChat(builder, countBuiler, loginUser,"column");
+				default:
+					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			log.info(builder.asTRSL());
 			return infoListService.getWeChatList(builder, loginUser,true,false,false,false,"column");
@@ -867,18 +1244,18 @@ public class ColumnServiceImpl implements IColumnService {
 			// }
 			// }
 			switch (sort) { // 排序
-			case "desc":
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotList(builder, countBuiler, loginUser,"column");
-			default:
-				// builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
+				case "desc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotList(builder, countBuiler, loginUser,"column");
+				default:
+					// builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
 			}
 			builder.setDatabase(Const.HYBASE_NI_INDEX);
 			log.info("热搜列表" + builder.asTRSL());
@@ -1060,9 +1437,6 @@ public class ColumnServiceImpl implements IColumnService {
 			if (0 != hours) {
 				map.put("timeAgo", hours + "小时前");
 			}
-			// if (0 != days) {
-			// map.put("timeAgo", days + "天前");
-			// }
 		} else {
 			map.put("urlTime", DateUtil.date2String(doc.getUrlTime(), DateUtil.FMT_TRS_yMdhms));
 		}
@@ -1074,62 +1448,124 @@ public class ColumnServiceImpl implements IColumnService {
 	 * 查询列表
 	 */
 	@Override
-	public Object selectList(String indexMapperId,int pageNo,int pageSize,String source,String emotion,String entityType,
-			String dateTime,String key,String sort,String area,String irKeyword,String invitationCard,String keywords,String fuzzyValueScope,
-			String forwarPrimary,boolean isExport) {
+	public Object selectList(IndexTab indexTab, int pageNo, int pageSize, String source, String emotion, String entityType,
+							 String dateTime, String key, String sort, String area, String irKeyword, String invitationCard,
+							 String forwarPrimary, String keywords, String fuzzyValueScope) {
 		String userName = UserUtils.getUser().getUserName();
 		long start = new Date().getTime();
-		if ("电子报".equals(source)) {
-			source = "国内新闻_电子报";
-		} else if ("论坛".equals(source)) {
-			source = "国内论坛";
-		} else if ("新闻".equals(source)) {
-			source = "国内新闻";
-		} else if ("博客".equals(source)) {
-			source = "国内博客";
-		} else if ("境外媒体".equals(source)) {
-			source = "国外新闻";
-		} else if ("国内新闻_客户端".equals(source) || "客户端".equals(source)) {
-			source = "国内新闻_手机客户端";
-		}/*else if("微信".equals(source)){
-			source = "国内微信";
-		}*/
-		IndexTabMapper mapper = indexTabMapperService.findOne(indexMapperId);
-		IndexTab indexTab = mapper.getIndexTab();
 		if (indexTab != null) {
 			String timerange = indexTab.getTimeRange();
-		try{
-			AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
-			ColumnConfig config = new ColumnConfig();
-			config.initSection(indexTab, timerange, pageNo, pageSize ,source,emotion, entityType,dateTime,key,sort,area,irKeyword, invitationCard,keywords,fuzzyValueScope,forwarPrimary);
-			column.setHybase8SearchService(hybase8SearchService);
-			column.setChartAnalyzeService(chartAnalyzeService);
-			column.setInfoListService(infoListService);
-			column.setAlertRepository(alertRepository);
-			column.setFavouritesRepository(favouritesRepository);
-			column.setConfig(config);
-			Object list = column.getSectionList();
-			if(isExport){
-				//存入缓存  以便混合列表导出时使用
-				InfoListResult sectionList = (InfoListResult) list;
-				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>)sectionList.getContent();
-				List<FtsDocumentCommonVO> listVo = content.getPageItems();
-				RedisUtil.setMix(indexMapperId, listVo);
-			}
-			return list;
-		}catch(Exception e){
-			log.info(e.toString());
-		}finally{
-			long end = new Date().getTime();
-			long timeApi = end - start;
-			if(userName!=null && userName.equals("xiaoying")){
-				log.info("xiaoying调用接口用了" + timeApi + "ms");
+			try {
+				AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
+				ColumnConfig config = new ColumnConfig();
+				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, area, irKeyword, invitationCard, keywords, fuzzyValueScope, forwarPrimary);
+				column.setCommonListService(commonListService);
+				column.setCommonChartService(commonChartService);
+				column.setCommonListService(commonListService);
+				column.setConfig(config);
+				Object list = column.getSectionList();
+				/*
+				处理数据
+				InfoListResult
+				 */
+				if (list != null) {
+					InfoListResult infoListResult = (InfoListResult) list;
+					if (infoListResult.getContent() != null) {
+						PagedList<Object> resultContent = null;
+						List<Object> resultList = new ArrayList<>();
+						PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+						if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+							List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
+							for (FtsDocumentCommonVO vo : voList) {
+								Map<String, Object> map = new HashMap<>();
+								String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+								map.put("id", vo.getSid());
+								map.put("groupName", groupName);
+								map.put("time", vo.getUrlTime());
+								map.put("md5", vo.getMd5Tag());
+								String title= vo.getTitle();
+								map.put("title", title);
+								if(StringUtil.isNotEmpty(title)){
+									title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+								}
+								map.put("copyTitle", title); //前端复制功能需要用到
+								//摘要
+								map.put("abstracts", vo.getAbstracts());
+								if(vo.getKeywords() != null && vo.getKeywords().size() >3){
+									map.put("keyWordes", vo.getKeywords().subList(0,3));
+								}else{
+									map.put("keyWordes", vo.getKeywords());
+								}
+								String voEmotion =  vo.getAppraise();
+								if(StringUtil.isNotEmpty(voEmotion)){
+									map.put("emotion",voEmotion);
+								}else{
+									map.put("emotion","中性");
+									map.put("isEmotion",null);
+								}
+
+								map.put("nreserved1", null);
+								map.put("hkey", null);
+								if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
+									map.put("nreserved1", vo.getNreserved1());
+									map.put("hkey", vo.getHkey());
+								}
+								map.put("urlName", vo.getUrlName());
+								map.put("favourite", vo.isFavourite());
+								String fullContent = vo.getExportContent();
+								if(StringUtil.isNotEmpty(fullContent)){
+									fullContent = ReportUtil.calcuHit("",fullContent,true);
+								}
+								//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
+								if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
+									map.put("title", vo.getContent());
+									map.put("abstracts", vo.getContent());
+									map.put("copyTitle", fullContent); //前端复制功能需要用到
+
+									map.put("siteName", vo.getScreenName());
+									map.put("srcName", vo.getRetweetedScreenName());
+								} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
+									map.put("title", vo.getContent());
+									map.put("abstracts", vo.getContent());
+									map.put("copyTitle", fullContent); //前端复制功能需要用到
+									map.put("siteName", vo.getAuthors());
+									map.put("srcName", vo.getRetweetedScreenName());
+								} else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
+									map.put("title", vo.getContent());
+									map.put("abstracts", vo.getContent());
+									map.put("copyTitle", fullContent); //前端复制功能需要用到
+								}else {
+									map.put("siteName", vo.getSiteName());
+									map.put("srcName", vo.getSrcName());
+								}
+
+								map.put("img", null);
+								//前端页面显示需要，与后端无关
+								map.put("isImg", false);
+								map.put("simNum", 0);
+
+								resultList.add(map);
+							}
+							resultContent = new PagedList<Object>(pagedList.getPageIndex(),
+									pagedList.getPageSize(), pagedList.getTotalItemCount(), resultList, 1);
+						}
+						infoListResult.setContent(resultContent);
+					}
+				}
+				return list;
+			} catch (Exception e) {
+				log.info(e.toString());
+			} finally {
+				long end = new Date().getTime();
+				long timeApi = end - start;
+				if (userName != null && userName.equals("xiaoying")) {
+					log.info("xiaoying调用接口用了" + timeApi + "ms");
+				}
 			}
 		}
-	}
 		return null;
 	}
-	
+
 	/**
 	 * 日常监测饼图和柱状图数据的导出
 	 */
@@ -1139,10 +1575,10 @@ public class ColumnServiceImpl implements IColumnService {
 		content.setHead(ExcelConst.HEAD_PIE_BAR);  // { "媒体来源", "数值"}
 		for (Object object : array) {
 			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
-			
+
 			String groupNameValue = parseObject.get("groupName").toString();
 			String numValue = parseObject.get("num").toString();
-			
+
 			if("国内新闻".equals(groupNameValue)){
 				groupNameValue = "新闻";
 			}else if("国内新闻_电子报".equals(groupNameValue)){
@@ -1160,7 +1596,7 @@ public class ColumnServiceImpl implements IColumnService {
 		}
 		return ExcelFactory.getInstance().export(content);
 	}
-	
+
 	/**
 	 * 折线图数据导出
 	 */
@@ -1227,73 +1663,73 @@ public class ColumnServiceImpl implements IColumnService {
 //		return ExcelFactory.getInstance().export(data);
 //	}
 //
-    @Override
-    public ByteArrayOutputStream exportChartLine(JSONArray array) throws IOException {
-        ExcelData data = new ExcelData();
-        //单独循环设置表头
-        String[] header = null;
-        String headArray = "媒体来源";
-        for (Object object : array) {
+	@Override
+	public ByteArrayOutputStream exportChartLine(JSONArray array) throws IOException {
+		ExcelData data = new ExcelData();
+		//单独循环设置表头
+		String[] header = null;
+		String headArray = "媒体来源";
+		for (Object object : array) {
 
-            JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
+			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
 
-            String groupName = parseObject.get("groupName").toString();
-            if("国内新闻".equals(groupName)){
-                groupName = "新闻";
-            }else if("国内新闻_电子报".equals(groupName)){
-                groupName = "电子报";
-            }else if("国内新闻_手机客户端".equals(groupName)){
-                groupName = "客户端";
-            }else if("国内论坛".equals(groupName)){
-                groupName = "论坛";
-            }else if("国内微信".equals(groupName)){
-                groupName = "微信";
-            }else if("国内博客".equals(groupName)){
-                groupName = "博客";
-            }
+			String groupName = parseObject.get("groupName").toString();
+			if("国内新闻".equals(groupName)){
+				groupName = "新闻";
+			}else if("国内新闻_电子报".equals(groupName)){
+				groupName = "电子报";
+			}else if("国内新闻_手机客户端".equals(groupName)){
+				groupName = "客户端";
+			}else if("国内论坛".equals(groupName)){
+				groupName = "论坛";
+			}else if("国内微信".equals(groupName)){
+				groupName = "微信";
+			}else if("国内博客".equals(groupName)){
+				groupName = "博客";
+			}
 
-            if(StringUtil.isNotEmpty(groupName)){
-                headArray += ", " + groupName;
-            }
-        }
-        header = headArray.split(",");
+			if(StringUtil.isNotEmpty(groupName)){
+				headArray += ", " + groupName;
+			}
+		}
+		header = headArray.split(",");
 
-        data.setHead(header);
+		data.setHead(header);
 
 
-        List<String[]> arrayList = new ArrayList<>();
+		List<String[]> arrayList = new ArrayList<>();
 
-        for (int i = 0; i < array.size(); i++) {
+		for (int i = 0; i < array.size(); i++) {
 
-            JSONObject parseObject = JSONObject.parseObject(String.valueOf(array.get(i)));
+			JSONObject parseObject = JSONObject.parseObject(String.valueOf(array.get(i)));
 
-            String timeAndCount = parseObject.get("data").toString();
-            JSONArray timeAndCountArray = JSONObject.parseArray(timeAndCount);
-            for (int j = 0; j < timeAndCountArray.size(); j++) {
-                String[] arr = null;
-                if (0 == i){
-                    arr = new String[array.size()+1];
-                }else {
-                    arr = arrayList.get(j);
-                }
-                Object o = timeAndCountArray.get(j);
-                JSONObject parseObject2 = JSONObject.parseObject(String.valueOf(o));
-                if (0==i){
-                    arr[i] = parseObject2.get("fieldValue").toString();
-                    arr[i+1] = parseObject2.get("count").toString();
-                    arrayList.add(arr);
-                }else {
-                    arr[i+1] = parseObject2.get("count").toString();
-                }
-            }
-        }
-        for (String[] strings : arrayList) {
-            data.addRow(strings);
-        }
-        return ExcelFactory.getInstance().export(data);
-    }
+			String timeAndCount = parseObject.get("data").toString();
+			JSONArray timeAndCountArray = JSONObject.parseArray(timeAndCount);
+			for (int j = 0; j < timeAndCountArray.size(); j++) {
+				String[] arr = null;
+				if (0 == i){
+					arr = new String[array.size()+1];
+				}else {
+					arr = arrayList.get(j);
+				}
+				Object o = timeAndCountArray.get(j);
+				JSONObject parseObject2 = JSONObject.parseObject(String.valueOf(o));
+				if (0==i){
+					arr[i] = parseObject2.get("fieldValue").toString();
+					arr[i+1] = parseObject2.get("count").toString();
+					arrayList.add(arr);
+				}else {
+					arr[i+1] = parseObject2.get("count").toString();
+				}
+			}
+		}
+		for (String[] strings : arrayList) {
+			data.addRow(strings);
+		}
+		return ExcelFactory.getInstance().export(data);
+	}
 
-    /**
+	/**
 	 * 词云数据的导出
 	 */
 	@Override
@@ -1302,7 +1738,7 @@ public class ColumnServiceImpl implements IColumnService {
 		content.setHead(ExcelConst.HEAD_WORDCLOUD); // {"词语", "所属分组", "信息数量"}
 		for (Object object : array) {
 			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
-			
+
 			String word = parseObject.get("fieldValue").toString();
 			String count = parseObject.get("count").toString();
 			String group = "";
@@ -1319,7 +1755,7 @@ public class ColumnServiceImpl implements IColumnService {
 			}
 
 			content.addRow(word, group, count);
-			
+
 //			String groupList = parseObject.get("groupList").toString();
 //			JSONArray dataArray = JSONObject.parseArray(groupList);
 //			for (Object data : dataArray) {
@@ -1329,12 +1765,12 @@ public class ColumnServiceImpl implements IColumnService {
 //				String group = jSONObject.get("entityType").toString();
 //				content.addRow(word, group, count);
 //			}
-			
-			
+
+
 		}
 		return ExcelFactory.getInstance().export(content);
 	}
-	
+
 	/**
 	 * 地域图数据的导出
 	 */
@@ -1349,7 +1785,7 @@ public class ColumnServiceImpl implements IColumnService {
 		}).reversed());
 		for (Object object : array) {
 			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
-			
+
 			String areaName = parseObject.get("areaName").toString();
 			String areaCount = parseObject.get("areaCount").toString();
 			content.addRow(areaName, areaCount);

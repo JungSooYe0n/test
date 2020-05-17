@@ -2,6 +2,12 @@ package com.trs.netInsight.widget.column.service.impl;
 
 import javax.transaction.Transactional;
 
+import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
+import com.trs.netInsight.widget.column.service.IColumnService;
+import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,21 +18,25 @@ import com.trs.netInsight.widget.column.service.IIndexPageService;
 import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
 import com.trs.netInsight.widget.column.service.IQuoteService;
 
+import java.util.List;
+
 /**
  * 共享引用接口服务实现类
- * 
+ *
  * @author 北京拓尔思信息技术股份有限公司
  * @since changjiang @ 2018年9月20日
  *
  */
 @Service
 public class QuoteServiceImpl implements IQuoteService{
-	
+
 	@Autowired
 	private IIndexTabMapperService indexTabMapperService;
-	
+
 	@Autowired
 	private IIndexPageService indexPageService;
+	@Autowired
+	private IColumnService columnService;
 
 	@Override
 	@Transactional
@@ -45,13 +55,21 @@ public class QuoteServiceImpl implements IQuoteService{
 		quoteMapper.setIndexPage(indexPage);
 		quoteMapper.setIndexTab(indexTab);
 		quoteMapper.setMe(false);
-		long index = this.indexTabMapperService.countByIndexPage(indexPage);
-		quoteMapper.setSequence((int)index + 1);
+		quoteMapper.setTypeId(indexPage.getTypeId());
+		int seq = columnService.getMaxSequenceForColumn(indexPageId,indexPage.getTypeId(), UserUtils.getUser())+1;
+		quoteMapper.setSequence(seq);
 		this.indexTabMapperService.save(quoteMapper);
 	}
 
 	@Override
-	public void cancelQuote(String indexTabMapperId) {
+	public void cancelQuote(String indexTabMapperId) throws OperationException {
+		User user = UserUtils.getUser();
+		try{
+			IndexTabMapper mapper = this.indexTabMapperService.findOne(indexTabMapperId);
+			columnService.moveSequenceForColumn(mapper.getId(), ColumnFlag.IndexTabFlag,user);
+		}catch (Exception e){
+			throw  new OperationException("取消引用时，对日常监测重新排序失败");
+		}
 		indexTabMapperService.delete(indexTabMapperId);
 	}
 

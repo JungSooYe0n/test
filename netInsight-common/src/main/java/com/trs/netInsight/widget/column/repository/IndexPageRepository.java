@@ -1,14 +1,16 @@
 package com.trs.netInsight.widget.column.repository;
 
-import com.trs.netInsight.widget.column.entity.IndexPage;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
+import com.trs.netInsight.widget.column.entity.IndexPage;
 
 /**
  * 一二级栏目实体Repository
@@ -23,7 +25,7 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 
 	/**
 	 * 根据id获取
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 */
@@ -31,7 +33,7 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 
 	/**
 	 * 根据父id检索列表
-	 * 
+	 *
 	 * @param parentId
 	 * @return
 	 */
@@ -39,7 +41,7 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 
 	/**
 	 * 根据用户id检索列表
-	 * 
+	 *
 	 * @param userId
 	 * @param sort
 	 * @return
@@ -62,7 +64,7 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 	List<IndexPage> findBySubGroupId(String subGroupId, Sort sort);
 	/**
 	 * 根据机构id查询
-	 * 
+	 *
 	 * @date Created at 2017年12月28日 下午2:18:34
 	 * @Author 谷泽昊
 	 * @param organizationId
@@ -73,7 +75,7 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 
 	/**
 	 * 通过自定义栏目id查询以及栏目
-	 * 
+	 *
 	 * @param typeId
 	 * @return
 	 */
@@ -81,7 +83,7 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 
 	/**
 	 * 检索属于默认导航分组下栏目组（超管、机构管理员、运维）
-	 * 
+	 *
 	 * @since changjiang @ 2018年10月11日
 	 * @param userId
 	 * @return
@@ -104,7 +106,7 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 	List<IndexPage> findBySubGroupIdAndTypeIdOrderBySequence(String subGroupId, String typeId);
 	/**
 	 * 根据id及用户id检索
-	 * 
+	 *
 	 * @since changjiang @ 2018年7月17日
 	 * @param id
 	 * @param userId
@@ -116,7 +118,7 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 
 	/**
 	 * 根据用户id及共享状态检索分组
-	 * 
+	 *
 	 * @since changjiang @ 2018年9月20日
 	 * @param userId
 	 *            用户id
@@ -133,5 +135,5 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 	 * @param sort
 	 * @return
 	 */
-	public List<IndexPage> findByIdIn(Collection<String> ids, Sort sort);
+	public List<IndexPage> findByIdIn(Collection<String> ids,Sort sort);
 }

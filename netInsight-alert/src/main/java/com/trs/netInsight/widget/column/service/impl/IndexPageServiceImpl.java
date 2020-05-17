@@ -18,20 +18,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.trs.jpa.utils.Criteria;
 import com.trs.jpa.utils.Restrictions;
+import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.support.appApi.entity.AppApiAccessToken;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
+import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.column.service.*;
+import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.user.entity.SubGroup;
 import com.trs.netInsight.widget.user.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.trs.netInsight.util.CollectionsUtil;
-import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.entity.NavigationConfig;
@@ -41,8 +44,6 @@ import com.trs.netInsight.widget.column.repository.IndexPageRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabRepository;
 import com.trs.netInsight.widget.column.repository.NavigationRepository;
-import com.trs.netInsight.widget.column.service.IIndexPageService;
-import com.trs.netInsight.widget.column.service.IIndexTabService;
 import com.trs.netInsight.widget.user.entity.User;
 
 /**
@@ -54,6 +55,7 @@ import com.trs.netInsight.widget.user.entity.User;
  */
 @Service
 @Transactional
+@Slf4j
 public class IndexPageServiceImpl implements IIndexPageService {
 	@Autowired
 	private IndexTabMapperRepository tabMapperRepository;
@@ -65,11 +67,18 @@ public class IndexPageServiceImpl implements IIndexPageService {
 	@Autowired
 	private IIndexTabService indexTabService;
 	@Autowired
-	private UserRepository userRepository;
+	private UserRepository userService;
 	@Autowired
 	private IIndexTabMapperService indexTabMapperService;
 	@Autowired
 	private IndexTabRepository indexTabRepository;
+
+	@Autowired
+	private IndexTabMapperRepository indexTabMapperRepository;
+	@Autowired
+	private IColumnService columnService;
+	@Autowired
+	private IColumnChartService columnChartService;
 
 	@Override
 	public List<IndexPage> findByParentId(String parentId) {
@@ -101,51 +110,6 @@ public class IndexPageServiceImpl implements IIndexPageService {
 		return indexPageRepository.findOne(oneId);
 	}
 
-	@Override
-	public void copyPageAndTab(User orgUser, User user) {
-//		List<IndexPage> indexPageList = findByUserId(orgUser.getId(), new Sort(Sort.Direction.DESC, "sequence"));
-//		List<NavigationConfig> navigations = navigationRepository.findByUserId(user.getId(),
-//				new Sort(Sort.Direction.DESC, "sequence"));
-//		NavigationConfig navigation = null;
-//		if (indexPageList != null && indexPageList.size() > 0) {
-//			for (IndexPage indexPage : indexPageList) {
-//				if (indexPage != null) {
-//					IndexPage pageCopy = indexPage.pageCopy();
-//					pageCopy.setUserId(user.getId());
-//					pageCopy.setOrganizationId(user.getOrganizationId());
-//					// 此时说明该pageCopy 为 自定义导航栏下的内容
-//					if (pageCopy.getTypeId() != null && pageCopy.getTypeId().length() > 0) {
-//						navigation = navigationRepository.findOne(pageCopy.getTypeId());
-//						if(navigation!=null){
-//							int sequence = navigation.getSequence();
-//							for (NavigationConfig navigationTemp : navigations) {
-//								// 争取匹配
-//								if (navigationTemp.getSequence() == sequence) {
-//									pageCopy.setTypeId(navigationTemp.getId());
-//									break;
-//								}
-//							}
-//						}
-//					}
-//					IndexPage page = indexPageRepository.save(pageCopy);
-//					List<IndexTabMapper> indexTabList = tabMapperRepository.findByIndexPage(indexPage);
-////					List<IndexTab> indexTabList = indexTabRepository.findByParentId(indexPage.getId(),
-////							new Sort(Sort.Direction.DESC, "sequence"));
-//					if (page != null && indexTabList != null && indexTabList.size() > 0) {
-//						for (IndexTabMapper indexTabMapper : indexTabList) {
-//							IndexTab indexTab = indexTabMapper.getIndexTab();
-//							IndexTab tabCopy = indexTab.tabCopy();
-//							tabCopy.setSequence(indexTabMapper.getSequence());
-//							tabCopy.setUserId(user.getId());
-//							tabCopy.setParentId(page.getId());
-//							tabCopy.setOrganizationId(user.getOrganizationId());
-//							indexTabService.save(tabCopy, false);
-//						}
-//					}
-//				}
-//			}
-//		}
-	}
 
 	@Override
 	public void copySomePageAndTabToUserGroup(List<String> pageIds, SubGroup group) {
@@ -200,7 +164,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 
 	@Override
 	public IndexPage findOne(String ownerId, String indexPageId) {
-		User user = userRepository.findOne(ownerId);
+		User user = userService.findOne(ownerId);
 		IndexPage indexPage = null;
 		if (ObjectUtil.isNotEmpty(user)){
 			if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
@@ -224,12 +188,11 @@ public class IndexPageServiceImpl implements IIndexPageService {
 	}
 
 	@Override
-	public List<Map<String, Object>> findByTypeId(String typeId, boolean one, boolean definedself) {
+	public List<Map<String, Object>> findByTypeId() {
 		User user = UserUtils.getUser();
 		List<Map<String, Object>> result = new ArrayList<>();
 		Map<String, Object> data = null;
 		// 优化 一次性把一二级都返回给前端
-		// if (one) { // 一级栏目组（导航栏标记）
 		List<NavigationConfig> navigations = new ArrayList<>();
 		if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
 			navigations = navigationRepository.findByUserIdAndSubGroupIdNull(user.getId());
@@ -252,36 +215,19 @@ public class IndexPageServiceImpl implements IIndexPageService {
 						data.put("definedself", 0);
 					}
 					List<IndexPage> indexPages = new ArrayList<>();
-					if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
-						indexPages = indexPageRepository.findByUserIdAndTypeId(user.getId(), tpId);
-					}else {
-						indexPages = indexPageRepository.findBySubGroupIdAndTypeId(user.getSubGroupId(),tpId);
+					Map<String,Object> columnMap = columnService.getOneLevelColumnForMap(tpId,user);
+					if(columnMap.containsKey("page")){
+						indexPages = (List<IndexPage>)columnMap.get("page");
 					}
+					List<Object> pageList = columnService.sortColumn(null,indexPages,true,true);
 
-					List<Map<String, Object>> list = new ArrayList<>();
-					if (CollectionsUtil.isNotEmpty(indexPages)) {
-						for (IndexPage indexPage : indexPages) {
-							Map<String, Object> datalist = new HashMap<>();
-							datalist.put("indexPageName", indexPage.getParentName());
-							datalist.put("id", indexPage.getId());
-							datalist.put("definedself", 999);// 前端忽略改值
-							list.add(datalist);
-						}
-					}
+					List<Object> list = new ArrayList<>();
+					list.add(pageList);
 					data.put("list", list);
 					result.add(data);
 				}
 			}
 		}
-		/*
-		 * }else { if (typeId == null || !definedself) { typeId = ""; }
-		 * List<IndexPage> indexPages =
-		 * indexPageRepository.findByUserIdAndTypeId(user.getId(),typeId); if
-		 * (CollectionsUtil.isNotEmpty(indexPages)) { for (IndexPage indexPage :
-		 * indexPages) { data = new HashMap<>(); data.put("indexPageName",
-		 * indexPage.getParentName()); data.put("id", indexPage.getId());
-		 * data.put("definedself", 999);//前端忽略改值 result.add(data); } } }
-		 */
 		return result;
 	}
 
@@ -322,9 +268,9 @@ public class IndexPageServiceImpl implements IIndexPageService {
 					if (CollectionsUtil.isNotEmpty(indexPages)) {
 						for (IndexPage indexPage : indexPages) {
 							Map<String, Object> datalist = new HashMap<>();
-							datalist.put("indexPageName", indexPage.getParentName());
+							datalist.put("indexPageName", indexPage.getName());
 							datalist.put("id", indexPage.getId());
-						//	datalist.put("definedself", 999);// 前端忽略改值
+							//	datalist.put("definedself", 999);// 前端忽略改值
 							list.add(datalist);
 						}
 					}
@@ -361,7 +307,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 					if (CollectionsUtil.isNotEmpty(indexPages)) {
 						for (IndexPage indexPage : indexPages) {
 							Map<String, Object> datalist = new HashMap<>();
-							datalist.put("indexPageName", indexPage.getParentName());
+							datalist.put("indexPageName", indexPage.getName());
 							datalist.put("id", indexPage.getId());
 							datalist.put("definedself", 999);// 前端忽略改值
 							list.add(datalist);
@@ -378,7 +324,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 	public List<Map<String, Object>> findByUserId(String userId) {
 		Map<String, Object> data = null;
 		List<Map<String, Object>> result = new ArrayList<>();
-		User user = userRepository.findOne(userId);
+		User user = userService.findOne(userId);
 		List<NavigationConfig> navigations = null;
 		if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
 			navigations = navigationRepository.findByUserIdAndSubGroupIdNull(userId,new Sort(Sort.Direction.ASC,"sequence"));
@@ -443,7 +389,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 		if (CollectionsUtil.isNotEmpty(indexPages)) {
 			for (IndexPage indexPage : indexPages) {
 				data = new HashMap<>();
-				data.put("indexPageName", indexPage.getParentName());
+				data.put("indexPageName", indexPage.getName());
 				data.put("id", indexPage.getId());
 				data.put("definedself", 999);// 前端忽略改值
 				result.add(data);
@@ -468,13 +414,24 @@ public class IndexPageServiceImpl implements IIndexPageService {
 				List<IndexTabMapper> mappers = indexTabMapperService.findByIndexPageId(indexPageId);
 				if (CollectionsUtil.isNotEmpty(mappers)) {
 					for (IndexTabMapper mapper : mappers) {
-
-						// 删除栏目映射关系，isMe为true的栏目关系须级联删除栏目实体
-						List<IndexTabMapper> findByIndexTab = indexTabMapperService.findByIndexTab(mapper.getIndexTab());
-						//删除所有与indexTab关联的  否则剩余关联则删除indexTab时失败
-						tabMapperRepository.delete(findByIndexTab);
+						Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+						log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
 						if (mapper.isMe()) {
+							// 删除栏目映射关系，isMe为true的栏目关系须级联删除栏目实体
+							List<IndexTabMapper> findByIndexTab = indexTabMapperService.findByIndexTab(mapper.getIndexTab());
+							//删除相关栏目映射的相关图表
+							Integer deleteAbMapperColumnChart = 0;
+							for(IndexTabMapper abMapper : findByIndexTab){
+								deleteAbMapperColumnChart+= columnChartService.deleteCustomChartForTabMapper(abMapper.getId());
+							}
+							log.info("删除当前栏目相关统计和自定义图表共："+deleteAbMapperColumnChart +"条");
+
+							//删除所有与indexTab关联的  否则剩余关联则删除indexTab时失败
+							tabMapperRepository.delete(findByIndexTab);
 							indexTabRepository.delete(mapper.getIndexTab());
+						}else{
+							//如果是引用，则只删除当前引用即可
+							tabMapperRepository.delete(mapper);
 						}
 					}
 				}
@@ -483,12 +440,98 @@ public class IndexPageServiceImpl implements IIndexPageService {
 			}
 		}
 	}
+
+
+	public IndexPage addIndexPage(String parentId,String name,String typeId,User loginUser){
+		//判断父id存在不存在，
+		IndexPage indexPage = new IndexPage();
+		indexPage.setName(name);
+		indexPage.setHide(false);
+		//排序先按照先入在前
+
+		int seq = 0;
+		seq = columnService.getMaxSequenceForColumn(parentId,typeId,loginUser);
+		if(StringUtil.isNotEmpty(parentId)){
+
+			List<IndexPage> parentList = indexPageRepository.findById(parentId);
+			if(parentList!= null && parentList.size() >0){
+				IndexPage parent = parentList.get(0);
+				indexPage.setParentId(parent.getId());
+			}
+		}
+		indexPage.setSequence(seq +1);
+		indexPage.setTypeId(typeId);
+		indexPageRepository.saveAndFlush(indexPage);
+
+		return indexPage;
+	}
+
+
+
+
+	@Override
+	public Object updateHistoryIndexPage(){
+		try {
+			List<IndexPage> list = indexPageRepository.findAll();
+			if(list != null && list.size() > 0){
+				for(IndexPage indexPage : list){
+					if(StringUtil.isEmpty(indexPage.getName())){
+						indexPage.setName(indexPage.getParentName());
+					}
+					indexPage.setParentName(null);
+					//添加层级，现在的
+					List<IndexTabMapper> indexTabList = tabMapperRepository.findByIndexPage(indexPage);
+					// 判断当前的大栏目有没有被排序过
+					if (indexPage.getOrderBefore() == null || !"after".equals(indexPage.getOrderBefore())) {
+						List<IndexTabMapper> nohideList = new ArrayList<>();// 展示的
+						List<IndexTabMapper> hideList = new ArrayList<>();// 隐藏的
+						for (IndexTabMapper indextab : indexTabList) {
+							if (indextab.isHide()) {
+								hideList.add(indextab);
+							} else {
+								nohideList.add(indextab);
+							}
+						}
+						indexTabList = new ArrayList<>();
+						indexTabList.addAll(nohideList);
+						indexTabList.addAll(hideList);
+						// 根据各自隐藏展示的顺序排序
+						for (int i = 0; i < hideList.size(); i++) {
+							IndexTabMapper index = hideList.get(i);
+							index.setSequence(i + 1);
+							// tabMapperRepository.save(index);
+						}
+						tabMapperRepository.save(hideList);
+						for (int j = 0; j < nohideList.size(); j++) {
+							IndexTabMapper index = nohideList.get(j);
+							index.setSequence(j + 1);
+						}
+						tabMapperRepository.save(nohideList);
+						// 排序之后 存标示为已排序
+						indexPage.setOrderBefore("after");
+						indexPageRepository.save(indexPage);
+					}
+					//修改原来的indepage  ，原来有parent_id，都是虚假的，没用，直接全部删掉
+					indexPage.setParentId(null);
+					indexPage.setChildrenPage(null);
+					indexPageRepository.save(indexPage);
+
+				}
+				indexPageRepository.flush();
+			}
+
+			return "没毛病，你就放心吧";
+		}catch (Exception e){
+
+			return "修改失败了哦" +e.getMessage();
+		}
+	}
 }
 
 /**
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2017年12月4日 Administrator creat

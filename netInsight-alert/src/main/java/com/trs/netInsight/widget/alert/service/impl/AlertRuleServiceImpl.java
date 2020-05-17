@@ -28,6 +28,7 @@ import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
 import com.trs.netInsight.widget.alert.service.IAlertRuleBackupsService;
 import com.trs.netInsight.widget.alert.service.IAlertRuleService;
 import com.trs.netInsight.widget.alert.service.IAlertService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
@@ -83,10 +84,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	@Autowired
 	private SubGroupRepository subGroupRepository;
-	
+	@Autowired
+	private ICommonListService commonListService;
+
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
-	
+
 	@Value("${http.client}")
 	private boolean httpClient;
 
@@ -96,7 +99,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 	 */
 	@Override
 	public Object send(String receiver, String documentId,String urlTime, String content, String userId, String groupName,
-			String send,String trslk)throws TRSException, TRSSearchException {
+					   String send,String trslk)throws TRSException, TRSSearchException {
 		QueryBuilder builder = DateUtil.timeBuilder(urlTime);
 		if(StringUtil.isNotEmpty(trslk)){
 			String trs = RedisUtil.getString(trslk);
@@ -144,12 +147,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	/**
 	 * 查传统库发预警 由于映射实体不一样 所以传统 微信 微博分别写一个方法 CreatedBy xiao.ying
-	 * 
+	 *
 	 * @throws TRSException
 	 * @throws TRSSearchException
 	 */
 	private Object chuangtongSend(QueryBuilder queryBuilder, String content, String userId, String receiver,
-			String send,boolean irSimflag,boolean irSimflagAll ) throws TRSSearchException, TRSException {
+								  String send,boolean irSimflag,boolean irSimflagAll ) throws TRSSearchException, TRSException {
 		List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(queryBuilder, FtsDocument.class, false,irSimflag,irSimflagAll ,null);
 		if(ObjectUtil.isEmpty(ftsQuery)){
 			ftsQuery = hybase8SearchService.ftsQuery(queryBuilder, FtsDocument.class, false,irSimflag,irSimflagAll,null );
@@ -274,7 +277,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	/**
 	 * 查微信库发预警 由于映射实体不一样 所以传统 微信 微博分别写一个方法 CreatedBy xiao.ying
-	 * 
+	 *
 	 * @throws TRSException
 	 * @throws TRSSearchException
 	 */
@@ -382,7 +385,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	/**
 	 * 查微博库发预警 由于映射实体不一样 所以传统 微信 微博分别写一个方法 CreatedBy xiao.ying
-	 * 
+	 *
 	 * @throws TRSException
 	 * @throws TRSSearchException
 	 */
@@ -493,10 +496,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		// return noticeSendService.sendAll(send, "mailmess2.ftl", content,
 		// mapList, receiver, userId);
 	}
-	
+
 	/**
 	 * 查微博库发预警 由于映射实体不一样 所以传统 微信 微博分别写一个方法 CreatedBy xiao.ying
-	 * 
+	 *
 	 * @throws TRSException
 	 * @throws TRSSearchException
 	 */
@@ -610,7 +613,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	/**
 	 * 查看相似文章数
-	 * 
+	 *
 	 * @param md5
 	 * @return CreatedBy xiao.ying
 	 */
@@ -669,7 +672,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	/**
 	 * 根据md5查询相似文章数
-	 * 
+	 *
 	 * @param md5Str
 	 * @return
 	 */
@@ -709,10 +712,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				throw new OperationException("预警删除失败,message:" + e,e);
 			}
 		}else{*/
-			//删除该规则产生的预警结果
-			alertRuleRepository.delete(ruleId);
-			//删除该规则 对应的预警备份表记录
-			alertRuleBackupsService.deleteByAlertRuleId(ruleId);
+		//删除该规则产生的预警结果
+		alertRuleRepository.delete(ruleId);
+		//删除该规则 对应的预警备份表记录
+		alertRuleBackupsService.deleteByAlertRuleId(ruleId);
 //		}
 	}
 
@@ -743,7 +746,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 	}
 
-//	@Override
+	//	@Override
 //	public List<AlertRule> findByStatusAndAlertType(ScheduleStatus open, AlertSource auto) {
 //		return alertRuleRepository.findByStatusAndAlertType(open, auto);
 //	}
@@ -763,7 +766,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	@Override
 	public Object weChatSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex)
+							   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex)
 			throws Exception {
 		log.warn("专项检测信息列表，微信，  开始调用接口");
 		QueryBuilder builder = new QueryBuilder();
@@ -776,14 +779,14 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		if (alertRule!=null) {
 //			AlertRule alertRule = alertRuleRepository.findOne(id);
 //			if (alertRule != null) {
-				irSimflag = alertRule.isIrSimflag();
-				irSimflagAll = alertRule.isIrSimflagAll();
-				builder = alertRule.toSearchBuilderWeiXin(time);
-				countBuilder = alertRule.toSearchBuilderWeiXin(time);
-				builder.setPageNo(pageNo);
-				builder.setPageSize(pageSize);
-				countBuilder.setPageNo(pageNo);
-				countBuilder.setPageSize(pageSize);
+			irSimflag = alertRule.isIrSimflag();
+			irSimflagAll = alertRule.isIrSimflagAll();
+			builder = alertRule.toSearchBuilderWeiXin(time);
+			countBuilder = alertRule.toSearchBuilderWeiXin(time);
+			builder.setPageNo(pageNo);
+			builder.setPageSize(pageSize);
+			countBuilder.setPageNo(pageNo);
+			countBuilder.setPageSize(pageSize);
 //			} else {
 //				// 时间
 //				builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
@@ -877,27 +880,28 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 		log.info(builder.asTRSL());
 		switch (sort) { // 排序
-		case "desc":
-			builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			break;
-		case "asc":
-			builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			break;
-		case "hot":
-			return infoListService.getHotListWeChat(builder, countBuilder, loginUser,"alert");
-		case "relevance"://相关性排序
-			builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-		default:
-			if(alertRule!=null){
-				if(alertRule.isWeight()){
-					builder.setOrderBy("-"+FtsFieldConst.FIELD_RELEVANCE+";-"+FtsFieldConst.FIELD_URLTIME);
+			case "desc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "asc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				break;
+			case "hot":
+				return commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIXIN,loginUser,"alert",false);
+//			return infoListService.getHotListWeChat(builder, countBuilder, loginUser,"alert");
+			case "relevance"://相关性排序
+				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+			default:
+				if(alertRule!=null){
+					if(alertRule.isWeight()){
+						builder.setOrderBy("-"+FtsFieldConst.FIELD_RELEVANCE+";-"+FtsFieldConst.FIELD_URLTIME);
+					}else{
+						builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
+					}
 				}else{
 					builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
 				}
-			}else{
-				builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
-			}
-			break;
+				break;
 		}
 		countBuilder.setDatabase(Const.WECHAT);
 		// 把查询结果和数据库里边的sid对比 标记此条是否发过 用户id时间作为条件去数据库里查
@@ -909,7 +913,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		// criteria.add(Restrictions.between("time", parseStart, parseEnd));
 		// criteria.add(Restrictions.eq("userId", userId));
 		// List<AlertEntity> findAll = alertService.findAll(criteria);
-		InfoListResult<FtsDocumentWeChat> docList = infoListService.getWeChatList(builder, loginUser,alertRule.isRepetition(),irSimflag,irSimflagAll,false,"alert");
+		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.GROUPNAME_WEIXIN,"alert",loginUser,false);
+//		InfoListResult<FtsDocumentWeChat> docList = infoListService.getWeChatList(builder, loginUser,alertRule.isRepetition(),irSimflag,irSimflagAll,false,"alert");
 		List<FtsDocumentWeChat> pageItems = null;
 		// if (docList != null) {
 		// PagedList<FtsDocumentWeChat> content = (PagedList<FtsDocumentWeChat>)
@@ -927,12 +932,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		// }
 		// }
 		// }
-		return docList;
+		return infoListResult;
 	}
 
 	@Override
 	public Object statusSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex,String forwarPrimary)
+							   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex,String forwarPrimary)
 			throws Exception {
 		log.warn("专项检测信息列表，微博，  开始调用接口");
 		QueryBuilder builder = new QueryBuilder();
@@ -945,14 +950,14 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		boolean irSimflag = false;
 		boolean irSimflagAll = false;
 		if (alertRule != null) {
-				irSimflag = alertRule.isIrSimflag();
-				irSimflagAll = alertRule.isIrSimflagAll();
-				builder = alertRule.toSearchBuilderWeiBo(time);
-				countBuilder = alertRule.toSearchBuilderWeiBo(time);
-				builder.setPageNo(pageNo);
-				builder.setPageSize(pageSize);
-				countBuilder.setPageNo(pageNo);
-				countBuilder.setPageSize(pageSize);
+			irSimflag = alertRule.isIrSimflag();
+			irSimflagAll = alertRule.isIrSimflagAll();
+			builder = alertRule.toSearchBuilderWeiBo(time);
+			countBuilder = alertRule.toSearchBuilderWeiBo(time);
+			builder.setPageNo(pageNo);
+			builder.setPageSize(pageSize);
+			countBuilder.setPageNo(pageNo);
+			countBuilder.setPageSize(pageSize);
 
 		} else {
 			// 时间
@@ -1081,66 +1086,41 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 		log.info(builder.asTRSL());
 		switch (sort) { // 排序
-		case "desc":
-			builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			break;
-		case "asc":
-			builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			break;
-		case "hot":
-			return infoListService.getHotListStatus(builder, countBuilder, loginUser,"alert");
-		case "relevance"://相关性排序
-			builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-		default:
-			if(alertRule!=null){
-				if(alertRule.isWeight()){
-					builder.setOrderBy("-"+FtsFieldConst.FIELD_RELEVANCE+";-"+FtsFieldConst.FIELD_URLTIME);
+			case "desc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "asc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				break;
+			case "hot":
+				return commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIBO,loginUser,"alert",false);
+//			return infoListService.getHotListStatus(builder, countBuilder, loginUser,"alert");
+			case "relevance"://相关性排序
+				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+			default:
+				if(alertRule!=null){
+					if(alertRule.isWeight()){
+						builder.setOrderBy("-"+FtsFieldConst.FIELD_RELEVANCE+";-"+FtsFieldConst.FIELD_URLTIME);
+					}else{
+						builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
+					}
 				}else{
 					builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
 				}
-			}else{
-				builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
-			}
-			break;
+				break;
 		}
 		countBuilder.setDatabase(Const.WEIBO);
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-		String[] formatTimeRange = DateUtil.formatTimeRange(time);
-		Date parseStart = sdf.parse(formatTimeRange[0]);
-		Date parseEnd = sdf.parse(formatTimeRange[1]);
-		// Criteria<AlertEntity> criteria = new Criteria<>();
-		// criteria.add(Restrictions.between("time", parseStart, parseEnd));
-		// criteria.add(Restrictions.eq("userId", userId));
-		// List<AlertEntity> findAll = alertService.findAll(criteria);
-		InfoListResult<FtsDocumentStatus> docList = infoListService.getStatusList(builder, loginUser,alertRule.isRepetition(),irSimflag,irSimflagAll,false,"alert");
-		// List<FtsDocumentStatus> content = (List<FtsDocumentStatus>)
-		// statusList.getContent();
-		// List<FtsDocumentStatus> pageItems = null;
-		// if (docList != null) {
-		// PagedList<FtsDocumentStatus> content = (PagedList<FtsDocumentStatus>)
-		// docList.getContent();
-		// if (content != null) {
-		// pageItems = content.getPageItems();
-		// }
-		// }
-		// if (ObjectUtil.isNotEmpty(findAll)) {
-		// if (pageItems != null) {
-		// for (FtsDocumentStatus wechat : pageItems) {
-		// String sid = wechat.getMid();
-		// wechat.setSend(findAll.stream().anyMatch(alert ->
-		// alert.getSid().equals(sid)));
-		// }
-		// }
-		// }
-		return docList;
+		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,"alert",loginUser,false);
+//		InfoListResult<FtsDocumentStatus> docList = infoListService.getStatusList(builder, loginUser,alertRule.isRepetition(),irSimflag,irSimflagAll,false,"alert");
+		return infoListResult;
 	}
 
 	@Override
 	public Object documentSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,String notKeyWords,
-			String keyWordIndex) throws Exception {
+								 String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,String notKeyWords,
+								 String keyWordIndex) throws Exception {
 		log.error(source + "信息列表  开始调用接口:" + System.currentTimeMillis());
 		QueryBuilder builder = new QueryBuilder();
 		builder.setPageNo(pageNo);
@@ -1273,43 +1253,45 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 		log.info(builder.asTRSL());
 		switch (sort) { // 排序
-		case "desc":
-			builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			break;
-		case "asc":
-			builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			break;
-		case "hot":
-			return infoListService.getHotList(builder, countBuilder, loginUser,"alert");
-		case "relevance"://相关性排序
-			builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-		default:
-			if(alertRule!=null){
-				if(alertRule.isWeight()){
-					builder.setOrderBy("-"+FtsFieldConst.FIELD_RELEVANCE+";-"+FtsFieldConst.FIELD_URLTIME);
+			case "desc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "asc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				break;
+			case "hot":
+				return commonListService.queryPageListForHot(builder,Const.TYPE_NEWS,loginUser,"alert",false);
+//			return infoListService.getHotList(builder, countBuilder, loginUser,"alert");
+			case "relevance"://相关性排序
+				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+			default:
+				if(alertRule!=null){
+					if(alertRule.isWeight()){
+						builder.setOrderBy("-"+FtsFieldConst.FIELD_RELEVANCE+";-"+FtsFieldConst.FIELD_URLTIME);
+					}else{
+						builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
+					}
 				}else{
 					builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
 				}
-			}else{
-				builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
-			}
-			break;
+				break;
 		}
 		countBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 		log.info(builder.asTRSL());
 		log.error("开始查询海贝:" + System.currentTimeMillis());
-		InfoListResult<FtsDocument> docList = infoListService.getDocList(builder, loginUser, simflag,irSimflag,irSimflagAll,false,"alert");
+		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.TYPE_NEWS,"alert",loginUser,false);
+//		InfoListResult<FtsDocument> docList = infoListService.getDocList(builder, loginUser, simflag,irSimflag,irSimflagAll,false,"alert");
 		log.error("查询完成:" + System.currentTimeMillis());
 		log.error("方法返回:" + System.currentTimeMillis());
-		return docList;
+		return infoListResult;
 	}
-	
+
 	@Override
 	public Object documentTFSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords,
-			String keyWordIndex) throws Exception {
+								   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords,
+								   String keyWordIndex) throws Exception {
 		log.error(source + "信息列表  开始调用接口:" + System.currentTimeMillis());
 		QueryBuilder builder = new QueryBuilder();
 		builder.setPageNo(pageNo);
@@ -1401,39 +1383,40 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			}
 
 		}
-		
+
 		log.info(builder.asTRSL());
 		switch (sort) { // 排序
-		case "desc":
-			builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			break;
-		case "asc":
-			builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-			break;
-		case "relevance"://相关性排序
-			builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-		default:
-			if(alertRule!=null){
-				if(alertRule.isWeight()){
-					builder.setOrderBy("-"+FtsFieldConst.FIELD_RELEVANCE+";-"+FtsFieldConst.FIELD_URLTIME);
+			case "desc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "asc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				break;
+			case "relevance"://相关性排序
+				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+			default:
+				if(alertRule!=null){
+					if(alertRule.isWeight()){
+						builder.setOrderBy("-"+FtsFieldConst.FIELD_RELEVANCE+";-"+FtsFieldConst.FIELD_URLTIME);
+					}else{
+						builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
+					}
 				}else{
 					builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
 				}
-			}else{
-				builder.setOrderBy("-"+FtsFieldConst.FIELD_URLTIME+";-"+FtsFieldConst.FIELD_RELEVANCE);
-			}
-			break;
+				break;
 		}
 		countBuilder.setDatabase(Const.HYBASE_OVERSEAS);
-		InfoListResult<FtsDocumentTF> docList = infoListService.getDocTFList(builder, loginUser, simflag,irsimflag,irSimflagAll,"alert");
+		InfoListResult docList = commonListService.queryPageList(builder,alertRule.isRepetition(),irsimflag,irSimflagAll,Const.GROUPNAME_TWITTER,"alert",loginUser,false);
+//		InfoListResult<FtsDocumentTF> docList = infoListService.getDocTFList(builder, loginUser, simflag,irsimflag,irSimflagAll,"alert");
 		return docList;
 	}
 	@Override
 	public Object documentCommonSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-								 String industry, String emotion, String sort, String invitationCard,String forwarPrimary, String keywords,String fuzzyValueScope, String notKeyWords,
-								 String keyWordIndex,Boolean isExport) throws Exception {
+									   String industry, String emotion, String sort, String invitationCard,String forwarPrimary, String keywords,String fuzzyValueScope, String notKeyWords,
+									   String keyWordIndex,Boolean isExport) throws Exception {
 		log.error(source + "信息列表  开始调用接口:" + System.currentTimeMillis());
 		QueryCommonBuilder builder = new QueryCommonBuilder();
 		builder.setPageNo(pageNo);
@@ -1473,7 +1456,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				String[] groupArr = groupName.split(";");
 				List<String> groupList = new ArrayList<>();
 				for(String group : groupArr){
-					group = Const.DATA_SOURCES.get(group);
+					group = Const.SOURCE_GROUPNAME_CONTRAST.get(group);
 					groupList.add(group);
 				}
 				source = StringUtils.join(groupList,";");
@@ -1647,13 +1630,14 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				if (ObjectUtil.isNotEmpty(database)){
 					hotCountBuilder.setDatabase(StringUtil.join(database,";"));
 				}
-				InfoListResult list = infoListService.getHotList(hotBuilder, hotCountBuilder, loginUser,null);
-				if (isExport) {
-					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
-					List<FtsDocumentCommonVO> listVo = content.getPageItems();
-					RedisUtil.setMix(alertRule.getId(), listVo);
-				}
-				return list;
+				return commonListService.queryPageListForHot(hotBuilder,Const.ALL_GROUP,loginUser,"alert",false);
+//				InfoListResult list = infoListService.getHotList(hotBuilder, hotCountBuilder, loginUser,null);
+//				if (isExport) {
+//					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
+//					List<FtsDocumentCommonVO> listVo = content.getPageItems();
+//					RedisUtil.setMix(alertRule.getId(), listVo);
+//				}
+//				return list;
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 			default:
@@ -1670,13 +1654,13 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 		log.info(builder.asTRSL());
 		log.error("开始查询海贝:" + System.currentTimeMillis());
-
-		InfoListResult list = infoListService.getDocListContrast(builder, loginUser, simflag, irSimflag,irSimflagAll,null);
-		if (isExport) {
-			PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
-			List<FtsDocumentCommonVO> listVo = content.getPageItems();
-			RedisUtil.setMix(alertRule.getId(), listVo);
-		}
+		InfoListResult list = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.ALL_GROUP,"alert",loginUser,false);
+//		InfoListResult list = infoListService.getDocListContrast(builder, loginUser, simflag, irSimflag,irSimflagAll,null);
+//		if (isExport) {
+//			PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
+//			List<FtsDocumentCommonVO> listVo = content.getPageItems();
+//			RedisUtil.setMix(alertRule.getId(), listVo);
+//		}
 		log.error("查询完成:" + System.currentTimeMillis());
 		log.error("方法返回:" + System.currentTimeMillis());
 		return list;
@@ -1684,7 +1668,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	@Override
 	public Object sendBlend(String receivers, String[] sids,String urltime, String content, String userId, String[] groupNames,
-			String sendWay,String trslk) throws TRSException {
+							String sendWay,String trslk) throws TRSException {
 		QueryBuilder builderTime = DateUtil.timeBuilder(urltime);
 		Date start = builderTime.getStartTime();
 		Date end = builderTime.getEndTime();
@@ -1715,7 +1699,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					if(StringUtil.isNotEmpty(trs)){
 						weixinBuilder.filterByTRSL(trs);
 					}
-					list.addAll(this.weixin(weixinBuilder,false,false));
+					list.addAll(this.weixin(weixinBuilder,false,false,groupNames[i]));
 				} else if (Const.MEDIA_TYPE_WEIBO.contains(groupNames[i])) {
 					// 调用查微博库的方法
 					QueryBuilder weiboBuilder = new QueryBuilder();
@@ -1731,7 +1715,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					if(StringUtil.isNotEmpty(trs)){
 						weiboBuilder.filterByTRSL(trs);
 					}
-					list.addAll(this.weibo(weiboBuilder,false,false));
+					list.addAll(this.weibo(weiboBuilder,false,false,groupNames[i]));
 				} else if (Const.MEDIA_TYPE_TF.contains(groupNames[i])) {
 					// 调用查微博库的方法
 					QueryBuilder tfBuilder = new QueryBuilder();
@@ -1766,7 +1750,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 						queryBuilder.filterByTRSL(trs);
 					}
 					// 调用下边查传统库的方法
-					list.addAll(this.chauntong(queryBuilder,false,false));//通过id查询 没必要排重
+//					list.addAll(this.chauntong(queryBuilder,false,false));//通过id查询 没必要排重
+					list.addAll(this.chauntong(queryBuilder,false,false,groupNames[i]));//通过id查询 没必要排重
 				}
 			}
 
@@ -1864,25 +1849,66 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			}
 		}
 		return "success";
-	}
 
+	}
+	private List<AlertEntity> Mix(QueryBuilder searchBuilder,boolean irSimflag,boolean irSimflagAll,String groupName ) {
+		List<AlertEntity> list = new ArrayList<>();
+		List<FtsDocumentCommonVO> documents = null;
+		StringBuffer bufferSid = new StringBuffer();
+		try {
+//			documents = hybase8SearchService.ftsQuery(searchBuilder, FtsDocument.class, false,irSimflag,irSimflagAll,null);
+			InfoListResult infoListResult = commonListService.queryPageList(searchBuilder,false,irSimflag,irSimflagAll,groupName,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> contents = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			documents = contents.getPageItems();
+			String trs = searchBuilder.getAppendTRSL().toString();
+			log.info(searchBuilder.asTRSL());
+			for (FtsDocumentCommonVO ftsDocument : documents) {
+				String content = ftsDocument.getContent();
+				String[] imaUrls = null;
+				String imaUrl = "";
+
+				if (content != null){
+					imaUrls = content.split("IMAGE&nbsp;SRC=&quot;");
+					if (imaUrls.length>1){
+						imaUrl = imaUrls[1].substring(0,imaUrls[1].indexOf("&quot;"));
+					}
+				}
+				String keywords = "";
+				if(ftsDocument.getKeywords() != null){
+					keywords = ftsDocument.getKeywords().toString();
+				}
+				AlertEntity alertEntity = new AlertEntity(ftsDocument.getSid(), ftsDocument.getTitle(),ftsDocument.getTitle(),
+						ftsDocument.getContent(), ftsDocument.getUrlName(), ftsDocument.getUrlTime(),
+						ftsDocument.getSiteName(), ftsDocument.getGroupName(), null, null, 0, 0, "",
+						ftsDocument.getAppraise(), "", null, ftsDocument.getNreserved1(), "", false,null,"",imaUrl,false,false,0,trs,keywords,ftsDocument.getAuthors());
+				bufferSid.append(ftsDocument.getSid()).append(" OR ");
+				list.add(alertEntity);
+			}
+		} catch (Exception e) {
+			log.info("hybase查询出错", e);
+		}
+		return list;
+	}
 	/**
 	 * 查传统库
-	 * 
+	 *
 	 * @date Created at 2018年3月2日 下午3:46:03
 	 * @Author 谷泽昊
 	 * @param searchBuilder
 	 * @return
 	 */
-	private List<AlertEntity> chauntong(QueryBuilder searchBuilder,boolean irSimflag,boolean irSimflagAll ) {
+	private List<AlertEntity> chauntong(QueryBuilder searchBuilder,boolean irSimflag,boolean irSimflagAll,String groupName ) {
 		List<AlertEntity> list = new ArrayList<>();
-		List<FtsDocument> documents = null;
+		List<FtsDocumentCommonVO> documents = null;
 		StringBuffer bufferSid = new StringBuffer();
 		try {
-			documents = hybase8SearchService.ftsQuery(searchBuilder, FtsDocument.class, false,irSimflag,irSimflagAll,null);
+//			documents = hybase8SearchService.ftsQuery(searchBuilder, FtsDocument.class, false,irSimflag,irSimflagAll,null);
+			InfoListResult infoListResult = commonListService.queryPageList(searchBuilder,false,irSimflag,irSimflagAll,groupName,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> contents = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			documents = contents.getPageItems();
 			String trs = searchBuilder.getAppendTRSL().toString();
 			log.info(searchBuilder.asTRSL());
-			for (FtsDocument ftsDocument : documents) {
+			for (FtsDocumentCommonVO ftsDocument : documents) {
 				String content = ftsDocument.getContent();
 				String[] imaUrls = null;
 				String imaUrl = "";
@@ -1912,21 +1938,24 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	/**
 	 * 查微博库
-	 * 
+	 *
 	 * @date Created at 2018年3月2日 下午3:45:57
 	 * @Author 谷泽昊
 	 * @param searchBuilderWeiBo
 	 * @return
 	 */
-	private List<AlertEntity> weibo(QueryBuilder searchBuilderWeiBo,boolean irSimflag,boolean irSimflagAll) {
+	private List<AlertEntity> weibo(QueryBuilder searchBuilderWeiBo,boolean irSimflag,boolean irSimflagAll,String groupName) {
 		List<AlertEntity> list = new ArrayList<>();
-		List<FtsDocumentStatus> documents = null;
+		List<FtsDocumentCommonVO> documents = null;
 		StringBuffer bufferSid = new StringBuffer();
 		try {
-			documents = hybase8SearchService.ftsQuery(searchBuilderWeiBo, FtsDocumentStatus.class, false,irSimflag,irSimflagAll,null );
+//			documents = hybase8SearchService.ftsQuery(searchBuilderWeiBo, FtsDocumentStatus.class, false,irSimflag,irSimflagAll,null );
+			InfoListResult infoListResult = commonListService.queryPageList(searchBuilderWeiBo,false,irSimflag,irSimflagAll,groupName,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> contents = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			documents = contents.getPageItems();
 			String trs = searchBuilderWeiBo.getAppendTRSL().toString();
 			log.info(searchBuilderWeiBo.asTRSL());
-			for (FtsDocumentStatus ftsDocument : documents) {
+			for (FtsDocumentCommonVO ftsDocument : documents) {
 				String content = ftsDocument.getStatusContent();
 				String[] imaUrls = null;
 				String imaUrl = "";
@@ -1952,21 +1981,24 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	/**
 	 * 查传微信库
-	 * 
+	 *
 	 * @date Created at 2018年3月2日 下午3:45:47
 	 * @Author 谷泽昊
 	 * @param searchBuilderWeiBo
 	 * @return
 	 */
-	private List<AlertEntity> weixin(QueryBuilder searchBuilderWeiBo,boolean irSimflag,boolean irSimflagAll ) {
+	private List<AlertEntity> weixin(QueryBuilder searchBuilderWeiBo,boolean irSimflag,boolean irSimflagAll,String groupName ) {
 		List<AlertEntity> list = new ArrayList<>();
-		List<FtsDocumentWeChat> documents = null;
+		List<FtsDocumentCommonVO> documents = null;
 		StringBuffer bufferSid = new StringBuffer();
 		try {
-			documents = hybase8SearchService.ftsQuery(searchBuilderWeiBo, FtsDocumentWeChat.class, false,irSimflag,irSimflagAll,null );
+//			documents = hybase8SearchService.ftsQuery(searchBuilderWeiBo, FtsDocumentWeChat.class, false,irSimflag,irSimflagAll,null );
+			InfoListResult infoListResult = commonListService.queryPageList(searchBuilderWeiBo,false,irSimflag,irSimflagAll,groupName,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> contents = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			documents = contents.getPageItems();
 			log.info(searchBuilderWeiBo.asTRSL());
 			String trs = searchBuilderWeiBo.getAppendTRSL().toString();
-			for (FtsDocumentWeChat ftsDocument : documents) {
+			for (FtsDocumentCommonVO ftsDocument : documents) {
 				String content = ftsDocument.getContent();
 				String[] imaUrls = null;
 				String imaUrl = "";
@@ -1977,10 +2009,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 						imaUrl = imaUrls[1].substring(0,imaUrls[1].indexOf("&quot;"));
 					}
 				}
-                AlertEntity alertEntity = new AlertEntity(ftsDocument.getHkey(), ftsDocument.getUrlTitle(),ftsDocument.getUrlTitle(),
-                        ftsDocument.getContent(), ftsDocument.getUrlName(), ftsDocument.getUrlTime(),
-                        ftsDocument.getSiteName(), ftsDocument.getGroupName(), null, null, 0, 0, "",
-                        ftsDocument.getAppraise(), "", null, "", "", false,null,"",imaUrl,false,false,0,trs,null,ftsDocument.getAuthors());
+				AlertEntity alertEntity = new AlertEntity(ftsDocument.getHkey(), ftsDocument.getUrlTitle(),ftsDocument.getUrlTitle(),
+						ftsDocument.getContent(), ftsDocument.getUrlName(), ftsDocument.getUrlTime(),
+						ftsDocument.getSiteName(), ftsDocument.getGroupName(), null, null, 0, 0, "",
+						ftsDocument.getAppraise(), "", null, "", "", false,null,"",imaUrl,false,false,0,trs,null,ftsDocument.getAuthors());
 				bufferSid.append(ftsDocument.getSid()).append(" OR ");
 				list.add(alertEntity);
 			}
@@ -2004,6 +2036,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		StringBuffer bufferSid = new StringBuffer();
 		try {
 			documents = hybase8SearchService.ftsQuery(searchBuilderTF, FtsDocumentTF.class, false,irSimflag,irSimflagAll,null );
+
 			String trs = searchBuilderTF.getAppendTRSL().toString();
 			log.info(searchBuilderTF.asTRSL());
 			for (FtsDocumentTF ftsDocument : documents) {
@@ -2029,7 +2062,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 		return list;
 	}
-	
+
 	/**
 	 * 不关联alert_netinsight预警工程
 	 * @param time 时间
@@ -2077,7 +2110,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			throw new OperationException("预警弹窗获取失败,message:" + e,e);
 		}
 	}
-	
+
 	/**
 	 * 关联alert_netinsight预警工程
 	 * @param time 时间
@@ -2091,7 +2124,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		String userName = UserUtils.getUser().getUserName();
 		String userId = UserUtils.getUser().getId();
 		String url = alertNetinsightUrl+"/rule/listSMS?time="+time+"&pageNo="+pageNo+"&pageSize="
-		+pageSize+"&userName="+userName+"&userId="+userId;
+				+pageSize+"&userName="+userName+"&userId="+userId;
 		String doGet = HttpUtil.doGet(url, null);
 		if(StringUtil.isEmpty(doGet)){
 			return null;

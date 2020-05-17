@@ -1,5 +1,7 @@
 package com.trs.netInsight.widget.column.service;
 
+import com.trs.netInsight.handler.exception.OperationException;
+
 /**
  * 共享引用相关接口服务
  * 
@@ -29,6 +31,6 @@ public interface IQuoteService {
 	 *            栏目映射关系id
 	 * @Return : void
 	 */
-	public void cancelQuote(String indexTabMapperId);
+	public void cancelQuote(String indexTabMapperId)throws OperationException;
 
 }

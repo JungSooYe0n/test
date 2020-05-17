@@ -45,6 +45,8 @@ import com.trs.netInsight.widget.column.factory.ColumnFactory;
 import com.trs.netInsight.widget.column.service.IColumnService;
 import com.trs.netInsight.widget.column.service.IIndexPageService;
 import com.trs.netInsight.widget.column.service.IIndexTabService;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.microblog.constant.MicroblogConst;
 import com.trs.netInsight.widget.microblog.entity.SingleMicroblogData;
 import com.trs.netInsight.widget.microblog.entity.SpreadObject;
@@ -134,6 +136,11 @@ public class ApiController {
     private IKnowledgeBaseService knowledgeBaseService;
 
     private static final String createTime = "createdTime";
+
+    @Autowired
+    private ICommonListService commonListService;
+    @Autowired
+    private ICommonChartService commonChartService;
 
     /**
      * 获取pageList
@@ -278,17 +285,15 @@ public class ApiController {
             AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
             ColumnConfig config = new ColumnConfig();
             config.initSection(indexTab, timerange, 0, pageSize, "", "", entityType, "", "", "default", "", "", "", "", "","");
-            column.setHybase8SearchService(hybase8SearchService);
-            column.setChartAnalyzeService(chartAnalyzeService);
-            column.setInfoListService(infoListService);
+            //column.setChartAnalyzeService(chartAnalyzeService);
             column.setDistrictInfoService(districtInfoService);
-            column.setAlertRepository(alertRepository);
-            column.setFavouritesRepository(favouritesRepository);
+            column.setCommonListService(commonListService);
+            column.setCommonChartService(commonChartService);
             column.setConfig(config);
             return column.getColumnData(timerange);
         }
 
-       return null;
+        return null;
     }
 
 
@@ -333,12 +338,9 @@ public class ApiController {
                     pageSize = maxPageSize;
                 }
                 config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, area, irKeyword, invitationCard, "", "",forwarPrimary);
-                column.setHybase8SearchService(hybase8SearchService);
-                column.setChartAnalyzeService(chartAnalyzeService);
-                column.setInfoListService(infoListService);
                 column.setDistrictInfoService(districtInfoService);
-                column.setAlertRepository(alertRepository);
-                column.setFavouritesRepository(favouritesRepository);
+                column.setCommonListService(commonListService);
+                column.setCommonChartService(commonChartService);
                 column.setConfig(config);
                 return column.getSectionList();
             }

@@ -57,22 +57,27 @@ public class IndexTab extends BaseEntity implements Cloneable{
 
 	@Column(name = "excludeWeb")
 	private String excludeWeb;// 排除网站
-	
 
+	/**
+	 * 栏目分组id
+	 */
 	@Column(name = "parent_id")
-	private String parentId;// 二级栏目的id
+	private String parentId;
+
+	/**
+	 * 自定义类型导航栏的id  如果为默认，则为“”
+	 */
+	@Column(name = "type_id")
+	private String typeId;
 
 	@Column(name = "sequence")
-	private int sequence;
+	private Integer sequence;
 
 	@Column(name = "max_size")
 	private int maxSize;// 最大条数
 
 	@Column(name = "time_range")
 	private String timeRange;// 发布时间范围
-
-	@Column(name = "time_recent")
-	private String timeRecent;// 最近发布时间
 
 	@Column(name = "hide")
 	private boolean hide;
@@ -96,7 +101,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	private String excludeWords;
 
 	/**
-	 * 检索关键词位置 0：标题 1：标题+正文
+	 * 检索关键词位置 0：标题 1：标题+正文  2：标题+摘要
 	 */
 	@Column(name = "key_word_index", columnDefinition = "TEXT")
 	private String keyWordIndex;
@@ -140,9 +145,6 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 */
 	@Column(name = "weight")
 	private boolean weight = false;
-
-	@Column(name = "server")
-	private boolean server = false;
 	
 	/**
 	 * 50为半栏 100为通栏
@@ -166,28 +168,28 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	@Transient
 	private String notSids;
 
-	public String[]  getType(){
+	public String[]  getType(Boolean isArr){
 		if (StringUtil.isNotEmpty(this.type)){
 			return this.type.trim().split(";");
 		}
 		return null;
 	}
-	public String[]  getTradition(){
-		if (StringUtil.isNotEmpty(this.tradition)){
-			return tradition.trim().split(";");
-		}
-		return null;
-	}
-	public String[]  getExcludeWeb(){
+
+
+	public String[]  getExcludeWeb(Boolean Arr){
 		if (StringUtil.isNotEmpty(this.excludeWeb)){
 			return excludeWeb.trim().split(";|；");
 		}
 		return null;
 	}
 
+	public String  getExcludeWeb(){
+		return excludeWeb;
+	}
 
-	public IndexTab(String name, String trsl,String keyWord,String excludeWords,String keyWordIndex, String xyTrsl, String type, String parentId, String groupName,
-			int sequence, int maxSize, String timeRange, String timeRecent,boolean similar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll) {
+
+	public IndexTab(String name, String trsl, String keyWord, String excludeWords, String keyWordIndex, String xyTrsl, String type, String parentId, String groupName,
+                    int sequence, int maxSize, String timeRange, boolean similar, boolean irSimflag, boolean weight, boolean irSimflagAll) {
 		this.name = name;
 		this.trsl = trsl;
 		this.keyWord = keyWord;
@@ -200,40 +202,55 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.sequence = sequence;
 		this.maxSize = maxSize;
 		this.timeRange = timeRange;
-		this.timeRecent = timeRecent;
 		this.similar = similar;
 		this.irSimflag = irSimflag;
 		// 默认不隐藏
 		this.hide = false;
 		this.weight = weight;
-		this.server = server;
 		this.irSimflagAll = irSimflagAll;
 	}
 	
-	public IndexTab(String name, String trsl,String statusTrsl,String weChatTrsl,String keyWord,String excludeWords,String keyWordIndex, String xyTrsl, String type, String parentId, String groupName,
-			int sequence, int maxSize, String timeRange, String timeRecent,boolean similar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll) {
+	public IndexTab(String name, String trsl, String keyWord, String excludeWords, String keyWordIndex, String xyTrsl, String type, String groupName,
+                    int sequence, String timeRange, boolean similar, boolean irSimflag, boolean weight, boolean irSimflagAll) {
 		this.name = name;
 		this.trsl = trsl;
-		this.statusTrsl = statusTrsl;
-		this.weChatTrsl = weChatTrsl;
 		this.keyWord = keyWord;
 		this.excludeWords = excludeWords;
 		this.keyWordIndex = keyWordIndex;
 		this.xyTrsl = xyTrsl;
 		this.type = type;
-		this.parentId = parentId;
 		this.groupName = groupName;
 		this.sequence = sequence;
-		this.maxSize = maxSize;
 		this.timeRange = timeRange;
-		this.timeRecent = timeRecent;
 		this.similar = similar;
 		this.irSimflag = irSimflag;
 		// 默认不隐藏
 		this.hide = false;
 		this.weight = weight;
-		this.server = server;
 		this.irSimflagAll = irSimflagAll;
+	}
+
+	public IndexTab(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, boolean hide, String keyWord,
+                    String excludeWords, String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
+                    int tabWidth, Integer sequence) {
+		this.name = name;
+		this.trsl = trsl;
+		this.xyTrsl = xyTrsl;
+		this.type = type;
+		this.contrast = contrast;
+		this.excludeWeb = excludeWeb;
+		this.timeRange = timeRange;
+		this.hide = hide;
+		this.keyWord = keyWord;
+		this.excludeWords = excludeWords;
+		this.keyWordIndex = keyWordIndex;
+		this.groupName = groupName;
+		this.similar = similar;
+		this.irSimflag = irSimflag;
+		this.irSimflagAll = irSimflagAll;
+		this.weight = weight;
+		this.tabWidth = tabWidth;
+		this.sequence = sequence;
 	}
 
 	/**
@@ -243,26 +260,26 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 * @return
 	 */
 	@Override  
-    public IndexTab clone() {  
-		IndexTab indexTab = null;  
+    public IndexTab clone() {
+		IndexTab indexTab = null;
         try{  
-        	indexTab = (IndexTab)super.clone();  
+        	indexTab = (IndexTab)super.clone();
         }catch(CloneNotSupportedException e) {  
             e.printStackTrace();  
         }  
         return indexTab;  
     }  
 	
-	/**
+	/**parentId  typeId  hide
 	 * 复制栏目
 	 * @since changjiang @ 2018年9月13日
 	 * @return
 	 * @Return : IndexTab
 	 */
 	public IndexTab tabCopy(){
-		IndexTab indexTab=new IndexTab(name, trsl, xyTrsl, type,contrast, tradition, excludeWeb, parentId, sequence, 
-				maxSize, timeRange, timeRecent, hide, statusTrsl, weChatTrsl, keyWord,
-				excludeWords, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,server,tabWidth,oneName,notSids);
+		IndexTab indexTab=new IndexTab(name, trsl, xyTrsl, type,contrast, tradition, excludeWeb, parentId,typeId, sequence,
+				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
+				excludeWords, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,tabWidth,oneName,notSids);
 		return indexTab;
 	}
 	

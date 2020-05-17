@@ -14,8 +14,10 @@
 package com.trs.netInsight.config.constant;
 
 import com.trs.netInsight.widget.config.entity.HybaseDatabaseConfig;
+import com.trs.netInsight.widget.config.service.ISystemConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
@@ -137,13 +139,40 @@ public class Const {
      * hybase数据源类型
      * ********************************************************************************************************************************************
      */
-    public static final List<String> MEDIA_TYPE_NEWS = Arrays.asList("国外新闻", "传统媒体", "国内新闻", "新闻", "论坛", "博客", "客户端",
-            "电子报", "国内论坛", "国内博客", "国内新闻_电子报", "国内新闻_手机客户端", "国外新闻_敏感", "忽翌仟療", "电子报", "客户端", "国外", "境外媒体", "境外网站");
+    public static final List<String> MEDIA_TYPE_NEWS = Arrays.asList(
+            Const.GROUPNAME_XINWEN,
+            Const.GROUPNAME_GUOWAIXINWEN,
+            Const.GROUPNAME_DIANZIBAO,
+            Const.GROUPNAME_LUNTAN,
+            Const.GROUPNAME_BOKE,
+            Const.GROUPNAME_KEHUDUAN,
+            Const.GROUPNAME_ZIMEITI,
+            Const.PAGE_SHOW_XINWEN,
+            Const.PAGE_SHOW_GUOWAIXINWEN,
+            Const.PAGE_SHOW_LUNTAN,
+            Const.PAGE_SHOW_BOKE,
+            Const.PAGE_SHOW_DIANZIBAO,
+            Const.PAGE_SHOW_KEHUDUAN,
+            Const.PAGE_SHOW_ZIMEITI,
+
+            Const.PAGE_SHOW_DUANSHIPIN,
+            Const.PAGE_SHOW_CHANGSHIPIN,
+
+            "传统媒体",    "客户端","手机客户端","境外新闻",
+            "国外新闻_敏感", "忽翌仟療", "电子报", "客户端", "国外", "境外媒体", "境外网站");
 
 
-    public static final String ALL_GROUP = "国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;国外新闻;微信;微博;Twitter;FaceBook";
+    public static final String ALL_GROUP = Const.GROUPNAME_XINWEN + ";" + Const.GROUPNAME_KEHUDUAN + ";" + Const.GROUPNAME_DIANZIBAO
+            + ";" + Const.GROUPNAME_WEIBO + ";" + Const.GROUPNAME_WEIXIN + ";" +
+            Const.GROUPNAME_ZIMEITI + ";" + Const.GROUPNAME_LUNTAN + ";" + Const.GROUPNAME_DUANSHIPIN + ";" +
+            Const.GROUPNAME_CHANGSHIPIN + ";" + Const.GROUPNAME_BOKE + ";" + Const.GROUPNAME_GUOWAIXINWEN + ";" +
+            Const.GROUPNAME_TWITTER + ";" + Const.GROUPNAME_FACEBOOK;
+    //"国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;国外新闻;微信;微博;Twitter;FaceBook";
 
-    public static final String ALL_GROUP_COLLECT = "国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;国外新闻;微信;国内微信;微博;Twitter;Facebook";
+    public static final String ALL_GROUP_COLLECT = Const.GROUPNAME_XINWEN + ";" + Const.GROUPNAME_KEHUDUAN + ";" + Const.GROUPNAME_DIANZIBAO + ";" + Const.GROUPNAME_WEIBO + ";" + Const.GROUPNAME_WEIXIN + ";" +
+            Const.GROUPNAME_ZIMEITI + ";" + Const.GROUPNAME_LUNTAN + ";" + Const.GROUPNAME_DUANSHIPIN + ";" + Const.GROUPNAME_CHANGSHIPIN + ";" + Const.GROUPNAME_BOKE + ";" + Const.GROUPNAME_GUOWAIXINWEN + ";" +
+            Const.GROUPNAME_TWITTER + ";" + Const.GROUPNAME_FACEBOOK;
+    //"国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;国外新闻;微信;国内微信;微博;Twitter;Facebook";
 
     /**
      * 媒体类型:FaceBook and twitter
@@ -156,6 +185,7 @@ public class Const {
             "客户端", "电子报", "国内论坛", "国内博客", "国内新闻_电子报", "国内新闻_手机客户端", "境外媒体", "境外网站");
 
     public static final String TYPE_NEWS = "国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;境外媒体";
+    public static final String TYPE_TF = "FaceBook;Twitter";
     /**
      * 时间：2019-11-21
      * 预警中心专家模式。查询传统媒体表达式时，需要查询传统媒体+tf类，所以加了一个
@@ -238,7 +268,7 @@ public class Const {
      * 排除 IR_KEYWORDS 分类统计结果集中不合适词语
      */
     public static final List<String> NOT_KEYWORD = Arrays.asList("IMAGE", "SRC", "png", "gsp0", "sign", "IMAGE SRC", "com/forum/w",
-            "5aAHeD3nKhI2p27j8IqW0jdnxx1xbK/t", "imgsrc", "jpg", "com/tb/editor/images/client/imag", "src/main/resources/static", "imgsa", "3D580", "bdstatic", "tb2", "com/tb/editor/images/face/i", "gif", "url", "f25", "com/p", "B0%"
+            "5aAHeD3nKhI2p27j8IqW0jdnxx1xbK/t", "imgsrc", "jpg", "com/tb/editor/images/client/imag", "static", "imgsa", "3D580", "bdstatic", "tb2", "com/tb/editor/images/face/i", "gif", "url", "f25", "com/p", "B0%"
             , "com/tb/editor/images/tsj/t", "com/forum/abpic/item", "/", "com/tb/editor", "img src", "auto-orient/strip/crop", "format/jpg/quality", "gravity/center", "xiaohongshu", "src", "imageMogr2");
 
     public static final String BIGSCREEN_EMTION = "政府;政府不作为;政府失职;官员腐败;公务员贪污;受贿;民告官;官商勾结;形象工程;索贿;拖欠农民工工资;讨要融资款;暴力拆迁;拆迁补偿不合理;违法;违纪;拆迁安置;违规拆迁;非法占地;房价涨;地价涨;油价涨;涨了还涨;上学难;就业难;买房难;难上加难;和谐社会;河蟹;天价;无语;强征;蒙羞;失职;乱纪;网站空壳;钓鱼执法;干部遭遇;强权;扬言;枉法裁判;强暴征地;如此村官;舞弊;买通政府;收礼钱;政府暴力;政府违法;收礼金;贿选;强制征收;强行征地;政府太欺人;非法霸占;骗取低保;非法开采;政府杀人;执法监察车;百姓被打;干部违纪;领导赚外快;村主任低保;暴力拆迁;乱作为;操控选举;政府网赚钱;官员免职;卫生局领导;不作为;弄虚作假;强行;政府哄骗农民;利用职权;百姓堪忧;强行占用;欺压;贪贿;咋没人管;免职;调离;候选;提名;停职;罢免;革职;下马;辞职;开除;落马;双规;越权;有干头;二奶;贪污;受贿;索贿;行贿;情妇;非正常死亡;自杀;仇杀;情杀;不作为;贿赂;行贿;索贿;受贿;保护费;天价过路费;贪官;贪污;贪腐;雅贿;失察失误;庇护伞;后台;保护伞;官商勾结;包庇;纵容;黑社会;恶势力;黑老大;私设小金库;谋取暴利举报;滥用职权;滥用公权;玩忽职守;失职渎职;违法违纪;违纪违法;损害群众利益;吃空饷;不出警;未出警;不予出警";
@@ -443,33 +473,10 @@ public class Const {
     };
 
     /**
-     * 来源分类对比图x轴坐标刻度
-     */
-    public static final Map<String, String> CONTRAST_SOURCE = new HashMap<String, String>() {
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
-
-        {
-            put("国内新闻", "新闻");
-            put("微博", "微博");
-            put("国内微信", "微信");
-            put("国内新闻_手机客户端", "客户端");
-            put("国内论坛", "论坛");
-            put("国内博客", "博客");
-            put("国内新闻_电子报", "电子报");
-            put("国外新闻", "境外媒体");
-        }
-    };
-
-    /**
      * 数据来源
      */
-    public static final Map<String, String> DATA_SOURCES = new HashMap<String, String>() {
-        /**
-         *
-         */
+   /* public static final Map<String, String> DATA_SOURCES = new HashMap<String, String>() {
+
         private static final long serialVersionUID = 1L;
 
         {
@@ -496,7 +503,7 @@ public class Const {
             put("Facebook", Const.GROUPNAME_FACEBOOK);
             put("FaceBook", Const.GROUPNAME_FACEBOOK);
         }
-    };
+    };*/
 
     /**
      * 微信网址的配置项
@@ -522,6 +529,10 @@ public class Const {
      * 数据源 - 国内微信
      */
     public static final String GROUPNAME_WEIXIN = "国内微信";
+    /**
+     * 数据源 - 自媒体
+     */
+    public static final String GROUPNAME_ZIMEITI = "自媒体";
 
     /**
      * 数据源 - 国内论坛
@@ -556,43 +567,18 @@ public class Const {
      * 数据源 - Twitter
      */
     public static final String GROUPNAME_TWITTER = "Twitter";
-
-
-
     /**
-     * source和geoupName的对应关系
-     * 主要是为了对前端的显示到后端的转化
-     * <p>
-     * SOURCE_GROUPNAME_CONTRAST
+     * 数据源 - 短视频
      */
-    public static final Map<String, String> SOURCE_GROUPNAME_CONTRAST = new HashMap<String, String>() {
-        private static final long serialVersionUID = 1L;
+    public static final String GROUPNAME_DUANSHIPIN = "短视频";
+    /**
+     * 数据源 - 长视频
+     */
+    public static final String GROUPNAME_CHANGSHIPIN = "视频";
 
-        {
-            put("国内新闻", GROUPNAME_XINWEN);
-            put("新闻", GROUPNAME_XINWEN);
-            put("微博", GROUPNAME_WEIBO);
-            put("微信", GROUPNAME_WEIXIN);
-            put("国内微信", GROUPNAME_WEIXIN);
-            put("客户端", GROUPNAME_KEHUDUAN);
-            put("手机客户端", GROUPNAME_KEHUDUAN);
-            put("国内新闻_手机客户端", GROUPNAME_KEHUDUAN);
-            put("论坛", GROUPNAME_LUNTAN);
-            put("国内论坛", GROUPNAME_LUNTAN);
-            put("博客", GROUPNAME_BOKE);
-            put("国内博客", GROUPNAME_BOKE);
-            put("电子报", GROUPNAME_DIANZIBAO);
-            put("国内新闻_电子报", GROUPNAME_DIANZIBAO);
-            put("国外新闻", GROUPNAME_GUOWAIXINWEN);
-            put("境外媒体", GROUPNAME_GUOWAIXINWEN);
-            put("境外网站", GROUPNAME_GUOWAIXINWEN);
-            put("境外新闻", GROUPNAME_GUOWAIXINWEN);
-            put("Twitter", GROUPNAME_TWITTER);
-            put("twitter", GROUPNAME_TWITTER);
-            put("Facebook", GROUPNAME_FACEBOOK);
-            put("FaceBook", GROUPNAME_FACEBOOK);
-        }
-    };
+
+
+
     /**
      * ---------------------------- 前端页面显示的数据源--------------------------------
      */
@@ -615,6 +601,10 @@ public class Const {
      * sheet名 - 国内论坛
      */
     public static final String PAGE_SHOW_LUNTAN = "论坛";
+    /**
+     * sheet名 - 国内论坛
+     */
+    public static final String PAGE_SHOW_ZIMEITI = "自媒体号";
 
     /**
      * sheet名 - 国内博客
@@ -629,21 +619,31 @@ public class Const {
     /**
      * sheet名 - 国内新闻_手机客户端
      */
-    public static final String PAGE_SHOW_KEHUDUAN = "客户端";
+    public static final String PAGE_SHOW_KEHUDUAN = "新闻app";
     /**
      * sheet名 - 国外新闻
      */
-    public static final String PAGE_SHOW_GUOWAIXINWEN = "境外网站";
+    public static final String PAGE_SHOW_GUOWAIXINWEN = "境外";
 
     /**
      * sheet名 - Facebook
      */
-    public static final String PAGE_SHOW_FACEBOOK = "FaceBook";
+    public static final String PAGE_SHOW_FACEBOOK = "Facebook";
 
     /**
      * sheet名 - Twitter
      */
     public static final String PAGE_SHOW_TWITTER = "Twitter";
+    /**
+     * sheet名 - 短视频
+     */
+    public static final String PAGE_SHOW_DUANSHIPIN = "短视频";
+    /**
+     * sheet名 - 长视频
+     */
+    public static final String PAGE_SHOW_CHANGSHIPIN = "视频";
+
+
 
 
     /**
@@ -664,14 +664,59 @@ public class Const {
             put(GROUPNAME_BOKE,PAGE_SHOW_BOKE);
             put(GROUPNAME_DIANZIBAO,PAGE_SHOW_DIANZIBAO);
             put(GROUPNAME_GUOWAIXINWEN,PAGE_SHOW_GUOWAIXINWEN);
+            put(GROUPNAME_ZIMEITI,PAGE_SHOW_ZIMEITI);
             put(GROUPNAME_TWITTER,PAGE_SHOW_TWITTER);
-            put(GROUPNAME_TWITTER,PAGE_SHOW_TWITTER);
+            put("twitter",PAGE_SHOW_TWITTER);
             put(GROUPNAME_FACEBOOK,PAGE_SHOW_FACEBOOK);
-            put(GROUPNAME_FACEBOOK,PAGE_SHOW_FACEBOOK);
+            put("FaceBook",PAGE_SHOW_FACEBOOK);
+            put(GROUPNAME_DUANSHIPIN,PAGE_SHOW_DUANSHIPIN);
+            put(GROUPNAME_CHANGSHIPIN,PAGE_SHOW_CHANGSHIPIN);
         }
     };
 
+    /**
+     * source和geoupName的对应关系
+     * 主要是为了对前端的显示到后端的转化
+     * <p>
+     * SOURCE_GROUPNAME_CONTRAST
+     */
+    public static final Map<String, String> SOURCE_GROUPNAME_CONTRAST = new HashMap<String, String>() {
+        private static final long serialVersionUID = 1L;
 
+        {
+            put(GROUPNAME_XINWEN, GROUPNAME_XINWEN);
+            put(PAGE_SHOW_XINWEN, GROUPNAME_XINWEN);
+            put(GROUPNAME_WEIBO, GROUPNAME_WEIBO);
+            put(PAGE_SHOW_WEIXIN, GROUPNAME_WEIXIN);
+            put(GROUPNAME_WEIXIN, GROUPNAME_WEIXIN);
+            put(PAGE_SHOW_KEHUDUAN, GROUPNAME_KEHUDUAN);
+            put("客户端", GROUPNAME_KEHUDUAN);
+            put("手机客户端", GROUPNAME_KEHUDUAN);
+            put(GROUPNAME_KEHUDUAN, GROUPNAME_KEHUDUAN);
+            put(PAGE_SHOW_LUNTAN, GROUPNAME_LUNTAN);
+            put(GROUPNAME_LUNTAN, GROUPNAME_LUNTAN);
+            put(PAGE_SHOW_BOKE, GROUPNAME_BOKE);
+            put(GROUPNAME_BOKE, GROUPNAME_BOKE);
+            put(PAGE_SHOW_DIANZIBAO, GROUPNAME_DIANZIBAO);
+            put(GROUPNAME_DIANZIBAO, GROUPNAME_DIANZIBAO);
+            put(GROUPNAME_GUOWAIXINWEN, GROUPNAME_GUOWAIXINWEN);
+            put("境外媒体", GROUPNAME_GUOWAIXINWEN);
+            put("境外网站", GROUPNAME_GUOWAIXINWEN);
+            put(PAGE_SHOW_GUOWAIXINWEN, GROUPNAME_GUOWAIXINWEN);
+            put("境外新闻", GROUPNAME_GUOWAIXINWEN);
+            put(GROUPNAME_ZIMEITI, GROUPNAME_ZIMEITI);
+            put(PAGE_SHOW_ZIMEITI, GROUPNAME_ZIMEITI);
+            put("自媒体号", GROUPNAME_ZIMEITI);
+            put(GROUPNAME_TWITTER, GROUPNAME_TWITTER);
+            put("twitter", GROUPNAME_TWITTER);
+            put(GROUPNAME_FACEBOOK, GROUPNAME_FACEBOOK);
+            put(PAGE_SHOW_FACEBOOK, GROUPNAME_FACEBOOK);
+            put(GROUPNAME_CHANGSHIPIN, GROUPNAME_CHANGSHIPIN);
+            put(PAGE_SHOW_CHANGSHIPIN, GROUPNAME_CHANGSHIPIN);
+            put(GROUPNAME_DUANSHIPIN, GROUPNAME_DUANSHIPIN);
+            put(PAGE_SHOW_DUANSHIPIN, GROUPNAME_DUANSHIPIN);
+        }
+    };
 
 
 
@@ -1075,24 +1120,32 @@ public class Const {
             put("澳门", "澳门特别行政区");
         }
     };
-//    @Autowired
-//    private ISystemConfigService scService;
-//    private static ISystemConfigService systemConfigService;
-//
-//    @PostConstruct
-//    public void init() {
-//        systemConfigService = this.scService;
-//        HybaseDatabaseConfig hybaseDatabaseConfig = systemConfigService.queryHybaseDatabases();
-//        HYBASE_NI_INDEX = hybaseDatabaseConfig.getTraditional();
-//        WEIBO = hybaseDatabaseConfig.getWeibo();
-//        WECHAT_COMMON = hybaseDatabaseConfig.getWeixin();
-//        WECHAT = hybaseDatabaseConfig.getWeixin();
-//        SINAUSERS = hybaseDatabaseConfig.getSinaweiboUsers();
-//        INSERT = hybaseDatabaseConfig.getInsert();
-//        HYBASE_OVERSEAS = hybaseDatabaseConfig.getOverseas();
-//    }
+    @Autowired
+    private ISystemConfigService scService;
+    private static ISystemConfigService systemConfigService;
 
-    public static List<String> USER_ROLES_DATASOURCE = Arrays.asList("新闻", "微博", "微信", "客户端", "论坛", "博客", "电子报", "境外网站", "国外新闻", "Twitter", "Facebook");
+    @PostConstruct
+    public void init() {
+        systemConfigService = this.scService;
+        HybaseDatabaseConfig hybaseDatabaseConfig = systemConfigService.queryHybaseDatabases();
+        HYBASE_NI_INDEX = hybaseDatabaseConfig.getTraditional();
+        WEIBO = hybaseDatabaseConfig.getWeibo();
+        WECHAT_COMMON = hybaseDatabaseConfig.getWeixin();
+        WECHAT = hybaseDatabaseConfig.getWeixin();
+        SINAUSERS = hybaseDatabaseConfig.getSinaweiboUsers();
+        INSERT = hybaseDatabaseConfig.getInsert();
+        HYBASE_OVERSEAS = hybaseDatabaseConfig.getOverseas();
+    }
+
+    public static final List<String> PAGE_SHOW_DATASOURCE_SORT = Arrays.asList(Const.PAGE_SHOW_XINWEN,  Const.PAGE_SHOW_KEHUDUAN,Const.PAGE_SHOW_DIANZIBAO,Const.PAGE_SHOW_WEIBO, Const.PAGE_SHOW_WEIXIN,
+            Const.PAGE_SHOW_ZIMEITI,Const.PAGE_SHOW_LUNTAN,Const.PAGE_SHOW_DUANSHIPIN,Const.PAGE_SHOW_CHANGSHIPIN, Const.PAGE_SHOW_BOKE,  Const.PAGE_SHOW_GUOWAIXINWEN, Const.PAGE_SHOW_TWITTER, Const.PAGE_SHOW_FACEBOOK);
+
+    public static final List<String> ALL_GROUPNAME_SORT = Arrays.asList(Const.GROUPNAME_XINWEN,  Const.GROUPNAME_KEHUDUAN,Const.GROUPNAME_DIANZIBAO,Const.GROUPNAME_WEIBO, Const.GROUPNAME_WEIXIN,
+            Const.GROUPNAME_ZIMEITI,Const.GROUPNAME_LUNTAN,Const.GROUPNAME_DUANSHIPIN,Const.GROUPNAME_CHANGSHIPIN, Const.GROUPNAME_BOKE,  Const.GROUPNAME_GUOWAIXINWEN, Const.GROUPNAME_TWITTER,
+            Const.GROUPNAME_FACEBOOK);
+
+
+
 }
 
 /**

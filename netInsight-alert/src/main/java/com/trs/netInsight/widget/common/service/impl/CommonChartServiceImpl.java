@@ -1,22 +1,19 @@
 package com.trs.netInsight.widget.common.service.impl;
 
-import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
-import com.trs.netInsight.support.fts.builder.condition.Operator;
-import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.model.result.*;
-import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.util.CollectionsUtil;
 import com.trs.netInsight.util.MapUtil;
 import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.RedisUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -53,12 +50,18 @@ public class CommonChartServiceImpl implements ICommonChartService {
      */
     private <T extends IQueryBuilder> GroupResult getCategoryQueryData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
                                                                        String xyTrsl, String contrastField, String type) throws TRSException {
-        QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
-        Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+        /*QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
+        List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
         String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
         String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
         queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-        String[] database = TrslUtil.chooseDatabases(groupArray);
+        String[] database = TrslUtil.chooseDatabases(groupArray);*/
+        T newBuilder = builder;
+        QueryBuilder queryBuilder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(newBuilder,groupName,0);
+        if(queryBuilder == null){
+            //通过方法生成queryBuilder之后，判断是否存在可查询的数据源，无则返回null,则对应无可查询数据
+            return null;
+        }
         //获取基础的表达式
         String trsl = queryBuilder.asTRSL();
         GroupResult groupResult = null;
@@ -78,7 +81,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
                         specialBuilder.filterByTRSL(categoryBean.getValue());
                     }
                 }
-                specialBuilder.setDatabase(StringUtil.join(database, ";"));
+                specialBuilder.setDatabase(queryBuilder.getDatabase());
 
                 Long count = commonListService.ftsCount(specialBuilder, sim, irSimflag, irSimflagAll, type);
                 groupResult.addGroup(categoryBean.getKey(), count);
@@ -87,14 +90,13 @@ public class CommonChartServiceImpl implements ICommonChartService {
             QueryBuilder ordinaryBuilder = new QueryBuilder();
             ordinaryBuilder.filterByTRSL(trsl);
             ordinaryBuilder.setPageSize(queryBuilder.getPageSize());
-            ordinaryBuilder.setDatabase(StringUtil.join(database, ";"));
+            ordinaryBuilder.setDatabase(queryBuilder.getDatabase());
             groupResult = commonListService.categoryQuery(ordinaryBuilder, sim, irSimflag, irSimflagAll, contrastField, type);
 
         }
         return groupResult;
 
     }
-
 
     //柱状图
 
@@ -108,12 +110,13 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * @param xyTrsl  分类检索表达式  -- 通过这个字段判断是否是专家模式  专家模式单独分类统计每个分类的数据，与直接通过表达式统计不同
      * @param contrastField  分类统计字段  -- 普通模式采用这个字段进行统计
      * @param type  查询类型，对应用户限制查询时间的模块相同
+     * @param resultKey   这个是返回数据中对应的名字
      * @param <T>
      * @return
      * @throws TRSException
      */
     public <T extends IQueryBuilder> Object getBarColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
-                                                              String xyTrsl, String contrastField, String type) throws TRSException {
+                                                             String xyTrsl, String contrastField, String type, ChartResultField resultKey) throws TRSException {
         if (StringUtil.isEmpty(xyTrsl)) {
             if(StringUtil.isEmpty(contrastField)){
                 throw new OperationException("柱状图普通模式下没有对比字段");
@@ -121,48 +124,38 @@ public class CommonChartServiceImpl implements ICommonChartService {
         }
         List<Map<String, Object>> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(groupName)) {
-            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+            List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
             if (sourceList.size() > 0) {
                 try {
                     //用统一方法进行统计
                     GroupResult groupInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName, xyTrsl, contrastField, type);
-                    //专家模式
-                    //直接统计每个对比类型的数据
-                    if (StringUtil.isNotEmpty(xyTrsl)) {
-
-                        if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
-                            List<GroupInfo> groupList = groupInfos.getGroupList();
-                            for (GroupInfo groupInfo : groupList) {
-                                Map<String, Object> putValue = MapUtil.putValue(new String[]{"groupName", "group", "num"},
-                                        groupInfo.getFieldValue(), groupInfo.getFieldValue(), String.valueOf(groupInfo.getCount()));
-                                list.add(putValue);
-                            }
-                        }
-                    } else {
-                        if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
-                            List<GroupInfo> groupList = groupInfos.getGroupList();
-                            if (contrastField.equals(FtsFieldConst.FIELD_GROUPNAME)) {
-                                for (String group : sourceList) {
+                    if(groupInfos == null){
+                        return null;
+                    }
+                    if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
+                        List<GroupInfo> groupList = groupInfos.getGroupList();
+                        if (FtsFieldConst.FIELD_GROUPNAME.equals(contrastField)) {
+                            List<String> allList = Const.ALL_GROUPNAME_SORT;
+                            for (String oneGroupName : allList) {
+                                if (sourceList.contains(oneGroupName)) {
                                     Map<String, Object> putValue = new HashMap<>();
-                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(group);
-                                    putValue.put("groupName", pageGroupName);
-                                    putValue.put("group", pageGroupName);
+                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
+                                    putValue.put(resultKey.getContrastField(), pageGroupName);
+                                    putValue.put(resultKey.getCountField(), 0);
                                     for (GroupInfo groupInfo : groupList) {
-                                        if (group.equals(groupInfo.getFieldValue())) {
-                                            putValue.put("num", groupInfo.getCount());
+                                        if (oneGroupName.equals(groupInfo.getFieldValue())) {
+                                            putValue.put(resultKey.getCountField(), groupInfo.getCount());
                                             break;
-                                        } else {
-                                            putValue.put("num", 0);
                                         }
                                     }
                                     list.add(putValue);
                                 }
-                            } else {
-                                for (GroupInfo groupInfo : groupList) {
-                                    Map<String, Object> putValue = MapUtil.putValue(new String[]{"groupName", "group", "num"},
-                                            groupInfo.getFieldValue(), groupInfo.getFieldValue(), String.valueOf(groupInfo.getCount()));
-                                    list.add(putValue);
-                                }
+                            }
+                        } else {
+                            for (GroupInfo groupInfo : groupList) {
+                                Map<String, Object> putValue = MapUtil.putValue(new String[]{resultKey.getContrastField(), resultKey.getCountField()},
+                                        groupInfo.getFieldValue(),  String.valueOf(groupInfo.getCount()));
+                                list.add(putValue);
                             }
                         }
                     }
@@ -173,6 +166,76 @@ public class CommonChartServiceImpl implements ICommonChartService {
         }
         return list;
     }
+    //饼图
+
+    /**
+     *饼图数据查询
+     * @param builder  查询构造器 - 需要写明当前页条数和页码
+     * @param sim   单一媒体排重
+     * @param irSimflag  站内排重
+     * @param irSimflagAll  全网排重
+     * @param groupName  数据源，用;分号分割
+     * @param xyTrsl  分类检索表达式  -- 通过这个字段判断是否是专家模式  专家模式单独分类统计每个分类的数据，与直接通过表达式统计不同
+     * @param contrastField  分类统计字段  -- 普通模式采用这个字段进行统计
+     * @param type  查询类型，对应用户限制查询时间的模块相同
+     * @param resultKey   这个是返回数据中对应的名字
+     * @param <T>
+     * @return
+     * @throws TRSException
+     */
+    public <T extends IQueryBuilder> Object getPieColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName, String xyTrsl, String contrastField, String type, ChartResultField resultKey) throws TRSException {
+
+        if (StringUtil.isEmpty(xyTrsl)) {
+            if(StringUtil.isEmpty(contrastField)){
+                throw new OperationException("饼图普通模式下没有对比字段");
+            }
+        }
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (StringUtil.isNotEmpty(groupName)) {
+            List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
+            if (sourceList.size() > 0) {
+                try {
+                    //用统一方法进行统计
+                    GroupResult groupInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName, xyTrsl, contrastField, type);
+                    if(groupInfos == null){
+                        return null;
+                    }
+                    if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
+                        List<GroupInfo> groupList = groupInfos.getGroupList();
+                        if (FtsFieldConst.FIELD_GROUPNAME.equals(contrastField)) {
+                            List<String> allList = Const.ALL_GROUPNAME_SORT;
+                            for (String oneGroupName : allList) {
+                                if (sourceList.contains(oneGroupName)) {
+                                    Map<String, Object> putValue = new HashMap<>();
+                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
+                                    putValue.put(resultKey.getContrastField(), pageGroupName);
+                                    putValue.put(resultKey.getCountField(), 0);
+                                    for (GroupInfo groupInfo : groupList) {
+                                        if (oneGroupName.equals(groupInfo.getFieldValue())) {
+                                            putValue.put(resultKey.getCountField(), groupInfo.getCount());
+                                            break;
+                                        }
+                                    }
+                                    list.add(putValue);
+                                }
+                            }
+                        } else {
+                            for (GroupInfo groupInfo : groupList) {
+                                Map<String, Object> putValue = MapUtil.putValue(new String[]{resultKey.getContrastField(), resultKey.getCountField()},
+                                        groupInfo.getFieldValue(), String.valueOf(groupInfo.getCount()));
+                                list.add(putValue);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new TRSSearchException(e);
+                }
+            }
+        }
+        return list;
+
+    }
+
     //地图
 
     /**
@@ -184,12 +247,13 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * @param groupName  数据源，用;分号分割
      * @param contrastField  分类统计字段，-普通模式用这个字段进行统计
      * @param type  查询类型，对应用户限制查询时间的模块相同
+     * @param resultKey   这个是返回数据中对应的名字
      * @param <T>
      * @return
      * @throws TRSException
      */
     public <T extends IQueryBuilder> Object getMapColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
-                                                             String contrastField, String type) throws TRSException {
+                                                             String contrastField, String type, ChartResultField resultKey) throws TRSException {
 
         if (StringUtil.isEmpty(contrastField)) {
             throw new OperationException("没有准确填写对比字段");
@@ -221,8 +285,8 @@ public class CommonChartServiceImpl implements ICommonChartService {
                         }
 
                     }
-                    reMap.put("areaName", entry.getKey());
-                    reMap.put("areaCount", num);
+                    reMap.put(resultKey.getContrastField(), entry.getKey());
+                    reMap.put(resultKey.getCountField(), num);
                     list.add(reMap);
                 }
             } catch (Exception e) {
@@ -232,83 +296,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
         return list;
     }
 
-    //饼图
 
-    /**
-     *饼图数据查询
-     * @param builder  查询构造器 - 需要写明当前页条数和页码
-     * @param sim   单一媒体排重
-     * @param irSimflag  站内排重
-     * @param irSimflagAll  全网排重
-     * @param groupName  数据源，用;分号分割
-     * @param xyTrsl  分类检索表达式  -- 通过这个字段判断是否是专家模式  专家模式单独分类统计每个分类的数据，与直接通过表达式统计不同
-     * @param contrastField  分类统计字段  -- 普通模式采用这个字段进行统计
-     * @param type  查询类型，对应用户限制查询时间的模块相同
-     * @param <T>
-     * @return
-     * @throws TRSException
-     */
-    public <T extends IQueryBuilder> Object getPieColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName, String xyTrsl, String contrastField, String type) throws TRSException {
-
-        if (StringUtil.isEmpty(xyTrsl)) {
-            if(StringUtil.isEmpty(contrastField)){
-                throw new OperationException("柱状图普通模式下没有对比字段");
-            }
-        }
-        List<Map<String, Object>> list = new ArrayList<>();
-        if (StringUtil.isNotEmpty(groupName)) {
-            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
-            if (sourceList.size() > 0) {
-                try {
-                    //用统一方法进行统计
-                    GroupResult groupInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName, xyTrsl, contrastField, type);
-                    //专家模式
-                    //直接统计每个对比类型的数据
-                    if (StringUtil.isNotEmpty(xyTrsl)) {
-                        if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
-                            List<GroupInfo> groupList = groupInfos.getGroupList();
-                            for (GroupInfo groupInfo : groupList) {
-                                Map<String, Object> putValue = MapUtil.putValue(new String[]{"groupName", "group", "num"},
-                                        groupInfo.getFieldValue(), groupInfo.getFieldValue(), String.valueOf(groupInfo.getCount()));
-                                list.add(putValue);
-                            }
-                        }
-                    } else {
-                        if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
-                            List<GroupInfo> groupList = groupInfos.getGroupList();
-                            if (contrastField.equals(FtsFieldConst.FIELD_GROUPNAME)) {
-                                for (String group : sourceList) {
-                                    Map<String, Object> putValue = new HashMap<>();
-                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(group);
-                                    putValue.put("groupName", pageGroupName);
-                                    putValue.put("group", pageGroupName);
-                                    for (GroupInfo groupInfo : groupList) {
-                                        if (group.equals(groupInfo.getFieldValue())) {
-                                            putValue.put("num", groupInfo.getCount());
-                                            break;
-                                        } else {
-                                            putValue.put("num", 0);
-                                        }
-                                    }
-                                    list.add(putValue);
-                                }
-                            } else {
-                                for (GroupInfo groupInfo : groupList) {
-                                    Map<String, Object> putValue = MapUtil.putValue(new String[]{"groupName", "group", "num"},
-                                            groupInfo.getFieldValue(), groupInfo.getFieldValue(), String.valueOf(groupInfo.getCount()));
-                                    list.add(putValue);
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new TRSSearchException(e);
-                }
-            }
-        }
-        return list;
-
-    }
 
     //词云图
 
@@ -326,18 +314,10 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * @throws TRSException
      */
     public <T extends IQueryBuilder> Object getWordCloudColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll,
-                                                             String groupName, String entityType, String type) throws TRSException {
+                                                                   String groupName, String entityType, String type) throws TRSException {
         try {
             GroupWordResult wordInfos = new GroupWordResult();
-            QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
-
-            Set<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
-            String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
-            String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
-            queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-            String[] database = TrslUtil.chooseDatabases(groupArray);
-            queryBuilder.setDatabase(StringUtil.join(database, ";"));
-
+            QueryBuilder queryBuilder =(QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(builder,groupName,0);
 
             if ("keywords".equals(entityType)) {
                 // 人物、地域、机构
@@ -411,92 +391,150 @@ public class CommonChartServiceImpl implements ICommonChartService {
 
 
     //折线图
-
-
-
-
-
-
-    //热点列表
+    //groupField 为折线图x轴字段   如果为按小时显示，因为Hybase查询时，按小时只能显示小时数，所以按小时查询时，一次最多显示一天的数据，方法内不对返回的时间做处理，所以在按小时查询时，传进来的groupData的值完全与hybase查询结果一样
 
     /**
-     * 热点信息查询
-     * @param builder  查询构造器  需要拼接好要查询数据源，需要将可查询数据库放入对应字段
-     * @param source 要查询的数据源类型，用;分割
-     * @param pageSize  查询条数
-     * @param type  查询类型，对应用户限制查询时间的模块相同
+     *
+     * @param builder  检索构造器
+     * @param sim  单一媒体排重
+     * @param irSimflag  站内排重
+     * @param irSimflagAll  全网排重
+     * @param groupName  要查询的数据源，用;分号分割
+     * @param type   查询类型，对应用户限制查询时间的模块相同
+     * @param xyTrsl  分类对比查询表达式 -- 专家模式下，用户填写的分类对比表达式，这个字段有值时，不要写下面的contrastField和  contrastData
+     * @param contrastField   对比字段
+     * @param contrastData  对比字段中要对比的数据集合，例如对比字段是groupName，那么这个字段的值应该为对应的要对比的数据源如新闻等。
+     * @param groupField   这个为x轴对应的字段，例如日常监测中的折线图x轴为时间，则这个字段为时间字段，一条线为一个按时间进行统计分析的结果
+     * @param groupData  这个为x轴对应的展示数据，这个值需要与hybase查询到的统计结果的key值相同，分则无效
+     * @param resultKey   这个是返回数据中对应的名字
      * @param <T>
      * @return
      * @throws TRSException
      */
-    public <T extends IQueryBuilder> Object getHotListColumnData(T builder,String source,Integer pageSize, String type) throws TRSException {
-        List<Map<String, Object>> list = new ArrayList<>();
+    public <T extends IQueryBuilder> Object getChartLineColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName, String type, String xyTrsl,
+                                                                   String contrastField, List<String> contrastData, String groupField, List<String> groupData, ChartResultField resultKey) throws TRSException {
         try {
-            QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
-            Set<String> sourceList = CommonListChartUtil.formatGroupName(source);
-            String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
-            String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
-            queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-            String[] database = TrslUtil.chooseDatabases(groupArray);
-            queryBuilder.setDatabase(StringUtil.join(database,";"));
-            if (database == null) {
-                queryBuilder.setDatabase(Const.MIX_DATABASE);
-            }
+            QueryBuilder queryBuilder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(builder,groupName,0);
 
-            queryBuilder.setPageSize(pageSize);
-            String uid = UUID.randomUUID().toString();
-            RedisUtil.setString(uid, queryBuilder.asTRSL());
-            queryBuilder.setKeyRedis(uid);
-            PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotBase(queryBuilder, type);
-            Map<String, Object> map = null;
-            if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
-                return list;
-            }
-            List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
-            for (FtsDocumentCommonVO vo : voList) {
-                map = new HashMap<>();
-                String groupName = vo.getGroupName();
-                if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
-
-                }
-                map.put("sid", vo.getSid());
-                map.put("title", StringUtil.replacePartOfHtml(vo.getTitle()));
-                if ("微博".equals(groupName)) {
-                    map.put("siteName", vo.getScreenName());
+            //折线图特殊的地方，需要三个维度的参数
+            //一条线代表一个分类统计结果
+            if (StringUtil.isEmpty(xyTrsl)) {
+                if (StringUtil.isEmpty(contrastField)) {
+                    throw new OperationException("折线图普通模式下没有对比字段");
                 } else {
-                    map.put("siteName", vo.getSiteName());
+                    if (contrastData == null || contrastData.size() == 0) {
+                        contrastData = new ArrayList<>();
+                        queryBuilder.setPageSize(8);
+                        GroupResult result = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, contrastField, type);
+                        if (result != null) {
+                            List<GroupInfo> groupList = result.getGroupList();
+                            if (groupList != null && groupList.size() > 0) {
+                                for (GroupInfo groupInfo : groupList) {
+                                    contrastData.add(groupInfo.getFieldValue());
+                                }
+                            }
+                        }
+                    }
                 }
-                map.put("urlName", vo.getUrlName());
-                map.put("hkey", vo.getHkey());
-                map.put("simCount", String.valueOf(vo.getSimCount()));
-                map.put("trslk", uid);
-                map.put("groupName", groupName);
-                map.put("nreserved1", vo.getNreserved1());
-                map.put("catalogArea", vo.getCatalogArea());
-                map.put("location", vo.getLocation());
-                // 获得时间差
-                Map<String, String> timeDifference = DateUtil.timeDifference(vo);
-                boolean isNew = false;
-                if (ObjectUtil.isNotEmpty(timeDifference.get("timeAgo"))) {
-                    isNew = true;
-                    map.put("timeAgo", timeDifference.get("timeAgo"));
-                } else {
-                    map.put("timeAgo", timeDifference.get("urlTime"));
-                }
-                map.put("isNew", isNew);
-                map.put("md5Tag", vo.getMd5Tag());
-                map.put("urlTime", vo.getUrlTime());
-                list.add(map);
-
             }
-        } catch (Exception e) {
-            throw new TRSSearchException("HotColumn error:" + e);
+            if (StringUtil.isEmpty(groupField)) {
+                throw new OperationException("折线图没有标明x轴字段属性");
+            }
+            if (!CollectionsUtil.isNotEmpty(groupData)) {
+                throw new OperationException("折线图x轴无数据");
+            }
+            List<CategoryBean> categoryBeans = new ArrayList<>();
+            if(StringUtil.isNotEmpty(xyTrsl)){
+                categoryBeans =  CommonListChartUtil.getMediaType(xyTrsl);
+            }else{
+                for(String contrast:contrastData){
+                    String categoryBeanKey = contrast;
+                    if(contrastField.equals(FtsFieldConst.FIELD_GROUPNAME)){
+                        contrast = Const.SOURCE_GROUPNAME_CONTRAST.get(contrast);
+                        categoryBeanKey = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(contrast);
+                    }
+                    String value = contrastField+":("+contrast+")";
+                    categoryBeans.add(new CategoryBean(categoryBeanKey,value));
+                }
+            }
+
+
+            int pageSize = groupData.size() + 1;
+
+            Map<String ,List<Object>> result = new HashMap<>();
+            List<Object> contrastList = new ArrayList<>();
+            List<Object> dataList = new ArrayList<>();
+            List<Object> totalList = new ArrayList<>();
+            for (CategoryBean categoryBean : categoryBeans) {
+                Map<String, Long> dataMap = new LinkedHashMap<>();
+                for (String xField : groupData) {
+                    dataMap.put(xField, 0L);
+                }
+                String categoryBeanKey = categoryBean.getKey();
+                QueryBuilder categoryBuilder = new QueryBuilder();
+                categoryBuilder.filterByTRSL(queryBuilder.asTRSL());
+                categoryBuilder.setDatabase(queryBuilder.getDatabase());
+                categoryBuilder.setPageSize(pageSize);
+
+                if(StringUtil.isEmpty(xyTrsl) && contrastField.equals(FtsFieldConst.FIELD_GROUPNAME)){
+                    String group = Const.SOURCE_GROUPNAME_CONTRAST.get(categoryBeanKey);
+                    String categoryDatabase = TrslUtil.chooseDatabases(group);
+                    categoryBuilder.setDatabase(categoryDatabase);
+                }
+                if(StringUtil.isNotEmpty(categoryBean.getValue())){
+                    String value = categoryBean.getValue().toLowerCase().trim();
+                    if(value.startsWith("not")){
+                        categoryBuilder.filterByTRSL_NOT(categoryBean.getValue().substring(3,categoryBean.getValue().length()));
+                    }else {
+                        categoryBuilder.filterByTRSL(categoryBean.getValue());
+                    }
+                }
+                GroupResult groupInfos = null;
+                try {
+                    groupInfos = commonListService.categoryQuery(categoryBuilder,sim,irSimflag,irSimflagAll,groupField,type);
+                } catch (TRSSearchException e) {
+                    throw new TRSSearchException(e);
+                }
+                if(groupInfos != null){
+                    List<GroupInfo> groupList = groupInfos.getGroupList();
+                    if (groupInfos.getGroupList() != null && groupInfos.getGroupList().size() > 0) {
+                        for (GroupInfo groupInfo : groupList) {
+                            if(dataMap.containsKey(groupInfo.getFieldValue())){
+                                dataMap.put(groupInfo.getFieldValue(),groupInfo.getCount());
+                            }
+                        }
+                    }
+                }
+
+                List<Long> oneData = new ArrayList<>();
+                int i =0;
+                int totaolSize = totalList.size();
+                for(Map.Entry<String,Long> entry :dataMap.entrySet()){
+                    oneData.add(entry.getValue());
+                    Long total =entry.getValue();
+                    if(totaolSize > 0){
+                        total=total + (Long)totalList.get(i);
+                        totalList.set(i , total);
+                    }else{
+                        totalList.add(total);
+                    }
+                    i++;
+                }
+                dataList.add(oneData);
+                contrastList.add(categoryBeanKey);
+            }
+            List<Object> lineXList = new ArrayList<>();
+            lineXList.addAll(groupData);
+            result.put(resultKey.getLineXField(),lineXList);
+            result.put(resultKey.getCountField(),dataList);
+            result.put(resultKey.getContrastField(),contrastList);
+            result.put("total",totalList);
+
+            return result;
+        } catch (TRSSearchException e) {
+            throw new TRSSearchException(e);
         }
-        return list;
-
     }
 
-
-    //列表数据源统计
 
 }

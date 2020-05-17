@@ -290,6 +290,10 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
      * 相似文章数
      */
     private long simCount;
+    /**
+     * 相似文章数
+     */
+    private int sim;
 
     /**
      * 相似文章数
@@ -361,6 +365,8 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
      */
     @FtsField("IR_LOCATION")
     private String location;
+    @FtsField("IR_VIA")
+    private String via;
 //    @FtsField("IR_VRESERVED1")
 //    private String vreserved1;
 //    @FtsField("IR_VRESERVED2")
@@ -392,6 +398,11 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
     private String vreserved2;
 
     /**
+     * 转发消息的url
+     */
+    @FtsField("IR_RETWEETED_URL")
+    private String retweetedUrl;
+    /**
      * 电子报专属  vreserved1 + vreserved2 确定一个位置
      */
     private String vreserved;
@@ -414,6 +425,13 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
         }else {
             return srcName;
         }
+    }
+    /**
+     * 用于引爆点
+     * @return
+     */
+    public String beforeUrl() {
+        return StringUtil.isEmpty(this.urlName) ? this.retweetedUrl : this.urlName;
     }
 }
 

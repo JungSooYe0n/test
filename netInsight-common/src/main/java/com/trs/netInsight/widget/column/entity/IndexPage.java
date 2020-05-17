@@ -1,21 +1,24 @@
 package com.trs.netInsight.widget.column.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import java.util.List;
+import org.hibernate.annotations.Cascade;
 
 /**
- * 一二级栏目实体类
- * 
+ * 栏目分组类
+ *
  * @author xiaoying
  *
  */
@@ -28,19 +31,28 @@ import java.util.List;
 public class IndexPage extends BaseEntity {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 3511154541081924351L;
 
 	/**
-	 * 一级栏目ID
+	 * 子类
 	 */
+	@JsonIgnore
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name = "parent_id")
+	@OrderBy("sequence asc")
+	private List<IndexPage> childrenPage = new ArrayList<>();
+
 	@Column(name = "parent_id")
 	private String parentId;
 
 	/**
-	 * 一级栏目名
+	 * 栏目名
 	 */
+	@Column(name = "name")
+	private String name;
+
 	@Column(name = "parent_name")
 	private String parentName;
 
@@ -51,7 +63,7 @@ public class IndexPage extends BaseEntity {
 	private boolean hide;
 
 	/**
-	 * 自定义类型导航栏的id
+	 * 自定义类型导航栏的id，如果为默认为“”
 	 */
 	@Column(name = "type_id")
 	private String typeId;
@@ -60,17 +72,15 @@ public class IndexPage extends BaseEntity {
 	 * 排序
 	 */
 	@Column(name = "sequence", columnDefinition = "INT default 0")
-	private int sequence;
+	private Integer sequence;
 
 	/**
 	 * 机构内共享
 	 */
 	@Column(name = "share")
 	private boolean share = false;
-	
-	/**
-	 * 是不是排序过的数据  after代表排序过的或者是新数据  否则是老数据
-	 */
+
+
 	@Column(name = "order_before")
 	private String  orderBefore = "after";
 
@@ -79,41 +89,51 @@ public class IndexPage extends BaseEntity {
 	 */
 	@Transient
 	private List<IndexTab> indexTabs;
-	
+
 	/**
-	 * 截断关联关系
+	 * 标识是分组还是栏目  -  前端使用
 	 */
 	@Transient
-	private List<IndexTabMapper> indexTabMappers;
-	
+	private Integer flag = ColumnFlag.IndexPageFlag.ordinal();
+
+	/**
+	 * 日常监测分组和栏目列表展示用
+	 */
+	@Transient
+	private List<Object> columnList = new ArrayList<>();
+
+	/**
+	 * 截断关联关系  - 向前端返回值时，忽略该属性
+	 */
+	@JsonIgnore
+	@OneToMany(mappedBy = "indexPage", cascade = CascadeType.DETACH)
+	private List<IndexTabMapper> indexTabMappers = new ArrayList<>();
+
 	/**
 	 * 有参构造函数
-	 * 
-	 * @param parentName
+	 *
+	 * @param name
 	 */
-	public IndexPage(String parentName, String parentId) {
-		this.parentName = parentName;
+	public IndexPage(String name, String parentId) {
+		this.name = name;
 		// 默认不隐藏
 		this.hide = false;
-		// this.sonId=sonId;
-		// this.sonName=sonName;
 	}
 
 	/**
 	 * 复制page
-	 * 
+	 *
 	 * @date Created at 2018年3月22日 上午11:12:27
 	 * @Author 谷泽昊
 	 * @return
 	 */
 	public IndexPage pageCopy() {
-		return new IndexPage(parentId, parentName, hide, typeId, sequence);
+		return new IndexPage(name, hide, typeId, sequence);
 	}
 
-	public IndexPage(String parentId, String parentName, boolean hide, String typeId, int sequence) {
+	public IndexPage(String name, boolean hide, String typeId, int sequence) {
 		super();
-		this.parentId = parentId;
-		this.parentName = parentName;
+		this.name = name;
 		this.hide = hide;
 		this.typeId = typeId;
 		this.sequence = sequence;

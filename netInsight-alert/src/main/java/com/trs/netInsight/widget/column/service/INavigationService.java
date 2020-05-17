@@ -1,11 +1,12 @@
 package com.trs.netInsight.widget.column.service;
 
-import java.util.List;
-
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.widget.column.entity.NavigationConfig;
 import com.trs.netInsight.widget.user.entity.SubGroup;
 import com.trs.netInsight.widget.user.entity.User;
+
+import java.util.List;
+
 /**
  * 导航栏
  * @author xiaoying
@@ -17,51 +18,51 @@ public interface INavigationService {
 	 * @param userId
 	 * @return
 	 */
-	List<NavigationConfig> findByUserIdOrSubGroupIdAndSort(String userId,String sortBy);
-	
+	List<NavigationConfig> findByUserIdOrSubGroupIdAndSort(String userId, String sortBy);
+
 	/**
 	 * @return
 	 */
 	NavigationConfig addNavigation(String name);
-	
+
 	/**
 	 * 删除该导航栏下的所有一级二级栏目
 	 * @param typeId
 	 * @return
 	 */
 	public Object deleteNavigation(String typeId) throws OperationException;
-	
+
 	/**
 	 * 导航栏拖拽
 	 * @param typeId
 	 * @return
 	 */
 	public Object moveNavigation(String typeId);
-	
+
 	/**
-	 * 
+	 *
 	 * 导航栏隐藏显示接口
 	 * @param typeId 导航栏id
 	 * @param hide 隐藏true 不隐藏false
 	 */
-	public Object hideOrShowNavi(String typeId,boolean hide);
-	
+	public Object hideOrShowNavi(String typeId, boolean hide);
+
 	/**
 	 * 修改导航栏
 	 * @param typeId 导航栏id
 	 * @param name 修改后的名字
 	 * @return
 	 */
-	public Object updateNavigation(String typeId,String name);
+	public Object updateNavigation(String typeId, String name);
 
-	void copyNavigation2Common(User orgUser,User user);
+	void copyNavigation2Common(User orgUser, User user);
 
 	/**
 	 * 权限重构 机构管理员数据 同步到某用户分组下
 	 * @param navIds
 	 * @param subGroup
 	 */
-	void copySomeNavigationToUserGroup(List<String> navIds,SubGroup subGroup);
+	void copySomeNavigationToUserGroup(List<String> navIds, SubGroup subGroup);
 	
 	/**
 	 * 根据id查询

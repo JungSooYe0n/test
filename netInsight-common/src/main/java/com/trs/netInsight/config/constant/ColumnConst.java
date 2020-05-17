@@ -26,46 +26,68 @@ import com.trs.netInsight.widget.home.entity.enums.ColumnType;
  */
 public class ColumnConst {
 
+
 	/**
-	 * 栏目类型:图表-饼图
+	 * *****************************************************************************
+	 * 栏目类型
 	 */
-	public static final String CHART_PIE = "pieChart";
+	/**
+	 * 栏目类型:无相似文章列表
+	 */
+	public static final String LIST_NO_SIM = "timeListInfo";
+
+	/**
+	 * 栏目类型:有相似文章列表
+	 */
+	public static final String LIST_SIM = "md5ListInfo";
+	/**
+	 * 微博热点话题榜
+	 */
+	public static final String HOT_TOPIC_SORT = "hotTopicSort";
+
+	/**
+	 * 栏目类型:图表-词云图
+	 */
+	public static final String CHART_WORD_CLOUD = "wordCloudChart";
+
+	/**
+	 * 栏目类型:图表-地图
+	 */
+	public static final String CHART_MAP = "mapChart";
+
+	/**
+	 * 栏目类型:图表-柱状图  默认的图
+	 */
+	public static final String CHART_BAR = "barGraphChart";
+	/**
+	 * 栏目类型:图表-柱状图横向的柱状图 - 日常监测特殊的图
+	 */
+	public static final String CHART_BAR_CROSS = "crossBarGraphChart";
+
 	/**
 	 * 栏目类型:图表-折线图
 	 */
 	public static final String CHART_LINE = "brokenLineChart";
+
 	/**
-	 * 栏目类型:图表-柱状图
+	 * 栏目类型:图表-饼图 - 环状  默认的图
 	 */
-	public static final String CHART_BAR = "barGraphChart";
+	public static final String CHART_PIE = "pieChart";
+
 	/**
-	 * 栏目类型:图表-柱状图-按照媒体计算(以媒体类型为x轴)
+	 * 栏目类型:图表-饼图 - 实心 前端页面展示不一样的图，后端无用
 	 */
-	public static final String CHART_BAR_BY_COMMON = "barGraphChartCommon";
+	public static final String CHART_PIE_EMOTION = "emotionPieChart";
+
 	/**
-	 * 栏目类型:图表-柱状图-普通(单媒体分类)
+	 * *****************************************************************************
+	 * 对比类型
 	 */
-	public static final String CHART_BAR_BY_META = "barGraphChartMeta";
-	
-	/**
-	 * 栏目类型:图表-柱状图-按照媒体计算(以媒体类型为x轴)
-	 */
-	public static final String CHART_PIE_BY_COMMON = "pieGraphChartCommon";
-	/**
-	 * 栏目类型:图表-柱状图-普通(单媒体分类)
-	 */
-	public static final String CHART_PIE_BY_META = "pieGraphChartMeta";
-	
-	/**
-	 * 分类对比图
-	 */
-	public static final String CHART_CONTRAST = "contrastChart";
-	
 	/**
 	 * 分类对比图类型-按来源分类
 	 */
 	public static final String CONTRAST_TYPE_GROUP = "contrastGroup";
-	
+
 	/**
 	 * 分类对比图类型-按站点分类
 	 */
@@ -83,53 +105,27 @@ public class ColumnConst {
 	 * 分类对比图类型- 地图 - 媒体属地
 	 */
 	public static final String CONTRAST_TYPE_MEDIA_AREA = "mediaArea";
-	/**
-	 * 栏目类型:图表-词云图
-	 */
-	public static final String CHART_WORD_CLOUD = "wordCloudChart";
-	/**
-	 * 栏目类型:图表-地图
-	 */
-	public static final String CHART_MAP = "mapChart";
 
-	/**
-	 * 栏目类型:无相似文章列表
-	 */
-	public static final String LIST_NO_SIM = "timeListInfo";
 
-	/**
-	 * 栏目类型：微信  微博
-	 */
-	public static final String LIST_WECHAT_STATUS = "listWeChatCommon;listStatusCommon";
 
-	/**
-	 * 栏目类型: 普通微博列表
-	 */
-	public static final String LIST_STATUS_COMMON = "listStatusCommon";
-	
-	/**
-	 * 栏目类型: 普通微信列表
-	 */
-	public static final String LIST_WECHAT_COMMON = "listWeChatCommon";
-	
-	/**
-	 * 栏目类型: Twitter
-	 */
-	public static final String LIST_TWITTER = "Twitter";
-	
-	/**
-	 * 栏目类型: FaceBook
-	 */
-	public static final String LIST_FaceBook = "FaceBook";
-	
-	/**
-	 * 栏目类型:有相似文章列表
-	 */
-	public static final String LIST_SIM = "md5ListInfo";
-	/**barGraphChartMeta
-	 * 栏目类型：传统，微信，微博三库 联查列表
-	 */
-	public static final String LIST_CHAOS_DOCUMENT = "listDocumentChaos";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	/**
 	 * 预警列表栏目
@@ -199,12 +195,43 @@ public class ColumnConst {
 	 */
 	public static Columns[] BLANK_COLUMNS = { CO_DISTRICT, CO_HOT_MBLOG, CO_NEWS_FOCUS, CO_SEARCH_P, CO_SEARCH_W };
 
+
+	/**
+	 * 要删除没用的字段
+	 */
+	/**
+	 * 栏目类型: 普通微博列表
+	 */
+	public static final String LIST_STATUS_COMMON = "listStatusCommon";
+
+	/**
+	 * 栏目类型: 普通微信列表
+	 */
+	public static final String LIST_WECHAT_COMMON = "listWeChatCommon";
+
+	/**
+	 * 栏目类型: Twitter
+	 */
+	public static final String LIST_TWITTER = "Twitter";
+
+	/**
+	 * 栏目类型: FaceBook
+	 */
+	public static final String LIST_FaceBook = "FaceBook";
+
+
+	/**barGraphChartMeta
+	 * 栏目类型：传统，微信，微博三库 联查列表
+	 */
+	public static final String LIST_CHAOS_DOCUMENT = "listDocumentChaos";
+
+
 }
 
 /**
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2017年11月27日 Administrator creat

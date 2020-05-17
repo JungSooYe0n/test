@@ -2,22 +2,28 @@ package com.trs.netInsight.widget.column.service.impl;
 
 import com.trs.jpa.utils.Criteria;
 import com.trs.jpa.utils.Restrictions;
+import com.trs.netInsight.config.constant.ColumnConst;
+import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.TRSException;
+import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.util.CollectionsUtil;
 import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
-import com.trs.netInsight.widget.column.service.IIndexPageService;
-import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
-import com.trs.netInsight.widget.column.service.IIndexTabService;
+import com.trs.netInsight.widget.column.repository.IndexTabRepository;
+import com.trs.netInsight.widget.column.service.*;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import com.trs.netInsight.widget.user.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -29,29 +35,38 @@ import java.util.*;
 
 /**
  * 栏目映射关系操作服务实现类
- * 
+ *
  * @author 北京拓尔思信息技术股份有限公司
  * @since changjiang @ 2018年9月18日
  *
  */
 @Service
+@Slf4j
 public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 
 	@Autowired
 	private IndexTabMapperRepository tabMapperRepository;
 
 	@Autowired
+	private IndexTabRepository indexTabRepository;
+
+	@Autowired
 	private IIndexTabService indexTabService;
 
 	@Autowired
-	private OrganizationRepository organizationRepository;
+	private OrganizationRepository organizationService;
 
 	@Autowired
 
 	private IIndexPageService indexPageService;
 
 	@Autowired
-	private UserRepository userRepository;
+	private UserRepository userService;
+	@Autowired
+	private IColumnService columnService;
+
+	@Autowired
+	private IColumnChartService columnChartService;
 
 	@Override
 	public IndexTabMapper findOne(String indexTabMapperId) {
@@ -70,22 +85,19 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 		User user = UserUtils.getUser();
 		// 计算数量
 		List<ClassInfo> results = null;
-		//if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
-			results = this.tabMapperRepository.computeCountByOrgIdGroupByUserId(user.getOrganizationId());
-//		}else {
-//			results = this.tabMapperRepository.computeCountBysubGroupIdGroupByUserId(user.getSubGroupId());
-//		}
+		results = this.tabMapperRepository.computeCountByOrgIdGroupByUserId(user.getOrganizationId());
+
 		List<Map<String, Object>> data = new ArrayList<>(results.size());
 		Map<String, Object> userMap = null;
 		// 排除自身并完成排序
-		Organization organization = organizationRepository.findOne(user.getOrganizationId());
+		Organization organization = organizationService.findOne(user.getOrganizationId());
 		if (organization != null) {
 			// 获取机构管理员用户
-			User admin = userRepository.findOne(organization.getAdminUserId());
+			User admin = userService.findOne(organization.getAdminUserId());
 			if (results != null && results.size() > 0) {
 				for (ClassInfo classInfo : results) {
 					userMap = new HashMap<>();
-					User currcentUser = userRepository.findOne(classInfo.strValue);
+					User currcentUser = userService.findOne(classInfo.strValue);
 					if (currcentUser == null) {
 						continue;
 					}
@@ -121,7 +133,8 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 
 	@Override
 	public void delete(String mapperId) {
-
+		Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapperId);
+		log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
 		this.tabMapperRepository.delete(mapperId);
 	}
 
@@ -132,8 +145,6 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 			for (IndexTabMapper indexTabMapper : indexTabMappers) {
 				this.deleteMapper(indexTabMapper.getId());
 			}
-//			tabMapperRepository.delete(indexTabMappers);
-//			tabMapperRepository.flush();
 		}
 	}
 
@@ -157,6 +168,12 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 				if (aboutMappers.contains(indexTabMapper)) {
 					aboutMappers.remove(indexTabMapper);
 				}
+				//引用栏目对应的图表信息也应该删除
+				Integer deleteAbMapperColumnChart = 0;
+				for(IndexTabMapper abMapper : aboutMappers){
+					deleteAbMapperColumnChart+= columnChartService.deleteCustomChartForTabMapper(abMapper.getId());
+				}
+				log.info("删除当前栏目相关统计和自定义图表共："+deleteAbMapperColumnChart +"条");
 				tabMapperRepository.delete(aboutMappers);
 			}
 			this.tabMapperRepository.save(changeMappers);
@@ -212,7 +229,7 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 	public List<IndexPage> searchOrgAdminSharePages() {
 		// 检索当前机构
 		User current = UserUtils.getUser();
-		Organization organization = organizationRepository.findOne(current.getOrganizationId());
+		Organization organization = this.organizationService.findOne(current.getOrganizationId());
 		return this.indexPageService.findByUserIdAndShare(organization.getAdminUserId(), true);
 	}
 
@@ -292,21 +309,19 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 			if (indexTabList.get(i).getAppsequence() == 0){
 				IndexTabMapper mapper = indexTabList.get(i);
 				IndexTab indexTab = mapper.getIndexTab();
-				String[] typeList = indexTab.getType();
-				String type = com.alibaba.dubbo.common.utils.StringUtils.join(typeList,';');
+				String type = indexTab.getType();
 				//app日常监测新增图表类栏目
 				//if (type.indexOf(ColumnConst.LIST_STATUS_COMMON)!=-1||type.indexOf(ColumnConst.LIST_TWITTER)!=-1||type.indexOf(ColumnConst.LIST_FaceBook)!=-1
-					//	||type.indexOf(ColumnConst.LIST_WECHAT_COMMON)!=-1||type.indexOf(ColumnConst.LIST_NO_SIM)!=-1||type.indexOf(ColumnConst.LIST_SIM)!=-1){
-					if (Boolean.valueOf(mapper.isHide())){
-						mapper.setAppsequence(hideList.size()+1);
-						IndexTabMapper sortedMapper = tabMapperRepository.save(mapper);
-						hideList.add(sortedMapper);
-					}else{
-						mapper.setAppsequence(nohideList.size()+1);
-						IndexTabMapper sortedMapper = tabMapperRepository.save(mapper);
-						nohideList.add(sortedMapper);
-					}
-				//}
+				//	||type.indexOf(ColumnConst.LIST_WECHAT_COMMON)!=-1||type.indexOf(ColumnConst.LIST_NO_SIM)!=-1||type.indexOf(ColumnConst.LIST_SIM)!=-1){
+				if (Boolean.valueOf(mapper.isHide())){
+					mapper.setAppsequence(hideList.size()+1);
+					IndexTabMapper sortedMapper = tabMapperRepository.save(mapper);
+					hideList.add(sortedMapper);
+				}else{
+					mapper.setAppsequence(nohideList.size()+1);
+					IndexTabMapper sortedMapper = tabMapperRepository.save(mapper);
+					nohideList.add(sortedMapper);
+				}
 
 			}
 		}
@@ -326,21 +341,25 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 				for (String ids : idsplit) {
 					IndexTabMapper mapper = tabMapperRepository.findOne(ids);
 					// 修改顺序
-					if (mapper != null && mapper.getIndexPage() != null) {
-						List<IndexTabMapper> mappers = tabMapperRepository.findByIndexPage(mapper.getIndexPage());
-						if (CollectionsUtil.isNotEmpty(mappers)) {
-							for (IndexTabMapper indexTabMapper : mappers) {
-								if (indexTabMapper.getSequence() > mapper.getSequence()) {
-									indexTabMapper.setSequence(indexTabMapper.getSequence() - 1);
-								}
-							}
-						}
-						// 考虑加锁 一个一个存
-						tabMapperRepository.save(mappers);
+					if (mapper != null) {
+						String typeId = mapper.getTypeId();
+						User user = userService.findOne(mapper.getUserId());
+
+						//对同层级的数据重新排序 - 去掉自己
+						//栏目类型为1，
+						columnService.moveSequenceForColumn(mapper.getId(), ColumnFlag.IndexTabFlag,user);
+						//删除当前栏目对应的自定义图表
+						Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+						log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
 						if (mapper.isMe()) {
 							// 删除所有相关的mapper
 							List<IndexTabMapper> aboutMapper = tabMapperRepository.findByIndexTab(mapper.getIndexTab());
 							tabMapperRepository.delete(aboutMapper);
+							Integer deleteAbMapperColumnChart = 0;
+							for(IndexTabMapper abMapper : aboutMapper){
+								deleteAbMapperColumnChart+= columnChartService.deleteCustomChartForTabMapper(abMapper.getId());
+							}
+							log.info("删除当前栏目相关统计和自定义图表共："+deleteAbMapperColumnChart +"条");
 							indexTabService.delete(mapper.getIndexTab().getId());
 						} else {
 							// 引用栏目只删除本身
@@ -348,7 +367,6 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 						}
 					}
 				}
-
 			}
 		} catch (Exception e) {
 			throw new TRSException(e);
@@ -371,7 +389,7 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 
 	/**
 	 * 批量修改隐藏状态
-	 * 
+	 *
 	 * @since changjiang @ 2018年10月10日
 	 * @param mapperIds
 	 * @param hide
@@ -424,6 +442,8 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 
 	@Override
 	public void delete(IndexTabMapper mapper) {
+		Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+		log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
 		tabMapperRepository.delete(mapper);
 	}
 
@@ -457,5 +477,30 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 		}
 
 	}
+
+	public Object updateHistortIndexTab(){
+		try{
+			List<IndexTabMapper> list = tabMapperRepository.findAll();
+			if(list != null && list.size() >0){
+				for(IndexTabMapper indexTabMapper : list){
+					IndexPage indexPage = indexTabMapper.getIndexPage();
+					IndexTab indexTab = indexTabMapper.getIndexTab();
+					indexTab.setTypeId(indexPage.getTypeId());
+					indexTabMapper.setTypeId(indexPage.getTypeId());
+					indexTabMapper.setIndexTab(indexTab);
+					tabMapperRepository.save(indexTabMapper);
+					indexTabRepository.save(indexTab);
+				}
+				tabMapperRepository.flush();
+				indexTabRepository.flush();
+			}
+			return "没毛病，你就放心吧";
+		}catch (Exception e){
+
+			return "修改失败了哦" + e.getMessage();
+		}
+	}
+
+
 
 }

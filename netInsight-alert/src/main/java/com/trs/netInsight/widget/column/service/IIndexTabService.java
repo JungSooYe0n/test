@@ -13,13 +13,11 @@
  */
 package com.trs.netInsight.widget.column.service;
 
-import java.util.List;
-
+import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.data.domain.Sort;
 
-import com.trs.jpa.utils.Criteria;
-import com.trs.netInsight.widget.column.entity.IndexTab;
+import java.util.List;
 
 /**
  * @Type IThreeEntityService.java
@@ -86,6 +84,8 @@ public interface IIndexTabService {
 	 * @return
 	 */
 	public Object save(IndexTab threeEntity);
+
+	Object save(IndexTab threeEntity, Boolean changeMapper);
 	
 	/**
 	 * 保存
@@ -146,6 +146,8 @@ public interface IIndexTabService {
 	public List<IndexTab> findWordCloudIndexTab(String groupName);
 
 	public List<IndexTab> findMapIndexTab(String groupName);
+
+	Object updateHistortColumnField();
 
 }
 

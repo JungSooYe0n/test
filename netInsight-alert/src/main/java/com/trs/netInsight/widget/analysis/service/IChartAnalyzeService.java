@@ -18,6 +18,7 @@ import com.trs.ckm.soap.AbsTheme;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.analysis.entity.MBlogAnalyzeEntity;
@@ -85,7 +86,7 @@ public interface IChartAnalyzeService {
 	 * @throws TRSException
 	 */
 	public Object mediaActiveLevel(QueryBuilder builder, String source,String[] timeArray, boolean sim,
-			boolean irSimflag,boolean irSimflagAll) throws TRSException;
+								   boolean irSimflag,boolean irSimflagAll) throws TRSException;
 
 	/**
 	 * 微博top检索
@@ -114,7 +115,7 @@ public interface IChartAnalyzeService {
 	 * @throws TRSException
 	 */
 	public Map<String, Object> getWebCountNew(String timeRange, SpecialProject specialProject, String area,
-			String industry) throws TRSException;
+											  String industry) throws TRSException;
 
 	/**
 	 * 地域分布检索
@@ -126,7 +127,7 @@ public interface IChartAnalyzeService {
 	 * @throws TRSException
 	 */
 	public List<Map<String, Object>> getAreaCountForHome(QueryBuilder searchBuilder, String[] timeArray,
-			String groupName) throws TRSException;
+														 String groupName) throws TRSException;
 
 	/**
 	 * 地域分布检索
@@ -149,7 +150,7 @@ public interface IChartAnalyzeService {
 	 * @throws TRSException
 	 */
 	public Map<String, Object> getTendencyNew2(String esSql, SpecialProject specialProject, String type,
-			String timerange, String showType) throws TRSException;
+											   String timerange, String showType) throws TRSException;
 
 	/**
 	 * 根据时间范围检索
@@ -179,7 +180,7 @@ public interface IChartAnalyzeService {
 	 * @throws TRSException
 	 */
 	public List<ClassInfo> statByClassification(SpecialProject specialProject, String start, String end,
-			String industryType, String area) throws TRSException;
+												String industryType, String area) throws TRSException;
 
 	/**
 	 * 专题分类统计表格 选几个来源统计几个来源
@@ -198,7 +199,7 @@ public interface IChartAnalyzeService {
 	 * @throws TRSException
 	 */
 	public List<ClassInfo> stattotal(SpecialProject specialProject, String start, String end, String industryType,
-			String area, String foreign) throws TRSException;
+									 String area, String foreign) throws TRSException;
 
 	/**
 	 * 普通搜索统计表格 选几个来源统计几个来源
@@ -209,8 +210,8 @@ public interface IChartAnalyzeService {
 	 * 			  时间  - 开始和结束
 	 * @param source
 	 * 			  数据来源
-     *  @param keyWordIndex
-     * 	  		  关键词位置
+	 *  @param keyWordIndex
+	 * 	  		  关键词位置
 	 * @return
 	 * @throws TRSException
 	 */
@@ -235,7 +236,7 @@ public interface IChartAnalyzeService {
 	 * @throws Exception
 	 */
 	public int getEmotionalValue(SpecialProject specialProject, String groupName, String startTime, String endTime,
-			String industryType, String area) throws Exception;
+								 String industryType, String area) throws Exception;
 
 	/**
 	 * 获取引爆点信息
@@ -248,8 +249,8 @@ public interface IChartAnalyzeService {
 	 * @throws TRSException
 	 * @throws TRSSearchException
 	 */
-	public List<TippingPoint> getTippingPoint(QueryBuilder queryBuilder, FtsDocumentStatus documentStatus,
-			Date beginDate, boolean irSimflag,boolean irSimflagAll) throws TRSException, TRSSearchException;
+	public List<TippingPoint> getTippingPoint(QueryBuilder queryBuilder, FtsDocumentCommonVO documentStatus,
+											  Date beginDate, boolean sim,boolean irSimflag,boolean irSimflagAll) throws TRSException, TRSSearchException;
 
 	/**
 	 * 获取引爆点信息
@@ -279,7 +280,7 @@ public interface IChartAnalyzeService {
 
 	/**
 	 * 传统媒体传播路径分析
-	 * 
+	 *
 	 * @since changjiang @ 2018年5月9日
 	 * @param root
 	 * @param timeArray
@@ -288,7 +289,7 @@ public interface IChartAnalyzeService {
 	 * @Return : Object
 	 */
 	public SpreadNewsEntity pathByNews(SpecialProject project, QueryBuilder builder, SpreadNewsEntity root,
-			String[] timeArray, boolean irSimflag,boolean irSimflagAll) throws Exception;
+									   String[] timeArray, boolean irSimflag,boolean irSimflagAll) throws Exception;
 
 	/**
 	 * 获取最新新闻列表
@@ -339,7 +340,7 @@ public interface IChartAnalyzeService {
 
 	/**
 	 * 不按照数据源 直接按分类统计时间
-	 * 
+	 *
 	 * @param searchBuilder
 	 * @param timerange
 	 * @return
@@ -349,7 +350,7 @@ public interface IChartAnalyzeService {
 
 	/**
 	 * 获取话题演变来源
-	 * 
+	 *
 	 * @param query
 	 * @param groupName
 	 * @return
@@ -359,7 +360,7 @@ public interface IChartAnalyzeService {
 
 	/**
 	 * 获取专题内图表列表数据
-	 * 
+	 *
 	 * @param specialProject
 	 *            专题对象
 	 * @param industryType
@@ -382,13 +383,13 @@ public interface IChartAnalyzeService {
 	 * @throws Exception
 	 */
 	public Object getDataByChart(SpecialProject specialProject, String industryType,
-			String area, String chartType, String dateTime, String xType, String source, String entityType,
-			String sort,String emotion,String fuzzyValue,String fuzzyValueScope, int pageNo, int pageSize, String forwarPrimary,
-			String invitationCard,boolean isExport, String thirdWord) throws Exception;
+								 String area, String chartType, String dateTime, String xType, String source, String entityType,
+								 String sort,String emotion,String fuzzyValue,String fuzzyValueScope, int pageNo, int pageSize, String forwarPrimary,
+								 String invitationCard,boolean isExport, String thirdWord) throws Exception;
 
 	/**
 	 * 不按照数据源 直接按分类统计时间
-	 * 
+	 *
 	 * @param searchBuilder
 	 * @return
 	 */
@@ -397,7 +398,7 @@ public interface IChartAnalyzeService {
 
 	/**
 	 * 话题演变探索
-	 * 
+	 *
 	 * @param searchBuilder
 	 * @param timeRange
 	 * @param sim
@@ -410,7 +411,7 @@ public interface IChartAnalyzeService {
 
 	/**
 	 * 网友观点
-	 * 
+	 *
 	 * @param searchBuilder
 	 * @param timeArray
 	 * @param sim
@@ -419,11 +420,11 @@ public interface IChartAnalyzeService {
 	 * @throws TRSSearchException
 	 */
 	public List<ViewEntity> getUserViewsData(SpecialProject specialProject, QueryBuilder searchBuilder,
-			String[] timeArray, boolean sim) throws TRSException, TRSSearchException;
+											 String[] timeArray, boolean sim) throws TRSException, TRSSearchException;
 
 	/**
 	 * 获取 词云图 数据
-	 * 
+	 *
 	 * @param trsl
 	 *            查询条件
 	 * @param sim
@@ -439,11 +440,11 @@ public interface IChartAnalyzeService {
 	 * @throws TRSSearchException
 	 */
 	public Object getWordCloud(boolean server, String trsl, boolean sim, boolean irSimflag,boolean irSimflagAll, String entityType,
-			int limit,String type, String... data) throws TRSSearchException;
+							   int limit,String type, String... data) throws TRSSearchException;
 
 	/**
 	 * 新闻传播站点分析
-	 * 
+	 *
 	 * @date Created at 2018年9月5日 上午10:12:39
 	 * @Author 谷泽昊
 	 * @param searchBuilder
@@ -452,7 +453,7 @@ public interface IChartAnalyzeService {
 	 * @throws TRSSearchException
 	 */
 	public List<Map<String, Object>> newsSiteAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar,
-			boolean irSimflag,boolean irSimflagAll,boolean isApi) throws TRSSearchException;
+													  boolean irSimflag,boolean irSimflagAll,boolean isApi) throws TRSSearchException;
 
 	HashMap<String, Object> getUserViewsData(SpecialProject specialProject, String timeRange, String industry, String area, SpecialParam specParam) throws Exception;
 

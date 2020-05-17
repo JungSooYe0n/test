@@ -1,12 +1,20 @@
 package com.trs.netInsight.widget.column.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.trs.netInsight.util.CollectionsUtil;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
+import com.trs.netInsight.widget.column.repository.IndexTabRepository;
+import com.trs.netInsight.widget.column.service.IColumnChartService;
+import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
 import com.trs.netInsight.widget.user.entity.SubGroup;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -24,6 +32,7 @@ import com.trs.netInsight.widget.user.entity.User;
 
 
 @Service
+@Slf4j
 public class NavigationServiceImpl implements INavigationService {
 
 	@Autowired
@@ -31,7 +40,15 @@ public class NavigationServiceImpl implements INavigationService {
 	@Autowired
 	private IndexPageRepository indexPageRepository;
 	@Autowired
+	private IIndexTabMapperService indexTabMapperService;
+	@Autowired
+	private IndexTabMapperRepository tabMapperRepository;
+	@Autowired
+	private IndexTabRepository indexTabRepository;
+	@Autowired
 	private IColumnService columnService;
+	@Autowired
+	private IColumnChartService columnChartService;
 
 	@Override
 	public List<NavigationConfig> findByUserIdOrSubGroupIdAndSort(String userId, String sortBy) {
@@ -233,7 +250,7 @@ public class NavigationServiceImpl implements INavigationService {
 
 	/**
 	 * 去除list2 中和list1 type一样的内容
-	 * 
+	 *
 	 * @date Created at 2018年9月25日 下午2:31:51
 	 * @Author 谷泽昊
 	 * @param list1
@@ -276,7 +293,7 @@ public class NavigationServiceImpl implements INavigationService {
 			NavigationConfig navigationConfig = list.get(i);
 			navigationConfig.setSequence(i+1);
 		}
-        return list;
+		return list;
 	}
 	private List<NavigationConfig> hideExcludeSpecial(List<NavigationConfig> list){
 		List<NavigationConfig> listRetain = new ArrayList<>();
@@ -334,17 +351,39 @@ public class NavigationServiceImpl implements INavigationService {
 		}
 		// 删除导航栏下所有一级二级栏目
 		List<IndexPage> indexPageList = indexPageRepository.findByTypeId(typeId);
-		for (IndexPage indexPage : indexPageList) {
-			String indexPageId = indexPage.getId();
-			columnService.deleteOne(indexPageId);
+		List<IndexTabMapper> indexTabMapperList = tabMapperRepository.findByTypeId(typeId);
+		if (CollectionsUtil.isNotEmpty(indexTabMapperList)) {
+			for (IndexTabMapper mapper : indexTabMapperList) {
+				Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+				log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
+				if (mapper.isMe()) {
+					// 删除栏目映射关系，isMe为true的栏目关系须级联删除栏目实体
+					List<IndexTabMapper> findByIndexTab = indexTabMapperService.findByIndexTab(mapper.getIndexTab());
+					//删除相关栏目映射的相关图表
+					Integer deleteAbMapperColumnChart = 0;
+					for(IndexTabMapper abMapper : findByIndexTab){
+						deleteAbMapperColumnChart+= columnChartService.deleteCustomChartForTabMapper(abMapper.getId());
+					}
+					log.info("删除当前栏目相关统计和自定义图表共："+deleteAbMapperColumnChart +"条");
+					//删除所有与indexTab关联的  否则剩余关联则删除indexTab时失败
+					tabMapperRepository.delete(findByIndexTab);
+
+					indexTabRepository.delete(mapper.getIndexTab());
+				} else {
+					//如果是引用，则只删除当前引用即可
+					tabMapperRepository.delete(mapper);
+				}
+			}
 		}
+		indexPageRepository.delete(indexPageList);
+
 		navigationRepository.delete(typeId);
 		return "删除成功";
 	}
 
 	/**
 	 * 拖拽导航栏
-	 * 
+	 *
 	 */
 	@Override
 	public Object moveNavigation(String typeId) {

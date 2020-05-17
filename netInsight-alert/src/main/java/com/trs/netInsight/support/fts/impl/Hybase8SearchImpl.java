@@ -1027,7 +1027,7 @@ public class Hybase8SearchImpl implements FullTextSearch {
 						buffer.append(FtsFieldConst.FIELD_GROUPNAME).append(":(");
 						int beginLength = buffer.length();
 						for (String dataSource : dataSourcesArr) {
-							buffer.append(Const.DATA_SOURCES.get(dataSource)).append(" OR ");
+							buffer.append(Const.SOURCE_GROUPNAME_CONTRAST.get(dataSource)).append(" OR ");
 						}
 						int endLength = buffer.length();
 						// 去掉最后的OR
@@ -1074,7 +1074,7 @@ public class Hybase8SearchImpl implements FullTextSearch {
 								if(groupName.endsWith("\"")){
 									groupName = groupName.substring(0,groupName.length()-1);
 								}
-								if (StringUtils.equals(Const.DATA_SOURCES.get(dataSource), groupName)) {
+								if (StringUtils.equals(Const.SOURCE_GROUPNAME_CONTRAST.get(dataSource), groupName)) {
 									groupNameSet.add(groupName);
 								}
 							}

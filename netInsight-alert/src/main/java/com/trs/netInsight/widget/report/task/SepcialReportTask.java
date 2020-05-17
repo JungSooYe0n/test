@@ -3,8 +3,6 @@ package com.trs.netInsight.widget.report.task;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import com.trs.netInsight.config.constant.Const;
-import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.util.WordSpacingUtil;
 import org.apache.commons.lang.StringUtils;
@@ -15,8 +13,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.ColumnConst;
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
@@ -42,6 +42,7 @@ import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 
 import static com.trs.netInsight.widget.report.constant.ReportConst.*;
 
@@ -77,8 +78,8 @@ public class SepcialReportTask implements Runnable{
 	private String userId;
 
 	public SepcialReportTask(boolean server,boolean weight, String keyWords,
-			String excludeWords, Integer keyWordsIndex, String excludeWebs,
-			String simflag, String timeRange, String trsl,Integer searchType,ReportDataNew reportData,String userId){
+							 String excludeWords, Integer keyWordsIndex, String excludeWebs,
+							 String simflag, String timeRange, String trsl,Integer searchType,ReportDataNew reportData,String userId){
 		this.keyWords = keyWords;
 		this.excludeWords = excludeWords;
 		this.keyWordsIndex = keyWordsIndex;
@@ -90,7 +91,7 @@ public class SepcialReportTask implements Runnable{
 		this.reportData = reportData;
 		this.server = server;
 		this.weight = weight;
-        this.userId = userId;
+		this.userId = userId;
 	}
 
 	public void run(){
@@ -104,31 +105,31 @@ public class SepcialReportTask implements Runnable{
 		//TODO 专报容错处理，现计算阶段已经完成，大致思路已经清晰(见setEmptyData)，需要前端对stPreview和specialPreview两个接口做联调，listPreview测试，word处理。
 		for(String chapter : CHAPTERS){
 			switch (chapter) {
-			case REPORTINTROkey:
-				break;
-			case OVERVIEWOFDATAkey:
-				//饼图
-				log.info(String.format(SPECILAREPORTLOG , OVERVIEWOFDATA));
-				startMillis = System.currentTimeMillis();
-				IndexTab overviewOfDataIT = searchType == 0 ? createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) : createIndexTab(trsl,simflag, timeRange, weight ,REPORTCHARTDATASIZE);
-				String groupName = "国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook";
-				overviewOfDataIT.setGroupName(groupName);
-				overviewOfDataIT.setType(ColumnConst.CHART_PIE_BY_META);
-				overviewOfDataIT.setContrast(ColumnConst.CONTRAST_TYPE_GROUP);
-				try {
-					overviewOfDataResult = columnSearch(overviewOfDataIT, REPORTCHARTDATASIZE,groupName);
-					endMillis = System.currentTimeMillis();
-					log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OVERVIEWOFDATA , (endMillis - startMillis)));
+				case REPORTINTROkey:
+					break;
+				case OVERVIEWOFDATAkey:
+					//饼图
+					log.info(String.format(SPECILAREPORTLOG , OVERVIEWOFDATA));
+					startMillis = System.currentTimeMillis();
+					IndexTab overviewOfDataIT = searchType == 0 ? createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) : createIndexTab(trsl,simflag, timeRange, weight ,REPORTCHARTDATASIZE);
+					String groupName = "国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook";
+					overviewOfDataIT.setGroupName(groupName);
+					overviewOfDataIT.setType(ColumnConst.CHART_PIE);
+					overviewOfDataIT.setContrast(ColumnConst.CONTRAST_TYPE_GROUP);
+					try {
+						overviewOfDataResult = columnSearch(overviewOfDataIT, REPORTCHARTDATASIZE,groupName);
+						endMillis = System.currentTimeMillis();
+						log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OVERVIEWOFDATA , (endMillis - startMillis)));
 
-					ReportResource overviewRR = new ReportResource();
-					overviewRR.setImgComment(ReportUtil.getOverviewOfData(JSON.toJSONString(overviewOfDataResult)));
-					reportData.setOverviewOfdata(overviewRR.getImgComment());
-				} catch (Exception e) {
-					setEmptyData(reportData, ReportConst.SINGLERESOURCE,OVERVIEWOFDATAkey);
-					log.error(OVERVIEWOFDATA , e);
-				}
-				reportDataNewRepository.saveOverviewOfdata(reportData.getOverviewOfdata(), reportData.getId());
-				break;
+						ReportResource overviewRR = new ReportResource();
+						overviewRR.setImgComment(ReportUtil.getOverviewOfData(JSON.toJSONString(overviewOfDataResult)));
+						reportData.setOverviewOfdata(overviewRR.getImgComment());
+					} catch (Exception e) {
+						setEmptyData(reportData, ReportConst.SINGLERESOURCE,OVERVIEWOFDATAkey);
+						log.error(OVERVIEWOFDATA , e);
+					}
+					reportDataNewRepository.saveOverviewOfdata(reportData.getOverviewOfdata(), reportData.getId());
+					break;
 //			case NEWSHOTTOP10key://新闻热点TOP10
 //				//列表数据
 //				log.info(String.format(SPECILAREPORTLOG , NEWSTOP10));
@@ -263,201 +264,201 @@ public class SepcialReportTask implements Runnable{
 					}
 					reportDataNewRepository.saveWechatHotTop10(reportData.getWechatHotTop10(), reportData.getId());
 					break;
-			case DATATRENDANALYSISkey:
-				//折线图
-				log.info(String.format(SPECILAREPORTLOG , DATATRENDANALYSIS));
-				startMillis = System.currentTimeMillis();
-				IndexTab dataTrendIT = searchType == 0 ?  createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) :createIndexTab(trsl,simflag, timeRange, weight,REPORTCHARTDATASIZE);
-				dataTrendIT.setGroupName("国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
-				dataTrendIT.setType(ColumnConst.CHART_LINE);
-				dataTrendIT.setContrast(ColumnConst.CONTRAST_TYPE_GROUP);
-				try {
-					Object dataTrendResult = columnSearch(dataTrendIT, REPORTCHARTDATASIZE,"国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
+				case DATATRENDANALYSISkey:
+					//折线图
+					log.info(String.format(SPECILAREPORTLOG , DATATRENDANALYSIS));
+					startMillis = System.currentTimeMillis();
+					IndexTab dataTrendIT = searchType == 0 ?  createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) :createIndexTab(trsl,simflag, timeRange, weight,REPORTCHARTDATASIZE);
+					dataTrendIT.setGroupName("国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
+					dataTrendIT.setType(ColumnConst.CHART_LINE);
+					dataTrendIT.setContrast(ColumnConst.CONTRAST_TYPE_GROUP);
+					try {
+						Object dataTrendResult = columnSearch(dataTrendIT, REPORTCHARTDATASIZE,"国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
+						endMillis = System.currentTimeMillis();
+						log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, DATATRENDANALYSIS , (endMillis - startMillis)));
+
+						ReportResource dataTrendRR = new ReportResource();
+						dataTrendRR.setImg_data(JSON.toJSONString(dataTrendResult));
+						dataTrendRR.setImgType("brokenLineChart");
+						dataTrendRR.setImgComment(ReportUtil.getImgComment(dataTrendRR.getImg_data(),dataTrendRR.getImgType(),DATATRENDANALYSIS));
+						dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+
+						reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+					} catch (Exception e) {
+						setEmptyData(reportData, ReportConst.CHART,DATATRENDANALYSISkey);
+						log.error(DATATRENDANALYSIS , e);
+					}
+					reportDataNewRepository.saveDataTrendAnalysis(reportData.getDataTrendAnalysis(), reportData.getId());
+					break;
+				case DATASOURCEANALYSISkey:
+					log.info(String.format(SPECILAREPORTLOG , DATASOURCEANALYSIS));
+					startMillis = System.currentTimeMillis();
+					Object dataSourceResult = overviewOfDataResult;
+					if(reportData.getOverviewOfdata().equals("暂无数据")){
+						dataSourceResult = "暂无数据";
+					}
 					endMillis = System.currentTimeMillis();
-					log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, DATATRENDANALYSIS , (endMillis - startMillis)));
+					log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, DATASOURCEANALYSIS , (endMillis - startMillis)));
 
-					ReportResource dataTrendRR = new ReportResource();
-					dataTrendRR.setImg_data(JSON.toJSONString(dataTrendResult));
-					dataTrendRR.setImgType("brokenLineChart");
-					dataTrendRR.setImgComment(ReportUtil.getImgComment(dataTrendRR.getImg_data(),dataTrendRR.getImgType(),DATATRENDANALYSIS));
-					dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+					ReportResource dataSourceRR = new ReportResource();
+					dataSourceRR.setImg_data(JSON.toJSONString(dataSourceResult));
+					dataSourceRR.setImgType("pieGraphChartMeta");
+					dataSourceRR.setImgComment(ReportUtil.getImgComment(dataSourceRR.getImg_data(),dataSourceRR.getImgType(),DATASOURCEANALYSIS));
+					dataSourceRR.setId(UUID.randomUUID().toString().replace("-", ""));
 
-					reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
-				} catch (Exception e) {
-					setEmptyData(reportData, ReportConst.CHART,DATATRENDANALYSISkey);
-					log.error(DATATRENDANALYSIS , e);
-				}
-				reportDataNewRepository.saveDataTrendAnalysis(reportData.getDataTrendAnalysis(), reportData.getId());
-				break;
-			case DATASOURCEANALYSISkey:
-				log.info(String.format(SPECILAREPORTLOG , DATASOURCEANALYSIS));
-				startMillis = System.currentTimeMillis();
-				Object dataSourceResult = overviewOfDataResult;
-				if(reportData.getOverviewOfdata().equals("暂无数据")){
-					dataSourceResult = "暂无数据";
-				}
-				endMillis = System.currentTimeMillis();
-				log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, DATASOURCEANALYSIS , (endMillis - startMillis)));
+					reportData.setDataSourceAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataSourceRR))));
+					try {
+						reportDataNewRepository.saveDataSourceAnalysis(reportData.getDataSourceAnalysis(), reportData.getId());
+					} catch (Exception e) {
+						setEmptyData(reportData, ReportConst.CHART,DATASOURCEANALYSISkey);
+						log.error(DATASOURCEANALYSIS , e);
+					}
+					break;
+				case WEBSITESOURCETOP10key:
+					//柱状图
+					log.info(String.format(SPECILAREPORTLOG , WEBSITESOURCETOP10));
+					startMillis = System.currentTimeMillis();
+					IndexTab websiteSourceIT =  searchType == 0 ?  createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) :createIndexTab(trsl,simflag, timeRange, weight,REPORTCHARTDATASIZE);
+					websiteSourceIT.setGroupName("传统媒体");
+					websiteSourceIT.setTradition("国内新闻");
+					websiteSourceIT.setContrast(ColumnConst.CONTRAST_TYPE_SITE);
+					websiteSourceIT.setType(ColumnConst.CHART_BAR);
+					try {
+						Object websiteSourceResult = columnSearch(websiteSourceIT, REPORTCHARTDATASIZE,"国内新闻");
+						endMillis = System.currentTimeMillis();
+						log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEBSITESOURCETOP10 , (endMillis - startMillis)));
 
-				ReportResource dataSourceRR = new ReportResource();
-				dataSourceRR.setImg_data(JSON.toJSONString(dataSourceResult));
-				dataSourceRR.setImgType("pieGraphChartMeta");
-				dataSourceRR.setImgComment(ReportUtil.getImgComment(dataSourceRR.getImg_data(),dataSourceRR.getImgType(),DATASOURCEANALYSIS));
-				dataSourceRR.setId(UUID.randomUUID().toString().replace("-", ""));
+						ReportResource websiteSourceRR = new ReportResource();
+						websiteSourceRR.setImg_data(JSON.toJSONString(websiteSourceResult));
+						websiteSourceRR.setImgType("barGraphChartMeta");
+						websiteSourceRR.setImgComment(ReportUtil.getImgComment(websiteSourceRR.getImg_data(),websiteSourceRR.getImgType(),WEBSITESOURCETOP10));
+						websiteSourceRR.setId(UUID.randomUUID().toString().replace("-", ""));
 
-				reportData.setDataSourceAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataSourceRR))));
-				try {
-					reportDataNewRepository.saveDataSourceAnalysis(reportData.getDataSourceAnalysis(), reportData.getId());
-				} catch (Exception e) {
-					setEmptyData(reportData, ReportConst.CHART,DATASOURCEANALYSISkey);
-					log.error(DATASOURCEANALYSIS , e);
-				}
-				break;
-			case WEBSITESOURCETOP10key:
-				//柱状图
-				log.info(String.format(SPECILAREPORTLOG , WEBSITESOURCETOP10));
-				startMillis = System.currentTimeMillis();
-				IndexTab websiteSourceIT =  searchType == 0 ?  createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) :createIndexTab(trsl,simflag, timeRange, weight,REPORTCHARTDATASIZE);
-				websiteSourceIT.setGroupName("传统媒体");
-				websiteSourceIT.setTradition("国内新闻");
-				websiteSourceIT.setContrast(ColumnConst.CONTRAST_TYPE_SITE);
-				websiteSourceIT.setType(ColumnConst.CHART_BAR_BY_META);
-				try {
-					Object websiteSourceResult = columnSearch(websiteSourceIT, REPORTCHARTDATASIZE,"国内新闻");
-					endMillis = System.currentTimeMillis();
-					log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEBSITESOURCETOP10 , (endMillis - startMillis)));
+						reportData.setWebsiteSourceTop10(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(websiteSourceRR))));
+					} catch (Exception e) {
+						setEmptyData(reportData, ReportConst.CHART,WEBSITESOURCETOP10key);
+						log.error(WEBSITESOURCETOP10 , e);
+					}
+					reportDataNewRepository.saveWebsiteSourceTop10(reportData.getWebsiteSourceTop10(), reportData.getId());
+					break;
+				case WEIBOACTIVETOP10key:
+					log.info(String.format(SPECILAREPORTLOG , WEIBOACTIVETOP10));
 
-					ReportResource websiteSourceRR = new ReportResource();
-					websiteSourceRR.setImg_data(JSON.toJSONString(websiteSourceResult));
-					websiteSourceRR.setImgType("barGraphChartMeta");
-					websiteSourceRR.setImgComment(ReportUtil.getImgComment(websiteSourceRR.getImg_data(),websiteSourceRR.getImgType(),WEBSITESOURCETOP10));
-					websiteSourceRR.setId(UUID.randomUUID().toString().replace("-", ""));
+					startMillis = System.currentTimeMillis();
+					try {
+						String weiboActiceTrsl = searchType == 0 ? generateActiveTrsl(WEIBOACTIVETOP10key, timeRange, keyWords, excludeWords,excludeWebs, keyWordsIndex, weight) : generateActiveTrsl(WEIBOACTIVETOP10key, trsl, timeRange);
+						GroupResult weiboActiceGroupResult = hybase8SearchService.categoryQuery(server,weiboActiceTrsl, false, false, false,FtsFieldConst.FIELD_UID, REPORTCHARTDATASIZE,
+								null,Const.WEIBO);
+						List<Map<String, Object>> weiboActiceList = new ArrayList<>();
+						groupResult2MapList(weiboActiceGroupResult, weiboActiceList, "微博");
+						endMillis = System.currentTimeMillis();
+						log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEIBOACTIVETOP10 , (endMillis - startMillis)));
 
-					reportData.setWebsiteSourceTop10(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(websiteSourceRR))));
-				} catch (Exception e) {
-					setEmptyData(reportData, ReportConst.CHART,WEBSITESOURCETOP10key);
-					log.error(WEBSITESOURCETOP10 , e);
-				}
-				reportDataNewRepository.saveWebsiteSourceTop10(reportData.getWebsiteSourceTop10(), reportData.getId());
-				break;
-			case WEIBOACTIVETOP10key:
-				log.info(String.format(SPECILAREPORTLOG , WEIBOACTIVETOP10));
+						ReportResource weiboActiveRR = new ReportResource();
+						weiboActiveRR.setImg_data(JSON.toJSONString(weiboActiceList));
+						weiboActiveRR.setImgType("pieGraphChartMeta");
+						weiboActiveRR.setImgComment(ReportUtil.getImgComment(weiboActiveRR.getImg_data(),weiboActiveRR.getImgType(),WEIBOACTIVETOP10));
+						weiboActiveRR.setId(UUID.randomUUID().toString().replace("-", ""));
 
-				startMillis = System.currentTimeMillis();
-				try {
-					String weiboActiceTrsl = searchType == 0 ? generateActiveTrsl(WEIBOACTIVETOP10key, timeRange, keyWords, excludeWords,excludeWebs, keyWordsIndex, weight) : generateActiveTrsl(WEIBOACTIVETOP10key, trsl, timeRange);
-					GroupResult weiboActiceGroupResult = hybase8SearchService.categoryQuery(server,weiboActiceTrsl, false, false, false,FtsFieldConst.FIELD_UID, REPORTCHARTDATASIZE,
-							null,Const.WEIBO);
-					List<Map<String, Object>> weiboActiceList = new ArrayList<>();
-					groupResult2MapList(weiboActiceGroupResult, weiboActiceList, "微博");
-					endMillis = System.currentTimeMillis();
-					log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEIBOACTIVETOP10 , (endMillis - startMillis)));
+						reportData.setWeiboActiveTop10(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(weiboActiveRR))));
+					} catch (Exception e) {
+						setEmptyData(reportData, ReportConst.CHART,WEIBOACTIVETOP10key);
+						log.error(WEIBOACTIVETOP10 , e);
+					}
+					reportDataNewRepository.saveWeiboActiveTop10(reportData.getWeiboActiveTop10(), reportData.getId());
+					break;
+				case WECHATACTIVETOP10key:
+					log.info(String.format(SPECILAREPORTLOG , WECHATACTIVETOP10));
 
-					ReportResource weiboActiveRR = new ReportResource();
-					weiboActiveRR.setImg_data(JSON.toJSONString(weiboActiceList));
-					weiboActiveRR.setImgType("pieGraphChartMeta");
-					weiboActiveRR.setImgComment(ReportUtil.getImgComment(weiboActiveRR.getImg_data(),weiboActiveRR.getImgType(),WEIBOACTIVETOP10));
-					weiboActiveRR.setId(UUID.randomUUID().toString().replace("-", ""));
+					startMillis = System.currentTimeMillis();
+					try {
+						String wechatActiveTrsl = searchType == 0 ? generateActiveTrsl(WECHATACTIVETOP10key, timeRange, keyWords, excludeWords,excludeWebs, keyWordsIndex, weight) : generateActiveTrsl(WECHATACTIVETOP10key, trsl, timeRange);
+						GroupResult wechatActiveGroupResult = hybase8SearchService.categoryQuery(server,wechatActiveTrsl, false, false, false,FtsFieldConst.FIELD_SITENAME, REPORTCHARTDATASIZE,
+								null,Const.WECHAT_COMMON);
+						List<Map<String, Object>> wechatList = new ArrayList<>();
+						groupResult2MapList(wechatActiveGroupResult, wechatList, "国内微信");
+						endMillis = System.currentTimeMillis();
+						log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WECHATACTIVETOP10 , (endMillis - startMillis)));
 
-					reportData.setWeiboActiveTop10(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(weiboActiveRR))));
-				} catch (Exception e) {
-					setEmptyData(reportData, ReportConst.CHART,WEIBOACTIVETOP10key);
-					log.error(WEIBOACTIVETOP10 , e);
-				}
-				reportDataNewRepository.saveWeiboActiveTop10(reportData.getWeiboActiveTop10(), reportData.getId());
-				break;
-			case WECHATACTIVETOP10key:
-				log.info(String.format(SPECILAREPORTLOG , WECHATACTIVETOP10));
+						ReportResource wechatActiveRR = new ReportResource();
+						wechatActiveRR.setImg_data(JSON.toJSONString(wechatList));
+						wechatActiveRR.setImgType("pieGraphChartMeta");
+						wechatActiveRR.setImgComment(ReportUtil.getImgComment(wechatActiveRR.getImg_data(),wechatActiveRR.getImgType(), WECHATACTIVETOP10));
+						wechatActiveRR.setId(UUID.randomUUID().toString().replace("-", ""));
 
-				startMillis = System.currentTimeMillis();
-				try {
-					String wechatActiveTrsl = searchType == 0 ? generateActiveTrsl(WECHATACTIVETOP10key, timeRange, keyWords, excludeWords,excludeWebs, keyWordsIndex, weight) : generateActiveTrsl(WECHATACTIVETOP10key, trsl, timeRange);
-					GroupResult wechatActiveGroupResult = hybase8SearchService.categoryQuery(server,wechatActiveTrsl, false, false, false,FtsFieldConst.FIELD_SITENAME, REPORTCHARTDATASIZE,
-							null, Const.WECHAT_COMMON);
-					List<Map<String, Object>> wechatList = new ArrayList<>();
-					groupResult2MapList(wechatActiveGroupResult, wechatList, "国内微信");
-					endMillis = System.currentTimeMillis();
-					log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WECHATACTIVETOP10 , (endMillis - startMillis)));
+						reportData.setWechatActiveTop10(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(wechatActiveRR))));
+					} catch (Exception e) {
+						setEmptyData(reportData, ReportConst.CHART,WECHATACTIVETOP10key);
+						log.error(WECHATACTIVETOP10 , e);
+					}
+					reportDataNewRepository.saveWechatActiveTop10(reportData.getWechatActiveTop10(), reportData.getId());
+					break;
+				case AREAkey:
+					//地图
+					log.info(String.format(SPECILAREPORTLOG , AREA));
+					startMillis = System.currentTimeMillis();
+					IndexTab areaIT = searchType == 0 ? createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) : createIndexTab(trsl, simflag, timeRange, weight,REPORTCHARTDATASIZE);
+					//areaIT.setGroupName("传统媒体");
+					areaIT.setGroupName("国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
+					areaIT.setTradition("");
+					areaIT.setType(ColumnConst.CHART_MAP);
+					try {
+						Object areaResult = columnSearch(areaIT, REPORTLISTDATASIZE,"传统媒体");
+						endMillis = System.currentTimeMillis();
+						log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, AREA , (endMillis - startMillis)));
 
-					ReportResource wechatActiveRR = new ReportResource();
-					wechatActiveRR.setImg_data(JSON.toJSONString(wechatList));
-					wechatActiveRR.setImgType("pieGraphChartMeta");
-					wechatActiveRR.setImgComment(ReportUtil.getImgComment(wechatActiveRR.getImg_data(),wechatActiveRR.getImgType(), WECHATACTIVETOP10));
-					wechatActiveRR.setId(UUID.randomUUID().toString().replace("-", ""));
+						ReportResource areaRR = new ReportResource();
+						areaRR.setImg_data(JSON.toJSONString(areaResult));
+						areaRR.setImgType("mapChart");
+						areaRR.setImgComment(ReportUtil.getImgComment(areaRR.getImg_data(),areaRR.getImgType(),AREA));
+						areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
 
-					reportData.setWechatActiveTop10(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(wechatActiveRR))));
-				} catch (Exception e) {
-					setEmptyData(reportData, ReportConst.CHART,WECHATACTIVETOP10key);
-					log.error(WECHATACTIVETOP10 , e);
-				}
-				reportDataNewRepository.saveWechatActiveTop10(reportData.getWechatActiveTop10(), reportData.getId());
-				break;
-			case AREAkey:
-				//地图
-				log.info(String.format(SPECILAREPORTLOG , AREA));
-				startMillis = System.currentTimeMillis();
-				IndexTab areaIT = searchType == 0 ? createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) : createIndexTab(trsl, simflag, timeRange, weight,REPORTCHARTDATASIZE);
-				//areaIT.setGroupName("传统媒体");
-				areaIT.setGroupName("国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
-				areaIT.setTradition("");
-				areaIT.setType(ColumnConst.CHART_MAP);
-				try {
-					Object areaResult = columnSearch(areaIT, REPORTLISTDATASIZE,"传统媒体");
-					endMillis = System.currentTimeMillis();
-					log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, AREA , (endMillis - startMillis)));
+						reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
+					} catch (Exception e) {
+						setEmptyData(reportData, ReportConst.CHART,AREAkey);
+						log.error(AREA , e);
+					}
+					reportDataNewRepository.saveArea(reportData.getArea(), reportData.getId());
+					break;
+				case EMOTIONANALYSISkey:
+					//情感分析,走专家模式, 饼图
+					log.info(String.format(SPECILAREPORTLOG , EMOTIONANALYSIS));
+					startMillis = System.currentTimeMillis();
+					String emotionTrsl = "";
+					if(searchType == 0){
+						emotionTrsl = createFilter(keyWords, keyWordsIndex.toString(), excludeWords,excludeWebs, false).asTRSL();
 
-					ReportResource areaRR = new ReportResource();
-					areaRR.setImg_data(JSON.toJSONString(areaResult));
-					areaRR.setImgType("mapChart");
-					areaRR.setImgComment(ReportUtil.getImgComment(areaRR.getImg_data(),areaRR.getImgType(),AREA));
-					areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
+					}
+					IndexTab emotionIT = searchType == 0 ? createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) : createIndexTab(trsl,simflag, timeRange, weight,REPORTCHARTDATASIZE);
+					emotionIT.setKeyWord(null);
+					emotionIT.setKeyWordIndex(null);
+					emotionIT.setExcludeWeb(null);
+					emotionIT.setExcludeWords(null);
+					emotionIT.setGroupName("国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
+					emotionIT.setType(ColumnConst.CHART_PIE);
+					emotionIT.setTrsl(searchType == 0 ?emotionTrsl : trsl);
+					emotionIT.setXyTrsl("正面=IR_APPRAISE:正面;\n中性=IR_APPRAISE:中性;\n负面=IR_APPRAISE:负面");
+					try {
+						Object emotionResult = columnSearch(emotionIT, REPORTCHARTDATASIZE,"国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
+						endMillis = System.currentTimeMillis();
+						log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, EMOTIONANALYSIS , (endMillis - startMillis)));
 
-					reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
-				} catch (Exception e) {
-					setEmptyData(reportData, ReportConst.CHART,AREAkey);
-					log.error(AREA , e);
-				}
-				reportDataNewRepository.saveArea(reportData.getArea(), reportData.getId());
-				break;
-			case EMOTIONANALYSISkey:
-				//情感分析,走专家模式, 饼图
-				log.info(String.format(SPECILAREPORTLOG , EMOTIONANALYSIS));
-				startMillis = System.currentTimeMillis();
-				String emotionTrsl = "";
-				if(searchType == 0){
-					emotionTrsl = createFilter(keyWords, keyWordsIndex.toString(), excludeWords,excludeWebs, false).asTRSL();
+						ReportResource emotionRR = new ReportResource();
+						emotionRR.setImg_data(JSON.toJSONString(emotionResult));
+						emotionRR.setImgType("pieGraphChartMeta");
+						emotionRR.setImgComment(ReportUtil.getImgComment(emotionRR.getImg_data(),emotionRR.getImgType(),EMOTIONANALYSIS));
+						emotionRR.setId(UUID.randomUUID().toString().replace("-", ""));
 
-				}
-				IndexTab emotionIT = searchType == 0 ? createIndexTab(keyWords,excludeWords, keyWordsIndex, excludeWebs,simflag, timeRange, weight,REPORTCHARTDATASIZE) : createIndexTab(trsl,simflag, timeRange, weight,REPORTCHARTDATASIZE);
-				emotionIT.setKeyWord(null);
-				emotionIT.setKeyWordIndex(null);
-				emotionIT.setExcludeWeb(null);
-				emotionIT.setExcludeWords(null);
-				emotionIT.setGroupName("国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
-				emotionIT.setType(ColumnConst.CHART_PIE_BY_META);
-				emotionIT.setTrsl(searchType == 0 ?emotionTrsl : trsl);
-				emotionIT.setXyTrsl("正面=IR_APPRAISE:正面;\n中性=IR_APPRAISE:中性;\n负面=IR_APPRAISE:负面");
-				try {
-					Object emotionResult = columnSearch(emotionIT, REPORTCHARTDATASIZE,"国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook");
-					endMillis = System.currentTimeMillis();
-					log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, EMOTIONANALYSIS , (endMillis - startMillis)));
+						reportData.setEmotionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(emotionRR))));
+					} catch (Exception e) {
+						setEmptyData(reportData, ReportConst.CHART,EMOTIONANALYSISkey);
+						log.error(EMOTIONANALYSIS , e);
+					}
+					reportDataNewRepository.saveEmotionAnalysis(reportData.getEmotionAnalysis(), reportData.getId());
+					break;
 
-					ReportResource emotionRR = new ReportResource();
-					emotionRR.setImg_data(JSON.toJSONString(emotionResult));
-					emotionRR.setImgType("pieGraphChartMeta");
-					emotionRR.setImgComment(ReportUtil.getImgComment(emotionRR.getImg_data(),emotionRR.getImgType(),EMOTIONANALYSIS));
-					emotionRR.setId(UUID.randomUUID().toString().replace("-", ""));
-
-					reportData.setEmotionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(emotionRR))));
-				} catch (Exception e) {
-					setEmptyData(reportData, ReportConst.CHART,EMOTIONANALYSISkey);
-					log.error(EMOTIONANALYSIS , e);
-				}
-				reportDataNewRepository.saveEmotionAnalysis(reportData.getEmotionAnalysis(), reportData.getId());
-				break;
-
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 		allSearchEndMillis = System.currentTimeMillis();
@@ -544,8 +545,8 @@ public class SepcialReportTask implements Runnable{
 	}
 
 	private IndexTab createIndexTab(String keyWords,
-			String excludeWords, Integer keyWordsIndex, String excludeWebs,
-			String simflag, String timeRange,boolean weight,Integer maxSize){
+									String excludeWords, Integer keyWordsIndex, String excludeWebs,
+									String simflag, String timeRange,boolean weight,Integer maxSize){
 		IndexTab indexTab = new IndexTab();
 		indexTab.setKeyWord(keyWords);
 		indexTab.setKeyWordIndex(keyWordsIndex.toString());// 0 或 1
@@ -699,9 +700,6 @@ public class SepcialReportTask implements Runnable{
 		ColumnConfig config = new ColumnConfig();
 		config.setMaxSize(maxSize);
 		config.initSection(indexTab, indexTab.getTimeRange(), 0, maxSize, null, null, "keywords", "", "", "desc", "", "", "", "", "","");
-		column.setHybase8SearchService(hybase8SearchService);
-		column.setChartAnalyzeService(chartAnalyzeService);
-		column.setInfoListService(infoListService);
 		column.setDistrictInfoService(districtInfoService);
 		boolean mix = false ;
 		column.setConfig(config);
@@ -714,7 +712,7 @@ public class SepcialReportTask implements Runnable{
 	}
 
 	private String generateActiveTrsl(String key,
-			String timeRange, String keyWords, String excludeWords,String excludeWebs, Integer keyWordsIndex, boolean weight) throws OperationException {
+									  String timeRange, String keyWords, String excludeWords,String excludeWebs, Integer keyWordsIndex, boolean weight) throws OperationException {
 
 		String[] timeArray = DateUtil.formatTimeRange(timeRange);
 		StringBuffer trsl = new StringBuffer();

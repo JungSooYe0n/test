@@ -45,7 +45,7 @@ public class QuoteController {
 	 * @since changjiang @ 2018年9月20日
 	 * @param indexPageId
 	 *            引用至栏目组id
-	 * @param indexTabId
+	 * @param indexTabMapperId
 	 *            栏目id
 	 * @return
 	 * @throws TRSException

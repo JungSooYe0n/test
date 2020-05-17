@@ -17,6 +17,7 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.FtsDocument;
+import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
@@ -176,7 +177,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Object mediaActiveLevel(QueryBuilder builder,String source, String[] timeArray, boolean sim,
-			boolean irSimflag,boolean irSimflagAll) throws TRSException {
+								   boolean irSimflag,boolean irSimflagAll) throws TRSException {
 		try {
 
 			Map<String, Object> map = new HashMap<>();
@@ -437,7 +438,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public List<Map<String, Object>> getAreaCountForHome(QueryBuilder searchBuilder, String[] timeArray,
-			String groupName) throws TRSException {
+														 String groupName) throws TRSException {
 		List<Map<String, Object>> resultMap = new ArrayList<>();
 		try {
 			Map<String, List<String>> areaMap = districtInfoService.allAreas();
@@ -513,7 +514,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Map<String, Object> getTendencyNew2(String esSql, SpecialProject specialProject, String type,
-			String timerange, String showType) throws TRSException {
+											   String timerange, String showType) throws TRSException {
 		boolean sim = specialProject.isSimilar();
 		// url排重
 		boolean irSimflag = specialProject.isIrSimflag();
@@ -706,7 +707,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 				 * "TWitter"); mapTWitter.put("list",
 				 * MapUtil.sortAndChangeList(categoryQueryTWitter, dateResult,
 				 * "yyyy-MM-dd", flag)); list.add(mapTWitter);
-				 * 
+				 *
 				 * // 7.FaceBook String sqlFaceBook =
 				 * FtsFieldConst.FIELD_URLTIME + ":[" + start + " TO " + end +
 				 * "] AND " + FtsFieldConst.FIELD_GROUPNAME + ":(FaceBook) " +
@@ -1012,7 +1013,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<ClassInfo> statByClassification(SpecialProject specialProject, String start, String end,
-			String industryType, String area) throws TRSException {
+												String industryType, String area) throws TRSException {
 		List<ClassInfo> classInfo = new ArrayList<>();
 		// url排重
 		boolean irSimflag = specialProject.isIrSimflag();
@@ -1073,7 +1074,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public List<ClassInfo> stattotal(SpecialProject specialProject, String start, String end, String industryType,
-			String area, String foreign) throws TRSException {
+									 String area, String foreign) throws TRSException {
 		List<ClassInfo> classInfo = new ArrayList<>();
 		// url排重
 		boolean irSimflag = specialProject.isIrSimflag();
@@ -1180,10 +1181,10 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 				classInfo.add(new ClassInfo(key, entry.getValue().intValue()));
 			}
 			*/
-
-			List<Map<String, Object>> cateqoryQuery = (List<Map<String, Object>>) commonListService.queryListGroupNameStattotal(builder,sim,irSimflag,irSimflagAll,"ALL","special");
+			ChartResultField resultField = new ChartResultField("groupName", "count");
+			List<Map<String, Object>> cateqoryQuery = (List<Map<String, Object>>) commonListService.queryListGroupNameStattotal(builder,sim,irSimflag,irSimflagAll,"ALL","special",resultField);
 			for(Map<String, Object> map : cateqoryQuery){
-				classInfo.add(new ClassInfo((String)map.get("groupName"), (Long)map.get("count")));
+				classInfo.add(new ClassInfo(((String)map.get("groupName")).equals("客户端") ? "手机客户端" : (String)map.get("groupName"), (Long)map.get("count")));
 
 
 			}
@@ -1198,13 +1199,19 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public int getEmotionalValue(SpecialProject specialProject, String groupName, String startTime, String endTime,
-			String industryType, String area) throws Exception {
+								 String industryType, String area) throws Exception {
 		return 0;
 	}
 
 	@Override
+	public List<TippingPoint> getTippingPoint(QueryBuilder queryBuilder, FtsDocumentCommonVO documentStatus, Date beginDate, boolean sim, boolean irSimflag, boolean irSimflagAll) throws TRSException, TRSSearchException {
+		return null;
+	}
+
+/*
+	@Override
 	public List<TippingPoint> getTippingPoint(QueryBuilder queryBuilder, FtsDocumentStatus documentStatus,
-			Date beginDate, boolean irSimflag,boolean irSimflagAll) throws TRSException, TRSSearchException {
+			Date beginDate, boolean sim, boolean irSimflag,boolean irSimflagAll) throws TRSException, TRSSearchException {
 		// String startTime = DateUtil.date2String(beginDate,
 		// DateUtil.yyyyMMddHHmmss);
 		// String endTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss);
@@ -1253,6 +1260,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 		}
 		return result;
 	}
+*/
 
 	@Override
 	public List<ReportTipping> getReportTippingPoint(String baseUrl, Date beginDate)
@@ -1346,7 +1354,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	 * @throws TRSException
 	 */
 	public void scrollForSpreadNew(SinaUser document, QueryBuilder builder, String indices, String[] timeArray,
-			boolean sim, boolean irSimflag,boolean irSimflagAll) throws Exception {
+								   boolean sim, boolean irSimflag,boolean irSimflagAll) throws Exception {
 		builder.setDatabase(indices);
 		List<SinaUser> ftsQuery = hybase8SearchService.ftsQuery(builder, SinaUser.class, sim, irSimflag,irSimflagAll,"special");
 		log.info(builder.asTRSL());
@@ -1373,7 +1381,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	 * 逐层取数据，直到 null
 	 */
 	private void generateMap(GraphMap graphMap, MultiKVMap<String, SinaUser> allUser, SinaUser fromUser, boolean first,
-			int level, int num) throws Exception {
+							 int level, int num) throws Exception {
 
 		if (level == 0) {
 			return;
@@ -1741,7 +1749,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@SuppressWarnings("unused")
 	private QueryBuilder generateFilter(SpecialProject specialProject, String beginDate, String endDate,
-			String industryType, String area) {
+										String industryType, String area) {
 		QueryBuilder builder = specialProject.esNoPagedAndTimeBuilder();
 		if (!"ALL".equals(industryType)) {
 			builder.filterField("", industryType, Operator.Equal);
@@ -1984,8 +1992,8 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Object getDataByChart(SpecialProject specialProject, String industryType, String area, String chartType,
-			String dateTime, String xType, String source, String entityType, String sort, String emotion,
-			String fuzzyValue,String fuzzyValueScope,int pageNo, int pageSize, String forwarPrimary, String invitationCard, boolean isExport, String thirdWord)
+								 String dateTime, String xType, String source, String entityType, String sort, String emotion,
+								 String fuzzyValue,String fuzzyValueScope,int pageNo, int pageSize, String forwarPrimary, String invitationCard, boolean isExport, String thirdWord)
 			throws Exception {
 		QueryBuilder builder = new QueryBuilder();
 		QueryBuilder countBuilder = new QueryBuilder();
@@ -2242,20 +2250,20 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			builder.filterByTRSL(trsl);
 			countBuilder.filterByTRSL(trsl);
 			switch (sort) { // 排序
-			case "desc":
-				builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, true);
-				countBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, true);
-				break;
-			case "asc":
-				builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
-				countBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
-				break;
-			case "hot":
-				return infoListService.getHotListStatus(builder, countBuilder, loginUser,"special");
-			default:// 相关性
-				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				countBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, true);
+					countBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, true);
+					break;
+				case "asc":
+					builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
+					countBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
+					break;
+				case "hot":
+					return infoListService.getHotListStatus(builder, countBuilder, loginUser,"special");
+				default:// 相关性
+					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					countBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			log.info("WEIBO:" + builder.asTRSL());
 			obj = infoListService.getStatusList(builder, loginUser, sim, false, false,false,"special");
@@ -2271,20 +2279,20 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 				countBuilder.filterByTRSL(trsl);
 			}
 			switch (sort) { // 排序
-			case "desc":
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotListWeChat(builder, countBuilder, loginUser,"special");
-			default:
-				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				countBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotListWeChat(builder, countBuilder, loginUser,"special");
+				default:
+					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					countBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			log.info("WECHAT:" + builder.asTRSL());
 
@@ -2337,20 +2345,20 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 				countBuilder.filterByTRSL(trsl);
 			}
 			switch (sort) { // 排序
-			case "desc":
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-				break;
-			case "asc":
-				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				break;
-			case "hot":
-				return infoListService.getHotList(builder, countBuilder, loginUser,"special");
-			default:
-				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				countBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
-				break;
+				case "desc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "hot":
+					return infoListService.getHotList(builder, countBuilder, loginUser,"special");
+				default:
+					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					countBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
 			}
 			log.info("HYBASE_NI_INDEX:" + builder.asTRSL());
 
@@ -2403,7 +2411,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public List<ViewEntity> getUserViewsData(SpecialProject specialProject, QueryBuilder searchBuilder,
-			String[] timeArray, boolean sim) throws TRSException, TRSSearchException {
+											 String[] timeArray, boolean sim) throws TRSException, TRSSearchException {
 		String source = specialProject.getSource();
 		// url排重
 		boolean irSimflag = specialProject.isIrSimflag();
@@ -2626,7 +2634,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Object getWordCloud(boolean server, String trsl, boolean sim, boolean irSimflag,boolean irSimflagAll, String entityType,
-			int limit,String type, String... data) throws  TRSSearchException {
+							   int limit,String type, String... data) throws  TRSSearchException {
 		GroupResult result = new GroupResult();
 		try {
 			GroupWordResult wordInfos = new GroupWordResult();
@@ -2660,7 +2668,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 						Const.PARAM_MAPPING.get(entityType), limit,type, data);
 				List<GroupInfo> groupList = result.getGroupList();
 				for (GroupInfo groupInfo : groupList) {
-						wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), entityType);
+					wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), entityType);
 				}
 			}
 			wordInfos.sort();
@@ -2732,7 +2740,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 				categoryQuery = hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,
 						FtsFieldConst.FIELD_URLTIME_HOUR, Const.MIX_DATABASE);
 			} else {// if(timerange.endsWith("d") && !"0d".equals(timerange))
-					// 自定义时间也走这个
+				// 自定义时间也走这个
 				categoryQuery = hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll, FtsFieldConst.FIELD_URLDATE,
 						Const.MIX_DATABASE);
 			}
@@ -2840,7 +2848,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public SpreadNewsEntity pathByNews(SpecialProject project, QueryBuilder builder, SpreadNewsEntity root,
-			String[] timeArray, boolean irSimflag,boolean irSimflagAll) throws Exception {
+									   String[] timeArray, boolean irSimflag,boolean irSimflagAll) throws Exception {
 
 		// 再次确认root节点
 		root = checkRoot(project, builder, root, project.isSimilar());
@@ -2850,7 +2858,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	/**
 	 * 递归遍历节点
-	 * 
+	 *
 	 * @since changjiang @ 2018年5月9日
 	 * @param father
 	 * @param isSimilar
@@ -2904,7 +2912,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	/**
 	 * 确定发布时间最早且非转发新闻,定位root节点新闻
-	 * 
+	 *
 	 * @since changjiang @ 2018年5月9日
 	 * @param builder
 	 * @param root
@@ -2915,7 +2923,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	 * @Return : SpreadNewsEntity
 	 */
 	private SpreadNewsEntity checkRoot(SpecialProject project, QueryBuilder builder, SpreadNewsEntity root,
-			boolean isSimilar) throws TRSSearchException, TRSException {
+									   boolean isSimilar) throws TRSSearchException, TRSException {
 		// url排重
 		boolean irSimflag = project.isIrSimflag();
 		//跨数据源排重
@@ -3004,7 +3012,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public List<Map<String, Object>> newsSiteAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar,
-			boolean irSimflag,boolean irSimflagAll,boolean isApi) throws TRSSearchException {
+													  boolean irSimflag,boolean irSimflagAll,boolean isApi) throws TRSSearchException {
 		// 最多显示几个
 		int maxLength = 5;
 		List<String> list = DateUtil.getBetweenDateString(timeArray[0], timeArray[1], DateUtil.yyyyMMddHHmmss,
@@ -3060,7 +3068,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public HashMap<String, Object> getUserViewsData(SpecialProject specialProject, String timeRange,
-											  String industry, String area, SpecialParam specParam)  throws Exception{
+													String industry, String area, SpecialParam specParam)  throws Exception{
 		return null;
 	}
 
@@ -3105,7 +3113,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 		searchBuilder.filterByTRSL(trsl);
 		searchBuilder.setDatabase(Const.WEIBO);
 		long ftsCount = hybase8SearchService.ftsCount(searchBuilder, sim, irSimflag,irSimflagAll,"special");
-		
+
 		List<GroupInfo> groupList = records.getGroupList();
 		for (GroupInfo group : groupList) {
 			Map<String, String> map = new HashMap<String, String>();
@@ -3142,7 +3150,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			list.add(hashMap);
 		}
 		return list;
-	
+
 	}
 
 	@Override
