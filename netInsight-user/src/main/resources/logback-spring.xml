@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <!-- 该配置可以读取.properties配置文件参数 -->
-    <!--<property resource="application.properties"/>-->
+    <!--<property resource="11.properties"/>-->
     <springProperty scope="context" name="spring.jpa.show-sql-parameter" source="spring.jpa.show-sql-parameter"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">

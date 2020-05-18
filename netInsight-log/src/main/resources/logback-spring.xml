@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 该配置可以读取.properties配置文件参数 -->
+    <!--<property resource="11.properties"/>-->
+    <springProperty scope="context" name="spring.jpa.show-sql-parameter" source="spring.jpa.show-sql-parameter"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoder 默认配置为PatternLayoutEncoder -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="err" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/trssmas-error.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--每日备份日志存储格式和位置 -->
+            <fileNamePattern>logs/bak/trssmas-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--最大保存天数 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- 存储查hybase所消耗时间的日志 -->
+    <appender name="warn" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/trssmas-warn.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--每日备份日志存储格式和位置 -->
+            <fileNamePattern>logs/bak/trssmas-warn.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--最大保存天数 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="suc" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/trssmas-success.log</file>
+
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/trssmas-success.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="bug" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/trssmas-debug.log</file>
+
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/trssmas-debug.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="tra" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/trssmas-trace.log</file>
+
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/trssmas-trace.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- 指定业务类的日志记录示例 -->
+    <appender name="search" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/ni-hybase-search.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/ni-hybase-search.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <logger name="com.trs.netInsight.com.trs.netInsight.support.fts.impl.Hybase8SearchImpl" level="DEBUG" additivity="false">
+    	<appender-ref ref="search"/>
+    </logger>
+    
+    <!-- 记录超时信息 -->
+    <appender name="overtimelog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/overtimelog.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/overtimelog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <logger name="com.trs.netInsight.util.LogPrintUtil" level="DEBUG" additivity="false">
+    	<appender-ref ref="overtimelog"/>
+    </logger>
+    
+    <!-- 指定业务类的日志记录示例 -->
+    <appender name="specailComputeTask" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/netInsight-specailComputeTask.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/netInsight-specailComputeTask.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <logger name="com.trs.netInsight.widget.special.service.ScheduledTask" level="DEBUG" additivity="false">
+    	<appender-ref ref="specailComputeTask"/>
+    </logger>
+    <!--登录页 用户申请试用记录-->
+    <appender name="mailLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/mailLog.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/mailLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.trs.netInsight.widget.notice.service.impl.MailSendServiceImpl" level="DEBUG" additivity="false">
+        <appender-ref ref="mailLog"/>
+    </logger>
+
+    <!--专题指数分析任务日志-->
+    <appender name="special_compute" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/special_compute.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/special_compute.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.trs.netInsight.widget.special.service.impl.SpecialComputeServiceImpl" level="DEBUG" additivity="false">
+        <appender-ref ref="special_compute"/>
+    </logger>
+
+    <!-- 舆情报告专报数据计算日志-->
+    <appender name="report_compute" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/report_compute.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/report_compute.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.trs.netInsight.widget.report.task.SepcialReportTask" level="DEBUG" additivity="false">
+        <appender-ref ref="report_compute"/>
+    </logger>
+    <logger name="com.trs.netInsight.widget.report.service.impl.GenerateReportImpl" level="DEBUG" additivity="false">
+        <appender-ref ref="report_compute"/>
+    </logger>
+    
+    
+      <!-- 记录预警发送时间 -->
+    <appender name="kafkaalert" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/kafkaalert.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/kafkaalert.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="com.trs.netInsight.com.trs.netInsight.support.kafka.service.impl.AlertKafkaConsumerServiceImpl" level="DEBUG" additivity="false">
+        <appender-ref ref="kafkaalert"/>
+    </logger>
+
+    <!-- 记录热点评论采集情况 -->
+    <appender name="hotReviewsMessage" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/netInsight-hotReviews.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/netInsight-hotReviews.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.trs.netInsight.widget.microblog.service.impl.SingleMicroblogServiceImpl" level="DEBUG" additivity="false">
+        <appender-ref ref="hotReviewsMessage"/>
+    </logger>
+
+    <!-- 记录api频率计数器情况 -->
+    <appender name="apiFrequencyCounter" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/apiFrequencyCounter.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/apiFrequencyCounter.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.trs.netInsight.com.trs.netInsight.support.api.filter.AccessControlFilter" level="DEBUG" additivity="false">
+        <appender-ref ref="apiFrequencyCounter"/>
+    </logger>
+
+    <!-- 记录预警发送 -->
+    <appender name="noticeSend" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/noticeSend.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/noticeSend.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="com.trs.netInsight.widget.notice.service.impl.NoticeSendServiceImpl" level="DEBUG" additivity="false">
+        <appender-ref ref="noticeSend"/>
+    </logger>
+
+    <!--设置为OFF,即屏蔽; 打印sql语句和参数时,留下sqltiming作为INFO级别输出-->
+    <!--jdbc.sqltiming设置为OFF,即屏蔽; 不在输出sql参数语句,设置 INFO 输出sql参数语句-->
+    <logger name="jdbc.connection" level="OFF"/>
+    <logger name="jdbc.resultset" level="OFF"/>
+    <logger name="jdbc.resultsettable" level="OFF"/>
+    <logger name="jdbc.audit" level="OFF"/>
+    <logger name="jdbc.sqltiming" level="OFF"/>
+    <logger name="jdbc.sqlonly" level="OFF"/>
+
+    <root level="INFO">
+        <appender-ref ref="suc"/>
+        <appender-ref ref="err"/>
+        <appender-ref ref="bug"/>
+        <appender-ref ref="tra"/>
+        <appender-ref ref="warn"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration> 
