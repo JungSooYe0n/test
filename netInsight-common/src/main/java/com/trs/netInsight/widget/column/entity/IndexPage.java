@@ -39,7 +39,7 @@ public class IndexPage extends BaseEntity {
 	 * 子类
 	 */
 	@JsonIgnore
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(cascade={CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.EAGER /*fetch = FetchType.LAZY*/)
 	@JoinColumn(name = "parent_id")
 	@OrderBy("sequence asc")
 	private List<IndexPage> childrenPage = new ArrayList<>();
@@ -107,6 +107,7 @@ public class IndexPage extends BaseEntity {
 	 */
 	@JsonIgnore
 	@OneToMany(mappedBy = "indexPage", cascade = CascadeType.DETACH)
+	@OrderBy("sequence asc")
 	private List<IndexTabMapper> indexTabMappers = new ArrayList<>();
 
 	/**

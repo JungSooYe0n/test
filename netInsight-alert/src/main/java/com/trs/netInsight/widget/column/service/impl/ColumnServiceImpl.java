@@ -597,7 +597,6 @@ public class ColumnServiceImpl implements IColumnService {
 		try {
 			// 删除栏目组及下级子栏目
 			//删除时需要重新排序
-
 			IndexPage indexPage = indexPageRepository.findOne(indexPageId);
 			if(ObjectUtil.isEmpty(indexPage)){
 				throw new OperationException("当前分组不存在");
@@ -651,7 +650,7 @@ public class ColumnServiceImpl implements IColumnService {
 						deleteIndexPage(chidPage);
 					}
 					// 删除栏目组
-					indexPageRepository.delete(indexPage.getId());
+					indexPageRepository.delete(indexPage);
 				}
 			}
 			return "success";
