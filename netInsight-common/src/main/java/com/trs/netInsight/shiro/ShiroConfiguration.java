@@ -182,6 +182,7 @@ public class ShiroConfiguration {
 		DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
 		//解决网察项目无故死掉的问题（暂时研究方向是shiro的cookie导致的）
 		Cookie cookie = new SimpleCookie(DEFAULT_SESSION_ID_NAME);
+		cookie.setPath("/netInsight");
 		cookie.setHttpOnly(true); //more secure, protects against XSS attacks
 		sessionManager.setSessionIdCookie(cookie);
 
