@@ -9,7 +9,11 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.model.result.GroupInfo;
+import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
@@ -21,17 +25,13 @@ import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.user.entity.User;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 /**
  * 折线图
  *
  *  @author 北京拓尔思信息技术股份有限公司
  */
-public class ChartLineColumn extends AbstractColumn {
+public class ChartLineColumn extends AbstractColumn{
 
 	@Override
 	public Object getColumnData(String timeRange) throws TRSSearchException {
@@ -50,11 +50,17 @@ public class ChartLineColumn extends AbstractColumn {
 
 	private Object queryChartLineData(Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String timeRange, String showType, String tabWidth, String trsl, String contrast, String xyTrsl, IndexTab indexTab) {
 		Map<String, Object> result = new HashMap<>();
+		Map<String, Object> singleMap = new HashMap<>();
+		Map<String, Object> doubleMap = new HashMap<>();
+
 		List<String> dateList = new ArrayList<>();
 		List<Object> contrastList = new ArrayList<>();
 		List<List<Long>> countList = new ArrayList<>();
+		List<Object> doubleContrastList = new ArrayList<>();
+		List<List<Long>> doubleCountList = new ArrayList<>();
 		List<Object> totalList = new ArrayList<>();
-		List<Long> weiboList = new ArrayList<>();
+		Map<String, Object> maxSourceMap = new HashMap<>();
+		List<Long> maxSourceList = new ArrayList<>();
 
 		List<String> contrastData = new ArrayList<>();
 		String source = indexTab.getGroupName();
@@ -69,6 +75,8 @@ public class ChartLineColumn extends AbstractColumn {
 				}
 			}
 		}else if (StringUtils.equals(contrast, ColumnConst.CONTRAST_TYPE_SITE)) {
+			contrastField = FtsFieldConst.FIELD_SITENAME;
+		}else if (StringUtils.equals(contrast, ColumnConst.CONTRAST_TYPE_WECHAT)) {
 			contrastField = FtsFieldConst.FIELD_SITENAME;
 		} else if (StringUtil.isNotEmpty(xyTrsl)) {
 			contrastField = null;
@@ -177,19 +185,51 @@ public class ChartLineColumn extends AbstractColumn {
 			if(countTotal == 0L){
 				return null;
 			}
-			if(contrastList.contains(Const.PAGE_SHOW_WEIBO)){
-				int index = contrastList.indexOf(Const.PAGE_SHOW_WEIBO);
-				weiboList = countList.get(index);
-				contrastList.remove(index);
-				countList.remove(index);
 
+			int maxIndex = 0;
+			Long maxSourceTotal = 0L;
+			String maxSourceName = "";
+			for(int i =0; i<countList.size();i++){
+				Long oneTotal = 0L;
+				List<Long> oneCount = countList.get(i);
+				for(Long one :oneCount){
+					oneTotal += one;
+				}
+				if(oneTotal > maxSourceTotal){
+					maxSourceTotal = oneTotal;
+					maxIndex = i;
+				}
+			}
+			maxSourceName = (String)contrastList.get(maxIndex);
+			maxSourceList = countList.get(maxIndex);
+			for(int i = 0;i<contrastList.size();i++){
+				if(maxIndex != i){
+					doubleContrastList.add(contrastList.get(i));
+					doubleCountList.add(countList.get(i));
+				}
 			}
 			//网察折线图统一的返回结果
-			result.put("legendData",contrastList);
-			result.put("lineXdata",dateList);
-			result.put("lineYdata",countList);
-			result.put("total",totalList);
-			result.put("weibo",weiboList);
+			doubleMap.put("legendData",doubleContrastList);
+			doubleMap.put("lineXdata",dateList);
+			doubleMap.put("lineYdata",doubleCountList);
+			doubleMap.put("total",totalList);
+			maxSourceMap.put("name",maxSourceName);
+			maxSourceMap.put("info",maxSourceList);
+			doubleMap.put("maxSource",maxSourceMap);
+			result.put("double",doubleMap);
+
+			contrastList.add(0,"总量");
+			List<Long> totalLong = new ArrayList<>();
+			for(Object one :totalList){
+				totalLong.add((Long)one);
+			}
+			countList.add(0,totalLong);
+			//网察折线图统一的返回结果
+			singleMap.put("legendData",contrastList);
+			singleMap.put("lineXdata",dateList);
+			singleMap.put("lineYdata",countList);
+			result.put("single",singleMap);
+
 			return result;
 		} catch (TRSException | TRSSearchException e) {
 			throw new TRSSearchException(e);
@@ -263,7 +303,7 @@ public class ChartLineColumn extends AbstractColumn {
 				}
 			}else{
 				//站点对比 + 微信公众号对比
-				if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast()) || ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
+				if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast()) ||ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
 					String sitename = super.config.getKey().replaceAll(";"," OR ");
 					if (sitename.endsWith(" OR ")){
 						sitename = sitename.substring(0,sitename.length()-4);
@@ -317,5 +357,5 @@ public class ChartLineColumn extends AbstractColumn {
 		}
 		return builder;
 	}
-	
+
 }

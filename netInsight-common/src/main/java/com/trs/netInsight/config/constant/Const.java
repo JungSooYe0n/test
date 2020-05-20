@@ -1144,8 +1144,25 @@ public class Const {
             Const.GROUPNAME_ZIMEITI,Const.GROUPNAME_LUNTAN,Const.GROUPNAME_DUANSHIPIN,Const.GROUPNAME_CHANGSHIPIN, Const.GROUPNAME_BOKE,  Const.GROUPNAME_GUOWAIXINWEN, Const.GROUPNAME_TWITTER,
             Const.GROUPNAME_FACEBOOK);
 
-
-
+    /**
+     * 媒体等级
+     */
+    public static final List<String> MEDIA_LEVEL = Arrays.asList("中央党媒","地方党媒","重点商业媒体","其他");
+    /**
+     * 媒体行业
+     */
+    public static final List<String> MEDIA_INDUSTRY = Arrays.asList("时政","财经","文教","法制","健康","科技","体育","娱乐","国际","军事","食品",
+            "旅游","金融","交通","环境");
+    /**
+     * 内容行业
+     */
+    public static final List<String> CONTENT_INDUSTRY = Arrays.asList("时政","财经","文教","法制","健康","科技","体育","娱乐","国际","军事","食品",
+            "旅游","金融","交通","环境");
+    /**
+     * 信息过滤
+     */
+    public static final List<String> FILTER_INFO = Arrays.asList("明星娱乐","影视剧场","婚恋交友","股票推荐","游戏广告","赌博彩票","涉黄信息","母婴广告","招生招聘",
+            "采购招标","转发抽奖");
 }
 
 /**

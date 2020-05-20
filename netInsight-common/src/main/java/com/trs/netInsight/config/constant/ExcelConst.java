@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2017年11月24日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -32,13 +32,13 @@ public class ExcelConst {
 	 */
 //	public static final String[] HEAD_VALUE = { "序号", "标题", "地址", "媒体类型", "媒体名称", "发布时间" };
 	public static final String[] HEAD_VALUE = { "序号", "标题", "地址", "媒体名称", "发布时间" };
-	
+
 	public static final String[] HEAD_VALUE_MIX = { "序号", "标题","地址", "来源", "站点", "发布时间" };
 	//序号  标题  正文  链接  媒体类型  媒体名称  发布时间     
-	
+
 	//柱状图和饼图共用的表格头
 	public static final String[] HEAD_PIE_BAR = { "媒体来源", "信息数量"};
-
+	public static final String[] WEIBO_HOT_TOPIC = { "微博话题", "涉及量"};
 	public static final String[] EMOTION_DATA = { "情感", "数量"};
 	public static final String[] DETONATE_POINT = { "引爆用户", "二次转发数"};
 	public static final String[] WEBSITE = { "网站", "信息数量"};
@@ -54,17 +54,17 @@ public class ExcelConst {
 	public static final String[] FACEBOOK = { "FaceBook", "信息数量"};
 	//地域图的表格头
 	public static final String[] HEAD_MAP = { "地名", "信息数量"};
-	
+
 	//词云图的表格头
 	public static final String[] HEAD_WORDCLOUD = { "词语", "所属分组", "信息数量"};
 	//折线图随着所选时间是变动的，所以代码中做动态设置
-	
+
 }
 
 /**
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2017年11月24日 Administrator creat

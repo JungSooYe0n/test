@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2017年11月29日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -15,7 +15,7 @@ package com.trs.netInsight.config.constant;
 
 /**
  * 海贝库字段常量
- * 
+ *
  * @Type FtsFieldConst.java
  * @author 谷泽昊
  * @date 2017年11月29日 下午5:21:14
@@ -291,9 +291,31 @@ public class FtsFieldConst {
 	public final static String FIELD_HYLOAD_TIME_A = "HYBASE_LOADTIME_A";
 
 	/**
-	 * 微博地域,ckm分类
+	 * 内容地域信息 - 信息中出现的地域信息
 	 */
 	public final static String FIELD_CATALOG_AREA = "CATALOG_AREA";
+
+	/**
+	 * 媒体地域 - 发布信息方对应的地址
+	 */
+	public final static String FIELD_MEDIA_AREA = "IR_MEDIA_AREA";
+	/**
+	 * 信息过滤 - 这个值对信息的性质进行打标，如游戏广告、转发抽奖
+	 */
+	public final static String FIELD_FILTER_INFO = "IR_NOISEMESSAGE";
+	/**
+	 * 内容行业 - 信息中出现的行业信息
+	 */
+	public final static String FIELD_CONTENT_INDUSTRY = "IR_INDUSTRY_TYPE";
+	/**
+	 * 媒体行业 - 发布信息方对应的行业类型
+	 */
+	public final static String FIELD_MEDIA_INDUSTRY = "IR_INDUSTRY_MEDIA";
+	/**
+	 * 媒体等级
+	 */
+	public final static String FIELD_MEDIA_LEVEL = "IR_MEDIA_RANK";
+
 
 	/**
 	 * 微博判断转发 / 原发
@@ -529,7 +551,7 @@ public class FtsFieldConst {
  *
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2017年11月29日 谷泽昊 creat

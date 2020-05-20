@@ -37,16 +37,16 @@ public enum StatisticalChartInfo {
     /**
      * 折线图
      */
-    CHART_LINE(ColumnConst.CHART_LINE, "网络发布渠道分析", 1),
+    CHART_LINE(ColumnConst.CHART_LINE, "各舆论场趋势分析", 1),
     /**
      * 饼状图
      */
-    CHART_PIE(ColumnConst.CHART_PIE, "媒体来源占比图", 2),
+    CHART_PIE(ColumnConst.CHART_PIE, "媒体来源占比", 2),
 
     /**
      * 饼状图
      */
-    CHART_PIE_EMOTION(ColumnConst.CHART_PIE_EMOTION, "正负面占比图", 3),
+    CHART_PIE_EMOTION(ColumnConst.CHART_PIE_EMOTION, "正负面占比", 3),
     /**
      * 柱状图  横向柱状图，主要为展示效果不同，则
      */
@@ -60,16 +60,25 @@ public enum StatisticalChartInfo {
     /**
      * 词云栏目
      */
-    WORD_CLOUD(ColumnConst.CHART_WORD_CLOUD, "热点词云", 6),
+    WORD_CLOUD(ColumnConst.CHART_WORD_CLOUD, "词云统计", 6),
     /**
      * 地域热力图
      */
-    MAP(ColumnConst.CHART_MAP, "热力图", 7);
+    MAP(ColumnConst.CHART_MAP, "地域统计", 7);
 
     private String chartType;
 
     private String chartName;
 
     private Integer sequence;
+
+    public static StatisticalChartInfo getStatisticalChartInfo(String chartType){
+        for(StatisticalChartInfo statisticalChartInfo : StatisticalChartInfo.values()){
+            if(statisticalChartInfo.chartType.equals(chartType)){
+                return statisticalChartInfo;
+            }
+        }
+        return null;
+    }
 
 }

@@ -1,5 +1,18 @@
 package com.trs.netInsight.widget.column.service.column;
 
+import java.util.*;
+
+
+import com.trs.netInsight.config.constant.ColumnConst;
+import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.util.DateUtil;
+import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.widget.analysis.entity.CategoryBean;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.user.entity.User;
+import org.apache.commons.lang3.StringUtils;
+
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.TRSException;
@@ -7,20 +20,14 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.model.result.GroupInfo;
+import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.model.result.GroupWordInfo;
 import com.trs.netInsight.support.fts.model.result.GroupWordResult;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
-import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.user.entity.User;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 词云列表
@@ -41,7 +48,7 @@ public class WordCloudColumn extends AbstractColumn {
         GroupWordResult wordCloud = null;
         //用queryCommonBuilder和QueryBuilder 是一样的的
         QueryCommonBuilder queryBuilder = super.config.getCommonBuilder();
-        queryBuilder.page(0, 50);
+        queryBuilder.page(0, 100);
         String metas = indexTab.getGroupName();
         try {
             wordCloud = (GroupWordResult) commonChartService.getWordCloudColumnData(queryBuilder, sim, irSimflag, irSimflagAll, metas, config.getEntityType(), "column");

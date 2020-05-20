@@ -205,7 +205,7 @@ public class CommonListChartUtil {
     /**
      *
      * 转化数据源格式
-     * 将各种样子的数据源类型改为同hybase中相同的数据源值
+     * 将数据源转成页面中显示的
      * @param groupName
      * @return
      */

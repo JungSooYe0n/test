@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.column.controller;
 
 import com.trs.netInsight.config.constant.ColumnConst;
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
@@ -11,16 +12,11 @@ import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
-import com.trs.netInsight.widget.column.entity.CustomChart;
-import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.column.entity.IndexTabType;
-import com.trs.netInsight.widget.column.entity.StatisticalChart;
+import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
-import com.trs.netInsight.widget.column.service.IColumnChartService;
-import com.trs.netInsight.widget.column.service.IIndexPageService;
-import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
+import com.trs.netInsight.widget.column.service.*;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
@@ -34,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 栏目图表操作接口
@@ -202,6 +200,7 @@ public class ColumnChartController {
                                  @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
                                  HttpServletRequest request)
             throws TRSException {
+        String[] typeArr = type.split(";");
 
         //首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受可创建资源数量的限制）
         User loginUser = UserUtils.getUser();
@@ -210,7 +209,7 @@ public class ColumnChartController {
             Organization organization = organizationService.findOne(loginUser.getOrganizationId());
             //可创建自定义图表数量 暂时不与权限绑定，直接限定最多10个
             Integer count = columnChartService.getCustomChartSize(tabId);
-            if(count >10){
+            if(count+typeArr.length >10){
                 throw new TRSException(CodeUtils.FAIL, "当前栏目下自定义图表创建已达上限，如需更多，请联系相关运维人员。");
             }
 
@@ -248,13 +247,10 @@ public class ColumnChartController {
         if (ObjectUtil.isEmpty(mapper)) {
             throw new TRSException("当前自定义图表对应的栏目不存在");
         }
-        IndexTabType indexTabType = ColumnFactory.chooseType(type);
-        if (ObjectUtil.isEmpty(indexTabType)) {
-            throw new TRSException(CodeUtils.FAIL, "当前图表类型不存在");
-        }
-        groupName = CommonListChartUtil.changeGroupName(groupName);
+
+
         Long count = columnChartService.countForTabid(tabId);
-        Integer sequence = count.intValue() + 1;
+        Integer sequence = count.intValue();
         if (StringUtil.isEmpty(timeRange)) {
             timeRange = "7d";
         }
@@ -269,25 +265,41 @@ public class ColumnChartController {
         } else if ("sourceRemove".equals(simflag)) {
             irSimflagAll = true;//全网排重
         }
-        // 有几个图专家模式下 必须传xy表达式
-        if (StringUtil.isNotEmpty(trsl)) {
-            contrast= null;
-            if (ColumnConst.CHART_BAR.equals(type) || ColumnConst.CHART_LINE.equals(type) || ColumnConst.CHART_PIE.equals(type)) {
-                if (StringUtil.isEmpty(xyTrsl)) {
-                    throw new OperationException(indexTabType.getTypeName() + "时必须传xy表达式");
-                }
+        List<CustomChart> result = new ArrayList<>();
+        for(String oneType :typeArr){
+            sequence +=1;
+            IndexTabType indexTabType = ColumnFactory.chooseType(oneType);
+            if (ObjectUtil.isEmpty(indexTabType)) {
+                throw new TRSException(CodeUtils.FAIL, "当前图表类型不存在");
             }
-        }
-        CustomChart customChart = new CustomChart(name, trsl, xyTrsl, type, contrast, excludeWeb, timeRange, false, keyWord, excludeWords,
-                keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, tabId, sequence);
 
-        return columnChartService.saveCustomChart(customChart);
+            // 有几个图专家模式下 必须传xy表达式
+            if (StringUtil.isNotEmpty(trsl)) {
+                contrast= null;
+                if (ColumnConst.CHART_BAR.equals(oneType) || ColumnConst.CHART_LINE.equals(oneType) || ColumnConst.CHART_PIE.equals(oneType)) {
+                    if (StringUtil.isEmpty(xyTrsl)) {
+                        throw new OperationException(indexTabType.getTypeName() + "时必须传xy表达式");
+                    }
+                }
+            }else{
+                xyTrsl = null;
+            }
+            if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
+                groupName = Const.PAGE_SHOW_WEIXIN;
+            }
+            groupName = CommonListChartUtil.changeGroupName(groupName);
+            CustomChart customChart = new CustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, timeRange, false, keyWord, excludeWords,
+                    keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, tabId, sequence);
+            customChart =  columnChartService.saveCustomChart(customChart);
+            result.add(customChart);
+        }
+        return result;
 
     }
 
 
     /**
-     * 栏目下自定义图表添加接口
+     * 栏目下自定义图表修改接口
      *
      * @param id
      * @param name
@@ -391,12 +403,17 @@ public class ColumnChartController {
                         throw new OperationException(indexTabType.getTypeName() + "时必须传xy表达式");
                     }
                 }
+            }else{
+                xyTrsl = null;
+            }
+            if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
+                groupName = Const.PAGE_SHOW_WEIXIN;
             }
             CustomChart customChart = columnChartService.findOneCustomChart(id);
             if (ObjectUtil.isEmpty(customChart)) {
                 throw new TRSException("当前自定义图表不存在");
             }
-             customChart.setName(name);
+            customChart.setName(name);
             customChart.setTrsl(trsl);
             customChart.setXyTrsl(xyTrsl);
             customChart.setType(type);

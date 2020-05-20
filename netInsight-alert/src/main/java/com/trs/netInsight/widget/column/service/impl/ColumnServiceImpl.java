@@ -19,6 +19,7 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.model.result.IDocument;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.report.excel.DataRow;
 import com.trs.netInsight.support.report.excel.ExcelData;
 import com.trs.netInsight.support.report.excel.ExcelFactory;
 import com.trs.netInsight.util.*;
@@ -29,6 +30,7 @@ import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.Columns;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.IndexTabType;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
@@ -1566,185 +1568,125 @@ public class ColumnServiceImpl implements IColumnService {
 	}
 
 	/**
-	 * 日常监测饼图和柱状图数据的导出
+	 * 日常监测图表数据导出
 	 */
 	@Override
-	public ByteArrayOutputStream exportData(JSONArray array) throws IOException {
+	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType, String entityType) throws IOException {
 		ExcelData content = new ExcelData();
-		content.setHead(ExcelConst.HEAD_PIE_BAR);  // { "媒体来源", "数值"}
-		for (Object object : array) {
-			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
-
-			String groupNameValue = parseObject.get("groupName").toString();
-			String numValue = parseObject.get("num").toString();
-
-			if("国内新闻".equals(groupNameValue)){
-				groupNameValue = "新闻";
-			}else if("国内新闻_电子报".equals(groupNameValue)){
-				groupNameValue = "电子报";
-			}else if("国内新闻_手机客户端".equals(groupNameValue)){
-				groupNameValue = "客户端";
-			}else if("国内论坛".equals(groupNameValue)){
-				groupNameValue = "论坛";
-			}else if("国内微信".equals(groupNameValue)){
-				groupNameValue = "微信";
-			}else if("国内博客".equals(groupNameValue)){
-				groupNameValue = "博客";
+		if (indexTabType != null) {
+			if (StringUtil.isNotEmpty(data)) {
+				if (IndexTabType.CHART_LINE.equals(indexTabType)) {
+					JSONObject object = JSONObject.parseObject(data);
+					exportChartLine(object, content);
+				}else{
+					JSONArray array = JSONObject.parseArray(data);
+					if (IndexTabType.WORD_CLOUD.equals(indexTabType)) {
+						exportWordCloud(entityType, array, content);
+					} else if (IndexTabType.MAP.equals(indexTabType)) {
+						exportMap(array, content);
+					} else if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
+						exportData(array, content,ExcelConst.HEAD_PIE_BAR);
+					}else if (IndexTabType.HOT_TOPIC_SORT.equals(indexTabType)) {
+						exportData(array, content,ExcelConst.WEIBO_HOT_TOPIC);
+					}else if (IndexTabType.CHART_PIE_EMOTION.equals(indexTabType)) {
+						exportData(array, content,ExcelConst.EMOTION_DATA);
+					}  else if (IndexTabType.CHART_BAR_CROSS.equals(indexTabType)) {
+						exportDataBarCross(array, content);
+						return ExcelFactory.getInstance().exportOfManySheet(content);
+					}
+				}
 			}
-			content.addRow(groupNameValue, numValue);
 		}
 		return ExcelFactory.getInstance().export(content);
 	}
 
 	/**
-	 * 折线图数据导出
+	 * 日常监测饼图和柱状图数据的导出
 	 */
-//	@Override
-//	public ByteArrayOutputStream exportChartLine(JSONArray array) throws IOException {
-//		ExcelData data = new ExcelData();
-//		//单独循环设置表头
-//		String[] header = null;
-//		for (Object object : array) {
-//
-//			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
-//
-//			String timeAndCount = parseObject.get("data").toString();
-//			JSONArray timeAndCountArray = JSONObject.parseArray(timeAndCount);
-//			String headArray = "媒体来源";
-//			//用于动态设置表头数据
-////			List<String> list = new ArrayList<String>();
-//			boolean hasHeader = false;
-//			if(!hasHeader){
-//				for (Object object2 : timeAndCountArray) {
-//					JSONObject parseObject2 = JSONObject.parseObject(String.valueOf(object2));
-//					String fieldValue = parseObject2.get("fieldValue").toString();
-//					if(StringUtil.isNotEmpty(fieldValue)){
-//						headArray += ", " + fieldValue;
-//					}
-//					continue;
-//				}
-//				header = headArray.split(",");
-//			}
-//			break;
-//		}
-//		data.setHead(header);
-//		for (Object object : array) {
-//
-//			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
-//
-//			String timeAndCount = parseObject.get("data").toString();
-//			JSONArray timeAndCountArray = JSONObject.parseArray(timeAndCount);
-//
-//			String groupName = parseObject.get("groupName").toString();
-//			if("国内新闻".equals(groupName)){
-//				groupName = "新闻";
-//			}else if("国内新闻_电子报".equals(groupName)){
-//				groupName = "电子报";
-//			}else if("国内新闻_手机客户端".equals(groupName)){
-//				groupName = "客户端";
-//			}else if("国内论坛".equals(groupName)){
-//				groupName = "论坛";
-//			}else if("国内微信".equals(groupName)){
-//				groupName = "微信";
-//			}else if("国内博客".equals(groupName)){
-//				groupName = "博客";
-//			}
-//			String rowOne = groupName;
-//			for (Object object2 : timeAndCountArray) {
-//				JSONObject parseObject2 = JSONObject.parseObject(String.valueOf(object2));
-//				String count = parseObject2.get("count").toString();
-//				if(StringUtil.isNotEmpty(count)){
-//					rowOne += "," + count;
-//				}
-//			}
-//			data.addRow(rowOne.split(","));
-//		}
-//		return ExcelFactory.getInstance().export(data);
-//	}
-//
-	@Override
-	public ByteArrayOutputStream exportChartLine(JSONArray array) throws IOException {
-		ExcelData data = new ExcelData();
-		//单独循环设置表头
-		String[] header = null;
-		String headArray = "媒体来源";
-		for (Object object : array) {
+	private void exportData(JSONArray array,ExcelData content,String[] head ) throws IOException {
 
+		content.setHead(head);  // { "媒体来源", "数值"}
+		for (Object object : array) {
 			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
 
-			String groupName = parseObject.get("groupName").toString();
-			if("国内新闻".equals(groupName)){
-				groupName = "新闻";
-			}else if("国内新闻_电子报".equals(groupName)){
-				groupName = "电子报";
-			}else if("国内新闻_手机客户端".equals(groupName)){
-				groupName = "客户端";
-			}else if("国内论坛".equals(groupName)){
-				groupName = "论坛";
-			}else if("国内微信".equals(groupName)){
-				groupName = "微信";
-			}else if("国内博客".equals(groupName)){
-				groupName = "博客";
+			String groupNameValue = parseObject.get("name").toString();
+			String pageShowGroupName = CommonListChartUtil.formatPageShowGroupName(groupNameValue);
+			if(StringUtil.isNotEmpty(pageShowGroupName)){
+				groupNameValue =  pageShowGroupName;
 			}
+			String numValue = parseObject.get("value").toString();
+			content.addRow(groupNameValue, numValue);
+		}
+	}
 
-			if(StringUtil.isNotEmpty(groupName)){
-				headArray += ", " + groupName;
+	private void exportDataBarCross(JSONArray array,ExcelData content) throws IOException {
+		for(Object object : array){
+			JSONObject jsonObject = JSONObject.parseObject(String.valueOf(object));
+			String keyName = jsonObject.getString("name");
+			JSONArray infoArr = jsonObject.getJSONArray("info");
+			content.putHeadMap(keyName, Arrays.asList(ExcelConst.HEAD_PIE_BAR));
+			if(infoArr != null && infoArr.size() >0 ){
+				for(Object info : infoArr){
+					JSONObject infoObject = JSONObject.parseObject(String.valueOf(info));
+					String name = infoObject.getString("name");
+					String value = infoObject.getString("value");
+					List<DataRow> rowList = new ArrayList<>();
+					rowList.add(new DataRow(name));
+					rowList.add(new DataRow(value));
+					content.putSheet(keyName, rowList);
+				}
+			}else{
+				content.putSheet(keyName, new ArrayList<DataRow>());
 			}
 		}
-		header = headArray.split(",");
+	}
 
-		data.setHead(header);
+	private void exportChartLine(JSONObject jsonObject,ExcelData content) throws IOException {
 
+		JSONArray groupNameArr = jsonObject.getJSONArray("legendData");
+		JSONArray timeArr = jsonObject.getJSONArray("lineXdata");
+		JSONArray countArr = jsonObject.getJSONArray("lineYdata");
 
+		List<String> headList = new ArrayList<>();
+		headList.add("");
+		for (Object group : groupNameArr) {
+			headList.add(String.valueOf(group));
+		}
+		String[] header = new String[headList.size()];
+		header = headList.toArray(header);
+		content.setHead(header);
 		List<String[]> arrayList = new ArrayList<>();
 
-		for (int i = 0; i < array.size(); i++) {
-
-			JSONObject parseObject = JSONObject.parseObject(String.valueOf(array.get(i)));
-
-			String timeAndCount = parseObject.get("data").toString();
-			JSONArray timeAndCountArray = JSONObject.parseArray(timeAndCount);
-			for (int j = 0; j < timeAndCountArray.size(); j++) {
-				String[] arr = null;
-				if (0 == i){
-					arr = new String[array.size()+1];
-				}else {
-					arr = arrayList.get(j);
-				}
-				Object o = timeAndCountArray.get(j);
-				JSONObject parseObject2 = JSONObject.parseObject(String.valueOf(o));
-				if (0==i){
-					arr[i] = parseObject2.get("fieldValue").toString();
-					arr[i+1] = parseObject2.get("count").toString();
-					arrayList.add(arr);
-				}else {
-					arr[i+1] = parseObject2.get("count").toString();
-				}
+		for(int i = 0;i<timeArr.size();i++){
+			String[] rowData = new String[headList.size()];
+			rowData[0] =  String.valueOf(timeArr.get(i));
+			int j = 1;
+			for(Object count : countArr){
+				JSONArray oneCount = JSONObject.parseArray(String.valueOf(count));
+				rowData[j] = String.valueOf(oneCount.get(i));
+				j++;
 			}
+			arrayList.add(rowData);
 		}
 		for (String[] strings : arrayList) {
-			data.addRow(strings);
+			content.addRow(strings);
 		}
-		return ExcelFactory.getInstance().export(data);
 	}
 
 	/**
 	 * 词云数据的导出
 	 */
-	@Override
-	public ByteArrayOutputStream exportWordCloud(String dataType,JSONArray array) throws IOException {
-		ExcelData content = new ExcelData();
+	private void exportWordCloud(String dataType,JSONArray array,ExcelData content) throws IOException {
 		content.setHead(ExcelConst.HEAD_WORDCLOUD); // {"词语", "所属分组", "信息数量"}
 		for (Object object : array) {
 			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
 
-			String word = parseObject.get("fieldValue").toString();
-			String count = parseObject.get("count").toString();
+			String word = parseObject.get("name").toString();
+			String count = parseObject.get("value").toString();
 			String group = "";
 			if ("通用".equals(dataType)){
 				group = parseObject.get("entityType").toString();
 			}
-
 			if("地域".equals(dataType) || "location".equals(group)){
 				group = "地域";
 			}else if("机构".equals(dataType) || "agency".equals(group)){
@@ -1752,43 +1694,25 @@ public class ColumnServiceImpl implements IColumnService {
 			}else{
 				group = "人物";
 			}
-
 			content.addRow(word, group, count);
-
-//			String groupList = parseObject.get("groupList").toString();
-//			JSONArray dataArray = JSONObject.parseArray(groupList);
-//			for (Object data : dataArray) {
-//				JSONObject jSONObject = JSONObject.parseObject(String.valueOf(data));
-//				String word = jSONObject.get("fieldValue").toString();
-//				String count = jSONObject.get("count").toString();
-//				String group = jSONObject.get("entityType").toString();
-//				content.addRow(word, group, count);
-//			}
-
-
 		}
-		return ExcelFactory.getInstance().export(content);
 	}
 
 	/**
 	 * 地域图数据的导出
 	 */
-	@Override
-	public ByteArrayOutputStream exportMap(JSONArray array) throws IOException {
-		ExcelData content = new ExcelData();
+	private void exportMap(JSONArray array,ExcelData content) throws IOException {
 		content.setHead(ExcelConst.HEAD_MAP); // { "地域", "信息数量"};
 		array.sort(Comparator.comparing(obj -> {
 			JSONObject parseObject = JSONObject.parseObject(String.valueOf(obj));
-			Long value = parseObject.getLongValue("areaCount");
+			Long value = parseObject.getLongValue("value");
 			return value;
 		}).reversed());
 		for (Object object : array) {
 			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
-
-			String areaName = parseObject.get("areaName").toString();
-			String areaCount = parseObject.get("areaCount").toString();
+			String areaName = parseObject.get("name").toString();
+			String areaCount = parseObject.get("value").toString();
 			content.addRow(areaName, areaCount);
 		}
-		return ExcelFactory.getInstance().export(content);
 	}
 }

@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2017年11月20日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -455,6 +455,11 @@ public class ColumnController {
 					throw new OperationException(indexTabType.getTypeName() + "时必须传xy表达式");
 				}
 			}
+		}else{
+			xyTrsl = null;
+		}
+		if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
+			groupName = Const.PAGE_SHOW_WEIXIN;
 		}
 		// 默认不排重
 		boolean isSimilar = false;
@@ -627,6 +632,11 @@ public class ColumnController {
 						throw new TRSException(indexTabType.getTypeName()+"时必须传xy表达式");
 					}
 				}
+			}else{
+				xyTrsl = null;
+			}
+			if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
+				groupName = Const.PAGE_SHOW_WEIXIN;
 			}
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
@@ -1057,25 +1067,6 @@ public class ColumnController {
 			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange
 	) throws TRSException, SearchException {
 
-		/*String simflag = "";  //排重规则  -  替换栏目条件
-		String wordIndex = "";  // 关键词命中位置   0：标题 1：标题+正文  2：标题+摘要   替换栏目条件
-		String emotion = "";//  情感倾向
-		String read = "";//  阅读标记
-		String excludeWeb = "";//  排除网站  追加条件
-		String excludeWord = "";//  排除关键词  追加条件
-		String excludeWordIndex = "";//  排除关键词命中位置  title 标题  content 正文  titleContent标题+正文
-		Boolean updateWordForm = false;// 修改词距标记 替换栏目条件  --  专家模式下怎么办?
-		String wordFromNum = "";//  词距间隔字符 替换栏目条件
-		Boolean wordFromSort = false;//  是否排序  替换栏目条件
-		String mediaLevel = "";//  媒体等级
-		String groupName = "";// 数据源  替换栏目条件
-		String mediaIndustry = "";// 媒体行业
-		String contentIndustry = "";// 内容行业
-		String filterInfo = "";//信息过滤
-		String contentArea = "";//信息地域
-		String mediaArea = "";//媒体地域
-		String preciseFilter = "";//精准筛选*/
-
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 
@@ -1090,7 +1081,53 @@ public class ColumnController {
 		if(StringUtil.isNotEmpty(timeRange)){
 			indexTab.setTimeRange(timeRange);
 		}
-		/*
+		indexTab.setType(ColumnConst.LIST_NO_SIM);
+
+		return columnService.selectList(indexTab, pageNo, pageSize, source, "", "", "", "",
+				sort, "", "", "", "",fuzzyValue, fuzzyValueScope);
+	}
+
+	@FormatResult
+	@RequestMapping(value = "/columnStattotal", method = RequestMethod.POST)
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）更多数据：${id}")
+	@ApiOperation("信息列表页")
+	public Object columnStattotal(
+			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,
+			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange)
+			throws TRSException, SearchException {
+		//查询一个栏目的列表（不是通过点击图跳转的列表）时，其实就是把当前栏目当成普通列表，不受当前栏目类型的影响
+		IndexTabMapper mapper = indexTabMapperService.findOne(id);
+		if(ObjectUtil.isEmpty(mapper)){
+			throw new TRSException("当前栏目不存在");
+		}
+		IndexTab indexTab = mapper.getIndexTab();
+
+		String simflag = "";  //排重规则  -  替换栏目条件
+		String wordIndex = "";  // 关键词命中位置   0：标题 1：标题+正文  2：标题+摘要   替换栏目条件
+		String emotion = "";//  情感倾向
+		String read = "";//  阅读标记
+		String excludeWeb = "";//  排除网站  追加条件
+		String excludeWord = "";//  排除关键词  追加条件
+		String excludeWordIndex = "";//  排除关键词命中位置  title 标题  content 正文  titleContent标题+正文
+		Boolean updateWordForm = false;// 修改词距标记 替换栏目条件  --  专家模式下怎么办?
+		Integer wordFromNum = 0;//  词距间隔字符 替换栏目条件
+		Boolean wordFromSort = false;//  是否排序  替换栏目条件
+
+
+		String mediaLevel = "";//  媒体等级
+		String groupName = "";// 数据源  替换栏目条件
+		String mediaIndustry = "";// 媒体行业
+		String contentIndustry = "";// 内容行业
+		String filterInfo = "";//信息过滤
+		String contentArea = "";//信息地域
+		String mediaArea = "";//媒体地域
+		String preciseFilter = "";//精准筛选
+
+
+		if(StringUtil.isNotEmpty(timeRange)){
+			indexTab.setTimeRange(timeRange);
+		}
+		indexTab.setType(ColumnConst.LIST_NO_SIM);
 		//排重
 		if ("netRemove".equals(simflag)) { //单一媒体排重
 			indexTab.setSimilar(true);
@@ -1140,38 +1177,30 @@ public class ColumnController {
 			indexTab.setExcludeWords(StringUtils.join(excList,";"));
 		}
 		//修改词距 选择修改词距时，才能修改词距
-		if(updateWordForm && StringUtil.isEmpty(indexTab.getTrsl())){
-
-		}*/
-		indexTab.setType(ColumnConst.LIST_NO_SIM);
-
-		return columnService.selectList(indexTab, pageNo, pageSize, source, "", "", "", "",
-				sort, "", "", "", "",fuzzyValue, fuzzyValueScope);
-	}
-
-	@FormatResult
-	@RequestMapping(value = "/columnStattotal", method = RequestMethod.POST)
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）更多数据：${id}")
-	@ApiOperation("信息列表页")
-	public Object columnStattotal(
-			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,
-			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange)
-			throws TRSException, SearchException {
-		//查询一个栏目的列表（不是通过点击图跳转的列表）时，其实就是把当前栏目当成普通列表，不受当前栏目类型的影响
-		IndexTabMapper mapper = indexTabMapperService.findOne(id);
-		if(ObjectUtil.isEmpty(mapper)){
-			throw new TRSException("当前栏目不存在");
+		if(updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >=0){
+			String keywordJson = indexTab.getKeyWord();
+			JSONArray jsonArray = JSONArray.parseArray(keywordJson);
+			//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
+			if(jsonArray!= null && jsonArray.size() ==1 ){
+				Object o = jsonArray.get(0);
+				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+				jsonObject.put("wordSpace",wordFromNum);
+				jsonObject.put("wordOrder",wordFromSort);
+				jsonArray.set(0,jsonObject);
+				indexTab.setKeyWord(jsonArray.toJSONString());
+			}
 		}
-		IndexTab indexTab = mapper.getIndexTab();
-
-		if(StringUtil.isNotEmpty(timeRange)){
-			indexTab.setTimeRange(timeRange);
+		if (StringUtil.isNotEmpty(groupName)) {
+			//现在没确定专家模式是否要数据源，暂时保留
+			if ("ALL".equals(groupName)) {
+				groupName = Const.ALL_GROUP;
+			}
+			indexTab.setGroupName(groupName);
 		}
-		indexTab.setType(ColumnConst.LIST_NO_SIM);
-
 		AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 		ColumnConfig config = new ColumnConfig();
-		config.initSection(indexTab, indexTab.getTimeRange(), 0, 15, null, null, null, "", "", "default", "", "", "", "",
+		config.addFilterCondition(read,excludeWordIndex,mediaLevel,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea,preciseFilter);
+		config.initSection(indexTab, indexTab.getTimeRange(), 0, 15, null, emotion, null, "", "", "default", "", "", "", "",
 				"", "");
 		column.setDistrictInfoService(districtInfoService);
 		column.setCommonListService(commonListService);
@@ -1181,11 +1210,27 @@ public class ColumnController {
 		return column.getListStattotal();
 	}
 
+	@ApiOperation("日常监测图表导出 - 所有图表都走这一个")
+	@PostMapping("/exportChartData")
+	public void exportChartData(HttpServletResponse response,
+								@ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType") String chartType,
+								@ApiParam("词云图当前的类型") @RequestParam(value = "entityType", required = true) String entityType,
+								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
+		try {
+			IndexTabType indexTabType = ColumnFactory.chooseType(chartType);
+			ServletOutputStream outputStream = response.getOutputStream();
+			columnService.exportChartData(data,indexTabType,entityType).writeTo(outputStream);
+		} catch (Exception e) {
+			log.error("导出excel出错！", e);
+		}
+	}
+
+/*
 	@ApiOperation("饼图和柱状图数据导出接口")
 	@PostMapping("/exportData")
 	public void exportData(HttpServletResponse response,
-						   @ApiParam("该三级栏目的id,用于生成的文件名字") @RequestParam(value = "indexTabId", required = false) String indexTabId,
-						   @ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
+			@ApiParam("该三级栏目的id,用于生成的文件名字") @RequestParam(value = "indexTabId", required = false) String indexTabId,
+			@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
 		try {
 			ServletOutputStream outputStream = response.getOutputStream();
 			JSONArray array = JSONObject.parseArray(data);
@@ -1200,8 +1245,8 @@ public class ColumnController {
 	@ApiOperation("折线图数据导出接口")
 	@PostMapping("/exportChartLine")
 	public void exportChartLine(HttpServletResponse response,
-								@ApiParam("该三级栏目的id,用于生成的文件名字") @RequestParam(value = "indexTabId", required = false) String indexTabId,
-								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
+			@ApiParam("该三级栏目的id,用于生成的文件名字") @RequestParam(value = "indexTabId", required = false) String indexTabId,
+			@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
 		try {
 			ServletOutputStream outputStream = response.getOutputStream();
 			JSONArray array = JSONObject.parseArray(data);
@@ -1216,9 +1261,9 @@ public class ColumnController {
 	@ApiOperation("词云图数据导出接口")
 	@PostMapping("/exportWordCloud")
 	public void exportWordCloud(HttpServletResponse response,
-								@ApiParam("该三级栏目的id,用于生成的文件名字") @RequestParam(value = "indexTabId", required = false) String indexTabId,
-								@ApiParam("数据类型") @RequestParam(value = "dataType", required = true) String dataType,
-								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
+			@ApiParam("该三级栏目的id,用于生成的文件名字") @RequestParam(value = "indexTabId", required = false) String indexTabId,
+			@ApiParam("数据类型") @RequestParam(value = "dataType", required = true) String dataType,
+			@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
 		try {
 			ServletOutputStream outputStream = response.getOutputStream();
 			JSONArray array = JSONObject.parseArray(data);
@@ -1233,8 +1278,8 @@ public class ColumnController {
 	@ApiOperation("地域图数据导出接口")
 	@PostMapping("/exportMap")
 	public void exportMap(HttpServletResponse response,
-						  @ApiParam("该三级栏目的id,用于生成的文件名字") @RequestParam(value = "indexTabId", required = false) String indexTabId,
-						  @ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
+			@ApiParam("该三级栏目的id,用于生成的文件名字") @RequestParam(value = "indexTabId", required = false) String indexTabId,
+			@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
 		try {
 			ServletOutputStream outputStream = response.getOutputStream();
 			JSONArray array = JSONObject.parseArray(data);
@@ -1243,7 +1288,7 @@ public class ColumnController {
 			log.error("导出excel出错！", e);
 		}
 
-	}
+	} */
 
 
 	/**

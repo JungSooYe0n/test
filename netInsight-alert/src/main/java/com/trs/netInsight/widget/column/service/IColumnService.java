@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2017年11月27日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -13,22 +13,24 @@
  */
 package com.trs.netInsight.widget.column.service;
 
-import com.alibaba.fastjson.JSONArray;
-import com.trs.netInsight.handler.exception.OperationException;
-import com.trs.netInsight.handler.exception.TRSException;
-import com.trs.netInsight.support.fts.builder.QueryBuilder;
-import com.trs.netInsight.widget.column.entity.Columns;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.IndexTabType;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.data.domain.Sort;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import com.alibaba.fastjson.JSONArray;
+import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
+import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.widget.column.entity.Columns;
+import com.trs.netInsight.widget.column.entity.IndexTab;
 
 /**
  * @Type IColumnService.java
@@ -47,7 +49,7 @@ public interface IColumnService {
 	 * @param user 当前用户信息
 	 * @return
 	 */
-	Integer getMaxSequenceForColumn(String parentPageId, String navigationId, User user);
+	Integer getMaxSequenceForColumn(String parentPageId,String navigationId,User user);
 
 	/**
 	 * 对mapper和page进行排序
@@ -56,7 +58,7 @@ public interface IColumnService {
 	 * @param sortAll 是否包括对子层级排序
 	 * @return
 	 */
-	List<Object> sortColumn(List<IndexTabMapper> mapperList, List<IndexPage> indexPageList, Boolean sortAll, Boolean sortPage);
+	List<Object> sortColumn(List<IndexTabMapper> mapperList, List<IndexPage> indexPageList, Boolean sortAll,Boolean sortPage);
 
 	/**
 	 * 获取日常监测第一层级的栏目和分组
@@ -64,14 +66,14 @@ public interface IColumnService {
 	 * @param loginUser
 	 * @return
 	 */
-	Map<String,Object> getOneLevelColumnForMap(String typeId, User loginUser);
+	Map<String,Object> getOneLevelColumnForMap(String typeId,User loginUser);
 	/**
 	 * 获取日常监测第一层级的栏目和分组
 	 * @param typeId
 	 * @param user
 	 * @return
 	 */
-	Object getOneLevelColumn(String typeId, User user);
+	Object getOneLevelColumn(String typeId,User user);
 
 	/**
 	 * 重新排序column，在删除一个分组或者栏目时，去掉原栏目的排序
@@ -89,7 +91,7 @@ public interface IColumnService {
 	 * @param parentId  父分组id
 	 * @return
 	 */
-	Object moveIndexSequence(String data, String moveData, String parentId, User user)throws OperationException;
+	Object moveIndexSequence(String data,String moveData,String parentId,User user)throws OperationException;
 
 	/**
 	 * 修改二级栏目
@@ -133,7 +135,7 @@ public interface IColumnService {
 	 * @return
 	 * @throws OperationException
 	 */
-	public List<Object> selectColumn(User user, String typeId) throws OperationException;
+	public List<Object> selectColumn(User user,String typeId) throws OperationException;
 
 	/**
 	 * 保存
@@ -172,59 +174,33 @@ public interface IColumnService {
 	 */
 	public Object selectColumnByOrganizationId(String organizationId) throws OperationException;
 
-	public Object list(IndexTab indexTab, QueryBuilder queryBuilder, QueryBuilder countBuiler, int pagesize, int pageno, String fenlei, String sort, String key, String area) throws TRSException;
+	public Object list(IndexTab indexTab,QueryBuilder queryBuilder,QueryBuilder countBuiler,int pagesize,int pageno,String fenlei,String sort,String key,String area) throws TRSException;
 
-	public Object arealist(QueryBuilder indexBuilder, QueryBuilder countBuiler, String sort, String area, String source, String timeRange, String keywords) throws TRSException;
+	public Object arealist(QueryBuilder indexBuilder,QueryBuilder countBuiler,String sort,String area,String source,String timeRange,String keywords) throws TRSException;
 
-	public Object hotKeywordList(QueryBuilder indexBuilder, String sort, String area, String source, String timeRange, String hotKeywords, String keywords) throws OperationException,TRSException;
+	public Object hotKeywordList(QueryBuilder indexBuilder,String sort,String area,String source,String timeRange,String hotKeywords,String keywords) throws OperationException,TRSException;
 
 	/**
 	 * 列表
 	 * @param
 	 * @return
 	 */
-	public Object selectList(IndexTab indexTab, int pageNo, int pageSize, String source, String emotion, String entityType,
-                             String dateTime, String key, String sort, String area, String irKeyword, String invitationCard,
-                             String forwarPrimary, String keywords, String fuzzyValueScope);
-
+	public Object selectList(IndexTab indexTab,int pageNo,int pageSize,String source,String emotion,String entityType,
+							 String dateTime,String key,String sort,String area,String irKeyword,String invitationCard,
+							 String forwarPrimary,String keywords,String fuzzyValueScope);
 	/**
-	 * 日常监测饼图和柱状图数据导出
-	 * @param array
+	 * 日常监测 图数据导出
+	 * @param data
 	 * @return
 	 * @throws IOException
 	 */
-	public ByteArrayOutputStream exportData(JSONArray array) throws IOException;
-
-	/**
-	 * 日常监测折线图数据导出
-	 * @param array
-	 * @return
-	 * @throws IOException
-	 */
-	public ByteArrayOutputStream exportChartLine(JSONArray array) throws IOException;
-
-	/**
-	 * 日常监测折线图数据导出
-	 * @param dataType
-	 * @param array
-	 * @return
-	 * @throws IOException
-	 */
-	public ByteArrayOutputStream exportWordCloud(String dataType, JSONArray array) throws IOException;
-	
-	/**
-	 * 地域图数据导出
-	 * @param array
-	 * @return
-	 * @throws IOException
-	 */
-	public ByteArrayOutputStream exportMap(JSONArray array) throws IOException;
+	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType,String entityType) throws IOException;
 }
 
 /**
  * Revision history
  * -------------------------------------------------------------------------
- * 
+ *
  * Date Author Note
  * -------------------------------------------------------------------------
  * 2017年11月27日 Administrator creat

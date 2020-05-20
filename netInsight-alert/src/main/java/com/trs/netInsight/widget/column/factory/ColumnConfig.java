@@ -133,6 +133,21 @@ public class ColumnConfig {
 	 */
 	private boolean weight=false;
 
+	private String read;//  阅读标记
+	private String excludeWordIndex;//  排除关键词命中位置  title 标题  content 正文  titleContent标题+正文
+
+	private String mediaLevel;//  媒体等级
+	private String mediaIndustry;// 媒体行业
+	private String contentIndustry;// 内容行业
+	private String filterInfo;//信息过滤
+	private String contentArea;//信息地域
+	private String mediaArea;//媒体地域
+	private String preciseFilter;//精准筛选
+
+
+
+
+
 	/**
 	 * 检索构造器
 	 */
@@ -362,6 +377,40 @@ public class ColumnConfig {
 				queryBuilder.filterByTRSL(sb.toString());
 			}
 		}
+
+		//媒体等级
+		if(StringUtil.isNotEmpty(mediaLevel)){
+			queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, mediaLevel.replaceAll(";"," OR "), Operator.Equal);
+		}
+		//媒体行业
+		if(StringUtil.isNotEmpty(mediaIndustry )){
+			queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_INDUSTRY, mediaIndustry .replaceAll(";"," OR "), Operator.Equal);
+		}
+		//内容行业
+		if(StringUtil.isNotEmpty(contentIndustry )){
+			queryBuilder.filterField(FtsFieldConst.FIELD_CONTENT_INDUSTRY, contentIndustry .replaceAll(";"," OR "), Operator.Equal);
+		}
+		//内容地域
+		if(StringUtil.isNotEmpty(contentArea )){
+			queryBuilder.filterField(FtsFieldConst.FIELD_CATALOG_AREA, contentArea .replaceAll(";"," OR "), Operator.Equal);
+		}
+		//媒体地域
+		if(StringUtil.isNotEmpty(mediaArea )){
+			queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_AREA, mediaArea .replaceAll(";"," OR "), Operator.Equal);
+		}
+		//信息过滤
+		if(StringUtil.isNotEmpty(filterInfo )){
+			String trsl = queryBuilder.asTRSL();
+			StringBuilder sb = new StringBuilder(trsl);
+			String filterNew = filterInfo.replaceAll(";"," OR ");
+			sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(filterNew).append("))");
+			queryBuilder = new QueryBuilder();
+			queryBuilder.asTRSL();
+		}
+
+
+
+
 		String sidsTrsl = queryBuilder.asTRSL();
 		StringBuilder sidsTrslNew = new StringBuilder(sidsTrsl);
 		if (StringUtil.isNotEmpty(indexTab.getNotSids())) {
@@ -373,6 +422,61 @@ public class ColumnConfig {
 		// 分页
 		queryBuilder.page(pageNo, pageSize);
 	}
+
+
+
+	/**
+	 * 添加筛选条件信息  ---  如果要添加筛选条件，需要写在initSection 方法前面,
+	 * @param read  阅读标记
+	 * @param excludeWordIndex  排除词命中位置
+	 * @param mediaLevel  媒体等级
+	 * @param mediaIndustry  媒体行业
+	 * @param contentIndustry  内容行业
+	 * @param filterInfo  过滤信息
+	 * @param contentArea  内容行业
+	 * @param mediaArea  媒体行业
+	 * @param preciseFilter  精准筛选
+	 */
+	public void addFilterCondition(String read,String excludeWordIndex,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
+								   String contentArea,String mediaArea,String preciseFilter){
+		//媒体等级
+		if(StringUtil.isNotEmpty(mediaLevel)){
+			if("ALL".equals(mediaLevel)){
+				mediaLevel = org.thymeleaf.util.StringUtils.join(Const.MEDIA_LEVEL,";");
+			}
+		}
+		//媒体行业
+		if(StringUtil.isNotEmpty(mediaIndustry)){
+			if("ALL".equals(mediaIndustry)){
+				mediaIndustry = org.thymeleaf.util.StringUtils.join(Const.MEDIA_INDUSTRY,";");
+			}
+		}
+		//内容行业
+		if(StringUtil.isNotEmpty(contentIndustry)){
+			if("ALL".equals(contentIndustry)){
+				contentIndustry = org.thymeleaf.util.StringUtils.join(Const.CONTENT_INDUSTRY,";");
+			}
+		}
+		//信息过滤
+		if(StringUtil.isNotEmpty(filterInfo)){
+			if("ALL".equals(filterInfo)){
+				filterInfo = org.thymeleaf.util.StringUtils.join(Const.FILTER_INFO,";");
+			}
+		}
+		this.read = read;
+		this.excludeWordIndex = excludeWordIndex;
+		this.mediaLevel = mediaLevel;
+		this.mediaIndustry = mediaIndustry;
+		this.contentIndustry = contentIndustry;
+		this.filterInfo = filterInfo;
+		this.contentArea = contentArea;
+		this.mediaArea = mediaArea;
+		this.preciseFilter = preciseFilter;
+	}
+	private void addFieldCondition(String info,String field){
+
+	}
+
 
 	/**
 	 * 列表查询初始化配置
@@ -430,8 +534,25 @@ public class ColumnConfig {
 		if (StringUtil.isNotEmpty(keyWordindex) && (StringUtil.isNotEmpty(keyWords) || StringUtil.isNotEmpty(excludeWords))) {// 普通模式
 
 			queryBuilder = WordSpacingUtil.handleKeyWords(keyWords, keyWordindex, this.weight);
+			if(StringUtil.isEmpty(this.excludeWordIndex)){
+				if(keyWordindex.trim().equals("1")){
+					this.excludeWordIndex = "titleContent";
+				}else if(keyWordindex.trim().equals("0")){
+					this.excludeWordIndex = "title";
+				}else if(keyWordindex.trim().equals("2")){
+					this.excludeWordIndex = "titleAbstracts";
+					//FIELD_ABSTRACTS
+				}
+			}
 			//拼接排除词
-			if (keyWordindex.trim().equals("1")) {// 标题加正文
+			if("title".equals(this.excludeWordIndex)){ //标题
+				if (StringUtil.isNotEmpty(excludeWords)) {
+					StringBuilder exbuilder = new StringBuilder();
+					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+					this.queryBuilder.filterByTRSL(exbuilder.toString());
+				}
+			} else if ("titleContent".equals(this.excludeWordIndex)) {// 标题加正文
 				if (StringUtil.isNotEmpty(excludeWords)) {
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
@@ -442,10 +563,21 @@ public class ColumnConfig {
 							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
 					this.queryBuilder.filterByTRSL(exbuilder2.toString());
 				}
-			}else {
+			}else if("titleAbstracts".equals(this.excludeWordIndex)){ //标题 +摘要
 				if (StringUtil.isNotEmpty(excludeWords)) {
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+					this.queryBuilder.filterByTRSL(exbuilder.toString());
+					StringBuilder exbuilder2 = new StringBuilder();
+					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
+					this.queryBuilder.filterByTRSL(exbuilder2.toString());
+				}
+			}else if("content".equals(this.excludeWordIndex)){ // 正文
+				if (StringUtil.isNotEmpty(excludeWords)) {
+					StringBuilder exbuilder = new StringBuilder();
+					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
 							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					this.queryBuilder.filterByTRSL(exbuilder.toString());
 				}

@@ -7,6 +7,7 @@ import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.entity.StatisticalChart;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.repository.CustomChartRepository;
@@ -65,12 +66,13 @@ public class ColumnChartServiceImpl implements IColumnChartService {
             scList = new ArrayList<>();
             for (StatisticalChart oneSc : statisticalChartList) {
                 Map<String, Object> oneScInfo = new HashMap<>();
+                StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(oneSc.getChartType());
                 oneScInfo.put("id", oneSc.getId());
-                oneScInfo.put("name", oneSc.getName());
+                oneScInfo.put("name", statisticalChartInfo.getChartName());
                 oneScInfo.put("chartPage", ChartPageInfo.StatisticalChart);
-                oneScInfo.put("chartType", oneSc.getChartType());
+                oneScInfo.put("chartType", statisticalChartInfo.getChartType());
                 oneScInfo.put("isTop", oneSc.getIsTop());
-                oneScInfo.put("sequence", oneSc.getSequence());
+                oneScInfo.put("sequence", statisticalChartInfo.getSequence());
                 scList.add(oneScInfo);
             }
         }
@@ -195,10 +197,11 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         if (statisticalChartList != null && statisticalChartList.size() > 0) {
             for (StatisticalChart oneSc : statisticalChartList) {
                 Map<String, Object> oneScInfo = new HashMap<>();
+                StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(oneSc.getChartType());
                 oneScInfo.put("id", oneSc.getId());
-                oneScInfo.put("name", oneSc.getName());
+                oneScInfo.put("name", statisticalChartInfo.getChartName());
                 oneScInfo.put("chartPage", ChartPageInfo.StatisticalChart);
-                oneScInfo.put("chartType", oneSc.getChartType());
+                oneScInfo.put("chartType", statisticalChartInfo.getChartType());
                 oneScInfo.put("isTop", oneSc.getIsTop());
                 oneScInfo.put("timeRange", timeRange);
                 oneScInfo.put("topSequence", oneSc.getTopSequence());

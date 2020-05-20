@@ -1,26 +1,46 @@
 package com.trs.netInsight.widget.column.service.column;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import com.trs.netInsight.support.fts.annotation.FtsField;
+import com.trs.netInsight.support.knowledgeBase.entity.KnowledgeBase;
+import com.trs.netInsight.support.knowledgeBase.entity.KnowledgeClassify;
+import com.trs.netInsight.support.knowledgeBase.service.IKnowledgeBaseService;
+import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.report.util.ReportUtil;
+import com.trs.netInsight.widget.user.entity.User;
+import javafx.animation.FadeTransition;
+import org.apache.commons.lang3.StringUtils;
 import com.trs.dev4.jdk16.dao.PagedList;
+import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
+import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.builder.condition.SearchCondition;
 import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.util.DateUtil;
-import com.trs.netInsight.util.*;
-import com.trs.netInsight.widget.analysis.entity.ChartResultField;
+import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
-import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.user.entity.User;
-
-import java.util.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * 普通新闻列表栏目
- * 
+ *
  * @author 北京拓尔思信息技术股份有限公司
  * @since changjiang @ 2018年4月8日
  */
@@ -127,7 +147,7 @@ public class CommonListColumn extends AbstractColumn {
 			logReids.setComeBak(start);
 			logReids.setFinishBak(end);
 			logReids.setFullBak(timeApi);
-			if(logReids.getFullHybase()> FtsFieldConst.OVER_TIME){
+			if(logReids.getFullHybase()>FtsFieldConst.OVER_TIME){
 				logReids.printTime(LogPrintUtil.Column_LIST);
 			}
 		}
@@ -171,13 +191,13 @@ public class CommonListColumn extends AbstractColumn {
 		QueryCommonBuilder queryBuilder = super.config.getCommonBuilder();
 
 		try {
-			if("hot".equals(this.config.getOrderBy())){
+			if ("hot".equals(this.config.getOrderBy())) {
 				//暂时先改成false，提升查询速度
-				return commonListService.queryPageListForHot(queryBuilder,groupName,loginUser,"column",false);
-			}else {
-				return commonListService.queryPageList(queryBuilder, sim, irSimflag, irSimflagAll, groupName, "column", loginUser, false);
+				return commonListService.queryPageListForHot(queryBuilder, groupName, loginUser, "column", true);
+			} else {
+				return commonListService.queryPageList(queryBuilder, sim, irSimflag, irSimflagAll, groupName, "column", loginUser, true);
 			}
-			} catch (TRSException e) {
+		} catch (TRSException e) {
 			throw new TRSSearchException(e);
 		}
 	}
