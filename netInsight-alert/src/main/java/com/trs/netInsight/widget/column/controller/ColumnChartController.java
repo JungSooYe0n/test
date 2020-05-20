@@ -148,6 +148,39 @@ public class ColumnChartController {
         return null;
     }
 
+    /**
+     * 自定义图表的拖动排序
+     *
+     * @param ids
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @FormatResult
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_INDEX_TAB, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "对自定义图表进行排序")
+    @RequestMapping(value = "/moveCustomChart", method = RequestMethod.POST)
+    @ApiOperation("对自定义图表进行排序")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ids", value = "自定义图表被改变顺序后的id ，按新顺序排序的", dataType = "String", paramType = "query")
+            })
+    public Object moveCustomChart(@RequestParam("ids") String ids,HttpServletRequest request)
+            throws TRSException {
+
+        if(StringUtil.isEmpty(ids)){
+            throw new TRSException("无数据");
+        }
+        List<CustomChart> customChartList = new ArrayList<>();
+        String[] idArr = ids.split(";");
+        for(String id:idArr){
+            CustomChart oneCustomChart = columnChartService.findOneCustomChart(id);
+            if(oneCustomChart == null){
+                throw new TRSException("不存在的自定义图表："+id);
+            }
+            customChartList.add(oneCustomChart);
+        }
+        return columnChartService.moveCustomChart(customChartList);
+    }
+
 
     /**
      * 栏目下自定义图表添加接口
@@ -212,22 +245,6 @@ public class ColumnChartController {
             if(count+typeArr.length >10){
                 throw new TRSException(CodeUtils.FAIL, "当前栏目下自定义图表创建已达上限，如需更多，请联系相关运维人员。");
             }
-
-            /*if (UserUtils.isRoleAdmin()) {
-                //机构管理员
-                if (organization.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)) {
-                    throw new TRSException(CodeUtils.FAIL, "您目前创建的栏目已达上限，如需更多，请联系相关运维人员。");
-                }
-            }
-            if (UserUtils.isRoleOrdinary(loginUser)) {
-                //如果是普通用户 受用户分组 可创建资源的限制
-                //查询该用户所在的用户分组下 是否有可创建资源
-                SubGroup subGroup = subGroupService.findOne(loginUser.getSubGroupId());
-                if (subGroup.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)) {
-                    throw new TRSException(CodeUtils.FAIL, "您目前创建的栏目已达上限，如需更多，请联系相关运维人员。");
-                }
-            }*/
-
             //若为机构管理员或者普通用户 若为普通模式，判断关键字字数
             if ((UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(loginUser))) {
                 int chineseCount = 0;

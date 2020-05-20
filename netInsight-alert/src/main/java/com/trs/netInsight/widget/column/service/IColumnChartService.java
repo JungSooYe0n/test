@@ -60,5 +60,5 @@ public interface IColumnChartService {
 
     Integer deleteCustomChartForTabMapper(String id);
 
-
+    Object moveCustomChart(List<CustomChart> customChartList);
 }

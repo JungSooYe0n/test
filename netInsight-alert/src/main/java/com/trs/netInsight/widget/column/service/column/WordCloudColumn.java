@@ -48,7 +48,7 @@ public class WordCloudColumn extends AbstractColumn {
         GroupWordResult wordCloud = null;
         //用queryCommonBuilder和QueryBuilder 是一样的的
         QueryCommonBuilder queryBuilder = super.config.getCommonBuilder();
-        queryBuilder.page(0, 100);
+        queryBuilder.page(0, 200);
         String metas = indexTab.getGroupName();
         try {
             wordCloud = (GroupWordResult) commonChartService.getWordCloudColumnData(queryBuilder, sim, irSimflag, irSimflagAll, metas, config.getEntityType(), "column");

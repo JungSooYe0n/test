@@ -421,5 +421,17 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         return deleteCount;
     }
 
+    @Transactional
+    @Override
+    public Object moveCustomChart(List<CustomChart> customChartList){
+        int seq = 1;
+        for(CustomChart one :customChartList){
+            one.setSequence(seq);
+            seq++;
+        }
+        customChartRepository.save(customChartList);
+        return customChartList;
+    }
+
 
 }

@@ -85,8 +85,20 @@ public class BarColumn extends AbstractColumn {
 						if(sourceList.contains(oneGroupName)){
 							Map<String,Object> oneInfo = new HashMap<>();
 							Object list = commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"column",resultField);
+							List<Map<String, Object>> changeList = new ArrayList<>();
+							if(list != null ){
+								changeList = (List<Map<String, Object>>)list;
+								if(changeList.size() <10){
+									for(int i = changeList.size();i <10;i++){
+										Map<String, Object> addInfo = new HashMap<>();
+										addInfo.put("name","");
+										addInfo.put("value",0);
+										changeList.add(addInfo);
+									}
+								}
+							}
 							oneInfo.put("name", Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));
-							oneInfo.put("info",list);
+							oneInfo.put("info",changeList);
 							result.add(oneInfo);
 						}/*else{
 							oneInfo.put("name",Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));

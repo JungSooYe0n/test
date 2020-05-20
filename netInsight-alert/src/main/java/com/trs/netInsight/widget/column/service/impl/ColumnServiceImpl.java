@@ -1629,11 +1629,13 @@ public class ColumnServiceImpl implements IColumnService {
 				for(Object info : infoArr){
 					JSONObject infoObject = JSONObject.parseObject(String.valueOf(info));
 					String name = infoObject.getString("name");
-					String value = infoObject.getString("value");
-					List<DataRow> rowList = new ArrayList<>();
-					rowList.add(new DataRow(name));
-					rowList.add(new DataRow(value));
-					content.putSheet(keyName, rowList);
+					if(StringUtil.isNotEmpty(name)){
+						String value = infoObject.getString("value");
+						List<DataRow> rowList = new ArrayList<>();
+						rowList.add(new DataRow(name));
+						rowList.add(new DataRow(value));
+						content.putSheet(keyName, rowList);
+					}
 				}
 			}else{
 				content.putSheet(keyName, new ArrayList<DataRow>());
