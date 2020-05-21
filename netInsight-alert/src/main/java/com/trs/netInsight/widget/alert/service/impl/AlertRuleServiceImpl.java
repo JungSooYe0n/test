@@ -29,6 +29,7 @@ import com.trs.netInsight.widget.alert.service.IAlertRuleBackupsService;
 import com.trs.netInsight.widget.alert.service.IAlertRuleService;
 import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
@@ -1122,6 +1123,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 								 String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,String notKeyWords,
 								 String keyWordIndex) throws Exception {
 		log.error(source + "信息列表  开始调用接口:" + System.currentTimeMillis());
+		source = CommonListChartUtil.changeGroupName(source);
 		QueryBuilder builder = new QueryBuilder();
 		builder.setPageNo(pageNo);
 		builder.setPageSize(pageSize);
@@ -1148,7 +1150,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		// 来源
 		if (!"ALL".equals(source)) {
 			// 单选状态
-			if ("国内新闻".equals(source)) {
+			if ("国内新闻".contains(source)) {
 				String trsl = new StringBuffer(FtsFieldConst.FIELD_GROUPNAME).append(":国内新闻 ").toString();
 				builder.filterByTRSL(trsl);
 				countBuilder.filterByTRSL(trsl);
