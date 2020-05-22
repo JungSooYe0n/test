@@ -8,10 +8,7 @@ import com.trs.ckm.soap.AbsTheme;
 import com.trs.ckm.soap.CkmSoapException;
 import com.trs.dc.entity.TRSStatisticParams;
 import com.trs.dev4.jdk16.dao.PagedList;
-import com.trs.netInsight.config.constant.Const;
-import com.trs.netInsight.config.constant.ESFieldConst;
-import com.trs.netInsight.config.constant.ExcelConst;
-import com.trs.netInsight.config.constant.FtsFieldConst;
+import com.trs.netInsight.config.constant.*;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
@@ -40,8 +37,10 @@ import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.base.enums.ESGroupName;
+import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.service.IInfoListService;
@@ -192,6 +191,39 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			dataMap.put("neRat", neRat);
 		}
 		return dataMap;
+	}
+
+	@Override
+	public Object mediaActiveAccount(QueryBuilder builder, String source, String[] timeArray, boolean sim, boolean irSimflag, boolean irSimflagAll) throws TRSException {
+		String contrastField = FtsFieldConst.FIELD_SITENAME;
+		List<String> allList = Const.ALL_GROUPNAME_SORT;
+		List<Object> result = new ArrayList<>();
+		List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+		ChartResultField resultField = new ChartResultField("name", "value");
+		for(String oneGroupName : allList){
+
+			//只显示选择的数据源
+			if(sourceList.contains(oneGroupName)){
+				Map<String,Object> oneInfo = new HashMap<>();
+				Object list = commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"special",resultField);
+				List<Map<String, Object>> changeList = new ArrayList<>();
+				if(list != null ){
+					changeList = (List<Map<String, Object>>)list;
+					if(changeList.size() <10){
+						for(int i = changeList.size();i <10;i++){
+							Map<String, Object> addInfo = new HashMap<>();
+							addInfo.put("name","");
+							addInfo.put("value",0);
+							changeList.add(addInfo);
+						}
+					}
+				}
+				oneInfo.put("name", Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));
+				oneInfo.put("info",changeList);
+				result.add(oneInfo);
+			}
+		}
+		return result;
 	}
 
 	@Override
@@ -485,7 +517,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					case "FaceBook":
 						List<ClassInfo> classInfoFaceBook = ClassInfoUtil
 								.timeChange(getWebCountByGroupName("FaceBook", specialProject, area, flag), date, flag);
-						map.put("facebook", classInfoFaceBook);
+						map.put("faceBook", classInfoFaceBook);
 						break;
 					case "境外媒体":
 						List<ClassInfo> classInfoForeign = ClassInfoUtil
@@ -528,7 +560,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			return MapUtil
 					.putValue(
 							new String[] { "news", "status", "wechat", "luntan", "blog", "read", "app", "twitter",
-									"facebook", "foreign" },
+									"faceBook", "foreign" },
 							classInfoNews, classInfoWeiBo, classInfoWeiXin, classInfoLuntan, classInfoBlog, classInfoApps,
 							classInfoKeHuDuan, classInfoTwitter, classInfoFaceBook, classInfoForeign);
 		}
@@ -546,6 +578,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	@SuppressWarnings("unchecked")
 	private List<ClassInfo> getWebCountByGroupName(String groupName, SpecialProject specialProject, String area,
 												   boolean flag) {
+		groupName = CommonListChartUtil.changeGroupName(groupName);
 		List<ClassInfo> classInfo = new ArrayList<>();
 		QueryBuilder builder = null;
 		// 排重
@@ -723,7 +756,27 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //		}
 		return resultMap;
 	}
-
+	@Override
+	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
+			throws TRSException {
+		ObjectUtil.assertNull(searchBuilder.asTRSL(), "地域分布检索表达式");
+		List<Map<String, Object>> resultMap = new ArrayList<>();
+		if (timeArray != null) {
+			searchBuilder.filterField("IR_URLTIME", timeArray, Operator.Between);
+		}
+		String groupName = searchBuilder.getGroupName();
+		String[] groupNames = StringUtil.isNotEmpty(groupName)?groupName.split(";"):null;
+		String[] database = TrslUtil.chooseDatabases(groupNames);
+		if (StringUtil.isNotEmpty(groupName)) {
+			searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+					.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+		}
+		ChartResultField chartResultField = new ChartResultField("area_name","area_count");
+		searchBuilder.setPageSize(Integer.MAX_VALUE);
+		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
+		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
+		return resultMap;
+	}
 	@Override
 	public List<Map<String, Object>> getAreaCountForHome(QueryBuilder searchBuilder, String[] timeArray,
 														 String groupName) throws TRSException {
@@ -798,6 +851,187 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			throw new OperationException("地域分布查询失败" + e);
 		}
 		return resultMap;
+	}
+
+	@Override
+	public Map<String, Object> getSentimentAnalysis(SpecialProject specialProject, String timerange, String viewType) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange,String showType) {
+		Map<String, Object> result = new HashMap<>();
+		Map<String, Object> singleMap = new HashMap<>();
+		Map<String, Object> doubleMap = new HashMap<>();
+		List<String> dateList = new ArrayList<>();
+		List<Object> contrastList = new ArrayList<>();
+		List<List<Long>> countList = new ArrayList<>();
+		List<Object> doubleContrastList = new ArrayList<>();
+		List<List<Long>> doubleCountList = new ArrayList<>();
+		List<Object> totalList = new ArrayList<>();
+		Map<String, Object> maxSourceMap = new HashMap<>();
+		List<Long> maxSourceList = new ArrayList<>();
+
+		List<String> contrastData = new ArrayList<>();
+		// 排重
+		boolean sim = specialProject.isSimilar();
+		// url排重
+		boolean irSimflag = specialProject.isIrSimflag();
+		//跨数据源排重
+		boolean irSimflagAll = specialProject.isIrSimflagAll();
+		String source = specialProject.getSource();
+		String contrastField = FtsFieldConst.FIELD_GROUPNAME;
+		List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+		List<String> allList = Const.ALL_GROUPNAME_SORT;
+		for(String oneGroupName : allList){
+			//只显示选择的数据源
+			if(sourceList.contains(oneGroupName)){
+				contrastData.add(oneGroupName);
+			}
+		}
+		/*
+		时间格式展示判断
+				按小时展示时，最多显示7天的
+		小于24小时 - 小时
+		 大于24小时且小于48小时
+		 		通栏 - 小时
+		 		半栏 -天
+		 其他
+		 	天
+		 */
+		String[] timeArray = null;
+		try {
+			timeArray = DateUtil.formatTimeRangeMinus1(timerange);//修改时间格式 时间戳
+		} catch (OperationException e) {
+			throw new TRSSearchException(e);
+		}
+
+		List<String[]> list_time = new ArrayList<>();
+		String groupBy = FtsFieldConst.FIELD_URLTIME;
+		//格式化时间，一个String[] 数据对应的是一次查询对应的时间范围  如果按天查，则list_time只有一个值，如果为按小时查询，则有多少天，list_time就有多长，一个元素为当天的起止时间
+		//最后list_time 会进行裁剪，因为按小时查询最多查询7天，时间太长了页面无法显示
+		if ("hour".equals(showType)) {
+			groupBy = FtsFieldConst.FIELD_URLTIME_HOUR;
+			list_time = DateUtil.getBetweenTimeOfStartToEnd(timeArray[0], timeArray[1]);
+		} else if ("day".equals(showType)) {
+			list_time.add(timeArray);
+		}
+		try {
+			if (list_time.size() > 8) {
+				list_time = list_time.subList(list_time.size() - 8, list_time.size());
+			}
+			ChartResultField resultField = new ChartResultField("groupName", "count", "date");
+			for (String[] times : list_time) {
+				// 获取开始时间和结束时间之间的小时
+				//date = DateUtil.getHourOfHH(arrays[0], arrays[1]);
+				//这个是按小时分一天之内的时间（开始结束时间都在一天之内），返回结果是带有当天日期的
+				//DateUtil.getStartToEndOfHour(arrays[0], arrays[1]);//将时间分组，按天分，早晚
+				//获取两个时间之间的所有时间字符串，第一个时间格式为传入的时间格式，第二个为返回的时间格式
+				// DateUtil.getBetweenDateString(TimeArray()[0], TimeArray()[1], DateUtil.yyyyMMddHHmmss,DateUtil.yyyyMMdd4);
+				String queryTrsl = specialProject.toNoPagedBuilder().asTRSL();
+				List<String> groupDate = new ArrayList<>(); // 对比hybase查询结果的key值得时间格式
+				List<String> showDate = new ArrayList<>();// 页面展示的时间格式
+
+				//如果按小时展示，需要对表达式中的时间进行替换
+				if ("hour".equals(showType)) {
+					int n = queryTrsl.indexOf("URLTIME");
+					if (n != -1) {
+						String timeTrsl = queryTrsl.substring(n + 9, n + 41);//替换查询条件
+						queryTrsl = queryTrsl.replace(timeTrsl, times[0] + " TO " + times[1]);
+					}
+
+					groupDate = DateUtil.getHourOfHH(times[0], times[1]);
+					showDate = DateUtil.getStartToEndOfHour(times[0], times[1]);
+
+				} else {
+					groupDate = DateUtil.getBetweenDateString(times[0], times[1], DateUtil.yyyyMMddHHmmss, DateUtil.yyyyMMdd4);
+					showDate = groupDate;
+				}
+				//查询结果的返回时间是与hybase的查询结果一致的时间格式，不是前端页面展示的时间格式
+				dateList.addAll(showDate);
+
+				QueryBuilder builder = new QueryBuilder();
+				builder.filterByTRSL(queryTrsl);
+				Map<String, List<Object>> oneTimeResult = (Map<String, List<Object>>) commonChartService.getChartLineColumnData(builder, sim, irSimflag, irSimflagAll, source, "special", "", contrastField, contrastData, groupBy, groupDate, resultField);
+				if(contrastList.size() ==0){
+					List<Object> oneTimeContrast = oneTimeResult.get(resultField.getContrastField());
+					contrastData.clear();
+					oneTimeContrast.stream().forEach(oneContrast -> contrastData.add((String)oneContrast));
+					contrastList.addAll(contrastData);
+				}
+				List<Object> oneTimeTotal = oneTimeResult.get("total");
+				oneTimeTotal.stream().forEach(onetotal-> totalList.add(onetotal));
+				List<Object> oneTimeCount = oneTimeResult.get(resultField.getCountField());
+				//将查到的结果放入要展示的结果中
+				if(countList.size() == 0){
+					for(Object  countOne:oneTimeCount){
+						countList.add((List<Long>)countOne);
+					}
+				}else{
+					for(int i=0;i<countList.size();i++){
+						List<Long>  countOne= (List<Long>)oneTimeCount.get(i);
+						countList.get(i).addAll(countOne);
+					}
+				}
+			}
+
+			Long countTotal = 0L;
+			for(Object num : totalList){
+				countTotal = countTotal+ (Long)num;
+			}
+			//判断图上有没有点，如果没有点，则直接返回null，不画图
+			if(countTotal == 0L){
+				return null;
+			}
+
+			int maxIndex = 0;
+			Long maxSourceTotal = 0L;
+			String maxSourceName = "";
+			for(int i =0; i<countList.size();i++){
+				Long oneTotal = 0L;
+				List<Long> oneCount = countList.get(i);
+				for(Long one :oneCount){
+					oneTotal += one;
+				}
+				if(oneTotal > maxSourceTotal){
+					maxSourceTotal = oneTotal;
+					maxIndex = i;
+				}
+			}
+			maxSourceName = (String)contrastList.get(maxIndex);
+			maxSourceList = countList.get(maxIndex);
+			for(int i = 0;i<contrastList.size();i++){
+				if(maxIndex != i){
+					doubleContrastList.add(contrastList.get(i));
+					doubleCountList.add(countList.get(i));
+				}
+			}
+			//网察折线图统一的返回结果
+			doubleMap.put("legendData",doubleContrastList);
+			doubleMap.put("lineXdata",dateList);
+			doubleMap.put("lineYdata",doubleCountList);
+			doubleMap.put("total",totalList);
+			maxSourceMap.put("name",maxSourceName);
+			maxSourceMap.put("info",maxSourceList);
+			doubleMap.put("maxSource",maxSourceMap);
+			result.put("double",doubleMap);
+
+			contrastList.add(0,"总量");
+			List<Long> totalLong = new ArrayList<>();
+			for(Object one :totalList){
+				totalLong.add((Long)one);
+			}
+			countList.add(0,totalLong);
+			//网察折线图统一的返回结果
+			singleMap.put("legendData",contrastList);
+			singleMap.put("lineXdata",dateList);
+			singleMap.put("lineYdata",countList);
+			result.put("single",singleMap);
+
+			return result;
+		} catch (TRSException | TRSSearchException e) {
+			throw new TRSSearchException(e);
+		}
 	}
 
 	@Override
@@ -4321,6 +4555,99 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			data.addRow(strings);
 		}
 		return ExcelFactory.getInstance().export(data);
+	}
+
+	@Override
+	public List<Map<String, Object>> getHotListMessage(String source, SpecialProject specialProject, String timeRange,int pageSize) {
+		List<Map<String, Object>> list = new ArrayList<>();
+		Map<String, Object> map = null;
+
+		try {
+			if (timeRange != null) {
+				String[] timeArray = DateUtil.formatTimeRange(timeRange);
+				if (timeArray != null && timeArray.length == 2) {
+					specialProject.setStart(timeArray[0]);
+					specialProject.setEnd(timeArray[1]);
+				}
+			}
+
+			//用queryCommonBuilder和QueryBuilder 是一样的的
+			QueryBuilder builder = specialProject.toNoPagedBuilder();
+			builder.setPageSize(pageSize);
+			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(builder, "special", source);
+			if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
+				return null;
+			}
+			List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
+			for (FtsDocumentCommonVO vo : voList) {
+				map = new HashMap<>();
+				String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+				map.put("id", vo.getSid());
+				if (Const.PAGE_SHOW_WEIXIN.equals(groupName)) {
+					map.put("id", vo.getHkey());
+				}
+				map.put("groupName", groupName);
+				map.put("time", vo.getUrlTime());
+				map.put("md5", vo.getMd5Tag());
+				String title = vo.getTitle();
+				if (StringUtil.isNotEmpty(title)) {
+					title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
+				}
+				map.put("title", title);
+				String content = "";
+				if (StringUtil.isNotEmpty(vo.getContent())) {
+					content = StringUtil.cutContentPro(StringUtil.replaceImg(vo.getContent()), Const.CONTENT_LENGTH);
+				}
+				if (StringUtil.isNotEmpty(vo.getAbstracts())) {
+					vo.setAbstracts(StringUtil.cutContentPro(StringUtil.replaceImg(vo.getAbstracts()), Const.CONTENT_LENGTH));
+				}
+				//摘要
+				map.put("abstracts", vo.getAbstracts());
+
+				map.put("nreserved1", null);
+				map.put("hkey", null);
+				if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
+					map.put("nreserved1", vo.getNreserved1());
+					map.put("hkey", vo.getHkey());
+				}
+				map.put("urlName", vo.getUrlName());
+				//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
+				if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
+					map.put("title", content);
+					map.put("abstracts", content);
+
+					map.put("siteName", vo.getScreenName());
+				} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
+					map.put("title", content);
+					map.put("abstracts", content);
+					map.put("siteName", vo.getAuthors());
+				} else if (Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)) {
+					map.put("title", content);
+					map.put("abstracts", content);
+				} else {
+					map.put("siteName", vo.getSiteName());
+				}
+				map.put("commtCount", vo.getCommtCount());
+				map.put("rttCount", vo.getRttCount());
+				map.put("simNum", String.valueOf(vo.getSimCount()));
+				// 获得时间差,三天内显示时间差,剩下消失urltime
+				Map<String, String> timeDifference = DateUtil.timeDifference(vo);
+				boolean isNew = false;
+				if (ObjectUtil.isNotEmpty(timeDifference.get("timeAgo"))) {
+					isNew = true;
+					map.put("timeAgo", timeDifference.get("timeAgo"));
+				} else {
+					map.put("timeAgo", timeDifference.get("urlTime"));
+				}
+				map.put("isNew", isNew);
+				list.add(map);
+			}
+		} catch (TRSException | TRSSearchException e) {
+			throw new TRSSearchException("HotColumn error:" + e);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return list;
 	}
 
 	@Override
