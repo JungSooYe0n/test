@@ -19,6 +19,8 @@ import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.home.service.IHomeService;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
 import com.trs.netInsight.widget.report.service.IReportService;
@@ -529,9 +531,9 @@ public class SpecialServiceImpl implements ISpecialService {
 	}
 	@Override
 	public Object selectSpecialNew(User user) throws OperationException {
+		List<Object> result = new ArrayList<>();
 		String subGroupId = user.getSubGroupId();
 		String userId = user.getId();
-
 		//置顶
 		Criteria<SpecialProject> criteriaProject = new Criteria<>();
 		criteriaProject.add(Restrictions.eq("topFlag", "top"));
@@ -544,8 +546,47 @@ public class SpecialServiceImpl implements ISpecialService {
 		criteriaProject.orderByASC("sequence");// 只按照拖拽顺序排 不按照修改时间排
 		List<SpecialProject> topList = specialProjectService.findAll(criteriaProject);
 		topList = this.removeSomeProjects(topList,user);
+		Map<String, Object> map = new HashMap<>();
 
-		//非置顶
+		map.put("id", topList.get(0).getId());
+		map.put("name", topList.get(0).getSpecialName());
+		map.put("flag", ColumnFlag.IndexTabFlag.ordinal());
+		map.put("flagSort", 0);
+		map.put("show", false);//前端需要，与后端无关
+		map.put("hide", false);
+		map.put("isMe", true);
+		map.put("share", false);
+
+		map.put("type", "");
+		map.put("contrast", "");
+		map.put("groupName", CommonListChartUtil.formatPageShowGroupName(topList.get(0).getGroupName()));
+		map.put("keyWord", topList.get(0).getAnyKeywords());
+		map.put("keyWordIndex", topList.get(0).getSearchScope());
+		map.put("weight", topList.get(0).isWeight());
+		map.put("excludeWords", topList.get(0).getExcludeWords());
+		map.put("excludeWeb", topList.get(0).getExcludeWeb());
+		//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
+		if (topList.get(0).isSimilar()) {
+			map.put("simflag", "netRemove");
+		} else if (topList.get(0).isIrSimflag()) {
+			map.put("simflag", "urlRemove");
+		} else if (topList.get(0).isIrSimflagAll()) {
+			map.put("simflag", "sourceRemove");
+		} else {
+			map.put("simflag", "no");
+		}
+		map.put("tabWidth",0);
+		map.put("timeRange", topList.get(0).getTimeRange());
+		map.put("trsl", topList.get(0).getTrsl());
+		map.put("xyTrsl", "");
+		map.put("active", true);
+		result.add(map);
+		return result;
+
+
+
+
+		/*//非置顶
 		List listBig = new ArrayList();
 		//查询该用户或该用户所属用户分组下所有专题文件夹
 		Criteria<SpecialSubject> criteria = new Criteria<>();
@@ -690,21 +731,6 @@ public class SpecialServiceImpl implements ISpecialService {
 			}
 		}
 		mapAll.put("topList", arrayList);
-//		if (ObjectUtil.isNotEmpty(listSpecialProject)) {
-//			SpecialProject specialProject = listSpecialProject.get(0);
-//			String groupId = specialProject.getGroupId();
-//			if (StringUtils.isNotBlank(groupId)) {
-//				SpecialSubject subject = specialSubjectRepository.findOne(groupId);
-//				if (subject != null) {
-//					if (subject.getFlag() == 1) {//二级分类
-//						SpecialSubject subjectFu = specialSubjectRepository.findOne(subject.getSubjectId());//二级分类对应的一级分类
-//						mapAll.put("zhutiOne", subjectFu);
-//						mapAll.put("zhutiTwo", subject);
-//					} else {
-//						mapAll.put("zhutiOne", subject);
-//					}
-//				}
-//			}
 		// 有置顶的就定位到置顶的第一个 没置顶的就定位到最后修改的那一个
 		if (topList != null && topList.size() > 0) {
 			mapAll.put("firstId", topList.get(0));
@@ -740,7 +766,7 @@ public class SpecialServiceImpl implements ISpecialService {
 			}
 		}
 
-		return mapAll;
+		return mapAll;*/
 	}
 	@Override
 	public List selectSomeSpecials(String orgAdminId) throws TRSException {
@@ -1359,54 +1385,5 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 		return null;
 	}
-//	private List<SpecialSubject> removeSomeSubjects(List<SpecialSubject> specialSubjects,User user){
-//		if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
-//			List<SpecialSubject> listRemove = new ArrayList<>();
-//			for (SpecialSubject specialSubject : specialSubjects) {
-//				if (StringUtil.isNotEmpty(specialSubject.getSubGroupId())) {
-//					listRemove.add(specialSubject);
-//				}
-//
-//			}
-//			specialSubjects.removeAll(listRemove);
-//		}
-//		return specialSubjects;
-//	}
-//
-//	private List<DataSyncSpecial> removeSomeDataSyncSpecials(List<DataSyncSpecial> dataSyncSpecials){
-//		List<DataSyncSpecial> listRetain = new ArrayList<>();
-//		List<String> ids = new ArrayList<>();
-//		for (DataSyncSpecial dataSyncSpecial : dataSyncSpecials) {
-//			if (!ids.contains(dataSyncSpecial.getId())) {
-//				ids.add(dataSyncSpecial.getId());
-//				listRetain.add(dataSyncSpecial);
-//			}
-//		}
-//		//将重复的子集迁移到一处
-//		if (ObjectUtil.isNotEmpty(listRetain)){
-//			for (DataSyncSpecial dataSyncSpecial : listRetain) {
-//				for (DataSyncSpecial syncSpecial : dataSyncSpecials) {
-//					List<DataSyncSpecial> detail = syncSpecial.getZhuantiDetail();
-//					if (syncSpecial.getId().equals(dataSyncSpecial.getId()) && ObjectUtil.isNotEmpty(detail)){
-//						List<DataSyncSpecial> zhuantiDetail = dataSyncSpecial.getZhuantiDetail();
-//						//二级重复情况下  下面的三级专题只会有一个 所以detail不用做循环处理
-//						if (ObjectUtil.isNotEmpty(zhuantiDetail)){
-//							List<String> thirdIds = new ArrayList<>();
-//							for (DataSyncSpecial special : zhuantiDetail) {
-//								thirdIds.add(special.getId());
-//							}
-//							if (!thirdIds.contains(detail.get(0).getId())){
-//								zhuantiDetail.addAll(syncSpecial.getZhuantiDetail());
-//								dataSyncSpecial.setZhuantiDetail(zhuantiDetail);
-//							}
-//						}else {
-//							dataSyncSpecial.setZhuantiDetail(detail);
-//						}
-//
-//					}
-//				}
-//			}
-//		}
-//		return listRetain;
-//	}
+
 }
