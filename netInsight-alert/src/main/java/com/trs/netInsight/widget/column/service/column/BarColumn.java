@@ -75,14 +75,19 @@ public class BarColumn extends AbstractColumn {
 					return commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,currentGroupName,null,contrastField,"column",resultField);
 
 				}else if(ColumnConst.CHART_BAR_CROSS.equals(type)){
-					String contrastField = FtsFieldConst.FIELD_SITENAME;
+
 					List<String> allList = Const.ALL_GROUPNAME_SORT;
 					List<Object> result = new ArrayList<>();
 
 					for(String oneGroupName : allList){
-
 						//只显示选择的数据源
 						if(sourceList.contains(oneGroupName)){
+							String contrastField = FtsFieldConst.FIELD_SITENAME;
+							if(Const.GROUPNAME_WEIBO.equals(oneGroupName)){
+								contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+							}else if(Const.MEDIA_TYPE_TF.contains(oneGroupName)){
+								contrastField = FtsFieldConst.FIELD_AUTHORS;
+							}
 							Map<String,Object> oneInfo = new HashMap<>();
 							Object list = commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"column",resultField);
 							List<Map<String, Object>> changeList = new ArrayList<>();
