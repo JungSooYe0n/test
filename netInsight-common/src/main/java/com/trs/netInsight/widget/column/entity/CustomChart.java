@@ -1,6 +1,8 @@
 package com.trs.netInsight.widget.column.entity;
 
 import com.trs.netInsight.widget.base.entity.BaseEntity;
+import com.trs.netInsight.widget.special.entity.enums.SpecialType;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +29,13 @@ public class CustomChart extends BaseEntity {
 
     @Column(name = "name")
     private String name;// 三级栏目（图）名
+
+    /**
+     * 专项类型
+     */
+    @Column(name = "special_type")
+    @ApiModelProperty(notes = "专项类型")
+    private SpecialType specialType;
 
     @Column(name = "trsl", columnDefinition = "TEXT")
     private String trsl;// trs表达式
@@ -130,13 +139,13 @@ public class CustomChart extends BaseEntity {
     public IndexTab indexTab() {
         IndexTab indexTab = new IndexTab(this.name, this.trsl, this.xyTrsl, this.type, this.contrast, this.excludeWeb, this.timeRange,
                 this.hide, this.keyWord, this.excludeWords, this.keyWordIndex, this.groupName, this.similar, this.irSimflag, this.irSimflagAll,
-                this.weight, this.tabWidth, this.sequence);
+                this.weight, this.tabWidth, this.sequence,this.specialType);
         return indexTab;
     }
 
 
     public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, Boolean hide, String keyWord, String excludeWords,
-                       String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence) {
+                       String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType) {
         this.name = name;
         this.trsl = trsl;
         this.xyTrsl = xyTrsl;
@@ -156,6 +165,7 @@ public class CustomChart extends BaseEntity {
         this.tabWidth = tabWidth;
         this.sequence = sequence;
         this.parentId = parentId;
+        this.specialType = specialType;
     }
 
 }

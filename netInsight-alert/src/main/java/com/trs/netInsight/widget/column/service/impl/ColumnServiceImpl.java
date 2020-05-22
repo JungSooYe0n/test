@@ -276,6 +276,7 @@ public class ColumnServiceImpl implements IColumnService {
 					IndexTab tab = mapper.getIndexTab();
 					map.put("id", mapper.getId());
 					map.put("name", tab.getName());
+					map.put("columnType", tab.getSpecialType());
 					map.put("flag", ColumnFlag.IndexTabFlag.ordinal());
 					map.put("flagSort", level);
 					map.put("show", false);//前端需要，与后端无关

@@ -12,11 +12,14 @@ import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.repository.CustomChartRepository;
 import com.trs.netInsight.widget.column.repository.IndexPageRepository;
+import com.trs.netInsight.widget.column.repository.IndexTabRepository;
 import com.trs.netInsight.widget.column.repository.StatisticalChartRepository;
 import com.trs.netInsight.widget.column.service.IColumnChartService;
 import com.trs.netInsight.widget.column.service.IColumnService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import lombok.extern.slf4j.Slf4j;
+import org.docx4j.wml.P;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
+@Transactional
 public class ColumnChartServiceImpl implements IColumnChartService {
 
     @Autowired
@@ -40,6 +44,9 @@ public class ColumnChartServiceImpl implements IColumnChartService {
     private IndexPageRepository indexPageRepository;
     @Autowired
     private IColumnService columnService;
+
+    @Autowired
+    private IndexTabRepository indexTabRepository;
 
     /**
      * 获取当前栏目对应的所有图表，包括统计分析图表和自定义图表
@@ -85,6 +92,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 Map<String, Object> oneCcInfo = new HashMap<>();
                 oneCcInfo.put("id", oneCc.getId());
                 oneCcInfo.put("name", oneCc.getName());
+                oneCcInfo.put("columnType", oneCc.getSpecialType());
                 oneCcInfo.put("chartType", oneCc.getType());
                 oneCcInfo.put("chartPage", ChartPageInfo.CustomChart);
                 oneCcInfo.put("isTop", oneCc.getIsTop());
@@ -168,6 +176,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                         oneColumnChart.put("tabWidth", mapper.getTabWidth());
                         oneColumnChart.put("timeRange", tab.getTimeRange());
                         oneColumnChart.put("chartPage", ChartPageInfo.TabChart);
+                        oneColumnChart.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
                         result.add(oneColumnChart);
                         this.getTopColumnChartForTab(result,mapper);
                     }
@@ -200,6 +209,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(oneSc.getChartType());
                 oneScInfo.put("id", oneSc.getId());
                 oneScInfo.put("name", statisticalChartInfo.getChartName());
+                oneScInfo.put("columnType", null);
                 oneScInfo.put("chartPage", ChartPageInfo.StatisticalChart);
                 oneScInfo.put("chartType", statisticalChartInfo.getChartType());
                 oneScInfo.put("isTop", oneSc.getIsTop());
@@ -217,12 +227,14 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                     Map<String, Object> oneCcInfo = new HashMap<>();
                     oneCcInfo.put("id", oneCc.getId());
                     oneCcInfo.put("name", oneCc.getName());
+                    oneCcInfo.put("columnType", oneCc.getSpecialType());
                     oneCcInfo.put("chartType", oneCc.getType());
                     oneCcInfo.put("chartPage", ChartPageInfo.CustomChart);
                     oneCcInfo.put("isTop", oneCc.getIsTop());
                     oneCcInfo.put("topSequence", oneCc.getTopSequence());
                     oneCcInfo.put("tabWidth", oneCc.getTabWidth());
                     oneCcInfo.put("timeRange", oneCc.getTimeRange());
+                    oneCcInfo.put("groupName", CommonListChartUtil.formatPageShowGroupName(oneCc.getGroupName()));
                     //拿到基本数据
                     columnChartList.add(oneCcInfo);
                 }
@@ -339,17 +351,21 @@ public class ColumnChartServiceImpl implements IColumnChartService {
      * @return
      */
     @Override
-    public Integer getCustomChartSize(String tabId) {
-
+    public Integer getMaxCustomChartSeq(String tabId) {
+        Integer seq = 0;
         if (StringUtil.isEmpty(tabId)) {
-            return null;
+            return seq;
         }
-        Integer size = 0;
-        List<CustomChart> list = customChartRepository.findByParentId(tabId);
+        Sort sort = new Sort(Sort.Direction.ASC, "sequence");
+        List<CustomChart> list = customChartRepository.findByParentId(tabId,sort);
         if (list != null && list.size() > 0) {
-            size = list.size();
+            for(CustomChart customChart:list){
+                if(customChart.getSequence() >seq){
+                    seq = customChart.getSequence();
+                }
+            }
         }
-        return size;
+        return seq;
     }
 
     /**
@@ -433,5 +449,39 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         return customChartList;
     }
 
+    @Transactional
+    @Override
+    public Object addColumnType(){
+        try{
+            List<IndexTab> tabList = indexTabRepository.findAll();
+            if(tabList != null && tabList.size() >0) {
+                for(IndexTab indexTab :tabList){
+                    if(StringUtil.isNotEmpty(indexTab.getTrsl())){
+                        indexTab.setSpecialType(SpecialType.SPECIAL);
+                    }else{
+                        indexTab.setSpecialType(SpecialType.COMMON);
+                    }
+                    indexTabRepository.save(indexTab);
+                }
+                indexTabRepository.flush();;
+            }
+            List<CustomChart> customChartList = customChartRepository.findAll();
+            if(customChartList != null && customChartList.size() >0) {
+                for(CustomChart chart :customChartList){
+                    if(StringUtil.isNotEmpty(chart.getTrsl())){
+                        chart.setSpecialType(SpecialType.SPECIAL);
+                    }else{
+                        chart.setSpecialType(SpecialType.COMMON);
+                    }
+                    customChartRepository.save(chart);
+                }
+                customChartRepository.flush();
+            }
+
+            return "没毛病，你就放心吧";
+        } catch (Exception e) {
+            return "修改失败了哦" + e.getMessage();
+        }
+    }
 
 }

@@ -18,6 +18,7 @@ import lombok.Setter;
  * 的情况下，可通过复制对象的方式（主键除外）进行进行状态转换
  * @author 北京拓尔思信息技术股份有限公司
  * @since changjiang @ 2018年9月17日
+ * 这个类主要是为了日常监测的复制引用功能存在
  *
  */
 @Getter
