@@ -284,7 +284,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
      * @return
      * @throws TRSSearchException
      */
-    @Override
+    @Override // 需要修改
     public <T extends IDocument> PagedList<T> ftsPageList(String keyRedis, String trsl, String orderBy, long pageSize,
                                                           long pageNo, Class<T> resultClass, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, boolean server, String type)
             throws TRSSearchException {
@@ -583,7 +583,6 @@ public class Hybase8SearchImplNew implements FullTextSearch {
     @Override
     public GroupResult categoryQuery(QueryBuilder builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String groupField, String type,
                                      String... indices) throws TRSSearchException {
-        log.info("indices--->" + indices);
         return categoryQuery( builder.isServer(),builder.asTRSL(), isSimilar, irSimflag, irSimflagAll, groupField,
                 builder.getPageSize(), type, indices);
     }
