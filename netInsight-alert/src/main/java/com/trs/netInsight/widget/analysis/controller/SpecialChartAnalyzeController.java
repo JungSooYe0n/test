@@ -36,6 +36,7 @@ import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -88,7 +90,58 @@ public class SpecialChartAnalyzeController {
 
 	// @Autowired
 	// private LogPrintUtil loginpool;
+	@EnableRedis
+	@FormatResult
+	@ApiOperation("舆论场趋势分析折线")
+	@RequestMapping(value = "/webCountLine", method = RequestMethod.GET)
+	public Object webCountLine(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							 @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+							 @RequestParam(value = "showType", required = false, defaultValue = "") String showType)
+			throws TRSException, ParseException {
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		long start = new Date().getTime();
+		ObjectUtil.assertNull(specialProject, "专题ID");
+		if (StringUtils.isBlank(timeRange)) {
+			timeRange = specialProject.getTimeRange();
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+				timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+			}
+		}
+		String[] timeArray = DateUtil.formatTimeRange(timeRange);
+		if (timeArray != null && timeArray.length == 2) {
+			specialProject.setStart(timeArray[0]);
+			specialProject.setEnd(timeArray[1]);
+		}
+		return specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
 
+	}
+	@EnableRedis
+	@FormatResult
+	@ApiOperation("观点分析")
+	@RequestMapping(value = "/sentimentAnalysis", method = RequestMethod.GET)
+	public Object sentimentAnalysis(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							 @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+							 @RequestParam(value = "viewType", required = false, defaultValue = "OFFICIAL_VIEW") String viewType)
+			throws TRSException, ParseException {
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		long start = new Date().getTime();
+		ObjectUtil.assertNull(specialProject, "专题ID");
+		if (StringUtils.isBlank(timeRange)) {
+			timeRange = specialProject.getTimeRange();
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+				timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+			}
+		}
+		String[] timeArray = DateUtil.formatTimeRange(timeRange);
+		if (timeArray != null && timeArray.length == 2) {
+			specialProject.setStart(timeArray[0]);
+			specialProject.setEnd(timeArray[1]);
+		}
+		return specialChartAnalyzeService.getSentimentAnalysis(specialProject,timeRange,viewType);
+
+	}
 	/**
 	 * 来源类型统计
 	 *
@@ -144,7 +197,66 @@ public class SpecialChartAnalyzeController {
 		map.put("param", chartParam);
 		return map;
 	}
+	/**
+	 *
+	 *各舆论发布统计
+	 * @param timeRange
+	 *            时间类型 今天，24小时，几天
+	 * @param specialId
+	 *            专项id
+	 * @param area
+	 *            检索开始时间
+	 * @param industry
+	 *            检索结束时间
+	 * @return
+	 * @throws TRSException
+	 * @author mawen 2017年12月2日 Object
+	 */
+	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_WEBCOUNT, systemLogType = SystemLogType.SPECIAL, systemLogOperationPosition = "专题分析/${specialId}/内容统计/来源类型统计")
+	@EnableRedis
+	@FormatResult
+	@RequestMapping(value = "/webCommitCount", method = RequestMethod.GET)
+	@ApiOperation("舆论场发布统计")
+	public Object webCommitCount(@RequestParam(value = "timeRange", required = false) String timeRange,
+							  @RequestParam(value = "specialId", required = true) String specialId,
+							  @RequestParam(value = "area", defaultValue = "ALL") String area,
+							  @RequestParam(value = "industry", defaultValue = "ALL") String industry) throws Exception {
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		long start = new Date().getTime();
+		ObjectUtil.assertNull(specialProject, "专题ID");
+		if (StringUtils.isBlank(timeRange)) {
+			timeRange = specialProject.getTimeRange();
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+				timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+			}
+		}
+		String[] timeArray = DateUtil.formatTimeRange(timeRange);
+		if (timeArray != null && timeArray.length == 2) {
+			specialProject.setStart(timeArray[0]);
+			specialProject.setEnd(timeArray[1]);
+		}
 
+		// 根据时间升序,只要第一条
+		// QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, false);
+		// 排重
+		boolean sim = specialProject.isSimilar();
+		// url排重
+		boolean irSimflag = specialProject.isIrSimflag();
+		//跨数据源排重
+		boolean irSimflagAll = specialProject.isIrSimflagAll();
+	 QueryBuilder builder = specialProject.toNoPagedAndTimeBuilder();
+		builder.filterField(FtsFieldConst.FIELD_GROUPNAME,specialProject.getSource().replace(";", " OR ")
+				.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+		String contrastField = FtsFieldConst.FIELD_GROUPNAME;
+		builder.setPageSize(20);
+		ChartResultField resultField = new ChartResultField("name", "value");
+		List<Map<String, Object>> list = new ArrayList<>();
+		list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,specialProject.getSource(),null,contrastField,"special",resultField);
+//		Map<String, Object> resultMap = specialChartAnalyzeService.getWebCountNew(timeRange, specialProject, area,
+//				industry);
+		return list;
+	}
 	/**
 	 * 信息走势图
 	 *
@@ -428,7 +540,86 @@ public class SpecialChartAnalyzeController {
 		}
 		return null;
 	}
+	/**
+	 * 地域分布
+	 *
+	 * @param specialId
+	 * @param area
+	 * @param timeRange
+	 * @param industry
+	 * @return
+	 * @throws TRSException
+	 */
+	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_AREA, systemLogType = SystemLogType.SPECIAL,systemLogOperationPosition="专题分析/${specialId}/内容统计/地域统计")
+	@EnableRedis
+	@FormatResult
+	@ApiOperation("地域统计")
+	@RequestMapping(value = "/areaStatistics", method = RequestMethod.GET)
+	public Object area(@RequestParam(value = "specialId", required = true) String specialId,
+					   @RequestParam(value = "area", defaultValue = "ALL") String area,
+					   @RequestParam(value = "timeRange", required = false) String timeRange,
+					   @RequestParam(value = "industry", defaultValue = "ALL") String industry,@RequestParam(value = "areaType", defaultValue = "catalogArea") String areaType) throws Exception {
+		long start = new Date().getTime();
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		if (specialProject != null) {
+			//单一媒体排重
+			boolean isSimilar = specialProject.isSimilar();
+			// url排重,站内排重
+			boolean irSimflag = specialProject.isIrSimflag();
+			//跨数据源排重,全网排重
+			boolean irSimflagAll = specialProject.isIrSimflagAll();
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = specialProject.getTimeRange();
+				if (StringUtils.isBlank(timeRange)) {
+					timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+				}
+			}
+			String groupName = specialProject.getSource();//多个以;隔开
+			if(groupName.contains("微信") && !groupName.contains("国内微信")){
+				groupName = groupName.replaceAll("微信","国内微信");
+			}
+			groupName = groupName.replaceAll("境外网站","国外新闻");
+			String[] timeArray = DateUtil.formatTimeRange(timeRange);
+			if (timeArray != null && timeArray.length == 2) {
+				specialProject.setStart(timeArray[0]);
+				specialProject.setEnd(timeArray[1]);
+			}
+			QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
 
+			searchBuilder.setGroupName(groupName);
+			if (!"ALL".equals(industry)) {
+				searchBuilder.filterField(FtsFieldConst.FIELD_INDUSTRY, industry.split(";"), Operator.Equal);
+			}
+			if (!"ALL".equals(area)) {
+				String[] areaSplit = area.split(";");
+				String contentArea = "";
+				for (int i = 0; i < areaSplit.length; i++) {
+					areaSplit[i] = "中国\\\\" + areaSplit[i] + "*";
+					if (i != areaSplit.length - 1) {
+						areaSplit[i] += " OR ";
+					}
+					contentArea += areaSplit[i];
+				}
+				searchBuilder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
+			}
+			// String[] timeArray = DateUtil.formatTimeRange(timeRange);
+			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
+					irSimflag,irSimflagAll,areaType);
+			List<Map<String, Object>> sortByValue = MapUtil.sortByValue(resultMap, "area_count");
+			long end = new Date().getTime();
+			long time = end - start;
+			log.info("地域分布后台所需时间" + time);
+			SpecialParam specParam = getSpecParam(specialProject);
+			ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area, ChartType.AREA.getType(),
+					specParam.getFirstName(), specParam.getSecondName(), specParam.getThirdName(), "无锡");
+			Map<String, Object> map = new HashMap<>();
+			map.put("data", sortByValue);
+			map.put("param", chartParam);
+			return map;
+		}
+		return null;
+	}
 	/**
 	 * 情感分析
 	 *
@@ -493,6 +684,104 @@ public class SpecialChartAnalyzeController {
 		return map;
 	}
 
+	/**
+	 * 活跃账号
+	 *
+	 * @param specialId
+	 *            专项ID
+	 * @param area
+	 *            地域
+	 * @param industry
+	 *            行业
+	 * @param timeRange
+	 *            时间范围
+	 * @return Object
+	 */
+	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_ACTIVE_LEVEL, systemLogType = SystemLogType.SPECIAL,systemLogOperationPosition="专题分析/${specialId}/内容统计/媒体活跃等级")
+	@EnableRedis
+	@FormatResult
+	@ApiOperation("媒体活跃等级图")
+	@RequestMapping(value = "/active_account", method = RequestMethod.GET)
+	public Object getActiveAccount(@RequestParam("specialId") String specialId,
+								 @RequestParam(value = "area", defaultValue = "ALL") String area,
+								 @RequestParam(value = "industry", defaultValue = "ALL") String industry,
+								 @RequestParam(value = "timeRange", required = false) String timeRange) throws TRSException {
+		long start = new Date().getTime();
+		long id = Thread.currentThread().getId();
+		LogPrintUtil loginpool = new LogPrintUtil();
+		RedisUtil.setLog(id, loginpool);
+		log.info(loginpool.toString());
+		try {
+			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+			String groupName = specialProject.getSource();//多个以;隔开
+			// url排重
+			boolean irSimflag = specialProject.isIrSimflag();
+			//跨数据源排重
+			boolean irSimflagAll = specialProject.isIrSimflagAll();
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = specialProject.getTimeRange();
+				if (StringUtils.isBlank(timeRange)) {
+					timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+				}
+			}
+			String[] timeArray = DateUtil.formatTimeRange(timeRange);
+			if (timeArray != null && timeArray.length == 2) {
+				specialProject.setStart(timeArray[0]);
+				specialProject.setEnd(timeArray[1]);
+			}
+			QueryBuilder builder = specialProject.toNoPagedBuilder();
+			builder.setGroupName(groupName);
+			boolean sim = specialProject.isSimilar();
+			if (!"ALL".equals(industry)) {
+				builder.filterField(FtsFieldConst.FIELD_INDUSTRY, industry.split(";"), Operator.Equal);
+			}
+			if (!"ALL".equals(area)) {
+				String[] areaSplit = area.split(";");
+				String contentArea = "";
+				for (int i = 0; i < areaSplit.length; i++) {
+					areaSplit[i] = "中国\\\\" + areaSplit[i] + "*";
+					if (i != areaSplit.length - 1) {
+						areaSplit[i] += " OR ";
+					}
+					contentArea += areaSplit[i];
+				}
+				builder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
+			}
+
+			String[] range = DateUtil.formatTimeRange(timeRange);
+			String source = specialProject.getSource();
+			Object mediaActiveLevel = specialChartAnalyzeService.mediaActiveAccount(builder,source, range, sim,
+					irSimflag,irSimflagAll);
+			long end = new Date().getTime();
+			long time = end - start;
+			log.info("媒体活跃等级图后台所需时间" + time);
+			SpecialParam specParam = getSpecParam(specialProject);
+			ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area,
+					ChartType.ACTIVE_LEVEL.getType(), specParam.getFirstName(), specParam.getSecondName(),
+					specParam.getThirdName(), "无锡");
+			Map<String, Object> map = new HashMap<>();
+			map.put("data", mediaActiveLevel);
+			map.put("param", chartParam);
+			return map;
+		} catch (TRSException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new OperationException("获取媒体活跃等级出错，message:" + e);
+		} finally {
+			LogPrintUtil logReids = RedisUtil.getLog(id);
+			long end = new Date().getTime();
+			int timeApi = (int) (end - start);
+			logReids.setComeBak(start);
+			logReids.setFinishBak(end);
+			logReids.setFullBak(timeApi);
+			// String link = loginpool.getLink();
+			if (logReids.getFullHybase() > FtsFieldConst.OVER_TIME) {
+				logReids.printTime(LogPrintUtil.ACTIVE_LEVEL);
+			}
+			log.info("调用接口用了" + timeApi + "ms");
+		}
+	}
 	/**
 	 * 媒体活跃等级图
 	 *
@@ -739,7 +1028,7 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("走势最新那条")
 	@RequestMapping(value = "/trendTime", method = RequestMethod.GET)
 	public Object trendTime(@ApiParam("专项id") @RequestParam(value = "specialId") String specialId,
-							@ApiParam("") @RequestParam(value = "pageSize", defaultValue = "1") Integer pageSize,
+							@ApiParam("页") @RequestParam(value = "pageSize", defaultValue = "1") Integer pageSize,
 							@ApiParam("类型") @RequestParam(value = "type", required = false) String type,
 							@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
 							@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
@@ -1141,7 +1430,68 @@ public class SpecialChartAnalyzeController {
 //					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSim(), ftsDocument));
 //				}
 					return resultList;
-				case "all":
+				case "weixin":
+					List<FtsDocumentCommonVO> listweixin = new ArrayList<>();
+					QueryBuilder queryFts2 = new QueryBuilder();
+					String trsl2 = statBuilder.asTRSL();
+					queryFts2.filterByTRSL(trsl2);
+					// 不同小时间段
+					queryFts2.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+					queryFts2.setPageSize(10);
+					queryFts2.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					queryFts2.setDatabase(Const.WECHAT_COMMON);
+					log.info(queryFts2.asTRSL());
+					queryFts2.setServer(specialProject.isServer());
+					if(StringUtil.isNotEmpty(md5)){
+						queryFts2.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.NotEqual);
+					}
+					GroupResult categoryweixin = commonListService.categoryQuery(queryFts2,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_MD5TAG,"special",Const.GROUPNAME_WEIXIN);
+					log.info(queryFts2.asTRSL());
+					List<GroupInfo> groupListweixin = categoryweixin.getGroupList();
+					if (groupListweixin != null && groupListweixin.size() > 0) {
+						for (GroupInfo groupInfo : groupListweixin) {
+							QueryBuilder queryMd5 = new QueryBuilder();
+							// 小时间段里MD5分类统计 时间排序取第一个结果 去查
+							queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
+							queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+							queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+//							queryMd5.setDatabase(Const.WECHAT_COMMON);
+							queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
+							log.info(queryMd5.asTRSL());
+
+							final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
+							String trslk = "redisKey" + pageId;
+							RedisUtil.setString(trslk, queryMd5.asTRSL());
+							if(StringUtil.isNotEmpty(groupName)){
+								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+										.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+							}
+							InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5,sim,irSimflag,irSimflagAll,Const.TYPE_WEIXIN_GROUP,"special",UserUtils.getUser(),true);
+							PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+							List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
+							// 再取第一个MD5结果集的第一个数据
+							if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
+								ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
+								ftsQueryChuan.get(0).setTrslk(trslk);
+								listweixin.add(ftsQueryChuan.get(0));
+							}
+						}
+					}
+					// }
+
+					// 按urltime降序
+					SortListAll sort2 = new SortListAll();
+					// Collections.sort(listChuan, sort);
+					Collections.sort(listweixin, sort2);
+					// 防止这个的第一条和时间的那一条重复
+					if (listweixin.size() > 0) {
+						listweixin.remove(0);
+					}
+					for (FtsDocumentCommonVO ftsDocument : listweixin) {
+						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
+					}
+					return resultList;
+					case "all":
 					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 				default:
 					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
@@ -1165,6 +1515,38 @@ public class SpecialChartAnalyzeController {
 		}
 	}
 
+	@EnableRedis
+	@FormatResult
+	@ApiOperation("热点信息")
+	@RequestMapping(value = "/hotMessage", method = RequestMethod.GET)
+	public Object hotMessage(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							  @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+							  @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+							  @RequestParam(value = "source", defaultValue = "ALL", required = false) String source)
+			throws TRSException {
+		pageSize = pageSize>=1?pageSize:10;
+		long start = new Date().getTime();
+		long id = Thread.currentThread().getId();
+		LogPrintUtil loginpool = new LogPrintUtil();
+		RedisUtil.setLog(id, loginpool);
+		log.info(loginpool.toString());
+		String userName = UserUtils.getUser().getUserName();
+		long startTime = System.currentTimeMillis();
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		ObjectUtil.assertNull(specialProject, "专题ID");
+		if (StringUtils.isBlank(timeRange)) {
+			timeRange = specialProject.getTimeRange();
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+				timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+			}
+		}
+		// 跟统计表格一样 如果来源没选 就不查数据
+		source = CommonListChartUtil.changeGroupName(source);
+		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(source,
+				specialProject, timeRange,pageSize);
+		return result;
+	}
 	/**
 	 * 网民参与趋势图
 	 *

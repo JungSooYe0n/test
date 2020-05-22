@@ -131,6 +131,12 @@ public class Const {
      */
     public static final String WORDCLOUD_MIX_DATABASE = HYBASE_NI_INDEX;
 
+    public static final String OFFICIAL_VIEW = "OFFICIAL_VIEW";
+    public static final String MEDIA_VIEW = "MEDIA_VIEW";
+    public static final String EXPORT_VIEW = "EXPORT_VIEW";
+    public static final String NETIZEN_VIEW = "NETIZEN_VIEW";
+
+
 /**hybase库名区间结束
  * ********************************************************************************************************************************************
  */
