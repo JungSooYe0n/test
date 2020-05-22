@@ -608,7 +608,7 @@ public interface IInfoListService {
 	 */
 	public Object documentCommonSearch(String specialId, int pageNo, int pageSize, String source, String time,
 			String area, String industry, String emotion, String sort, String invitationCard, String forwarPrimary, String keywords,String fuzzyValueScope,
-			String notKeyWords, String keyWordIndex,String foreign,boolean isExport,String type) throws TRSException;
+			String notKeyWords, String keyWordIndex,String foreign,String type) throws TRSException;
 	
 	public void setForeignData(String foreign,QueryBuilder builder, QueryBuilder countBuilder,QueryCommonBuilder builderCom,QueryCommonBuilder countBuilderCom);
 

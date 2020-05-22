@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.config.serualizer.DateDeserializer;
+import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
@@ -689,14 +691,11 @@ public class SpecialProject extends BaseEntity {
 		return project;
 	}
 	public QueryCommonBuilder toCommonBuilder(int pageNo, int pageSize, boolean withTime) {
-		String startTime=null;
-		String endTime=null;
-		if(StringUtils.isNotBlank(start)&&StringUtils.isNotBlank(end)&&(!"0".equals(start))&&(!"0".equals(end))){
-			startTime = start;
-			endTime=end;
-		}else{
-			startTime = new SimpleDateFormat("yyyyMMddHHmmss").format(this.startTime);
-			endTime = new SimpleDateFormat("yyyyMMddHHmmss").format(this.endTime);
+		String[] timeArray = new String[2];
+		try {
+			timeArray = DateUtil.formatTimeRangeMinus1(timeRange);
+		} catch (OperationException e) {
+			e.printStackTrace();
 		}
 		QueryCommonBuilder searchBuilder = new QueryCommonBuilder();
 		
@@ -725,23 +724,17 @@ public class SpecialProject extends BaseEntity {
 			break;
 		case SPECIAL:
 			searchBuilder.filterByTRSL(this.trsl);
-			if(server){
-				searchBuilder.setServer(true);
-			}
 			break;
 		default:
 			break;
 		}
-//		if(irSimflag){
-//			searchBuilder.filterByTRSL(Const.IR_SIMFLAG_TRSL);
-//		}
+
 		if (pageNo != -1) {
 			searchBuilder.setPageNo(pageNo);
 			searchBuilder.setPageSize(pageSize);
 		}
-
 		if (withTime) {
-			searchBuilder.filterField(FtsFieldConst.FIELD_URLTIME, new String[] { startTime, endTime },
+			searchBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray,
 					Operator.Between);
 		}
 		return searchBuilder;
