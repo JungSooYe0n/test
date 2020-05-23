@@ -87,6 +87,17 @@ public interface IChartAnalyzeService {
 	 */
 	public Object mediaActiveLevel(QueryBuilder builder, String source,String[] timeArray, boolean sim,
 								   boolean irSimflag,boolean irSimflagAll) throws TRSException;
+	/**
+	 * 媒体活跃等级雷达图
+	 *
+	 * @param builder
+	 * @param timeArray
+	 *            时间数组
+	 * @return
+	 * @throws TRSException
+	 */
+	public Object mediaActiveAccount(QueryBuilder builder, String source,String[] timeArray, boolean sim,
+								   boolean irSimflag,boolean irSimflagAll) throws TRSException;
 
 	/**
 	 * 微博top检索
@@ -140,6 +151,17 @@ public interface IChartAnalyzeService {
 	 */
 	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar, boolean irSimflag,boolean irSimflagAll)
 			throws TRSException;
+	/**
+	 * 地域分布检索
+	 *
+	 * @param searchBuilder
+	 * @param timeArray
+	 *            时间数组
+	 * @return
+	 * @throws TRSException
+	 */
+	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar, boolean irSimflag,boolean irSimflagAll,String areaType)
+			throws TRSException;
 
 	/**
 	 * 根据时间范围检索
@@ -162,7 +184,33 @@ public interface IChartAnalyzeService {
 	 */
 	public Map<String, Object> getTendencyMessage(String esSql, SpecialProject specialProject, String timerange, String showType)
 			throws TRSException;
-
+	/**
+	 * 根据时间范围检索
+	 *
+	 * @param timerange
+	 * @return
+	 * @throws TRSException
+	 */
+	public List<Map<String, Object>> getHotListMessage(String source, SpecialProject specialProject, String timerange,int pageSize)
+			throws TRSException;
+	/**
+	 * 舆论趋势折线
+	 *
+	 * @param timerange
+	 * @return
+	 * @throws TRSException
+	 */
+	public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange,String showType)
+			throws TRSException;
+	/**
+	 * 观点分析
+	 *
+	 * @param timerange
+	 * @return
+	 * @throws TRSException
+	 */
+	public List<Map<String, Object>> getSentimentAnalysis(SpecialProject specialProject, String timerange,String viewType)
+			throws TRSException;
 	/**
 	 * 专题分类统计表格
 	 *

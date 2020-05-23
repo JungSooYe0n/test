@@ -212,6 +212,26 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
+	public List<Map<String, Object>> getHotListMessage(String source, SpecialProject specialProject, String timerange, int pageSize) {
+		return null;
+	}
+
+    @Override
+    public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange, String showType) throws TRSException {
+        return null;
+    }
+
+	@Override
+	public List<Map<String, Object>> getSentimentAnalysis(SpecialProject specialProject, String timerange, String viewType) throws TRSException {
+		return null;
+	}
+
+	@Override
+	public Object mediaActiveAccount(QueryBuilder builder, String source, String[] timeArray, boolean sim, boolean irSimflag, boolean irSimflagAll) throws TRSException {
+		return null;
+	}
+
+	@Override
 	public List<MBlogAnalyzeEntity> mBlogTop5(QueryBuilder builder, Top5Tab sort, boolean sim, boolean irSimflag,boolean irSimflagAll)
 			throws TRSException {
 		try {
@@ -434,6 +454,11 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			throw new OperationException("地域分布查询失败" + e);
 		}
 		return resultMap;
+	}
+
+	@Override
+	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String areaType) throws TRSException {
+		return null;
 	}
 
 	@Override
