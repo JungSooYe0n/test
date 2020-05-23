@@ -222,7 +222,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
     }
 
 	@Override
-	public Map<String, Object> getSentimentAnalysis(SpecialProject specialProject, String timerange, String viewType) throws TRSException {
+	public List<Map<String, Object>> getSentimentAnalysis(SpecialProject specialProject, String timerange, String viewType) throws TRSException {
 		return null;
 	}
 

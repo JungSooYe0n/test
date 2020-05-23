@@ -854,8 +854,57 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public Map<String, Object> getSentimentAnalysis(SpecialProject specialProject, String timerange, String viewType) {
-		return null;
+	public List<Map<String, Object>> getSentimentAnalysis(SpecialProject specialProject, String timeRange, String viewType) throws TRSException {
+		List<Map<String, Object>> list = new ArrayList<>();
+		Map<String, Object> map = null;
+
+			if (timeRange != null) {
+				String[] timeArray = DateUtil.formatTimeRange(timeRange);
+				if (timeArray != null && timeArray.length == 2) {
+					try {
+						specialProject.setStart(timeArray[0]);
+						specialProject.setEnd(timeArray[1]);
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}
+
+				}
+			}
+
+			//用queryCommonBuilder和QueryBuilder 是一样的的
+			QueryBuilder builder = specialProject.toNoPagedBuilder();
+			builder.setPageSize(10);
+		String groupNames ="";
+		switch (viewType){
+				case Const.OFFICIAL_VIEW:
+					groupNames = "新闻";
+					break;
+			}
+
+			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(builder, "special", groupNames);
+			if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
+				return null;
+			}
+			List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
+			for (FtsDocumentCommonVO vo : voList) {
+				map = new HashMap<>();
+				String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+				map.put("id", vo.getSid());
+				if (Const.PAGE_SHOW_WEIXIN.equals(groupName)) {
+					map.put("id", vo.getHkey());
+				}
+				map.put("groupName", groupName);
+				map.put("time", vo.getUrlTime());
+				map.put("md5", vo.getMd5Tag());
+				String title = vo.getTitle();
+				if (StringUtil.isNotEmpty(title)) {
+					title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
+				}
+				map.put("title", title);
+				map.put("simNum", String.valueOf(vo.getSimCount()));
+				list.add(map);
+			}
+			return list;
 	}
 
 	@Override

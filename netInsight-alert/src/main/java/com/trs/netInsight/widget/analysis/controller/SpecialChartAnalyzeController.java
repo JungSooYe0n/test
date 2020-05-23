@@ -96,7 +96,7 @@ public class SpecialChartAnalyzeController {
 	@RequestMapping(value = "/webCountLine", method = RequestMethod.GET)
 	public Object webCountLine(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
 							 @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
-							 @RequestParam(value = "showType", required = false, defaultValue = "") String showType)
+							 @RequestParam(value = "showType时间类型/hour/day", required = true, defaultValue = "day") String showType)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
@@ -114,6 +114,33 @@ public class SpecialChartAnalyzeController {
 			specialProject.setEnd(timeArray[1]);
 		}
 		return specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
+
+	}
+	@EnableRedis
+	@FormatResult
+	@ApiOperation("态势评估")
+	@RequestMapping(value = "/situationAssessment", method = RequestMethod.GET)
+	public Object situationAssessment(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+									@ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId)
+			throws TRSException, ParseException {
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		long start = new Date().getTime();
+		ObjectUtil.assertNull(specialProject, "专题ID");
+		if (StringUtils.isBlank(timeRange)) {
+			timeRange = specialProject.getTimeRange();
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+				timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+			}
+		}
+		String[] timeArray = DateUtil.formatTimeRange(timeRange);
+		if (timeArray != null && timeArray.length == 2) {
+			specialProject.setStart(timeArray[0]);
+			specialProject.setEnd(timeArray[1]);
+		}
+		int max=100,min=50;
+	    int ran = (int) (Math.random()*(max-min)+min);
+		return ran;
 
 	}
 	@EnableRedis
@@ -245,7 +272,7 @@ public class SpecialChartAnalyzeController {
 		boolean irSimflag = specialProject.isIrSimflag();
 		//跨数据源排重
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
-	 QueryBuilder builder = specialProject.toNoPagedAndTimeBuilder();
+	 QueryBuilder builder = specialProject.toNoPagedBuilder();
 		builder.filterField(FtsFieldConst.FIELD_GROUPNAME,specialProject.getSource().replace(";", " OR ")
 				.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
 		String contrastField = FtsFieldConst.FIELD_GROUPNAME;
@@ -632,7 +659,7 @@ public class SpecialChartAnalyzeController {
 	 */
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_EMOTIONOPTION, systemLogType = SystemLogType.SPECIAL,systemLogOperationPosition="专题分析/${specialId}/内容统计/微博情感分析")
 	@FormatResult
-	@ApiOperation("情感分析")
+	@ApiOperation("正负面占比")
 	@EnableRedis
 	@RequestMapping(value = "/emotionOption", method = RequestMethod.GET)
 	public Object weiboOption(@RequestParam(value = "specialId") String specialId,
@@ -675,13 +702,13 @@ public class SpecialChartAnalyzeController {
 
 		List<Map<String, String>> list =specialChartAnalyzeService.emotionOption(searchBuilder,specialProject);
 
-		SpecialParam specParam = getSpecParam(specialProject);
-		ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area, ChartType.EMOTIONOPTION.getType(),
-				specParam.getFirstName(), specParam.getSecondName(), specParam.getThirdName(), "网察");
-		Map<String, Object> map = new HashMap<>();
-		map.put("data", list);
-		map.put("param", chartParam);
-		return map;
+//		SpecialParam specParam = getSpecParam(specialProject);
+//		ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area, ChartType.EMOTIONOPTION.getType(),
+//				specParam.getFirstName(), specParam.getSecondName(), specParam.getThirdName(), "网察");
+//		Map<String, Object> map = new HashMap<>();
+//		map.put("data", list);
+//		map.put("param", chartParam);
+		return list;
 	}
 
 	/**
@@ -698,9 +725,8 @@ public class SpecialChartAnalyzeController {
 	 * @return Object
 	 */
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_ACTIVE_LEVEL, systemLogType = SystemLogType.SPECIAL,systemLogOperationPosition="专题分析/${specialId}/内容统计/媒体活跃等级")
-	@EnableRedis
 	@FormatResult
-	@ApiOperation("媒体活跃等级图")
+	@ApiOperation("活跃账号")
 	@RequestMapping(value = "/active_account", method = RequestMethod.GET)
 	public Object getActiveAccount(@RequestParam("specialId") String specialId,
 								 @RequestParam(value = "area", defaultValue = "ALL") String area,
@@ -751,19 +777,19 @@ public class SpecialChartAnalyzeController {
 
 			String[] range = DateUtil.formatTimeRange(timeRange);
 			String source = specialProject.getSource();
-			Object mediaActiveLevel = specialChartAnalyzeService.mediaActiveAccount(builder,source, range, sim,
+			Object mediaActiveAccount = specialChartAnalyzeService.mediaActiveAccount(builder,source, range, sim,
 					irSimflag,irSimflagAll);
 			long end = new Date().getTime();
 			long time = end - start;
-			log.info("媒体活跃等级图后台所需时间" + time);
-			SpecialParam specParam = getSpecParam(specialProject);
-			ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area,
-					ChartType.ACTIVE_LEVEL.getType(), specParam.getFirstName(), specParam.getSecondName(),
-					specParam.getThirdName(), "无锡");
-			Map<String, Object> map = new HashMap<>();
-			map.put("data", mediaActiveLevel);
-			map.put("param", chartParam);
-			return map;
+//			log.info("媒体活跃等级图后台所需时间" + time);
+//			SpecialParam specParam = getSpecParam(specialProject);
+//			ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area,
+//					ChartType.ACTIVE_LEVEL.getType(), specParam.getFirstName(), specParam.getSecondName(),
+//					specParam.getThirdName(), "无锡");
+//			Map<String, Object> map = new HashMap<>();
+//			map.put("data", mediaActiveLevel);
+//			map.put("param", chartParam);
+			return mediaActiveAccount;
 		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
@@ -993,20 +1019,20 @@ public class SpecialChartAnalyzeController {
 					sim, irSimflag,irSimflagAll, entityType, searchBuilder.getPageSize(),"special", searchBuilder.getDatabase());
 		}
 
-
-		long end = new Date().getTime();
-		long time = end - start;
-		log.info("词云分析后台所需时间" + time);
-		SpecialParam specParam = getSpecParam(specialProject);
-		ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area, ChartType.WORDCLOUD.getType(),
-				specParam.getFirstName(), specParam.getSecondName(), specParam.getThirdName(), "无锡");
-		Map<String, Object> map = new HashMap<>();
+//
+//		long end = new Date().getTime();
+//		long time = end - start;
+//		log.info("词云分析后台所需时间" + time);
+//		SpecialParam specParam = getSpecParam(specialProject);
+//		ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area, ChartType.WORDCLOUD.getType(),
+//				specParam.getFirstName(), specParam.getSecondName(), specParam.getThirdName(), "无锡");
+//		Map<String, Object> map = new HashMap<>();
 		if(ObjectUtil.isEmpty(wordCloud)){
 			return null;
 		}
-		map.put("data", wordCloud);
-		map.put("param", chartParam);
-		return map;
+//		map.put("data", wordCloud);
+//		map.put("param", chartParam);
+		return wordCloud;
 	}
 
 	/**

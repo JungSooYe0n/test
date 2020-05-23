@@ -24,8 +24,10 @@ import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
+import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.JunkData;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SearchPage;
@@ -87,6 +89,9 @@ public class InfoListController {
 	
 	@Autowired
 	private ISearchRecordService searchRecordService;
+
+	@Autowired
+	private ICommonListService commonListService;
 
 	/**
 	 * 是否走独立预警服务
@@ -803,6 +808,119 @@ public class InfoListController {
 		}
 		return buffer.toString();
 	}
+
+    /**
+     * 信息列表页单条的详情
+     *
+     * @Author mawen
+     * @throws TRSException
+     * @throws TRSSearchException
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @ApiOperation("首页和列表页点击单条文章进入详情页---全部")
+    @FormatResult
+    @RequestMapping(value = "/oneInfoAll", method = RequestMethod.GET)
+    public Object oneInfoAll(@ApiParam("文章sid") @RequestParam("sid") String sid,
+                          @ApiParam("md5值") @RequestParam(value = "md5", required = false) String md5,
+                          @ApiParam("trslk") @RequestParam(value = "trslk", required = false) String trslk,
+                             @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
+                          @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "nreserved1", required = false) String nreserved1)
+            throws TRSSearchException, TRSException {
+        String userId = UserUtils.getUser().getId();
+        String trsl = RedisUtil.getString(trslk);
+        fixedThreadPool.execute(() -> infoListService.simCount(sid, md5,null));
+        QueryBuilder queryBuilder = new QueryBuilder();
+        if (StringUtil.isEmpty(trsl) || (StringUtil.isNotEmpty(trsl) && !trsl.contains(sid))) {
+            if (Const.GROUPNAME_WEIBO.contains(groupName)){
+                queryBuilder.filterField(FtsFieldConst.FIELD_MID, sid, Operator.Equal);
+            }else if(groupName.contains("微信")){
+                queryBuilder.filterField(FtsFieldConst.FIELD_HKEY, sid, Operator.Equal);
+            }else {
+                queryBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.Equal);
+            }
+        }
+
+        queryBuilder.filterByTRSL(trsl);
+//        queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
+        queryBuilder.page(0, 1);
+//        List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(queryBuilder, FtsDocument.class, false, false,false,"detail");
+        InfoListResult infoListResult = commonListService.queryPageList(queryBuilder,false,false,false,groupName,"detail",UserUtils.getUser(),false);
+        PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+        List<FtsDocumentCommonVO> ftsQuery = content.getPageItems();
+        if (null != ftsQuery && ftsQuery.size() > 0) {
+            FtsDocumentCommonVO ftsDocument = ftsQuery.get(0);
+            // 判断是否收藏
+            //原生sql
+            Specification<Favourites> criteriaFav = new Specification<Favourites>() {
+
+                @Override
+                public Predicate toPredicate(Root<Favourites> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                    List<Object> predicates = new ArrayList<>();
+                    predicates.add(cb.equal(root.get("userId"),userId));
+                    predicates.add(cb.isNull(root.get("libraryId")));
+                    predicates.add(cb.equal(root.get("sid"), sid));
+                    Predicate[] pre = new Predicate[predicates.size()];
+
+                    return query.where(predicates.toArray(pre)).getRestriction();
+                }
+            };
+
+            Favourites favourites = favouritesRepository.findOne(criteriaFav);
+            if (ObjectUtil.isNotEmpty(favourites) && StringUtil.isEmpty(favourites.getLibraryId())) {
+                ftsDocument.setFavourite(true);
+            } else {
+                ftsDocument.setFavourite(false);
+            }
+            ftsDocument.setTrslk(trslk);
+            if (Const.TYPE_NEWS.contains(groupName)) {
+                // 站点名是百度贴吧的 要是频道名不以吧结尾 就加上吧
+                if ("百度贴吧".equals(ftsDocument.getSiteName())) {
+                    if (StringUtil.isNotEmpty(ftsDocument.getChannel()) && !ftsDocument.getChannel().endsWith("吧")) {
+                        ftsDocument.setChannel(ftsDocument.getChannel() + "吧");
+                    }
+                }
+                if (null != nreserved1) {
+                    QueryBuilder builder = new QueryBuilder();
+                    HashMap<String, Object> returnMap = new HashMap<>();
+                    builder.filterField(FtsFieldConst.FIELD_HKEY, ftsDocument.getHkey(), Operator.Equal);
+                    if ("1".equals(nreserved1)) {
+                        //直接查回帖的详情 加trsl
+                        builder.filterByTRSL(trsl);//不加trsl,导致前端直接取主贴标题，关键词不描红问题
+                        //若查主贴的详情，下面仅用来查询该主贴的回帖数，为和/getreplyCards保持一致，也与实际值保持一致，不许加trsl
+                    }
+//                ftsDocuments = hybase8SearchService.ftsPageList(builder, FtsDocument.class, false, false,false,null);
+                    InfoListResult infoListResult2 = commonListService.queryPageList(builder, false, false, false, groupName, null, UserUtils.getUser(), false);
+                    PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+                    List<FtsDocumentCommonVO> ftsDocuments = content2.getPageItems();
+                    if ("1".equals(nreserved1)) {// 回帖
+                        List list = new ArrayList<>();
+                        if (null != ftsDocuments && ftsDocuments.size() > 0) {
+                            for (FtsDocumentCommonVO document : ftsDocuments) {
+                                log.info(document.getNreserved1() + "主回帖");
+                                if ("0".equals(document.getNreserved1())) {// 说明这个是回帖对应的主贴
+                                    document.setReplyCount(content2.getTotalItemCount() - 1);// 回帖个数
+                                    // 把主贴刨去
+                                    returnMap.put("mainCard", document);
+                                }
+                            }
+                        }
+                        list.add(ftsDocument);
+                        returnMap.put("replyCard", list);
+                        return returnMap;
+                    } else if ("0".equals(nreserved1)) {// 主贴
+                        ftsDocument.setReplyCount(content2.getTotalItemCount() - 1);// 回帖个数
+                        // 把主贴刨去
+                        returnMap.put("mainCard", ftsDocument);
+                        return returnMap;
+                    }
+                }
+            }
+        }
+        List all = new ArrayList<>();
+        all.add(ftsQuery);
+        System.err.println("方法结束" + System.currentTimeMillis());
+        return all;
+    }
 
 	/**
 	 * 信息列表页单条的详情

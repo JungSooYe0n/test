@@ -209,7 +209,7 @@ public interface IChartAnalyzeService {
 	 * @return
 	 * @throws TRSException
 	 */
-	public Map<String, Object> getSentimentAnalysis(SpecialProject specialProject, String timerange,String viewType)
+	public List<Map<String, Object>> getSentimentAnalysis(SpecialProject specialProject, String timerange,String viewType)
 			throws TRSException;
 	/**
 	 * 专题分类统计表格
