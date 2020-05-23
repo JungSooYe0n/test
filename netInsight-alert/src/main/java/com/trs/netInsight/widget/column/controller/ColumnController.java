@@ -44,6 +44,7 @@ import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
+import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.SubGroup;
@@ -374,6 +375,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "indexPageId", value = "父分组Id", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "navigationId", value = "导航栏id(非自定义情况下不传)", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "type", value = "图表类型", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "columnType", value = "栏目模式类型：COMMON 普通模式、SPECIAL专家模式", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contrast", value = "分类对比类型", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
@@ -388,6 +390,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "share", value = "是否共享标记", dataType = "Boolean", paramType = "query", required = false) })
 	public Object addThree(@RequestParam("name") String name, @RequestParam(value = "indexPageId",required = false) String indexPageId,
 						   @RequestParam(value = "navigationId", defaultValue = "") String navigationId,
+						   @RequestParam("columnType") String columnType,
 						   @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
 						   @RequestParam(value = "trsl", required = false) String trsl,
 						   @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
@@ -447,16 +450,25 @@ public class ColumnController {
 		if (StringUtil.isEmpty(timeRange) ) {
 			timeRange = "7d";
 		}
+		SpecialType specialType = SpecialType.valueOf(columnType);
 		// 有几个图专家模式下 必须传xy表达式
-		if (StringUtil.isNotEmpty(trsl)) {
-			contrast= null;
-			if (ColumnConst.CHART_BAR.equals(type) || ColumnConst.CHART_LINE.equals(type) || ColumnConst.CHART_PIE.equals(type)) {
-				if (StringUtil.isEmpty(xyTrsl)) {
-					throw new OperationException(indexTabType.getTypeName() + "时必须传xy表达式");
+		if(SpecialType.SPECIAL.equals(specialType)){
+			if (StringUtil.isNotEmpty(trsl)) {
+				contrast= null;
+				if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
+					if (StringUtil.isEmpty(xyTrsl)) {
+						throw new OperationException("专家模式下"+indexTabType.getTypeName() + "时必须传xy表达式");
+					}
 				}
+			}else{
+				throw new OperationException("专家模式下必须填写检索表达式表达式");
 			}
-		}else{
+		} else{
+			trsl=null;
 			xyTrsl = null;
+			if(StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) &&!IndexTabType.LIST_NO_SIM.equals(indexTabType)&&!IndexTabType.WORD_CLOUD.equals(indexTabType)&&!IndexTabType.MAP.equals(indexTabType) ){
+				throw new OperationException("普通模式下"+indexTabType.getTypeName() + "时，必须传对比类型");
+			}
 		}
 		if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
 			groupName = Const.PAGE_SHOW_WEIXIN;
@@ -478,6 +490,7 @@ public class ColumnController {
 		indexTab.setExcludeWeb(excludeWeb);
 		indexTab.setContrast(contrast);
 		indexTab.setTabWidth(tabWidth);
+		indexTab.setSpecialType(specialType);
 		indexTab.setTypeId(navigationId);
 		if(StringUtil.isNotEmpty(indexPageId)){
 			IndexPage indexPage = indexPageService.findOne(indexPageId);
@@ -554,6 +567,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "name", value = "三级栏目名", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "indexPageId", value = "父分组Id", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "navigationId", value = "导航栏id(非自定义情况下不传)", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "columnType", value = "栏目模式类型：COMMON 普通模式、SPECIAL专家模式", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "type", value = "图表类型", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contrast", value = "分类对比类型", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query"),
@@ -571,6 +585,7 @@ public class ColumnController {
 	public Object updateThree(@RequestParam("id") String id, @RequestParam("name") String name,
 							  @RequestParam(value = "indexPageId",required = false) String indexPageId,
 							  @RequestParam(value = "navigationId",required = false, defaultValue = "") String navigationId,
+							  @RequestParam("columnType") String columnType,
 							  @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
 							  @RequestParam(value = "trsl", required = false) String trsl,
 							  @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
@@ -624,16 +639,26 @@ public class ColumnController {
 			if(ObjectUtil.isEmpty(indexTabType)){
 				throw new TRSException(CodeUtils.FAIL,"当前栏目类型不存在");
 			}
+			SpecialType specialType = SpecialType.valueOf(columnType);
 			// 有几个图专家模式下 必须传xy表达式
-			if(StringUtil.isNotEmpty(trsl)){
-				contrast = null;
-				if(ColumnConst.CHART_BAR.equals(type) || ColumnConst.CHART_LINE.equals(type) || ColumnConst.CHART_PIE.equals(type)){
-					if(StringUtil.isEmpty(xyTrsl)){
-						throw new TRSException(indexTabType.getTypeName()+"时必须传xy表达式");
+			if (SpecialType.SPECIAL.equals(specialType)) {
+				if (StringUtil.isNotEmpty(trsl)) {
+					contrast = null;
+					if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
+						if (StringUtil.isEmpty(xyTrsl)) {
+							throw new OperationException("专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
+						}
 					}
+				} else {
+					throw new OperationException("专家模式下必须填写检索表达式表达式");
 				}
-			}else{
+			} else {
+				trsl = null;
 				xyTrsl = null;
+				if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
+						&& !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
+					throw new OperationException("普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+				}
 			}
 			if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
 				groupName = Const.PAGE_SHOW_WEIXIN;
@@ -648,6 +673,7 @@ public class ColumnController {
 			}
 
 			indexTab.setName(name);
+			indexTab.setSpecialType(specialType);
 			indexTab.setType(type);
 			indexTab.setContrast(contrast);
 			indexTab.setTrsl(trsl);

@@ -24,6 +24,7 @@ import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
@@ -147,8 +148,8 @@ public class InfoListController {
 			@ApiImplicitParam(name = "keywords", value = " 在结果查询", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "fuzzyValueScope", value = "结果中搜索de范围", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "foreign", value = "欧洲  美国", dataType = "String", paramType = "query", required = false) })
-	@RequestMapping(value = "/info", method = RequestMethod.GET)
-	public Object dataList(@RequestParam(value = "specialId", required = false) String specialId,
+	@RequestMapping(value = "/info", method = RequestMethod.POST)
+	public Object dataList(@RequestParam(value = "specialId") String specialId,
 			@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
 			@RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
 			@RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
@@ -159,11 +160,9 @@ public class InfoListController {
 			@RequestParam(value = "sort", defaultValue = "", required = false) String sort,
 			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
 			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
-			@ApiParam("是否导出") @RequestParam(value = "isExport", defaultValue = "false") boolean isExport,
 			@ApiParam("结果中搜索")@RequestParam(value = "keywords", required = false) String keywords,
 			@ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
 			@RequestParam(value = "foreign", required = false) String foreign) throws TRSException {
-		// LogPrintUtil loginpool = LoginPool.getLoginpool();
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
@@ -186,64 +185,25 @@ public class InfoListController {
 				}
 			}
 			// 跟统计表格一样 如果来源没选 就不查数据
-			String specialSource = specialProject.getSource();
-			if (!"ALL".equals(specialSource) && !specialSource.contains(source) && !source.equals("ALL") && !(specialSource.contains("境外媒体") && "国外新闻".equals(source))) {
-				return null;
-			}
-			//另外，刚刚进列表页的时候，默认来源是国内新闻，如果来源没选国内新闻，也不该有数据（contains区分不了国内新闻和国内新闻_电子报，得用equals）
-			String[] groupNameArray = specialSource.split(";");
-			boolean hasInsideNews = false;
-			for (int i = 0; i < groupNameArray.length; i++) {
-				if(groupNameArray.length > 1 && "国内新闻".equals(groupNameArray[i])){
-					hasInsideNews = true;
-					break;
+			List<String> specialSource = CommonListChartUtil.formatGroupName(specialProject.getSource());
+			if(!"ALL".equals(source)){
+				source = CommonListChartUtil.changeGroupName(source);
+				if(!specialSource.contains(source)){
+					return null;
 				}
+			}else{
+				source = StringUtils.join(specialSource,";");
 			}
-			//hasInsideNews = true的话，代表是混合列表且来源含有国内新闻
-			if(!hasInsideNews && "国内新闻".equals(source) && groupNameArray.length > 1){
-				return null;
-			}
-			
-			// SearchScope searchScope = specialProject.getSearchScope();
-			// String keyWordIndex = searchScope.toString();
-			// if("TITLE_CONTENT".equals(keyWordIndex)){
 			String keyWordIndex = "positioCon";// 标题加正文 与日常监测统一
-			// }else{
-			// keyWordIndex = "positionKey";
-			// }
-			/*
-			 * if (!"".equals(foreign) && (null!=area && !"ALL".equals(area))){
-			 * source = "境外媒体"; }
-			 */
-			if (!"".equals(foreign) && (null == area || "".equals(area))) {
-				source = "境外媒体";
-			}
 
-			// 选择查询的库
-			if (Const.MEDIA_TYPE_WEIXIN.contains(source)) {
-				return infoListService.weChatSearch(specialId, pageNo, pageSize, source, time, area, industry, emotion,
-						sort, keywords, fuzzyValueScope,null, keyWordIndex,"special");
-			} else if (Const.MEDIA_TYPE_WEIBO.contains(source)) {
-				return infoListService.statusSearch(specialId, pageNo, pageSize, source, time, area, industry, emotion,
-						sort, keywords,fuzzyValueScope, null, keyWordIndex, forwarPrimary,"special");
-			} else if (Const.MEDIA_TYPE_FINAL_NEWS.contains(source)) {
-				if ("境外媒体".equals(source)) {
-					source = "国外新闻";
-				}
-				return infoListService.documentSearch(specialId, pageNo, pageSize, source, time, area, industry,
-						emotion, sort, invitationCard, keywords,fuzzyValueScope, null, keyWordIndex, foreign,"special");
-			} else if (Const.MEDIA_TYPE_TF.contains(source)) {
-				return infoListService.documentTFSearch(specialId, pageNo, pageSize, source, time, area, industry,
-						emotion, sort, invitationCard, keywords,fuzzyValueScope, null, keyWordIndex,"special");
-			} else if ("ALL".contains(source)) {
 				Object documentCommonSearch = infoListService.documentCommonSearch(specialId, pageNo, pageSize, source,
 						time, area, industry, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null, keyWordIndex, foreign,
-						isExport,"special");
+						"special");
 				long endTime = System.currentTimeMillis();
 				log.warn("间隔时间："+(endTime - startTime));
 				return documentCommonSearch;
-			}
-			return null;
+
+
 		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
@@ -255,12 +215,8 @@ public class InfoListController {
 			logReids.setComeBak(start);
 			logReids.setFinishBak(end);
 			logReids.setFullBak(timeApi);
-			// String link = loginpool.getLink();
 			if (logReids.getFullHybase() > FtsFieldConst.OVER_TIME) {
 				logReids.printTime(LogPrintUtil.INFO_LIST);
-			}
-			if (userName != null && userName.equals("xiaoying")) {
-				log.info("xiaoying调用接口用了" + timeApi + "ms");
 			}
 			log.info("调用接口用了" + timeApi + "ms"+DateUtil.formatCurrentTime(DateUtil.yyyyMMdd));
 		}

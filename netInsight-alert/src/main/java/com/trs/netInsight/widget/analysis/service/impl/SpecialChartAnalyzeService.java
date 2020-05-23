@@ -2185,7 +2185,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public List<ClassInfo> stattotal(SpecialProject specialProject, String start, String end, String industryType,
+	public Object stattotal(SpecialProject specialProject, String start, String end, String industryType,
 									 String area, String foreign) throws TRSException {
 		List<ClassInfo> classInfo = new ArrayList<>();
 		// url排重

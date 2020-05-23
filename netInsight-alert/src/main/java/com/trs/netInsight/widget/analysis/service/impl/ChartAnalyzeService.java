@@ -1098,11 +1098,9 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public List<ClassInfo> stattotal(SpecialProject specialProject, String start, String end, String industryType,
+	public Object stattotal(SpecialProject specialProject, String start, String end, String industryType,
 									 String area, String foreign) throws TRSException {
-		List<ClassInfo> classInfo = new ArrayList<>();
-		// url排重
-		boolean irSimflag = specialProject.isIrSimflag();
+
 		try {
 			// 传统媒体分类统计结果
 			Date startToDate = DateUtil.stringToDate(start, "yyyyMMddHHmmss");
@@ -1112,55 +1110,20 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			specialProject.setStart(new SimpleDateFormat("yyyyMMddHHmmss").format(startToDate));
 			specialProject.setEnd(new SimpleDateFormat("yyyyMMddHHmmss").format(endToDate));
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
-			//全网排重
+			//单一媒体排重
 			boolean sim = specialProject.isSimilar();
-			//跨数据源排重
+			// url排重
+			boolean irSimflag = specialProject.isIrSimflag();
+			//全网排重
 			boolean irSimflagAll = specialProject.isIrSimflagAll();
 			builder.page(0, 20);
 			// 根据已选择的来源不同 查的group不同
 			String groupName = specialProject.getSource();
-			if ((null != foreign && !"".equals(foreign)) && (null == area || "".equals(area))) {
+			/*if ((null != foreign && !"".equals(foreign)) && (null == area || "".equals(area))) {
 				groupName = "境外媒体";
-			}
+			}*/
 			if (null != foreign && !"".equals(foreign) && !"ALL".equals(foreign)) {
 				infoListService.setForeignData(foreign, builder, null, null, null);
-			}
-			String replace = groupName.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻");
-			String[] split = replace.split(";");
-			List<String> metas = new ArrayList<>();
-			if (split != null && split.length > 0) {
-				metas = Arrays.asList(split);
-			}
-			if (StringUtil.isNotEmpty(groupName)) {
-				if (!"ALL".equals(groupName)) {
-					builder.filterField(
-							FtsFieldConst.FIELD_GROUPNAME, groupName.replace(";", " OR ")
-									.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),
-							Operator.Equal);
-				} else {
-					builder.filterField(FtsFieldConst.FIELD_GROUPNAME,
-							Const.STATTOTAL_GROUP.replace(";", " OR ").replace("境外媒体", "国外新闻"), Operator.Equal);
-				}
-			} else {
-				String trsl = "";
-				if (StringUtil.isNotEmpty(specialProject.getTrsl())) {
-					trsl += Const.TYPE_NEWS.replace(";", " OR ");
-				}
-				if (StringUtil.isNotEmpty(specialProject.getStatusTrsl())) {
-					if (!"".equals(trsl)) {
-						trsl += " OR " + Const.TYPE_WEIBO;
-					} else {
-						trsl += Const.TYPE_WEIBO;
-					}
-				}
-				if (StringUtil.isNotEmpty(specialProject.getWeChatTrsl())) {
-					if (!"".equals(trsl)) {
-						trsl += " OR " + Const.TYPE_WEIXIN_GROUP;
-					} else {
-						trsl += Const.TYPE_WEIXIN_GROUP;
-					}
-				}
-				builder.filterField(FtsFieldConst.FIELD_GROUPNAME, trsl, Operator.Equal);
 			}
 			// 增加地域分析
 			if (StringUtils.isNotBlank(area) && !area.equals("ALL")) {
@@ -1174,52 +1137,21 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 			log.warn("stattal接口：" + builder.asTRSL());
 			builder.setDatabase(Const.MIX_DATABASE);
-			/*GroupResult categoryQuery = commonListService.categoryQuery(builder,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME,"special");
-					//hybase8SearchService.categoryQuery(builder, sim, irSimflag,irSimflagAll,FtsFieldConst.FIELD_GROUPNAME, "special",Const.MIX_DATABASE);
-			List<GroupInfo> groupList = categoryQuery.getGroupList();
-			Map<String, Long> map = new LinkedHashMap<>();
-			map.put("国内新闻", 0L);
-			map.put("微博", 0L);
-			map.put("微信", 0L);
-			map.put("国内新闻_手机客户端", 0L);
-			map.put("国内论坛", 0L);
-			map.put("国内博客", 0L);
-			map.put("国内新闻_电子报", 0L);
-			map.put("国外新闻", 0L);
-			map.put("Twitter", 0L);
-			map.put("FaceBook", 0L);
-			map.put("国内视频", 0L);
-			for (GroupInfo groupInfo : groupList) {
-				String fieldValue = groupInfo.getFieldValue();
-				if ("国内微信".equals(fieldValue)) {
-					fieldValue = "微信";
-				}
-				if ("Facebook".equals(fieldValue)) {
-					fieldValue = "FaceBook";
-				}
-				map.put(fieldValue, groupInfo.getCount());
+			ChartResultField resultField = new ChartResultField("name", "value");
+			List<Map<String, Object>> cateqoryQuery = (List<Map<String, Object>>) commonListService.queryListGroupNameStattotal(builder,sim,irSimflag,irSimflagAll,groupName,"special",resultField);
+			Long count = 0L;
+			for(Map<String, Object> map :cateqoryQuery){
+				count += (Long)map.get(resultField.getCountField());
 			}
-			Iterator<Map.Entry<String, Long>> iterMap = map.entrySet().iterator();
-			while (iterMap.hasNext()) {
-				Map.Entry<String, Long> entry = iterMap.next();
-				String key = entry.getKey();
-				classInfo.add(new ClassInfo(key, entry.getValue().intValue()));
-			}
-			*/
-			ChartResultField resultField = new ChartResultField("groupName", "count");
-			List<Map<String, Object>> cateqoryQuery = (List<Map<String, Object>>) commonListService.queryListGroupNameStattotal(builder,sim,irSimflag,irSimflagAll,"ALL","special",resultField);
-			for(Map<String, Object> map : cateqoryQuery){
-				classInfo.add(new ClassInfo(((String)map.get("groupName")).equals("客户端") ? "手机客户端" : (String)map.get("groupName"), (Long)map.get("count")));
-
-
-			}
-
-
+			Map<String, Object> total = new HashMap<>();
+			total.put(resultField.getContrastField(),"全部");
+			total.put(resultField.getCountField(),count);
+			cateqoryQuery.add(0,total);
+			return cateqoryQuery;
 		} catch (Exception e) {
 			log.error("statByClassification error ", e);
 			throw new OperationException("statByClassification error: " + e, e);
 		}
-		return classInfo;
 	}
 
 	@Override

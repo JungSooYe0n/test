@@ -69,7 +69,6 @@ public class CommonListColumn extends AbstractColumn {
 			builder.page(super.config.getPageNo(), super.config.getPageSize());
 			String source = indexTab.getGroupName();
 			PagedList<FtsDocumentCommonVO> listCommon = commonListService.queryPageListNoFormat(builder,sim,irSimflag,irSimflagAll,"column",source);
-			//PagedList<FtsDocumentCommonVO> listCommon = hybase8SearchService.pageListCommon(builder, sim,irSimflag,irSimflagAll,"column");
 			if (listCommon == null || listCommon.getPageItems() == null || listCommon.getPageItems().size() == 0) {
 				return null;
 			}

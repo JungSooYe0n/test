@@ -45,49 +45,6 @@ public class HostListColumn extends AbstractColumn {
                 return null;
             }
             List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
-            /*for (FtsDocumentCommonVO vo : voList) {
-                map = new HashMap<>();
-                String groupName = vo.getGroupName();
-                if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
-                    map.put("sid", vo.getHkey());
-                    groupName= Const.PAGE_SHOW_WEIXIN;
-                }else{
-                    map.put("sid", vo.getSid());
-                }
-                String title = vo.getTitle();
-                if ("微博".equals(groupName)) {
-                    map.put("siteName", vo.getScreenName());
-                } else if (Const.MEDIA_TYPE_TF.contains(vo.getGroupName())) {
-                    vo.setSiteName(vo.getGroupName());
-                }else {
-                    map.put("siteName", vo.getSiteName());
-                }
-                if(StringUtil.isNotEmpty(title)){
-                    title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
-                }
-                map.put("title", title);
-                map.put("urlName", vo.getUrlName());
-                map.put("hkey", vo.getHkey());
-                map.put("simCount", String.valueOf(vo.getSimCount()));
-                map.put("trslk", uid);
-                map.put("groupName", groupName);
-                map.put("nreserved1", vo.getNreserved1());
-                map.put("catalogArea", vo.getCatalogArea());
-                map.put("location", vo.getLocation());
-                // 获得时间差
-                Map<String, String> timeDifference = DateUtil.timeDifference(vo);
-                boolean isNew = false;
-                if (ObjectUtil.isNotEmpty(timeDifference.get("timeAgo"))) {
-                    isNew = true;
-                    map.put("timeAgo", timeDifference.get("timeAgo"));
-                } else {
-                    map.put("timeAgo", timeDifference.get("urlTime"));
-                }
-                map.put("isNew", isNew);
-                map.put("md5Tag", vo.getMd5Tag());
-                map.put("urlTime", vo.getUrlTime());
-                list.add(map);
-            }*/
             for (FtsDocumentCommonVO vo : voList) {
                 map = new HashMap<>();
                 map.put("trslk", uid);

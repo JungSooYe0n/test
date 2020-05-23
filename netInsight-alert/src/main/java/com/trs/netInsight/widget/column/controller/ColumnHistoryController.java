@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.column.controller;
 
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.widget.column.service.IColumnChartService;
 import com.trs.netInsight.widget.column.service.IIndexPageService;
 import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
 import com.trs.netInsight.widget.column.service.IIndexTabService;
@@ -25,6 +26,8 @@ public class ColumnHistoryController {
 
     @Autowired
     private IIndexTabMapperService indexTabMapperService;
+    @Autowired
+    private IColumnChartService columnChartService;
 
     /**
      * 修改日常监测分组栏目的历史数据
@@ -61,5 +64,15 @@ public class ColumnHistoryController {
         return result;
     }
 
+    /**
+     * 修改日常监测数据栏目的数据
+     */
+    @FormatResult
+    @GetMapping(value = "/updateHistortColumnType")
+    @ApiOperation("修改日常监测数据栏目的数据 - 添加字段 - 判断是专家模式还是普通模式，需要修改历史数据")
+    public Object updateHistortColumnType() {
+        Object result =columnChartService.addColumnType();
+        return result;
+    }
 
 }

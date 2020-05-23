@@ -1,5 +1,7 @@
-package com.trs.netInsight.widget.column.entity;
+package com.trs.netInsight.widget.special;
 
+
+import com.fasterxml.jackson.annotation.JsonView;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import io.swagger.annotations.ApiModelProperty;
@@ -13,20 +15,18 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 /**
- * 日常监测自定义图表实体类
+ * 专题分析自定义图表实体类
  * 一个栏目可以对应多个自定义图表
  *
  * @author 张娅
  */
-@Entity(name = "custom_chart")
+@Entity(name = "special_custom_chart")
 @Table
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomChart extends BaseEntity {
-
-
+public class SpecialCustomChart extends BaseEntity{
     @Column(name = "name")
     private String name;// 三级栏目（图）名
 
@@ -57,9 +57,6 @@ public class CustomChart extends BaseEntity {
 
     @Column(name = "time_range")
     private String timeRange;// 发布时间范围
-
-    @Column(name = "hide")
-    private boolean hide = false;
 
     /**
      * 检索关键词
@@ -135,16 +132,7 @@ public class CustomChart extends BaseEntity {
     @Column(name = "top_sequence")
     private Integer topSequence;
 
-
-    public IndexTab indexTab() {
-        IndexTab indexTab = new IndexTab(this.name, this.trsl, this.xyTrsl, this.type, this.contrast, this.excludeWeb, this.timeRange,
-                this.hide, this.keyWord, this.excludeWords, this.keyWordIndex, this.groupName, this.similar, this.irSimflag, this.irSimflagAll,
-                this.weight, this.tabWidth, this.sequence,this.specialType);
-        return indexTab;
-    }
-
-
-    public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, Boolean hide, String keyWord, String excludeWords,
+    public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, String keyWord, String excludeWords,
                        String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType) {
         this.name = name;
         this.trsl = trsl;
@@ -153,7 +141,6 @@ public class CustomChart extends BaseEntity {
         this.contrast = contrast;
         this.excludeWeb = excludeWeb;
         this.timeRange = timeRange;
-        this.hide = hide;
         this.keyWord = keyWord;
         this.excludeWords = excludeWords;
         this.keyWordIndex = keyWordIndex;
@@ -167,5 +154,4 @@ public class CustomChart extends BaseEntity {
         this.parentId = parentId;
         this.specialType = specialType;
     }
-
 }

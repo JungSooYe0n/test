@@ -48,7 +48,11 @@ public class WordCloudColumn extends AbstractColumn {
         GroupWordResult wordCloud = null;
         //用queryCommonBuilder和QueryBuilder 是一样的的
         QueryCommonBuilder queryBuilder = super.config.getCommonBuilder();
-        queryBuilder.page(0, 200);
+        Integer pagesize = 50;
+        if ("100".equals(indexTab.getTabWidth())) {
+            pagesize = 200;
+        }
+        queryBuilder.page(0, pagesize);
         String metas = indexTab.getGroupName();
         try {
             wordCloud = (GroupWordResult) commonChartService.getWordCloudColumnData(queryBuilder, sim, irSimflag, irSimflagAll, metas, config.getEntityType(), "column");
@@ -56,7 +60,6 @@ public class WordCloudColumn extends AbstractColumn {
             if (wordCloud == null || wordCloud.getGroupList() == null || wordCloud.getGroupList().size() == 0) {
                 return null;
             }
-            List<GroupWordInfo> groupWordInfos = wordCloud.getGroupList();
             List<Object> result = new ArrayList<>();
             Map<String, Object> map = null;
             for (GroupWordInfo wordInfo : wordCloud) {
@@ -149,6 +152,7 @@ public class WordCloudColumn extends AbstractColumn {
     /**
      * 信息列表统计 - 但是页面上的信息列表统计不受栏目类型影响，所以只需要用普通列表的这个方法即可
      * 对应为信息列表的数据源条数统计
+     *
      * @return
      * @throws TRSSearchException
      */

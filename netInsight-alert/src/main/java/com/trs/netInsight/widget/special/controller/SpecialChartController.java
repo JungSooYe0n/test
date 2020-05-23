@@ -1,4 +1,5 @@
-package com.trs.netInsight.widget.column.controller;
+package com.trs.netInsight.widget.special.controller;
+
 
 import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.config.constant.Const;
@@ -12,13 +13,17 @@ import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
-import com.trs.netInsight.widget.column.entity.*;
-import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
+import com.trs.netInsight.widget.column.entity.CustomChart;
+import com.trs.netInsight.widget.column.entity.IndexTabType;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
-import com.trs.netInsight.widget.column.service.*;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.special.SpecialCustomChart;
+import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
+import com.trs.netInsight.widget.special.service.ISpecialCustomChartService;
+import com.trs.netInsight.widget.special.service.ISpecialProjectService;
+import com.trs.netInsight.widget.special.service.ISpecialService;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
@@ -35,29 +40,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 栏目图表操作接口
+ * 专题分析自定义图表接口
  */
 @RestController
-@RequestMapping("/column/chart")
-@Api(description = "栏目图表接口")
+@RequestMapping("/special/chart")
+@Api(description = "专题分析自定义图表接口")
 @Slf4j
-public class ColumnChartController {
+public class SpecialChartController {
+    @Autowired
+    private ISpecialCustomChartService specialCustomChartService;
 
     @Autowired
-    private IIndexPageService indexPageService;
-
+    private ISpecialService specialService;
     @Autowired
-    private IIndexTabMapperService indexTabMapperService;
-
+    private ISpecialProjectService specialProjectService;
     @Autowired
-    private OrganizationRepository organizationService;
-
-    @Autowired
-    private IColumnChartService columnChartService;
+    private OrganizationRepository organizationRepository;
 
 
     /**
-     * 查找当前栏目对应的图表 - 统计分析图表+自定义图表
+     * 查找当前专题分析栏目对应的自定义图表
      *
      * @param request
      * @param id
@@ -65,129 +67,25 @@ public class ColumnChartController {
      * @throws TRSException
      */
     @FormatResult
-    @RequestMapping(value = "/selectTabChartList", method = RequestMethod.GET)
-    @ApiOperation("查找当前栏目对应的图表 - 统计分析图表+自定义图表")
+    @RequestMapping(value = "/selectSpecialChartList", method = RequestMethod.GET)
+    @ApiOperation("查找当前专题分析对应的图表 - 自定义图表")
     public Object selectTabChartList(HttpServletRequest request,
-                                     @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id)
+                                     @ApiParam("专题分析栏目id") @RequestParam(value = "id") String id)
             throws TRSException {
         User user = UserUtils.getUser();
-        IndexTabMapper mapper = indexTabMapperService.findOne(id);
-        if (ObjectUtil.isEmpty(mapper)) {
-            throw new TRSException("当前栏目不存在");
+        SpecialProject specialProject = specialProjectService.findOne(id);
+        if (ObjectUtil.isEmpty(specialProject)) {
+            throw new TRSException("当前专题栏目不存在");
         }
-        Object result = columnChartService.getColumnChart(id);
+        Object result = specialCustomChartService.getCustomChart(id);
         return result;
     }
-
-    /**
-     * 查找当前分组下所要显示的豆腐块缩略图
-     *
-     * @param request
-     * @param id
-     * @return
-     * @throws OperationException
-     */
-    @FormatResult
-    @RequestMapping(value = "/selectPageTopChartList", method = RequestMethod.GET)
-    @ApiOperation("查找当前分组下所要显示的豆腐块缩略图 - 栏目+统计分析+自定义图表被置顶的数据")
-    public Object selectPageTopChartList(HttpServletRequest request,
-                                         @ApiParam("栏目分组id") @RequestParam(value = "id") String id)
-            throws TRSException {
-        User user = UserUtils.getUser();
-        // 需要排序
-        IndexPage indexPage = indexPageService.findOne(id);
-        if (ObjectUtil.isEmpty(indexPage)) {
-            throw new TRSException("当前分组不存在");
-        }
-        Object result = columnChartService.getTopColumnChartForPage(id);
-        return result;
-    }
-
-
-    /**
-     * 置顶 或 取消置顶 一个自定义图表或统计分析图表
-     *
-     * @param id
-     * @param request
-     * @return
-     * @throws TRSException
-     */
-    @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_INDEX_TAB, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "置顶 或 取消置顶 一个自定义图表或统计分析图表：${id}")
-    @RequestMapping(value = "/topColumnChart", method = RequestMethod.POST)
-    @ApiOperation("置顶 或 取消置顶 一个自定义图表或统计分析图表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "自定义图表或统计分析图表的id", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "chartPage", value = "图表类型：自定义图表或统计分析图表", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "isTop", value = "true:置顶、false:取消置顶", dataType = "String", paramType = "query")})
-    public Object topColumnChart(@RequestParam("id") String id,
-                                 @RequestParam("chartPage") String chartPage,
-                                 @RequestParam("isTop") Boolean isTop, HttpServletRequest request)
-            throws TRSException {
-        ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
-        Integer topSeq = 0;
-
-        if (ChartPageInfo.StatisticalChart.equals(chartPageInfo)) {
-            StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
-            statisticalChart.setIsTop(isTop);
-            if (isTop) {
-                topSeq = columnChartService.getMaxTopSequence(statisticalChart.getParentId());
-                statisticalChart.setTopSequence(topSeq);
-            }
-            columnChartService.saveStatisticalChart(statisticalChart);
-            return statisticalChart;
-        } else if (ChartPageInfo.CustomChart.equals(chartPageInfo)) {
-            CustomChart customChart = columnChartService.findOneCustomChart(id);
-            customChart.setIsTop(isTop);
-            if (isTop) {
-                topSeq = columnChartService.getMaxTopSequence(customChart.getParentId());
-                customChart.setTopSequence(topSeq);
-            }
-            columnChartService.saveCustomChart(customChart);
-            return customChart;
-        }
-        return null;
-    }
-
-    /**
-     * 自定义图表的拖动排序
-     *
-     * @param ids
-     * @param request
-     * @return
-     * @throws TRSException
-     */
-    @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_INDEX_TAB, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "对自定义图表进行排序")
-    @RequestMapping(value = "/moveCustomChart", method = RequestMethod.POST)
-    @ApiOperation("对自定义图表进行排序")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids", value = "自定义图表被改变顺序后的id ，按新顺序排序的", dataType = "String", paramType = "query")
-    })
-    public Object moveCustomChart(@RequestParam("ids") String ids, HttpServletRequest request)
-            throws TRSException {
-
-        if (StringUtil.isEmpty(ids)) {
-            throw new TRSException("无数据");
-        }
-        List<CustomChart> customChartList = new ArrayList<>();
-        String[] idArr = ids.split(";");
-        for (String id : idArr) {
-            CustomChart oneCustomChart = columnChartService.findOneCustomChart(id);
-            if (oneCustomChart == null) {
-                throw new TRSException("不存在的自定义图表：" + id);
-            }
-            customChartList.add(oneCustomChart);
-        }
-        return columnChartService.moveCustomChart(customChartList);
-    }
-
 
     /**
      * 栏目下自定义图表添加接口
      *
      * @param name
-     * @param tabId
+     * @param specialId
      * @param type
      * @param trsl
      * @param xyTrsl
@@ -200,13 +98,13 @@ public class ColumnChartController {
      * @throws OperationException
      */
     @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_ADD_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
-            systemLogOperationPosition = "栏目下添加自定义图表：${tabId}/@{name}", methodDescription = "添加自定义图表:${name}")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_ADD, systemLogType = SystemLogType.SPECIAL,
+            systemLogOperationPosition = "专题分析栏目下添加自定义图表：${specialId}/@{name}", methodDescription = "添加自定义图表:${name}")
     @RequestMapping(value = "/addCustomChart", method = RequestMethod.POST)
-    @ApiOperation("栏目下自定义图表添加接口")
+    @ApiOperation("专题分析栏目下自定义图表添加接口")
     @ApiImplicitParams({@ApiImplicitParam(name = "name", value = "自定义图表名", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "tabId", value = "对应栏目Id", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "columnType", value = "栏目模式类型：COMMON 普通模式、SPECIAL专家模式", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "specialId", value = "对应专题分析栏目Id", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "specialType", value = "栏目模式类型：COMMON 普通模式、SPECIAL专家模式", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "type", value = "图表类型", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "contrast", value = "分类对比类型", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query", required = false),
@@ -220,8 +118,8 @@ public class ColumnChartController {
             @ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
             @ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false)})
-    public Object addCustomChart(@RequestParam("name") String name, @RequestParam(value = "tabId") String tabId,
-                                 @RequestParam("columnType") String columnType,
+    public Object addCustomChart(@RequestParam("name") String name, @RequestParam(value = "specialId") String specialId,
+                                 @RequestParam("specialType") String specialType,
                                  @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
                                  @RequestParam(value = "trsl", required = false) String trsl,
                                  @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
@@ -242,9 +140,9 @@ public class ColumnChartController {
         User loginUser = UserUtils.getUser();
         if ((UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(loginUser)) && StringUtil.isNotEmpty(loginUser.getOrganizationId())) {
 
-            Organization organization = organizationService.findOne(loginUser.getOrganizationId());
+            Organization organization = organizationRepository.findOne(loginUser.getOrganizationId());
             //可创建自定义图表数量 暂时不与权限绑定，直接限定最多10个
-            Long count = columnChartService.countForTabid(tabId);
+            Integer count = specialCustomChartService.getCustomChartSize(specialId);
             if (count + typeArr.length > 10) {
                 throw new TRSException(CodeUtils.FAIL, "当前栏目下自定义图表创建已达上限，如需更多，请联系相关运维人员。");
             }
@@ -263,13 +161,14 @@ public class ColumnChartController {
                 }
             }
         }
-        IndexTabMapper mapper = indexTabMapperService.findOne(tabId);
-        if (ObjectUtil.isEmpty(mapper)) {
-            throw new TRSException("当前自定义图表对应的栏目不存在");
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        if (ObjectUtil.isEmpty(specialProject)) {
+            throw new TRSException("当前专题栏目不存在");
         }
 
 
-        Integer sequence = columnChartService.getMaxCustomChartSeq(tabId);
+        Integer seq = specialCustomChartService.getMaxChartSequence(specialId);
+        Integer sequence = seq;
         if (StringUtil.isEmpty(timeRange)) {
             timeRange = "7d";
         }
@@ -284,7 +183,8 @@ public class ColumnChartController {
         } else if ("sourceRemove".equals(simflag)) {
             irSimflagAll = true;//全网排重
         }
-        List<CustomChart> result = new ArrayList<>();
+        List<SpecialCustomChart> result = new ArrayList<>();
+        SpecialType specialType1 = SpecialType.valueOf(specialType);
         for (String oneType : typeArr) {
             sequence += 1;
             IndexTabType indexTabType = ColumnFactory.chooseType(oneType);
@@ -292,9 +192,8 @@ public class ColumnChartController {
                 throw new TRSException(CodeUtils.FAIL, "当前图表类型不存在");
             }
 
-            SpecialType specialType = SpecialType.valueOf(columnType);
             // 有几个图专家模式下 必须传xy表达式
-            if (SpecialType.SPECIAL.equals(specialType)) {
+            if (SpecialType.SPECIAL.equals(specialType1)) {
                 if (StringUtil.isNotEmpty(trsl)) {
                     contrast = null;
                     if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
@@ -317,9 +216,9 @@ public class ColumnChartController {
                 groupName = Const.PAGE_SHOW_WEIXIN;
             }
             groupName = CommonListChartUtil.changeGroupName(groupName);
-            CustomChart customChart = new CustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, timeRange, false, keyWord, excludeWords,
-                    keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, tabId, sequence, specialType);
-            customChart = columnChartService.saveCustomChart(customChart);
+            SpecialCustomChart customChart = new SpecialCustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, timeRange, keyWord, excludeWords,
+                    keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, specialId, sequence, specialType1);
+            customChart = specialCustomChartService.saveSpecialCustomChart(customChart);
             result.add(customChart);
         }
         return result;
@@ -351,13 +250,13 @@ public class ColumnChartController {
      */
     @FormatResult
     @RequestMapping(value = "/updateCustomChart", method = RequestMethod.POST)
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_UPDATE_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
-            systemLogOperationPosition = "修改栏目下自定义图表：${id}", methodDescription = "${name}")
-    @ApiOperation("栏目下自定义图表修改接口")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_UPDATE, systemLogType = SystemLogType.SPECIAL,
+            systemLogOperationPosition = "修改专题分析栏目下自定义图表：${id}", methodDescription = "${name}")
+    @ApiOperation("专题分析栏目下自定义图表修改接口")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "自定义图表id", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "name", value = "自定义图表名", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "columnType", value = "栏目模式类型：COMMON 普通模式、SPECIAL专家模式", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "specialType", value = "栏目模式类型：COMMON 普通模式、SPECIAL专家模式", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "type", value = "图表类型", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "contrast", value = "分类对比类型", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query"),
@@ -372,7 +271,7 @@ public class ColumnChartController {
             @ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false)})
     public Object updateCustomChart(@RequestParam("id") String id, @RequestParam("name") String name,
-                                    @RequestParam("columnType") String columnType,
+                                    @RequestParam("specialType") String specialType,
                                     @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
                                     @RequestParam(value = "trsl", required = false) String trsl,
                                     @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
@@ -391,7 +290,7 @@ public class ColumnChartController {
         User loginUser = UserUtils.getUser();
         //若为机构管理员或者普通用户 若为普通模式，判断关键字字数
         if ((UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(loginUser)) && StringUtil.isNotEmpty(loginUser.getOrganizationId())) {
-            Organization organization = organizationService.findOne(loginUser.getOrganizationId());
+            Organization organization = organizationRepository.findOne(loginUser.getOrganizationId());
             int chineseCount = 0;
             if (StringUtil.isNotEmpty(keyWord)) {
                 chineseCount = StringUtil.getChineseCountForSimple(keyWord);
@@ -425,10 +324,9 @@ public class ColumnChartController {
             if (StringUtil.isEmpty(timeRange)) {
                 timeRange = "7d";
             }
-
-            SpecialType specialType = SpecialType.valueOf(columnType);
+            SpecialType specialType1 = SpecialType.valueOf(specialType);
             // 有几个图专家模式下 必须传xy表达式
-            if (SpecialType.SPECIAL.equals(specialType)) {
+            if (SpecialType.SPECIAL.equals(specialType1)) {
                 if (StringUtil.isNotEmpty(trsl)) {
                     contrast = null;
                     if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
@@ -450,13 +348,13 @@ public class ColumnChartController {
             if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)) {
                 groupName = Const.PAGE_SHOW_WEIXIN;
             }
-            CustomChart customChart = columnChartService.findOneCustomChart(id);
+            SpecialCustomChart customChart = specialCustomChartService.findOneSpecialCustomChart(id);
             if (ObjectUtil.isEmpty(customChart)) {
                 throw new TRSException("当前自定义图表不存在");
             }
             customChart.setName(name);
-            customChart.setSpecialType(specialType);
             customChart.setTrsl(trsl);
+            customChart.setSpecialType(specialType1);
             customChart.setXyTrsl(xyTrsl);
             customChart.setType(type);
             customChart.setContrast(contrast);
@@ -478,7 +376,7 @@ public class ColumnChartController {
             }
             customChart.setTabWidth(tabWidth);
 
-            return columnChartService.saveCustomChart(customChart);
+            return specialCustomChartService.saveSpecialCustomChart(customChart);
         } catch (Exception e) {
             log.error("栏目下自定义图表修改报错", e);
             throw new OperationException("栏目下自定义图表修改报错", e);
@@ -494,14 +392,43 @@ public class ColumnChartController {
      * @throws TRSException
      */
     @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_INDEX_TAB, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "删除栏目下自定义图表（图表）：${id}")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_DELETE, systemLogType = SystemLogType.SPECIAL, systemLogOperationPosition = "删除专题分析栏目下自定义图表（图表）：${id}")
     @RequestMapping(value = "/deleteCustomChart", method = RequestMethod.POST)
-    @ApiOperation("栏目下自定义图表删除")
+    @ApiOperation("专题分析栏目下自定义图表删除")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "自定义图表id", dataType = "String", paramType = "query")})
     public Object deleteCustomChart(@RequestParam("id") String id, HttpServletRequest request)
             throws TRSException {
-        columnChartService.deleteCustomChart(id);
+        specialCustomChartService.deleteSpecialCustomChart(id);
         return "success";
     }
+
+    /**
+     * 获取自定义图表的数据
+     *
+     * @param request
+     * @param id
+     * @return
+     * @throws TRSException
+     */
+    @FormatResult
+    @RequestMapping(value = "/selectChart", method = RequestMethod.POST)
+    @ApiOperation("获取自定义图表的数据")
+    public Object selectChart(HttpServletRequest request,
+                              @ApiParam("自定义图表的id") @RequestParam(value = "id") String id,
+                              @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+                              @ApiParam("折线图展示类型") @RequestParam(value = "showType", required = false) String showType,
+                              @ApiParam("词云的类型") @RequestParam(value = "entityType", defaultValue = "keywords", required = false) String entityType,
+                              @ApiParam("对比类型主要是针对地图") @RequestParam(value = "contrast", required = false) String contrast)
+            throws TRSException {
+        User user = UserUtils.getUser();
+        SpecialCustomChart customChart = specialCustomChartService.findOneSpecialCustomChart(id);
+        if (ObjectUtil.isEmpty(customChart)) {
+            throw new TRSException("当前自定义图表不存在");
+        }
+        Object result = specialCustomChartService.selectChartData(customChart, timeRange,showType, entityType, contrast);
+        return result;
+    }
+
+
 }

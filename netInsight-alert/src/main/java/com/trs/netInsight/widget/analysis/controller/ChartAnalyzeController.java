@@ -76,10 +76,6 @@ public class ChartAnalyzeController {
 	@Autowired
 	private IChartAnalyzeService chartAnalyzeService;
 
-
-	// @Autowired
-	// private LogPrintUtil loginpool;
-
 	/**
 	 * 网站统计
 	 *
@@ -766,8 +762,8 @@ public class ChartAnalyzeController {
 			@ApiImplicitParam(name = "area", value = "内容地域", dataType = "String", paramType = "query", required = false) })
 	@RequestMapping(value = "/stattotal", method = RequestMethod.GET)
 	public Object getStatTotal(@ApiParam(value = "专项ID") @RequestParam(value = "specialId") String specialId,
-							   @ApiParam(value = "时间 1. [0-9]*[hdwmy] \n 2.yyyy-MM-dd HH:mm:ss") @RequestParam(value = "days") String days,
-							   @ApiParam(value = "行业类型") @RequestParam(value = "industryType", defaultValue = "ALL") String industryType,
+							   @ApiParam(value = "时间 1. [0-9]*[hdwmy] \n 2.yyyy-MM-dd HH:mm:ss") @RequestParam(value = "days", required = false) String days,
+							   @ApiParam(value = "行业类型") @RequestParam(value = "industryType", defaultValue = "ALL", required = false) String industryType,
 							   @ApiParam(value = "内容地域") @RequestParam(value = "area", required = false) String area,
 							   @RequestParam(value = "foreign", required = false) String foreign) throws TRSException {
 		log.warn("图表分析统计表格stattotal接口开始调用");
@@ -783,17 +779,14 @@ public class ChartAnalyzeController {
 				}
 			}
 			String[] timeRange = DateUtil.formatTimeRange(days);
-			List<ClassInfo> statToday = new ArrayList<>();
-			// List<ClassInfo> statToday =
-			// chartAnalyzeService.stattotal(specialProject, today, now,
-			// industryType, area);
-			List<ClassInfo> total = chartAnalyzeService.stattotal(specialProject, timeRange[0], timeRange[1],
+			//List<ClassInfo> statToday = new ArrayList<>();
+			Object total = chartAnalyzeService.stattotal(specialProject, timeRange[0], timeRange[1],
 					industryType, area, foreign);
-			Map<String, Object> putValue = MapUtil.putValue(new String[] { "今日", "总量" }, statToday, total);
+			//Map<String, Object> putValue = MapUtil.putValue(new String[] { "今日", "总量" }, statToday, total);
 			long end = new Date().getTime();
 			long time = end - start;
 			log.info("专题监测统计表格后台所需时间" + time);
-			return putValue;
+			return total;
 		} catch (Exception e) {
 			throw new OperationException("专题监测统计表格错误,message: " + e, e);
 		}

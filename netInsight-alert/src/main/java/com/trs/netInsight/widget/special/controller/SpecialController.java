@@ -817,8 +817,6 @@ public class SpecialController {
 	@RequestMapping(value = "/selectSpecial", method = RequestMethod.GET)
 	public Object selectSpecial(HttpServletRequest request) throws TRSSearchException, TRSException {
 		User loginUser = UserUtils.getUser();
-
-		//return specialService.selectSpecial(loginUser);
 		return specialService.selectSpecialNew(loginUser);
 	}
 

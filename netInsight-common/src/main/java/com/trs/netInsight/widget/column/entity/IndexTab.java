@@ -4,6 +4,8 @@ package com.trs.netInsight.widget.column.entity;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import com.trs.netInsight.widget.special.entity.enums.SpecialType;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +37,12 @@ public class IndexTab extends BaseEntity implements Cloneable{
 
 	@Column(name = "name")
 	private String name;// 三级栏目（图）名
+	/**
+	 * 专项类型
+	 */
+	@Column(name = "special_type")
+	@ApiModelProperty(notes = "专项类型")
+	private SpecialType specialType;
 
 	@Column(name = "trsl", columnDefinition = "TEXT")
 	private String trsl;// trs表达式
@@ -232,7 +240,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 
 	public IndexTab(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, boolean hide, String keyWord,
                     String excludeWords, String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
-                    int tabWidth, Integer sequence) {
+                    int tabWidth, Integer sequence,SpecialType specialType) {
 		this.name = name;
 		this.trsl = trsl;
 		this.xyTrsl = xyTrsl;
@@ -251,6 +259,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.weight = weight;
 		this.tabWidth = tabWidth;
 		this.sequence = sequence;
+		this.specialType = specialType;
 	}
 
 	/**
@@ -277,7 +286,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 * @Return : IndexTab
 	 */
 	public IndexTab tabCopy(){
-		IndexTab indexTab=new IndexTab(name, trsl, xyTrsl, type,contrast, tradition, excludeWeb, parentId,typeId, sequence,
+		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
 				excludeWords, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,tabWidth,oneName,notSids);
 		return indexTab;
