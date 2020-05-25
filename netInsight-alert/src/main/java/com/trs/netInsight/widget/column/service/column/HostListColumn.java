@@ -68,8 +68,13 @@ public class HostListColumn extends AbstractColumn {
                 if (StringUtil.isNotEmpty(vo.getAbstracts())) {
                     vo.setAbstracts(StringUtil.cutContentPro(StringUtil.replaceImg(vo.getAbstracts()), Const.CONTENT_LENGTH));
                 }
-                //摘要
-                map.put("abstracts", vo.getAbstracts());
+                if("1".equals(super.config.getIndexTab().getKeyWordIndex())){
+                    //摘要
+                    map.put("abstracts", vo.getContent());
+                }else{
+                    //摘要
+                    map.put("abstracts", vo.getAbstracts());
+                }
 
                 map.put("nreserved1", null);
                 map.put("hkey", null);
@@ -78,25 +83,26 @@ public class HostListColumn extends AbstractColumn {
                     map.put("hkey", vo.getHkey());
                 }
                 map.put("urlName", vo.getUrlName());
+                map.put("siteName", vo.getSiteName());
+                map.put("author", vo.getAuthors());
                 //微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
                 if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
                     map.put("title", content);
                     map.put("abstracts", content);
 
-                    map.put("siteName", vo.getScreenName());
+                    map.put("author", vo.getScreenName());
                 } else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
                     map.put("title", content);
                     map.put("abstracts", content);
-                    map.put("siteName", vo.getAuthors());
+                    map.put("author", vo.getAuthors());
                 } else if (Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)) {
                     map.put("title", content);
                     map.put("abstracts", content);
-                } else {
-                    map.put("siteName", vo.getSiteName());
+                    map.put("author", vo.getAuthors());
                 }
                 map.put("commtCount", vo.getCommtCount());
                 map.put("rttCount", vo.getRttCount());
-                map.put("simNum", String.valueOf(vo.getSimCount()));
+                map.put("simNum", String.valueOf(vo.getSimCount()-1));
                 // 获得时间差,三天内显示时间差,剩下消失urltime
                 Map<String, String> timeDifference = DateUtil.timeDifference(vo);
                 boolean isNew = false;

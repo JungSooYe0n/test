@@ -1525,27 +1525,29 @@ public class ColumnServiceImpl implements IColumnService {
 								if(StringUtil.isNotEmpty(fullContent)){
 									fullContent = ReportUtil.calcuHit("",fullContent,true);
 								}
+                                map.put("siteName", vo.getSiteName());
+                                map.put("author", vo.getAuthors());
+                                map.put("srcName", vo.getSrcName());
 								//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
 								if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
 									map.put("title", vo.getContent());
 									map.put("abstracts", vo.getContent());
 									map.put("copyTitle", fullContent); //前端复制功能需要用到
 
-									map.put("siteName", vo.getScreenName());
+									map.put("author", vo.getScreenName());
 									map.put("srcName", vo.getRetweetedScreenName());
 								} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
 									map.put("title", vo.getContent());
 									map.put("abstracts", vo.getContent());
 									map.put("copyTitle", fullContent); //前端复制功能需要用到
-									map.put("siteName", vo.getAuthors());
+									map.put("author", vo.getAuthors());
 									map.put("srcName", vo.getRetweetedScreenName());
 								} else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
 									map.put("title", vo.getContent());
 									map.put("abstracts", vo.getContent());
-									map.put("copyTitle", fullContent); //前端复制功能需要用到
-								}else {
-									map.put("siteName", vo.getSiteName());
+									map.put("author", vo.getAuthors());
 									map.put("srcName", vo.getSrcName());
+									map.put("copyTitle", fullContent); //前端复制功能需要用到
 								}
 								map.put("trslk", trslk);
 								map.put("channel", vo.getChannel());
