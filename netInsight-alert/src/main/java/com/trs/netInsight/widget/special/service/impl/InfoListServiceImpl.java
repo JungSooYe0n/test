@@ -34,6 +34,7 @@ import com.trs.netInsight.widget.report.service.IFavouritesService;
 import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.*;
 import com.trs.netInsight.widget.special.entity.enums.SearchPage;
+import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.special.service.ISpecialProjectService;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -6046,6 +6047,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				 */
 			if (infoListResult != null) {
 				if (infoListResult.getContent() != null) {
+					String trslk = infoListResult.getTrslk();
 					PagedList<Object> resultContent = null;
 					List<Object> resultList = new ArrayList<>();
 					PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
@@ -6064,8 +6066,13 @@ public class InfoListServiceImpl implements IInfoListService {
 								title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
 							}
 							map.put("copyTitle", title); //前端复制功能需要用到
-							//摘要
-							map.put("abstracts", vo.getAbstracts());
+							if(SearchScope.TITLE_CONTENT.equals(specialProject.getSearchScope())){
+								//摘要
+								map.put("abstracts", vo.getContent());
+							}else{
+								//摘要
+								map.put("abstracts", vo.getAbstracts());
+							}
 							if(vo.getKeywords() != null && vo.getKeywords().size() >3){
 								map.put("keyWordes", vo.getKeywords().subList(0,3));
 							}else{
@@ -6113,7 +6120,8 @@ public class InfoListServiceImpl implements IInfoListService {
 								map.put("siteName", vo.getSiteName());
 								map.put("srcName", vo.getSrcName());
 							}
-
+							map.put("trslk", trslk);
+							map.put("channel", vo.getChannel());
 							map.put("img", null);
 							//前端页面显示需要，与后端无关
 							map.put("isImg", false);

@@ -1471,7 +1471,9 @@ public class ColumnServiceImpl implements IColumnService {
 				InfoListResult
 				 */
 				if (list != null) {
+					String wordIndex = indexTab.getKeyWordIndex();
 					InfoListResult infoListResult = (InfoListResult) list;
+					String trslk = infoListResult.getTrslk();
 					if (infoListResult.getContent() != null) {
 						PagedList<Object> resultContent = null;
 						List<Object> resultList = new ArrayList<>();
@@ -1491,8 +1493,13 @@ public class ColumnServiceImpl implements IColumnService {
 									title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
 								}
 								map.put("copyTitle", title); //前端复制功能需要用到
-								//摘要
-								map.put("abstracts", vo.getAbstracts());
+								if("1".equals(wordIndex)){
+									//摘要
+									map.put("abstracts", vo.getContent());
+								}else{
+									//摘要
+									map.put("abstracts", vo.getAbstracts());
+								}
 								if(vo.getKeywords() != null && vo.getKeywords().size() >3){
 									map.put("keyWordes", vo.getKeywords().subList(0,3));
 								}else{
@@ -1540,7 +1547,8 @@ public class ColumnServiceImpl implements IColumnService {
 									map.put("siteName", vo.getSiteName());
 									map.put("srcName", vo.getSrcName());
 								}
-
+								map.put("trslk", trslk);
+								map.put("channel", vo.getChannel());
 								map.put("img", null);
 								//前端页面显示需要，与后端无关
 								map.put("isImg", false);

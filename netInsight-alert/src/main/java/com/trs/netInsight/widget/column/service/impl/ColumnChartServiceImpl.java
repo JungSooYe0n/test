@@ -281,14 +281,17 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         if (statisticalChartList != null && statisticalChartList.size() > 0) {
             seq = statisticalChartList.get(statisticalChartList.size() - 1).getTopSequence();
         }
+        if(seq == null ){
+            seq = 0;
+        }
         List<CustomChart> customChartList = customChartRepository.findByParentIdAndIsTop(id, true, sort);
         if (customChartList != null && customChartList.size() > 0) {
             Integer newSeq = customChartList.get(customChartList.size() - 1).getTopSequence();
-            if (newSeq > seq) {
+            if (newSeq != null && newSeq > seq) {
                 seq = newSeq;
             }
         }
-        return seq;
+        return seq == null ? 0:seq;
 
     }
 

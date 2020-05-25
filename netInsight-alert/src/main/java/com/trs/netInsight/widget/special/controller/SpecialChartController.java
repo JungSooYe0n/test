@@ -49,9 +49,6 @@ import java.util.List;
 public class SpecialChartController {
     @Autowired
     private ISpecialCustomChartService specialCustomChartService;
-
-    @Autowired
-    private ISpecialService specialService;
     @Autowired
     private ISpecialProjectService specialProjectService;
     @Autowired
