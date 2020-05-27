@@ -534,10 +534,11 @@ public class CommonListServiceImpl implements ICommonListService {
         GroupResult groupResult = categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, FtsFieldConst.FIELD_GROUPNAME, type, null);
 
         Map<String, Long> map = new LinkedHashMap<>();
-        for (GroupInfo groupInfo : groupResult.getGroupList()) {
-            map.put(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()), groupInfo.getCount());
+        if(groupResult != null){
+            for (GroupInfo groupInfo : groupResult.getGroupList()) {
+                map.put(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()), groupInfo.getCount());
+            }
         }
-
         List<Map<String, Object>> list = new ArrayList<>();
         List<String> showGroup = Const.PAGE_SHOW_DATASOURCE_SORT;
         for (String group : showGroup) {

@@ -264,6 +264,9 @@ public class CommonChartServiceImpl implements ICommonChartService {
             try {
                 //地图部分专家或者普通，因为没有分类对比表达式
                 GroupResult categoryInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName,  "", contrastField, type);
+                if(categoryInfos == null){
+                    return null;
+                }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
                 for (Map.Entry<String, List<String>> entry : areaMap.entrySet()) {
                     Map<String, Object> reMap = new HashMap<String, Object>();
