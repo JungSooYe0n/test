@@ -390,6 +390,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
                     map.put(resultKey.getContrastField(), wordInfo.getFieldValue());
                     map.put(resultKey.getCountField(), wordInfo.getCount());
                     map.put(resultKey.getLineXField(), wordInfo.getEntityType());
+                    result.add(map);
                 }
                 return result;
             } else {
