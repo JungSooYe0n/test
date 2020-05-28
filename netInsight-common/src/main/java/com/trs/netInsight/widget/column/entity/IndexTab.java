@@ -107,6 +107,17 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 */
 	@Column(name = "exclude_words", columnDefinition = "TEXT")
 	private String excludeWords;
+	/**
+	 * 排除词检索位置 0：标题 1：标题+正文  2：标题+摘要
+	 */
+	@Column(name = "exclude_word_index", columnDefinition = "TEXT")
+	private String excludeWordIndex;
+	public String getExcludeWordIndex(){
+		if(StringUtil.isEmpty(this.excludeWordIndex)){
+			return this.keyWordIndex;
+		}
+		return this.excludeWordIndex;
+	}
 
 	/**
 	 * 检索关键词位置 0：标题 1：标题+正文  2：标题+摘要
@@ -176,6 +187,38 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	@Transient
 	private String notSids;
 
+
+	/**
+	 * 媒体等级
+	 */
+	@Column(name = "media_level")
+	private String mediaLevel;
+	/**
+	 * 媒体行业
+	 */
+	@Column(name = "media_industry")
+	private String mediaIndustry;
+	/**
+	 * 内容行业
+	 */
+	@Column(name = "content_industry")
+	private String contentIndustry;
+	/**
+	 * 信息过滤  -  信息性质打标，如抽奖
+	 */
+	@Column(name = "filter_info")
+	private String filterInfo;
+	/**
+	 * 内容所属地域
+	 */
+	@Column(name = "content_area")
+	private String contentArea;
+	/**
+	 * 媒体所属地域
+	 */
+	@Column(name = "media_area")
+	private String mediaArea;
+
 	public String[]  getType(Boolean isArr){
 		if (StringUtil.isNotEmpty(this.type)){
 			return this.type.trim().split(";");
@@ -239,8 +282,9 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	}
 
 	public IndexTab(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, boolean hide, String keyWord,
-                    String excludeWords, String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
-                    int tabWidth, Integer sequence,SpecialType specialType) {
+                    String excludeWords, String excludeWordIndex,String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
+                    int tabWidth, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
+					String contentArea,String mediaArea) {
 		this.name = name;
 		this.trsl = trsl;
 		this.xyTrsl = xyTrsl;
@@ -251,6 +295,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.hide = hide;
 		this.keyWord = keyWord;
 		this.excludeWords = excludeWords;
+		this.excludeWordIndex = excludeWordIndex;
 		this.keyWordIndex = keyWordIndex;
 		this.groupName = groupName;
 		this.similar = similar;
@@ -260,6 +305,12 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.tabWidth = tabWidth;
 		this.sequence = sequence;
 		this.specialType = specialType;
+		this.mediaLevel = mediaLevel;
+		this.mediaIndustry = mediaIndustry;
+		this.contentIndustry = contentIndustry;
+		this.filterInfo = filterInfo;
+		this.contentArea = contentArea;
+		this.mediaArea = mediaArea;
 	}
 
 	/**
@@ -288,7 +339,8 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	public IndexTab tabCopy(){
 		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
-				excludeWords, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,tabWidth,oneName,notSids);
+				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,tabWidth,oneName,notSids,
+				mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 		return indexTab;
 	}
 	

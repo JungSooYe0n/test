@@ -699,7 +699,9 @@ public class SepcialReportTask implements Runnable{
 		AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 		ColumnConfig config = new ColumnConfig();
 		config.setMaxSize(maxSize);
-		config.initSection(indexTab, indexTab.getTimeRange(), 0, maxSize, null, null, "keywords", "", "", "desc", "", "", "", "", "","");
+		config.initSection(indexTab, indexTab.getTimeRange(), 0, maxSize, null, null, "keywords", "", "", "desc",
+				"", "", "", "", "","","","","","","","",
+				"","");
 		column.setDistrictInfoService(districtInfoService);
 		boolean mix = false ;
 		column.setConfig(config);

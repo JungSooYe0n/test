@@ -55,13 +55,11 @@ import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.util.StringUtils;
 
 import javax.mail.search.SearchException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,22 +87,7 @@ public class ColumnController {
 	private IColumnService columnService;
 
 	@Autowired
-	private IInfoListService infoListService;
-
-	@Autowired
-	private FullTextSearch hybase8SearchService;
-
-	@Autowired
-	private ChartAnalyzeService chartAnalyzeService;
-
-	@Autowired
 	private IDistrictInfoService districtInfoService;
-
-	@Autowired
-	private FavouritesRepository favouritesRepository;
-
-	@Autowired
-	private AlertRepository alertRepository;
 
 	@Autowired
 	private INavigationService navigationService;
@@ -380,6 +363,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWordIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "xyTrsl", value = "XY轴检索表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开)", dataType = "String", paramType = "query", required = false),
@@ -387,7 +371,13 @@ public class ColumnController {
 			@ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
 			@ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
-			@ApiImplicitParam(name = "share", value = "是否共享标记", dataType = "Boolean", paramType = "query", required = false) })
+			@ApiImplicitParam(name = "share", value = "是否共享标记", dataType = "Boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
 	public Object addThree(@RequestParam("name") String name, @RequestParam(value = "indexPageId",required = false) String indexPageId,
 						   @RequestParam(value = "navigationId", defaultValue = "") String navigationId,
 						   @RequestParam("columnType") String columnType,
@@ -396,6 +386,7 @@ public class ColumnController {
 						   @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
 						   @RequestParam(value = "keyWord", required = false) String keyWord,
 						   @RequestParam(value = "excludeWords", required = false) String excludeWords,
+						   @RequestParam(value = "excludeWordIndex", required = false) String excludeWordIndex,
 						   @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
 						   @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
 						   @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -403,7 +394,13 @@ public class ColumnController {
 						   @RequestParam(value = "weight", required = false) boolean weight,
 						   @RequestParam(value = "simflag", required = false) String simflag,
 						   @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
-						   @RequestParam(value = "share", defaultValue = "false") boolean share, HttpServletRequest request)
+						   @RequestParam(value = "share", defaultValue = "false") boolean share,
+						   @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+						   @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+						   @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+						   @RequestParam(value = "filterInfo", required = false) String filterInfo,
+						   @RequestParam(value = "contentArea", required = false) String contentArea,
+						   @RequestParam(value = "mediaArea", required = false) String mediaArea,HttpServletRequest request)
 			throws TRSException {
 
 		//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受可创建资源数量的限制）
@@ -454,20 +451,24 @@ public class ColumnController {
 		// 有几个图专家模式下 必须传xy表达式
 		if(SpecialType.SPECIAL.equals(specialType)){
 			if (StringUtil.isNotEmpty(trsl)) {
-				contrast= null;
+				if(!IndexTabType.MAP.equals(indexTabType)){
+					contrast = null;
+				}
 				if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
 					if (StringUtil.isEmpty(xyTrsl)) {
-						throw new OperationException("专家模式下"+indexTabType.getTypeName() + "时必须传xy表达式");
+						throw new TRSException(CodeUtils.FAIL,"专家模式下"+indexTabType.getTypeName() + "时必须传xy表达式");
 					}
 				}
 			}else{
-				throw new OperationException("专家模式下必须填写检索表达式表达式");
+				throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
 			}
 		} else{
 			trsl=null;
 			xyTrsl = null;
 			if(StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) &&!IndexTabType.LIST_NO_SIM.equals(indexTabType)&&!IndexTabType.WORD_CLOUD.equals(indexTabType)&&!IndexTabType.MAP.equals(indexTabType) ){
-				throw new OperationException("普通模式下"+indexTabType.getTypeName() + "时，必须传对比类型");
+				throw new TRSException(CodeUtils.FAIL,"普通模式下"+indexTabType.getTypeName() + "时，必须传对比类型");
+			}else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+				contrast = null;
 			}
 		}
 		if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
@@ -488,10 +489,17 @@ public class ColumnController {
 		IndexTab indexTab = new IndexTab(name, trsl, keyWord, excludeWords, keyWordIndex, xyTrsl, type,
 				groupName, Integer.parseInt(sequence), timeRange, isSimilar,irSimflag, weight,irSimflagAll);
 		indexTab.setExcludeWeb(excludeWeb);
+		indexTab.setExcludeWordIndex(excludeWordIndex);
 		indexTab.setContrast(contrast);
 		indexTab.setTabWidth(tabWidth);
 		indexTab.setSpecialType(specialType);
 		indexTab.setTypeId(navigationId);
+		indexTab.setMediaLevel(mediaLevel);
+		indexTab.setMediaIndustry(mediaIndustry);
+		indexTab.setContentIndustry(contentIndustry);
+		indexTab.setFilterInfo(filterInfo);
+		indexTab.setMediaArea(mediaArea);
+		indexTab.setContentArea(contentArea);
 		if(StringUtil.isNotEmpty(indexPageId)){
 			IndexPage indexPage = indexPageService.findOne(indexPageId);
 			indexTab.setParentId(indexPage.getId());
@@ -573,6 +581,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWordIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "xyTrsl", value = "XY轴检索表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开,默认为新闻)", dataType = "String", paramType = "query", required = false),
@@ -580,6 +589,12 @@ public class ColumnController {
 			@ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
 			@ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
+			@ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "share", value = "栏目共享标记", dataType = "boolean", paramType = "query", required = false),
 			@ApiImplicitParam(name = "copy", value = "另存为标记", dataType = "boolean", paramType = "query", required = false) })
 	public Object updateThree(@RequestParam("id") String id, @RequestParam("name") String name,
@@ -591,6 +606,7 @@ public class ColumnController {
 							  @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
 							  @RequestParam(value = "keyWord", required = false) String keyWord,
 							  @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							  @RequestParam(value = "excludeWordIndex", required = false) String excludeWordIndex,
 							  @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
 							  @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
 							  @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -598,6 +614,12 @@ public class ColumnController {
 							  @RequestParam(value = "weight", required = false) boolean weight,
 							  @RequestParam(value = "simflag", required = false) String simflag,
 							  @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
+							  @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							  @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							  @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							  @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							  @RequestParam(value = "contentArea", required = false) String contentArea,
+							  @RequestParam(value = "mediaArea", required = false) String mediaArea,
 							  @RequestParam(value = "share", defaultValue = "false") boolean share,
 							  @RequestParam(value = "copy", defaultValue = "false") boolean copy, HttpServletRequest request)
 			throws TRSException {
@@ -643,21 +665,25 @@ public class ColumnController {
 			// 有几个图专家模式下 必须传xy表达式
 			if (SpecialType.SPECIAL.equals(specialType)) {
 				if (StringUtil.isNotEmpty(trsl)) {
-					contrast = null;
+					if(!IndexTabType.MAP.equals(indexTabType)){
+						contrast = null;
+					}
 					if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
 						if (StringUtil.isEmpty(xyTrsl)) {
-							throw new OperationException("专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
+							throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
 						}
 					}
 				} else {
-					throw new OperationException("专家模式下必须填写检索表达式表达式");
+					throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
 				}
 			} else {
 				trsl = null;
 				xyTrsl = null;
 				if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
 						&& !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
-					throw new OperationException("普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+					throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+				}else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+					contrast = null;
 				}
 			}
 			if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
@@ -679,6 +705,7 @@ public class ColumnController {
 			indexTab.setTrsl(trsl);
 			indexTab.setKeyWord(keyWord);
 			indexTab.setExcludeWords(excludeWords);
+			indexTab.setExcludeWordIndex(excludeWordIndex);
 			indexTab.setKeyWordIndex(keyWordIndex);
 			indexTab.setXyTrsl(xyTrsl);
 			indexTab.setGroupName(groupName);
@@ -688,6 +715,12 @@ public class ColumnController {
 			indexTab.setIrSimflag(irSimflag);
 			indexTab.setTabWidth(tabWidth);
 			indexTab.setIrSimflagAll(irSimflagAll);
+			indexTab.setMediaLevel(mediaLevel);
+			indexTab.setMediaIndustry(mediaIndustry);
+			indexTab.setContentIndustry(contentIndustry);
+			indexTab.setFilterInfo(filterInfo);
+			indexTab.setMediaArea(mediaArea);
+			indexTab.setContentArea(contentArea);
 			// 栏目从标题+正文修改为仅标题的时候不设置权重，但传的weight还是=true
 			if ("0".equals(keyWordIndex)) {
 				indexTab.setWeight(false);
@@ -886,7 +919,7 @@ public class ColumnController {
 	 * @param id
 	 * @param chartPage
 	 * @param timeRange
-	 * @param grouName
+	 * @param groupName
 	 * @param emotion
 	 * @param showType
 	 * @param entityType
@@ -902,33 +935,70 @@ public class ColumnController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "id", value = "图表id", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "chartPage", value = "图的页面类型", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "entityType", value = "通用：keywords；人物：people；地域：location；机构：agency", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "showType", value = "指定折线图的展示方式：按小时，按天数", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "mapContrast", value = "对比类型，地域图需要，通过文章还是媒体地域", dataType = "String", paramType = "query", required = false),
+
+			@ApiImplicitParam(name = "openFiltrate", value = "是否使用页面的条件筛选", dataType = "Boolean", paramType = "query"),
 			@ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "groupName", value = "数据来源", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "entityType", value = "通用：keywords；人物：people；地域：location；机构：agency", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "emotion", value = "混合大列表情感筛选", dataType = "String", paramType = "query", defaultValue = "ALL"),
-			@ApiImplicitParam(name = "showType", value = "指定折线图的展示方式：按小时，按天数", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "excludeWeb", value = "针对传统媒体的siteName字段做排除", dataType = "String", paramType = "query", required = false)})
+			@ApiImplicitParam(name = "simflag", value = "排重规则  -  替换栏目条件", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "wordIndex", value = "关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "read", value = "阅读标记", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "excludeWeb", value = "排除网站  替换栏目条件", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "excludeWord", value = "排除关键词  替换栏目条件", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "excludeWordIndex", value = "排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "updateWordForm", value = "修改词距标记 替换栏目条件", dataType = "Boolean", paramType = "query"),
+			@ApiImplicitParam(name = "wordFromNum", value = "词距间隔字符 替换栏目条件", dataType = "Integer", paramType = "query"),
+			@ApiImplicitParam(name = "wordFromSort", value = "词距是否排序  替换栏目条件", dataType = "Boolean", paramType = "query"),
+			@ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query")})
 	public Object selectChart(@RequestParam("id") String id,
-							  @RequestParam(value = "chartPage",defaultValue = "TabChart") String chartPage,
-							  @RequestParam(value = "timeRange", required = false) String timeRange,
-							  @RequestParam(value = "groupName", required = false) String grouName,
-							  @RequestParam(value = "emotion", required = false) String emotion,
+							  @RequestParam(value = "chartPage", defaultValue = "TabChart") String chartPage,
 							  @RequestParam(value = "showType", required = false, defaultValue = "") String showType,
-							  @RequestParam(value = "entityType", defaultValue = "keywords") String entityType)
+							  @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,//上部为查询图必须的条件
+							  @RequestParam(value = "mapContrast", required = false, defaultValue = "hitArticle") String mapContrast,
+							  //查询时的暂时可变筛选条件  openFiltrate
+							  @RequestParam(value = "openFiltrate", defaultValue = "false") Boolean openFiltrate,
+							  @RequestParam(value = "timeRange", required = false) String timeRange,
+							  @RequestParam(value = "emotion", required = false) String emotion,
+							  @RequestParam(value = "simflag", required = false) String simflag,
+							  @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							  @RequestParam(value = "read", required = false) String read,
+							  @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							  @RequestParam(value = "excludeWord", required = false) String excludeWord,
+							  @RequestParam(value = "excludeWordIndex", defaultValue = "1", required = false) String excludeWordIndex,
+							  @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+							  @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							  @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							  @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							  @RequestParam(value = "groupName", required = false) String groupName,
+							  @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							  @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							  @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							  @RequestParam(value = "contentArea", required = false) String contentArea,
+							  @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
 			throws SearchException, TRSException {
 		IndexTab indexTab = null;
 		ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
 		if(ChartPageInfo.CustomChart.equals(chartPageInfo)){
 			CustomChart customChart = columnChartService.findOneCustomChart(id);
 			if(ObjectUtil.isEmpty(customChart)){
-				throw new TRSException("当前自定义图表不存在");
+				throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
 			}
 			//待写， 需要通过自定义图表的类生成一个indextab
 			indexTab = customChart.indexTab();
 		}else if(ChartPageInfo.StatisticalChart.equals(chartPageInfo)){
 			StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
 			if(ObjectUtil.isEmpty(statisticalChart)){
-				throw new TRSException("当前统计分析图表不存在");
+				throw new TRSException(CodeUtils.FAIL,"当前统计分析图表不存在");
 			}
 			IndexTabMapper mapper = indexTabMapperService.findOne(statisticalChart.getParentId());
 			indexTab = mapper.getIndexTab();
@@ -936,7 +1006,7 @@ public class ColumnController {
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
-				throw new TRSException("当前栏目不存在");
+				throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
 			}
 			indexTab = mapper.getIndexTab();
 		}
@@ -944,6 +1014,53 @@ public class ColumnController {
 		if (StringUtil.isNotEmpty(timeRange)) {
 			timerange = timeRange;
 		}
+		if(openFiltrate != null && openFiltrate){
+			//排重
+			if ("netRemove".equals(simflag)) { //单一媒体排重
+				indexTab.setSimilar(true);
+				indexTab.setIrSimflag(false);
+				indexTab.setIrSimflagAll(false);
+			} else if ("urlRemove".equals(simflag)) { //站内排重
+				indexTab.setSimilar(false);
+				indexTab.setIrSimflag(true);
+				indexTab.setIrSimflagAll(false);
+			} else if ("sourceRemove".equals(simflag)) { //全网排重
+				indexTab.setSimilar(false);
+				indexTab.setIrSimflag(false);
+				indexTab.setIrSimflagAll(true);
+			}
+			//命中规则
+			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
+				indexTab.setKeyWordIndex(wordIndex);
+			}
+			indexTab.setExcludeWeb(excludeWeb);
+			//排除关键词
+			indexTab.setExcludeWordIndex(excludeWordIndex);
+			indexTab.setExcludeWords(excludeWord);
+
+			//修改词距 选择修改词距时，才能修改词距
+			if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >= 0) {
+				String keywordJson = indexTab.getKeyWord();
+				JSONArray jsonArray = JSONArray.parseArray(keywordJson);
+				//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
+				if (jsonArray != null && jsonArray.size() == 1) {
+					Object o = jsonArray.get(0);
+					JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+					jsonObject.put("wordSpace", wordFromNum);
+					jsonObject.put("wordOrder", wordFromSort);
+					jsonArray.set(0, jsonObject);
+					indexTab.setKeyWord(jsonArray.toJSONString());
+				}
+			}
+			if (StringUtil.isNotEmpty(groupName)) {
+				//现在没确定专家模式是否要数据源，暂时保留
+				if ("ALL".equals(groupName)) {
+					groupName = Const.ALL_GROUP;
+				}
+				indexTab.setGroupName(groupName);
+			}
+		}
+
 		int pageSize = 10;
 		//通栏下的站点统计和微信公众号改为15
 		if ("100".equals(indexTab.getTabWidth()) && StringUtil.isNotEmpty(indexTab.getContrast()) && (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_SITE) || indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT))) {
@@ -951,8 +1068,14 @@ public class ColumnController {
 		}
 		AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 		ColumnConfig config = new ColumnConfig();
-		config.initSection(indexTab, timerange, 0, pageSize, grouName, emotion, entityType, "", "", "default", "", "", "", "",
-				"", "");
+		if(openFiltrate != null && openFiltrate){
+			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default", "", "", "", "",
+					"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+		}else{
+			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default", "", "", "", "",
+					"", "",read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
+					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
+		}
 		config.setChartPage(chartPageInfo);
 		config.setShowType(showType);
 		column.setDistrictInfoService(districtInfoService);
@@ -1047,6 +1170,7 @@ public class ColumnController {
 	@ApiOperation("进入到列表页")
 	public Object list(
 			@ApiParam("日常监测栏目id") @RequestParam(value = "indexMapperId", required = false) String indexMapperId,
+			@ApiParam("图的页面类型") @RequestParam(value = "chartPage", required = false) String chartPage,
 			@ApiParam("热搜关键词/热搜人物") @RequestParam(value = "hotKeywords", required = false) String hotKeywords,
 			@ApiParam("来源") @RequestParam(value = "source", defaultValue = "ALL") String source,
 			@ApiParam("分类占比和单一媒体时 用于取得xy轴对应的表达式") @RequestParam(value = "key", required = false) String key,
@@ -1054,27 +1178,120 @@ public class ColumnController {
 			@ApiParam("词云点击进去") @RequestParam(value = "irKeyword", defaultValue = "ALL") String irKeyword,
 			@ApiParam("折线图 数据时间") @RequestParam(value = "dateTime", required = false) String dateTime,
 			@ApiParam("通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+			@ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false, defaultValue = "hitArticle") String mapContrast,
 			@ApiParam("排序方式") @RequestParam(value = "sort", defaultValue = "default") String sort,
 			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
 			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
-			@ApiParam("情感") @RequestParam(value = "emotion", defaultValue = "ALL") String emotion,
-			@ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
 			@ApiParam("结果中搜索") @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
 			@ApiParam("结果中搜索de范围")@RequestParam(value = "fuzzyValueScope", defaultValue = "fullText",required = false) String fuzzyValueScope,
-			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
 			@ApiParam("页数") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
-			@ApiParam("一页多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize)
-			throws TRSException, SearchException {// 为了防止前台的来源名和数据库里边不对应
+			@ApiParam("一页多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+
+			@ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "false") Boolean openFiltrate,
+			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+			@ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
+			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
+			@ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+			@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+			@ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+			@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+			@ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+			@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+			throws TRSException, SearchException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
-		IndexTabMapper mapper = indexTabMapperService.findOne(indexMapperId);
-		IndexTab indexTab = mapper.getIndexTab();
+		IndexTab indexTab = null;
+		ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
+		if(ChartPageInfo.CustomChart.equals(chartPageInfo)){
+			CustomChart customChart = columnChartService.findOneCustomChart(indexMapperId);
+			if(ObjectUtil.isEmpty(customChart)){
+				throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
+			}
+			//待写， 需要通过自定义图表的类生成一个indextab
+			indexTab = customChart.indexTab();
+		}else if(ChartPageInfo.StatisticalChart.equals(chartPageInfo)){
+			StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(indexMapperId);
+			if(ObjectUtil.isEmpty(statisticalChart)){
+				throw new TRSException(CodeUtils.FAIL,"当前统计分析图表不存在");
+			}
+			IndexTabMapper mapper = indexTabMapperService.findOne(statisticalChart.getParentId());
+			indexTab = mapper.getIndexTab();
+			indexTab.setType(statisticalChart.getChartType());
+		}else{
+			IndexTabMapper mapper = indexTabMapperService.findOne(indexMapperId);
+			if(ObjectUtil.isEmpty(mapper)){
+				throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
+			}
+			indexTab = mapper.getIndexTab();
+		}
+
 
 		if(StringUtil.isNotEmpty(timeRange)){
 			indexTab.setTimeRange(timeRange);
 		}
-		return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
-				sort, area, irKeyword, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope);
+		if(openFiltrate != null && openFiltrate){
+			//排重
+			if ("netRemove".equals(simflag)) { //单一媒体排重
+				indexTab.setSimilar(true);
+				indexTab.setIrSimflag(false);
+				indexTab.setIrSimflagAll(false);
+			} else if ("urlRemove".equals(simflag)) { //站内排重
+				indexTab.setSimilar(false);
+				indexTab.setIrSimflag(true);
+				indexTab.setIrSimflagAll(false);
+			} else if ("sourceRemove".equals(simflag)) { //全网排重
+				indexTab.setSimilar(false);
+				indexTab.setIrSimflag(false);
+				indexTab.setIrSimflagAll(true);
+			}
+			//命中规则
+			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
+				indexTab.setKeyWordIndex(wordIndex);
+			}
+			indexTab.setExcludeWeb(excludeWeb);
+			//排除关键词
+			indexTab.setExcludeWordIndex(excludeWordIndex);
+			indexTab.setExcludeWords(excludeWord);
+
+			//修改词距 选择修改词距时，才能修改词距
+			if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >= 0) {
+				String keywordJson = indexTab.getKeyWord();
+				JSONArray jsonArray = JSONArray.parseArray(keywordJson);
+				//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
+				if (jsonArray != null && jsonArray.size() == 1) {
+					Object o = jsonArray.get(0);
+					JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+					jsonObject.put("wordSpace", wordFromNum);
+					jsonObject.put("wordOrder", wordFromSort);
+					jsonArray.set(0, jsonObject);
+					indexTab.setKeyWord(jsonArray.toJSONString());
+				}
+			}
+			if (StringUtil.isNotEmpty(groupName)) {
+				//现在没确定专家模式是否要数据源，暂时保留
+				if ("ALL".equals(groupName)) {
+					groupName = Const.ALL_GROUP;
+				}
+				indexTab.setGroupName(groupName);
+			}
+			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
+					sort, area, irKeyword, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, mediaLevel, mediaIndustry,
+					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+		}else{
+			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
+					sort, area, irKeyword, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
+					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
+		}
 	}
 
 	@FormatResult
@@ -1090,7 +1307,25 @@ public class ColumnController {
 			@ApiParam("结果中搜索") @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
 			@ApiParam("结果中搜索de范围")@RequestParam(value = "fuzzyValueScope", defaultValue = "fullText",required = false) String fuzzyValueScope,
 
-			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange
+			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+			@ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
+			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
+			@ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+			@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+			@ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+			@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+			@ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+			@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
 	) throws TRSException, SearchException {
 
 		//防止前端乱输入
@@ -1099,57 +1334,11 @@ public class ColumnController {
 		//查询一个栏目的列表（不是通过点击图跳转的列表）时，其实就是把当前栏目当成普通列表，不受当前栏目类型的影响
 		IndexTabMapper mapper = indexTabMapperService.findOne(id);
 		if(ObjectUtil.isEmpty(mapper)){
-			throw new TRSException("当前栏目不存在");
+			throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
 		}
 		IndexTab indexTab = mapper.getIndexTab();
 
 		//时间筛选
-		if(StringUtil.isNotEmpty(timeRange)){
-			indexTab.setTimeRange(timeRange);
-		}
-		indexTab.setType(ColumnConst.LIST_NO_SIM);
-
-		return columnService.selectList(indexTab, pageNo, pageSize, source, "", "", "", "",
-				sort, "", "", "", "",fuzzyValue, fuzzyValueScope);
-	}
-
-	@FormatResult
-	@RequestMapping(value = "/columnStattotal", method = RequestMethod.POST)
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）更多数据：${id}")
-	@ApiOperation("信息列表页")
-	public Object columnStattotal(
-			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,
-			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange)
-			throws TRSException, SearchException {
-		//查询一个栏目的列表（不是通过点击图跳转的列表）时，其实就是把当前栏目当成普通列表，不受当前栏目类型的影响
-		IndexTabMapper mapper = indexTabMapperService.findOne(id);
-		if(ObjectUtil.isEmpty(mapper)){
-			throw new TRSException("当前栏目不存在");
-		}
-		IndexTab indexTab = mapper.getIndexTab();
-
-		String simflag = "";  //排重规则  -  替换栏目条件
-		String wordIndex = "";  // 关键词命中位置   0：标题 1：标题+正文  2：标题+摘要   替换栏目条件
-		String emotion = "";//  情感倾向
-		String read = "";//  阅读标记
-		String excludeWeb = "";//  排除网站  追加条件
-		String excludeWord = "";//  排除关键词  追加条件
-		String excludeWordIndex = "";//  排除关键词命中位置  title 标题  content 正文  titleContent标题+正文
-		Boolean updateWordForm = false;// 修改词距标记 替换栏目条件  --  专家模式下怎么办?
-		Integer wordFromNum = 0;//  词距间隔字符 替换栏目条件
-		Boolean wordFromSort = false;//  是否排序  替换栏目条件
-
-
-		String mediaLevel = "";//  媒体等级
-		String groupName = "";// 数据源  替换栏目条件
-		String mediaIndustry = "";// 媒体行业
-		String contentIndustry = "";// 内容行业
-		String filterInfo = "";//信息过滤
-		String contentArea = "";//信息地域
-		String mediaArea = "";//媒体地域
-		String preciseFilter = "";//精准筛选
-
-
 		if(StringUtil.isNotEmpty(timeRange)){
 			indexTab.setTimeRange(timeRange);
 		}
@@ -1163,56 +1352,117 @@ public class ColumnController {
 			indexTab.setSimilar(false);
 			indexTab.setIrSimflag(true);
 			indexTab.setIrSimflagAll(false);
-		}else if ("sourceRemove".equals(simflag)){ //全网排重
+		} else if ("sourceRemove".equals(simflag)) { //全网排重
 			indexTab.setSimilar(false);
 			indexTab.setIrSimflag(false);
 			indexTab.setIrSimflagAll(true);
 		}
 		//命中规则
-		if(StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())){
+		if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
 			indexTab.setKeyWordIndex(wordIndex);
 		}
-		//排除网站
-		if(StringUtil.isNotEmpty(excludeWeb)){
-			List<String> excList = new ArrayList<>();
-			if (StringUtil.isNotEmpty(indexTab.getExcludeWeb())) {
-				String[] oldExcArr = indexTab.getExcludeWeb().split("[;|；]");
-				for (String arr : oldExcArr) {
-					excList.add(arr);
-				}
-			}
-			String[] newExcArr = excludeWeb.split("[;|；]");
-			for (String arr : newExcArr) {
-				excList.add(arr);
-			}
-			indexTab.setExcludeWeb(StringUtils.join(excList,";"));
-		}
+		indexTab.setExcludeWeb(excludeWeb);
 		//排除关键词
-		if(StringUtil.isNotEmpty(excludeWord)){
-			List<String> excList = new ArrayList<>();
-			if (StringUtil.isNotEmpty(indexTab.getExcludeWords())) {
-				String[] oldExcArr = indexTab.getExcludeWords().split("[;|；]");
-				for (String arr : oldExcArr) {
-					excList.add(arr);
-				}
-			}
-			String[] newExcArr = excludeWord.split("[;|；]");
-			for (String arr : newExcArr) {
-				excList.add(arr);
-			}
-			indexTab.setExcludeWords(StringUtils.join(excList,";"));
-		}
+		indexTab.setExcludeWordIndex(excludeWordIndex);
+		indexTab.setExcludeWords(excludeWord);
+
 		//修改词距 选择修改词距时，才能修改词距
-		if(updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >=0){
+		if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >= 0) {
 			String keywordJson = indexTab.getKeyWord();
 			JSONArray jsonArray = JSONArray.parseArray(keywordJson);
 			//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
-			if(jsonArray!= null && jsonArray.size() ==1 ){
+			if (jsonArray != null && jsonArray.size() == 1) {
 				Object o = jsonArray.get(0);
 				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
-				jsonObject.put("wordSpace",wordFromNum);
-				jsonObject.put("wordOrder",wordFromSort);
-				jsonArray.set(0,jsonObject);
+				jsonObject.put("wordSpace", wordFromNum);
+				jsonObject.put("wordOrder", wordFromSort);
+				jsonArray.set(0, jsonObject);
+				indexTab.setKeyWord(jsonArray.toJSONString());
+			}
+		}
+		if (StringUtil.isNotEmpty(groupName)) {
+			//现在没确定专家模式是否要数据源，暂时保留
+			if ("ALL".equals(groupName)) {
+				groupName = Const.ALL_GROUP;
+			}
+			indexTab.setGroupName(groupName);
+		}
+		return columnService.selectList(indexTab, pageNo, pageSize, source, "", "", "", "",
+				sort, "", "", "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
+				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+	}
+
+	@FormatResult
+	@RequestMapping(value = "/columnStattotal", method = RequestMethod.POST)
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）更多数据：${id}")
+	@ApiOperation("信息列表页")
+	public Object columnStattotal(
+			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,
+			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+			@ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
+			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
+			@ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+			@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+			@ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+			@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+			@ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+			@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+			throws TRSException, SearchException {
+		//查询一个栏目的列表（不是通过点击图跳转的列表）时，其实就是把当前栏目当成普通列表，不受当前栏目类型的影响
+		IndexTabMapper mapper = indexTabMapperService.findOne(id);
+		if(ObjectUtil.isEmpty(mapper)){
+			throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
+		}
+		IndexTab indexTab = mapper.getIndexTab();
+
+		if (StringUtil.isNotEmpty(timeRange)) {
+			indexTab.setTimeRange(timeRange);
+		}
+		indexTab.setType(ColumnConst.LIST_NO_SIM);
+		//排重
+		if ("netRemove".equals(simflag)) { //单一媒体排重
+			indexTab.setSimilar(true);
+			indexTab.setIrSimflag(false);
+			indexTab.setIrSimflagAll(false);
+		} else if ("urlRemove".equals(simflag)) { //站内排重
+			indexTab.setSimilar(false);
+			indexTab.setIrSimflag(true);
+			indexTab.setIrSimflagAll(false);
+		} else if ("sourceRemove".equals(simflag)) { //全网排重
+			indexTab.setSimilar(false);
+			indexTab.setIrSimflag(false);
+			indexTab.setIrSimflagAll(true);
+		}
+		//命中规则
+		if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
+			indexTab.setKeyWordIndex(wordIndex);
+		}
+		indexTab.setExcludeWeb(excludeWeb);
+		//排除关键词
+		indexTab.setExcludeWordIndex(excludeWordIndex);
+		indexTab.setExcludeWords(excludeWord);
+
+		//修改词距 选择修改词距时，才能修改词距
+		if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >= 0) {
+			String keywordJson = indexTab.getKeyWord();
+			JSONArray jsonArray = JSONArray.parseArray(keywordJson);
+			//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
+			if (jsonArray != null && jsonArray.size() == 1) {
+				Object o = jsonArray.get(0);
+				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+				jsonObject.put("wordSpace", wordFromNum);
+				jsonObject.put("wordOrder", wordFromSort);
+				jsonArray.set(0, jsonObject);
 				indexTab.setKeyWord(jsonArray.toJSONString());
 			}
 		}
@@ -1225,9 +1475,9 @@ public class ColumnController {
 		}
 		AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 		ColumnConfig config = new ColumnConfig();
-		config.addFilterCondition(read,excludeWordIndex,mediaLevel,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea,preciseFilter);
+		//这个页面中的筛选条件，前端会将回显数据传回来，所以直接用回显数据
 		config.initSection(indexTab, indexTab.getTimeRange(), 0, 15, null, emotion, null, "", "", "default", "", "", "", "",
-				"", "");
+				"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 		column.setDistrictInfoService(districtInfoService);
 		column.setCommonListService(commonListService);
 		column.setCommonChartService(commonChartService);

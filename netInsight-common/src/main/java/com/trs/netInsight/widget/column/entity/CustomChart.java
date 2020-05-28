@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.column.entity;
 
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import io.swagger.annotations.ApiModelProperty;
@@ -72,6 +73,17 @@ public class CustomChart extends BaseEntity {
      */
     @Column(name = "exclude_words", columnDefinition = "TEXT")
     private String excludeWords;
+    /**
+     * 排除词检索位置 0：标题 1：标题+正文  2：标题+摘要
+     */
+    @Column(name = "exclude_word_index", columnDefinition = "TEXT")
+    private String excludeWordIndex;
+    public String getExcludeWordIndex(){
+        if(StringUtil.isEmpty(this.excludeWordIndex)){
+            return this.keyWordIndex;
+        }
+        return this.excludeWordIndex;
+    }
 
     /**
      * 检索关键词位置 0：标题 1：标题+正文
@@ -114,6 +126,38 @@ public class CustomChart extends BaseEntity {
     @Column(name = "tab_width")
     private int tabWidth = 50;
 
+
+    /**
+     * 媒体等级
+     */
+    @Column(name = "media_level")
+    private String mediaLevel;
+    /**
+     * 媒体行业
+     */
+    @Column(name = "media_industry")
+    private String mediaIndustry;
+    /**
+     * 内容行业
+     */
+    @Column(name = "content_industry")
+    private String contentIndustry;
+    /**
+     * 信息过滤  -  信息性质打标，如抽奖
+     */
+    @Column(name = "filter_info")
+    private String filterInfo;
+    /**
+     * 内容所属地域
+     */
+    @Column(name = "content_area")
+    private String contentArea;
+    /**
+     * 媒体所属地域
+     */
+    @Column(name = "media_area")
+    private String mediaArea;
+
     /**
      * 对应的日常监测的栏目id
      */
@@ -138,13 +182,13 @@ public class CustomChart extends BaseEntity {
 
     public IndexTab indexTab() {
         IndexTab indexTab = new IndexTab(this.name, this.trsl, this.xyTrsl, this.type, this.contrast, this.excludeWeb, this.timeRange,
-                this.hide, this.keyWord, this.excludeWords, this.keyWordIndex, this.groupName, this.similar, this.irSimflag, this.irSimflagAll,
-                this.weight, this.tabWidth, this.sequence,this.specialType);
+                this.hide, this.keyWord, this.excludeWords, this.excludeWordIndex, this.keyWordIndex, this.groupName, this.similar, this.irSimflag, this.irSimflagAll,
+                this.weight, this.tabWidth, this.sequence, this.specialType, this.mediaLevel, this.mediaIndustry, this.contentIndustry, this.filterInfo, this.contentArea, this.mediaArea);
         return indexTab;
     }
 
 
-    public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, Boolean hide, String keyWord, String excludeWords,
+    public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, Boolean hide, String keyWord, String excludeWords,String excludeWordIndex,
                        String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType) {
         this.name = name;
         this.trsl = trsl;
@@ -156,6 +200,7 @@ public class CustomChart extends BaseEntity {
         this.hide = hide;
         this.keyWord = keyWord;
         this.excludeWords = excludeWords;
+        this.excludeWordIndex = excludeWordIndex;
         this.keyWordIndex = keyWordIndex;
         this.groupName = groupName;
         this.similar = similar;
@@ -166,6 +211,18 @@ public class CustomChart extends BaseEntity {
         this.sequence = sequence;
         this.parentId = parentId;
         this.specialType = specialType;
+    }
+    public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, Boolean hide, String keyWord,
+                       String excludeWords,String excludeWordIndex, String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll,
+                       Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,
+                       String filterInfo, String contentArea,String mediaArea) {
+        this(name, trsl, xyTrsl, type, contrast, excludeWeb, timeRange, hide, keyWord, excludeWords, excludeWordIndex, keyWordIndex, groupName, similar, irSimflag, irSimflagAll, weight, tabWidth, parentId, sequence, specialType);
+        this.mediaLevel = mediaLevel;
+        this.mediaIndustry = mediaIndustry;
+        this.contentIndustry = contentIndustry;
+        this.filterInfo = filterInfo;
+        this.contentArea = contentArea;
+        this.mediaArea = mediaArea;
     }
 
 }
