@@ -75,7 +75,7 @@ public interface ICommonChartService {
      * @throws TRSException
      */
     <T extends IQueryBuilder> Object getWordCloudColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll,
-                                                            String groupName, String entityType, String type) throws TRSException;
+                                                            String groupName, String entityType, String type, ChartResultField resultKey) throws TRSException;
 
     //折线图
     //groupField 为折线图x轴字段   如果为按小时显示，因为Hybase查询时，按小时只能显示小时数，所以按小时查询时，一次最多显示一天的数据，方法内不对返回的时间做处理，所以在按小时查询时，传进来的groupData的值完全与hybase查询结果一样

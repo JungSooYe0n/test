@@ -512,21 +512,9 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 pagesize = 200;
             }
             queryBuilder.page(0, pagesize);
-            GroupWordResult wordCloud = (GroupWordResult) commonChartService.getWordCloudColumnData(queryBuilder, sim, irSimflag, irSimflagAll, groupName, entityType, "special");
-
-            if (wordCloud == null || wordCloud.getGroupList() == null || wordCloud.getGroupList().size() == 0) {
-                return null;
-            }
-            List<Object> result = new ArrayList<>();
-            Map<String, Object> map = null;
-            for (GroupWordInfo wordInfo : wordCloud) {
-                map = new HashMap<>();
-                map.put("name", wordInfo.getFieldValue());
-                map.put("value", wordInfo.getCount());
-                map.put("entityType", wordInfo.getEntityType());
-                result.add(map);
-            }
-            return result;
+            ChartResultField resultField = new ChartResultField("name", "value","entityType");
+            Object wordCloud =  commonChartService.getWordCloudColumnData(queryBuilder, sim, irSimflag, irSimflagAll, groupName, entityType, "special",resultField);
+            return wordCloud;
         } catch (TRSException | TRSSearchException e) {
             throw new TRSSearchException(e);
         }

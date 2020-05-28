@@ -1009,30 +1009,15 @@ public class SpecialChartAnalyzeController {
 			}else {
 				data = Const.MIX_DATABASE.split(";");
 			}
-
-//			wordCloud = specialChartAnalyzeService.getWordCloud(specialProject.isServer(), searchBuilder.asTRSL(),
-//					sim, irSimflag,irSimflagAll, entityType, searchBuilder.getPageSize(),"special", data);
-			wordCloud = commonChartService.getWordCloudColumnData(searchBuilder,sim, irSimflag,irSimflagAll,specialProject.getSource(),entityType,"special");
+			ChartResultField resultField = new ChartResultField("name", "value","entityType");
+			wordCloud = commonChartService.getWordCloudColumnData(searchBuilder,sim, irSimflag,irSimflagAll,specialProject.getSource(),entityType,"special",resultField);
 		}else {
 			wordCloud = specialChartAnalyzeService.getWordCloudNew(searchBuilder,sim, irSimflag,irSimflagAll, entityType,"special");
-//			wordCloud = specialChartAnalyzeService.getWordCloud(specialProject.isServer(), searchBuilder.asTRSL(),
-//					sim, irSimflag,irSimflagAll, entityType, searchBuilder.getPageSize(),"special", searchBuilder.getDatabase());
 
 		}
-
-//
-//		long end = new Date().getTime();
-//		long time = end - start;
-//		log.info("词云分析后台所需时间" + time);
-//		SpecialParam specParam = getSpecParam(specialProject);
-//		ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area, ChartType.WORDCLOUD.getType(),
-//				specParam.getFirstName(), specParam.getSecondName(), specParam.getThirdName(), "无锡");
-//		Map<String, Object> map = new HashMap<>();
 		if(ObjectUtil.isEmpty(wordCloud)){
 			return null;
 		}
-//		map.put("data", wordCloud);
-//		map.put("param", chartParam);
 		return wordCloud;
 	}
 

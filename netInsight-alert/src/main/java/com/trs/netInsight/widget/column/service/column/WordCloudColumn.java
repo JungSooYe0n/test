@@ -9,6 +9,7 @@ import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.util.DateUtil;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.user.entity.User;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +46,6 @@ public class WordCloudColumn extends AbstractColumn {
         boolean irSimflag = indexTab.isIrSimflag();
         boolean sim = indexTab.isSimilar();
         boolean irSimflagAll = indexTab.isIrSimflagAll();
-        GroupWordResult wordCloud = null;
         //用queryCommonBuilder和QueryBuilder 是一样的的
         QueryCommonBuilder queryBuilder = super.config.getCommonBuilder();
         Integer pagesize = 50;
@@ -55,21 +55,9 @@ public class WordCloudColumn extends AbstractColumn {
         queryBuilder.page(0, pagesize);
         String metas = indexTab.getGroupName();
         try {
-            wordCloud = (GroupWordResult) commonChartService.getWordCloudColumnData(queryBuilder, sim, irSimflag, irSimflagAll, metas, config.getEntityType(), "column");
-
-            if (wordCloud == null || wordCloud.getGroupList() == null || wordCloud.getGroupList().size() == 0) {
-                return null;
-            }
-            List<Object> result = new ArrayList<>();
-            Map<String, Object> map = null;
-            for (GroupWordInfo wordInfo : wordCloud) {
-                map = new HashMap<>();
-                map.put("name", wordInfo.getFieldValue());
-                map.put("value", wordInfo.getCount());
-                map.put("entityType", wordInfo.getEntityType());
-                result.add(map);
-            }
-            return result;
+            ChartResultField resultField = new ChartResultField("name", "value","entityType");
+            Object wordCloud = commonChartService.getWordCloudColumnData(queryBuilder, sim, irSimflag, irSimflagAll, metas, config.getEntityType(), "column",resultField);
+            return wordCloud;
         } catch (TRSException | TRSSearchException e) {
             throw new TRSSearchException(e);
         }
