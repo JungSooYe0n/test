@@ -75,7 +75,7 @@ public class SystemLogOperationFactory {
 	 * @date Created at 2018年11月7日 上午11:05:04
 	 * @author 北京拓尔思信息技术股份有限公司
 	 * @author 谷泽昊
-	 * @param depositPattern
+	 * @param
 	 * @return
 	 */
 	public static AbstractSystemLogOperation createSystemLogOperation(SystemLogType systemLogType) {

@@ -73,6 +73,24 @@ public class Hybase8SearchImplNew implements FullTextSearch {
     private static final int MAX_PAGE_SIZE = 512 * 2;
 
 
+
+    /**
+     * 判断filter是否符合格式
+     * @param searchParams
+     * @return
+     */
+    private Boolean verifyFilterTime(SearchParams searchParams){
+        String filter = searchParams.getProperty("search.range.filter");
+        if(StringUtil.isEmpty(filter)){
+            return false;
+        }
+        if(!filter.contains(FtsFieldConst.FIELD_URLTIME) || filter.indexOf(FtsFieldConst.FIELD_URLTIME) != 0){
+            return false;
+        }
+        log.info(filter);
+        return true;
+    }
+
     /*
      ****************************************************************************************************************************************************
      * 手工录入库的操作
@@ -289,11 +307,10 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                                                           long pageNo, Class<T> resultClass, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, boolean server, String type)
             throws TRSSearchException {
         queryCount();
-        // 抽取数据库，要写到添加trsl之前
-        String[] databaseArr = chooseDatabases(trsl, true);
+        //只用返回结果实体类对应的数据库
         String databases = FtsParser.getDatabases(resultClass);
-        if (databaseArr != null && databaseArr.length > 0) {
-            databases = String.join(";", databaseArr);
+        if (StringUtil.isEmpty(databases)) {
+            return null;
         }
         String db = addHybaseInsert(databases);
         // 判断是否排重
@@ -325,6 +342,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             }
 
             long startHybase = new Date().getTime();
+            if(!verifyFilterTime(searchParams)){
+                return null;
+            }
             TRSResultSet resultSet = connection.executeSelect(db, trsl, from, recordNum, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
@@ -395,9 +415,11 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if (recordNum == 0) {
                 recordNum = 20;
             }
-
             log.error(trsl);
             long timeStart = new Date().getTime();
+            if(!verifyFilterTime(searchParams)){
+                return null;
+            }
             TRSResultSet resultSet = connection.executeSelect(db, trsl, from, recordNum, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
@@ -460,6 +482,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
 
             log.error(trsl);
             long timeStart = new Date().getTime();
+            if(!verifyFilterTime(searchParams)){
+                return null;
+            }
             TRSResultSet resultSet = connection.executeSelectNoSort(db, trsl, from, recordNum, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
@@ -507,6 +532,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
 
             // System.out.println(similartrsl);
             long startHybase = new Date().getTime();
+            if(!verifyFilterTime(param)){
+                return 0;
+            }
             TRSResultSet resultSet = client.executeSelect(db, similartrsl, 0, 1, param);
             // 系统日志记录
             systemLogRecord(similartrsl);
@@ -546,6 +574,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             int connectTime = (int) (endConnect - startConnect);
 
             long startHybase = new Date().getTime();
+            if(!verifyFilterTime(param)){
+                return 0;
+            }
             TRSResultSet resultSet = client.executeSelect(db, similarTrsl, 0, 1, param);
             // 系统日志记录
             systemLogRecord(similarTrsl);
@@ -618,6 +649,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             }
             if (StringUtil.getStringKBIsTooLongLast(trsl)) {
                 log.error("海贝查询字符串大于16k,查询报错------------>");
+            }
+            if(!verifyFilterTime(searchParams)){
+                return null;
             }
             TRSResultSet result = connection.categoryQuery(db, trsl, "", groupField, limit, searchParams);
             // 系统日志记录
@@ -1148,7 +1182,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         }
         if (StringUtils.isBlank(searchParam)) {
             searchParam = paramNull(type);
-            log.error("filter param empity!");
+            log.error("filter param empity!:"+searchParam);
         }
         //	System.err.println(searchParam);
         return searchParam;

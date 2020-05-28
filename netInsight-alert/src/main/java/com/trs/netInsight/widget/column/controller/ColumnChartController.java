@@ -131,8 +131,10 @@ public class ColumnChartController {
             StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
             statisticalChart.setIsTop(isTop);
             if (isTop) {
-                topSeq = columnChartService.getMaxTopSequence(statisticalChart.getParentId());
+                topSeq = columnChartService.getMaxTopSequence(statisticalChart.getParentId())+1;
                 statisticalChart.setTopSequence(topSeq);
+            }else{
+                statisticalChart.setTopSequence(0);
             }
             columnChartService.saveStatisticalChart(statisticalChart);
             return statisticalChart;
@@ -140,8 +142,10 @@ public class ColumnChartController {
             CustomChart customChart = columnChartService.findOneCustomChart(id);
             customChart.setIsTop(isTop);
             if (isTop) {
-                topSeq = columnChartService.getMaxTopSequence(customChart.getParentId());
+                topSeq = columnChartService.getMaxTopSequence(customChart.getParentId()) +1;
                 customChart.setTopSequence(topSeq);
+            }else{
+                customChart.setTopSequence(0);
             }
             columnChartService.saveCustomChart(customChart);
             return customChart;

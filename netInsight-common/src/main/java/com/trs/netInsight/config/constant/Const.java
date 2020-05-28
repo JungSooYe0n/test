@@ -64,6 +64,10 @@ public class Const {
      * FaceBook 和twitter等海外媒体  默认
      */
     public static final String DEFAULT_HYBASE_OVERSEAS = "system2.overseasMedia_180419";
+    /**
+     * 视频+短视频  默认
+     */
+    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402";
 
 
     /**
@@ -83,6 +87,10 @@ public class Const {
      * FaceBook 和twitter等海外媒体
      */
     public static String HYBASE_OVERSEAS = "system2.overseasMedia_180419";
+    /**
+     * 视频+短视频
+     */
+    public static String HYBASE_VIDEO = "system2.media_200402";
 
     /**
      * hybase传统库
@@ -100,7 +108,7 @@ public class Const {
     /**
      * 全库混合
      */
-    public static String MIX_DATABASE = HYBASE_NI_INDEX + ";" + WECHAT_COMMON + ";" + WEIBO + ";" + HYBASE_OVERSEAS;
+    public static String MIX_DATABASE = HYBASE_NI_INDEX + ";" + WECHAT_COMMON + ";" + WEIBO + ";" + HYBASE_OVERSEAS+";"+HYBASE_VIDEO;
 
     /**
      * es微信库
@@ -161,9 +169,6 @@ public class Const {
             Const.PAGE_SHOW_KEHUDUAN,
             Const.PAGE_SHOW_ZIMEITI,
 
-            Const.PAGE_SHOW_DUANSHIPIN,
-            Const.PAGE_SHOW_CHANGSHIPIN,
-
             "传统媒体",    "客户端","手机客户端","境外新闻",
             "国外新闻_敏感", "忽翌仟療", "电子报", "客户端", "国外", "境外媒体", "境外网站");
 
@@ -184,6 +189,10 @@ public class Const {
      * 媒体类型:FaceBook and twitter
      */
     public static final List<String> MEDIA_TYPE_TF = Arrays.asList("FaceBook", "Twitter", "Facebook", "twitter", "facebook");
+    /**
+     * 媒体类型:视频+短视频
+     */
+    public static final List<String> MEDIA_TYPE_VIDEO = Arrays.asList(Const.GROUPNAME_DUANSHIPIN,Const.GROUPNAME_CHANGSHIPIN,Const.PAGE_SHOW_DUANSHIPIN,Const.PAGE_SHOW_CHANGSHIPIN);
     /**
      * 文章类型:来源-传统媒体 2018/3/12启用此常量 请慎重修改内容 PS:特别是删除
      */

@@ -147,7 +147,38 @@ public class TrslUtil {
 				data[0] = Const.HYBASE_OVERSEAS;
 			}
 		}
-
+		if (TrsArrayUtil.compileArray(Const.MEDIA_TYPE_VIDEO.toArray(), groupNames)) {
+			if (count == 2) {
+				databases = new String[count];
+				databases[0] = data[0];
+				databases[1] = Const.HYBASE_VIDEO;
+				data = databases;
+			} else if (count == 3) {
+				databases = new String[count];
+				databases[0] = data[0];
+				databases[1] = data[1];
+				databases[2] = Const.HYBASE_VIDEO;
+				data = databases;
+			} else if (count == 4) {
+				databases = new String[count];
+				databases[0] = data[0];
+				databases[1] = data[1];
+				databases[2] = data[2];
+				databases[3] = Const.HYBASE_VIDEO;
+				data = databases;
+			}else if (count == 5) {
+				databases = new String[count];
+				databases[0] = data[0];
+				databases[1] = data[1];
+				databases[2] = data[2];
+				databases[3] = data[3];
+				databases[4] = Const.HYBASE_VIDEO;
+				data = databases;
+			} else {
+				data = new String[count];
+				data[0] = Const.HYBASE_VIDEO;
+			}
+		}
 		return data;
 	}
 
