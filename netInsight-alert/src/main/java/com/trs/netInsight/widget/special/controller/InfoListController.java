@@ -4,6 +4,7 @@ import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.ESFieldConst;
 import com.trs.netInsight.config.constant.FtsFieldConst;
+import com.trs.netInsight.handler.exception.NullException;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
@@ -43,10 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -111,6 +109,11 @@ public class InfoListController {
 	 * 线程池跑任务
 	 */
 	private static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+
+	/**
+	 * 实时获取单挑舆情信息线程池
+	 */
+	private static ExecutorService presentThreadPool = Executors.newFixedThreadPool(30);
 
 	/**
 	 * 专项检测信息列表
@@ -805,6 +808,8 @@ public class InfoListController {
         List<FtsDocumentCommonVO> ftsQuery = content.getPageItems();
         if (null != ftsQuery && ftsQuery.size() > 0) {
             FtsDocumentCommonVO ftsDocument = ftsQuery.get(0);
+            //调用数据中心接口实时获取舆情详情
+			presentThreadPool.execute(() -> infoListService.getPresentDataInfo(ftsDocument));
             // 判断是否收藏
             //原生sql
             Specification<Favourites> criteriaFav = new Specification<Favourites>() {
@@ -825,8 +830,8 @@ public class InfoListController {
             if (ObjectUtil.isNotEmpty(favourites) && StringUtil.isEmpty(favourites.getLibraryId())) {
                 ftsDocument.setFavourite(true);
             } else {
-                ftsDocument.setFavourite(false);
-            }
+				ftsDocument.setFavourite(false);
+			}
             ftsDocument.setTrslk(trslk);
             if (Const.TYPE_NEWS.contains(groupName)) {
                 // 站点名是百度贴吧的 要是频道名不以吧结尾 就加上吧
@@ -877,6 +882,20 @@ public class InfoListController {
         System.err.println("方法结束" + System.currentTimeMillis());
         return all;
     }
+
+    @ApiOperation("实时获取转评赞等相关信息")
+    @FormatResult
+    @PostMapping("/getPresentInfo")
+    public Object getPresentInfo(
+    		@RequestParam(value = "sid" , required = true) String sid,
+			@RequestParam(value = "groupName" , required = true ) String groupName
+								 ) throws TRSException , NullException{
+		String resStr = RedisUtil.getString(sid+Const.PRESENT_SUFFIX);
+		if (StringUtil.isEmpty(resStr)) throw new TRSException(CodeUtils.FAIL,"实时获取舆情相关信息失败！");
+
+
+    	return null;
+	}
 
 	/**
 	 * 信息列表页单条的详情

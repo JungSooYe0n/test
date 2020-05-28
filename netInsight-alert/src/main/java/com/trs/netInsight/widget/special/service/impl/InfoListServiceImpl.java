@@ -1,6 +1,7 @@
 
 package com.trs.netInsight.widget.special.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.ESFieldConst;
@@ -93,6 +94,13 @@ public class InfoListServiceImpl implements IInfoListService {
 	 */
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
+
+
+	/**
+	 * 微博实时获取信息接口
+	 */
+	@Value("${single.microblog.hotReviews.url}")
+	private String hotReviewsUrl;
 
 	/**
 	 * 线程池跑任务
@@ -2298,6 +2306,39 @@ public class InfoListServiceImpl implements IInfoListService {
 
 		// all.add(map);
 		// return ftsCount;
+	}
+
+	@Override
+	public void getPresentDataInfo(FtsDocumentCommonVO documentCommonVO) {
+		String redisKey =documentCommonVO.getSid()+Const.PRESENT_SUFFIX;
+		if (Const.GROUPNAME_WEIBO.equals(documentCommonVO.getGroupName())){
+			Object object = RedisUtil.getString(redisKey);
+			if (object == null && documentCommonVO.getUrlName()!=null){
+				//调数据中心接口
+				String param = "{"+"\"link\":"+"\""+documentCommonVO.getUrlName()+"\""+"}";
+				JSONObject jsonObject = JSONObject.parseObject(param);
+				String sendPost = HttpUtil.sendPost(hotReviewsUrl, jsonObject);
+				if (sendPost.indexOf("error") != -1){
+					RedisUtil.setString(redisKey,sendPost,30,TimeUnit.MINUTES);
+				}
+			}
+		}
+	}
+
+	@Override
+	public Object getPresentInfo(String sid, String groupName) throws TRSException{
+		Map<String,Object> presentInfo = new HashMap();
+		if (Const.GROUPNAME_WEIBO.equals(groupName)){
+			QueryBuilder builderUser = new QueryBuilder();
+			builderUser.filterField(FtsFieldConst.FIELD_MID,sid,Operator.Equal);
+			builderUser.setDatabase(Const.SINAREVIEWS);
+			List<FtsDocumentReviews> ftsDocumentReviews = hybase8SearchService.ftsQuery(builderUser, FtsDocumentReviews.class, false, false,false,null);
+			if (ftsDocumentReviews.size()>0){
+				FtsDocumentReviews ftsDocumentReview = ftsDocumentReviews.get(0);
+
+			}
+		}
+		return presentInfo;
 	}
 
 	@Override

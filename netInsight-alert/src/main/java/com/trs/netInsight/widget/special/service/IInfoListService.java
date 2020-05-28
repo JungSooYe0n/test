@@ -5,10 +5,7 @@ import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
-import com.trs.netInsight.support.fts.entity.FtsDocument;
-import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
-import com.trs.netInsight.support.fts.entity.FtsDocumentTF;
-import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
+import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.model.result.IDocument;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
@@ -323,6 +320,19 @@ public interface IInfoListService {
 	 * @throws TRSException
 	 */
 	public void simCount(String sid,String md5,String type);
+
+	/**
+	 * 调用数据中心接口，实时获取舆情详情信息
+	 * @param documentCommonVO
+	 */
+	public void getPresentDataInfo(FtsDocumentCommonVO documentCommonVO);
+
+	/**
+	 *
+	 * @param sid
+	 * @param groupName
+	 */
+	public Object getPresentInfo(String sid,String groupName) throws TRSException;
 	
 	/**
 	 * 查相似文章信息--微博

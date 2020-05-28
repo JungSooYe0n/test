@@ -1178,6 +1178,8 @@ public class Const {
      */
     public static final List<String> FILTER_INFO = Arrays.asList("明星娱乐","影视剧场","婚恋交友","股票推荐","游戏广告","赌博彩票","涉黄信息","母婴广告","招生招聘",
             "采购招标","转发抽奖");
+
+    public static String PRESENT_SUFFIX = "_present_key";
 }
 
 /**
