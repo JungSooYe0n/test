@@ -72,7 +72,7 @@ public class SpecialChartController {
         User user = UserUtils.getUser();
         SpecialProject specialProject = specialProjectService.findOne(id);
         if (ObjectUtil.isEmpty(specialProject)) {
-            throw new TRSException("当前专题栏目不存在");
+            throw new TRSException(CodeUtils.FAIL,"当前专题栏目不存在");
         }
         Object result = specialCustomChartService.getCustomChart(id);
         return result;
@@ -160,7 +160,7 @@ public class SpecialChartController {
         }
         SpecialProject specialProject = specialProjectService.findOne(specialId);
         if (ObjectUtil.isEmpty(specialProject)) {
-            throw new TRSException("当前专题栏目不存在");
+            throw new TRSException(CodeUtils.FAIL,"当前专题栏目不存在");
         }
 
 
@@ -192,21 +192,25 @@ public class SpecialChartController {
             // 有几个图专家模式下 必须传xy表达式
             if (SpecialType.SPECIAL.equals(specialType1)) {
                 if (StringUtil.isNotEmpty(trsl)) {
-                    contrast = null;
+                    if(!IndexTabType.MAP.equals(indexTabType)){
+                        contrast = null;
+                    }
                     if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
                         if (StringUtil.isEmpty(xyTrsl)) {
-                            throw new OperationException("专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
+                            throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
                         }
                     }
                 } else {
-                    throw new OperationException("专家模式下必须填写检索表达式表达式");
+                    throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
                 }
             } else {
                 trsl = null;
                 xyTrsl = null;
                 if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
                         && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
-                    throw new OperationException("普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+                    throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) &&IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                    contrast = null;
                 }
             }
             if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)) {
@@ -325,21 +329,25 @@ public class SpecialChartController {
             // 有几个图专家模式下 必须传xy表达式
             if (SpecialType.SPECIAL.equals(specialType1)) {
                 if (StringUtil.isNotEmpty(trsl)) {
-                    contrast = null;
+                    if(!IndexTabType.MAP.equals(indexTabType)){
+                        contrast = null;
+                    }
                     if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
                         if (StringUtil.isEmpty(xyTrsl)) {
-                            throw new OperationException("专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
+                            throw new  TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
                         }
                     }
                 } else {
-                    throw new OperationException("专家模式下必须填写检索表达式表达式");
+                    throw new  TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
                 }
             } else {
                 trsl = null;
                 xyTrsl = null;
                 if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
                         && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
-                    throw new OperationException("普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+                    throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) &&IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                    contrast = null;
                 }
             }
             if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)) {
@@ -347,7 +355,7 @@ public class SpecialChartController {
             }
             SpecialCustomChart customChart = specialCustomChartService.findOneSpecialCustomChart(id);
             if (ObjectUtil.isEmpty(customChart)) {
-                throw new TRSException("当前自定义图表不存在");
+                throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
             }
             customChart.setName(name);
             customChart.setTrsl(trsl);
@@ -421,7 +429,7 @@ public class SpecialChartController {
         User user = UserUtils.getUser();
         SpecialCustomChart customChart = specialCustomChartService.findOneSpecialCustomChart(id);
         if (ObjectUtil.isEmpty(customChart)) {
-            throw new TRSException("当前自定义图表不存在");
+            throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
         }
         Object result = specialCustomChartService.selectChartData(customChart, timeRange,showType, entityType, contrast);
         return result;

@@ -266,6 +266,11 @@ public class Const {
     public static final String NRESERVED1_LUNTAN = FtsFieldConst.FIELD_NRESERVED1 + ":(0 OR \"\")";
 
     /**
+     * 论坛 按照 IR_SRCNAME=(0 OR "") 判断为新闻原发
+     */
+    public static final String SRCNAME_XINWEN = FtsFieldConst.FIELD_SRCNAME + ":(0 OR \"\")";
+
+    /**
      * 预警标题长度
      */
     public static final int ALERT_NUM = 22;
@@ -1166,13 +1171,11 @@ public class Const {
     /**
      * 媒体行业
      */
-    public static final List<String> MEDIA_INDUSTRY = Arrays.asList("时政","财经","文教","法制","健康","科技","体育","娱乐","国际","军事","食品",
-            "旅游","金融","交通","环境");
+    public static final List<String> MEDIA_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品");
     /**
      * 内容行业
      */
-    public static final List<String> CONTENT_INDUSTRY = Arrays.asList("时政","财经","文教","法制","健康","科技","体育","娱乐","国际","军事","食品",
-            "旅游","金融","交通","环境");
+    public static final List<String> CONTENT_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品");
     /**
      * 信息过滤
      */

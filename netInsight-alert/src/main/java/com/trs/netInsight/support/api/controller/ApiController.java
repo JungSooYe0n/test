@@ -284,7 +284,9 @@ public class ApiController {
             }
             AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
             ColumnConfig config = new ColumnConfig();
-            config.initSection(indexTab, timerange, 0, pageSize, "", "", entityType, "", "", "default", "", "", "", "", "","");
+            config.initSection(indexTab, timerange, 0, pageSize, "", "", entityType, "", "", "default", "",
+                    "", "", "", "","","", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
+                    indexTab.getContentArea(), indexTab.getMediaArea(), "");
             //column.setChartAnalyzeService(chartAnalyzeService);
             column.setDistrictInfoService(districtInfoService);
             column.setCommonListService(commonListService);
@@ -337,7 +339,9 @@ public class ApiController {
                 if (pageSize > maxPageSize){
                     pageSize = maxPageSize;
                 }
-                config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, area, irKeyword, invitationCard, "", "",forwarPrimary);
+                config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, area, irKeyword, invitationCard, "", "",forwarPrimary,
+                        "", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
+                        indexTab.getContentArea(), indexTab.getMediaArea(), "");
                 column.setDistrictInfoService(districtInfoService);
                 column.setCommonListService(commonListService);
                 column.setCommonChartService(commonChartService);

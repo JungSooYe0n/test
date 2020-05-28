@@ -527,7 +527,8 @@ public class SimpleReportTask implements Runnable {
 		String[] databases = TrslUtil.chooseDatabases(groupName.split(";"));
 
 		config.initSection(indexTab, indexTab.getTimeRange(), 0, maxSize, null, null, "keywords", "", "", "desc", "",
-				"", "", "", "","");
+				"", "", "", "","","","","","","","",
+				"","");
 		column.setCommonListService(commonListService);
 		column.setCommonChartService(commonChartService);
 		column.setDistrictInfoService(districtInfoService);

@@ -65,9 +65,9 @@ public class HttpUtil {
 			// 获取所有响应头字段
 			Map<String, List<String>> map = connection.getHeaderFields();
 			// 遍历所有的响应头字段
-			for (String key : map.keySet()) {
+			/*for (String key : map.keySet()) {
 				log.error(key + "--->" + map.get(key));
-			}
+			}*/
 			// 定义 BufferedReader输入流来读取URL的响应
 			in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
 			String line;
@@ -118,9 +118,9 @@ public class HttpUtil {
 			// 获取所有响应头字段
 			Map<String, List<String>> map = connection.getHeaderFields();
 			// 遍历所有的响应头字段
-			for (String key : map.keySet()) {
+			/*for (String key : map.keySet()) {
 				log.error(key + "--->" + map.get(key));
-			}
+			}*/
 			// 定义 BufferedReader输入流来读取URL的响应
 			inputStream = connection.getInputStream();
 		} catch (Exception e) {
@@ -271,7 +271,7 @@ public class HttpUtil {
 			while (iterator.hasNext()) {
 				Entry<String, String> elem = (Entry<String, String>) iterator.next();
 				list.add(new BasicNameValuePair(elem.getKey(), elem.getValue()));
-				log.error(elem.getKey() + "----" + elem.getValue());
+				//log.error(elem.getKey() + "----" + elem.getValue());
 			}
 			if (list.size() > 0) {
 				UrlEncodedFormEntity entity = new UrlEncodedFormEntity(list, charset);
@@ -312,7 +312,7 @@ public class HttpUtil {
 			while (iterator.hasNext()) {
 				Entry<String, String> elem = (Entry<String, String>) iterator.next();
 				list.add(new BasicNameValuePair(elem.getKey(), elem.getValue()));
-				log.error(elem.getKey() + "----" + elem.getValue());
+				//log.error(elem.getKey() + "----" + elem.getValue());
 			}
 			if (list.size() > 0) {
 				UrlEncodedFormEntity entity = new UrlEncodedFormEntity(list, charset);

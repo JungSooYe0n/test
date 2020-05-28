@@ -287,10 +287,33 @@ public class ColumnServiceImpl implements IColumnService {
 					map.put("type", tab.getType());
 					map.put("contrast", tab.getContrast());
 					map.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
-					map.put("keyWord", tab.getKeyWord());
+
+					//获取词距信息
+					String keywordJson = tab.getKeyWord();
+					map.put("updateWordForm", false);
+					map.put("wordFromNum", 0);
+					map.put("wordFromSort",false);
+					if(StringUtil.isNotEmpty(keywordJson)){
+						JSONArray jsonArray = JSONArray.parseArray(keywordJson);
+						//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
+						if(jsonArray!= null && jsonArray.size() ==1 ){
+							Object o = jsonArray.get(0);
+							JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+							String key = jsonObject.getString("keyWords");
+							if(StringUtil.isNotEmpty(key) && key.contains(",")){
+								String wordFromNum = jsonObject.getString("wordSpace");
+								Boolean wordFromSort = jsonObject.getBoolean("wordOrder");
+								map.put("updateWordForm", true);
+								map.put("wordFromNum", wordFromNum);
+								map.put("wordFromSort",wordFromSort);
+							}
+						}
+					}
+					map.put("keyWord", keywordJson);
 					map.put("keyWordIndex", tab.getKeyWordIndex());
 					map.put("weight", tab.isWeight());
 					map.put("excludeWords", tab.getExcludeWords());
+					map.put("excludeWordsIndex", tab.getExcludeWordIndex());
 					map.put("excludeWeb", tab.getExcludeWeb());
 					//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
 					if (tab.isSimilar()) {
@@ -306,6 +329,14 @@ public class ColumnServiceImpl implements IColumnService {
 					map.put("timeRange", tab.getTimeRange());
 					map.put("trsl", tab.getTrsl());
 					map.put("xyTrsl", tab.getXyTrsl());
+
+					map.put("mediaLevel", tab.getMediaLevel());
+					map.put("mediaIndustry", tab.getMediaIndustry());
+					map.put("contentIndustry", tab.getContentIndustry());
+					map.put("filterInfo", tab.getFilterInfo());
+					map.put("contentArea", tab.getContentArea());
+					map.put("mediaArea", tab.getMediaArea());
+
 					map.put("active", false);
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
@@ -1452,7 +1483,8 @@ public class ColumnServiceImpl implements IColumnService {
 	@Override
 	public Object selectList(IndexTab indexTab, int pageNo, int pageSize, String source, String emotion, String entityType,
 							 String dateTime, String key, String sort, String area, String irKeyword, String invitationCard,
-							 String forwarPrimary, String keywords, String fuzzyValueScope) {
+							 String forwarPrimary, String keywords, String fuzzyValueScope,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
+							 String contentArea,String mediaArea,String preciseFilter) {
 		String userName = UserUtils.getUser().getUserName();
 		long start = new Date().getTime();
 		if (indexTab != null) {
@@ -1460,7 +1492,9 @@ public class ColumnServiceImpl implements IColumnService {
 			try {
 				AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 				ColumnConfig config = new ColumnConfig();
-				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, area, irKeyword, invitationCard, keywords, fuzzyValueScope, forwarPrimary);
+				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, area, irKeyword, invitationCard,
+						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				column.setCommonListService(commonListService);
 				column.setCommonChartService(commonChartService);
 				column.setCommonListService(commonListService);

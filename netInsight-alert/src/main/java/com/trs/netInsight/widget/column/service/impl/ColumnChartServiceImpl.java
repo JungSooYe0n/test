@@ -104,6 +104,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneCcInfo.put("keyWordIndex", oneCc.getKeyWordIndex());
                 oneCcInfo.put("weight", oneCc.isWeight());
                 oneCcInfo.put("excludeWords", oneCc.getExcludeWords());
+                oneCcInfo.put("excludeWordsIndex", oneCc.getExcludeWordIndex());
                 oneCcInfo.put("excludeWeb", oneCc.getExcludeWeb());
                 //排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
                 if (oneCc.isSimilar()) {
@@ -119,6 +120,14 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneCcInfo.put("timeRange", oneCc.getTimeRange());
                 oneCcInfo.put("trsl", oneCc.getTrsl());
                 oneCcInfo.put("xyTrsl", oneCc.getXyTrsl());
+
+                oneCcInfo.put("mediaLevel", oneCc.getMediaLevel());
+                oneCcInfo.put("mediaIndustry", oneCc.getMediaIndustry());
+                oneCcInfo.put("contentIndustry", oneCc.getContentIndustry());
+                oneCcInfo.put("filterInfo", oneCc.getFilterInfo());
+                oneCcInfo.put("contentArea", oneCc.getContentArea());
+                oneCcInfo.put("mediaArea", oneCc.getMediaArea());
+
                 ccList.add(oneCcInfo);
             }
         }

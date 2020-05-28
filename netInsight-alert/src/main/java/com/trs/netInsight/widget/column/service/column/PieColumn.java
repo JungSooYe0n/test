@@ -50,15 +50,17 @@ public class PieColumn extends AbstractColumn {
 					|| ChartPageInfo.StatisticalChart.equals(super.config.getChartPage())) {// 对比类别不为空,断言简单模式
 				String contrastField = FtsFieldConst.FIELD_GROUPNAME;
 				String type = indexTab.getType();
-				if(ColumnConst.CHART_PIE.equals(type)){
-					contrastField = FtsFieldConst.FIELD_GROUPNAME;
-					builder.setPageSize(20);
+				if(ChartPageInfo.StatisticalChart.equals(super.config.getChartPage())){
+					if(ColumnConst.CHART_PIE.equals(type)){
+						contrastField = FtsFieldConst.FIELD_GROUPNAME;
+						builder.setPageSize(20);
 
-				}else if(ColumnConst.CHART_PIE_EMOTION.equals(type)){
-					contrastField = FtsFieldConst.FIELD_APPRAISE;
-					builder.setPageSize(20);
+					}else if(ColumnConst.CHART_PIE_EMOTION.equals(type)){
+						contrastField = FtsFieldConst.FIELD_APPRAISE;
+						builder.setPageSize(20);
 
-				}else{
+					}
+				} else{
 					// 来源分类对比图
 					if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_GROUP)) {
 						builder.setPageSize(20);

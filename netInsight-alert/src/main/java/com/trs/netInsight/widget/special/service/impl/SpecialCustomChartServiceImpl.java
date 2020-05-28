@@ -602,15 +602,15 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
                     map.put("title", content);
                     map.put("abstracts", content);
-                    map.put("author", vo.getScreenName());
+                    map.put("siteName", vo.getScreenName());
                 } else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
                     map.put("title", content);
                     map.put("abstracts", content);
-                    map.put("author", vo.getAuthors());
+                    map.put("siteName", vo.getAuthors());
                 } else if (Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)) {
                     map.put("title", content);
                     map.put("abstracts", content);
-                    map.put("author", vo.getAuthors());
+                    map.put("siteName", vo.getAuthors());
                 }
                 map.put("commtCount", vo.getCommtCount());
                 map.put("rttCount", vo.getRttCount());

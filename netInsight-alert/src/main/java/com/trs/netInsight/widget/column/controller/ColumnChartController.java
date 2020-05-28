@@ -73,7 +73,7 @@ public class ColumnChartController {
         User user = UserUtils.getUser();
         IndexTabMapper mapper = indexTabMapperService.findOne(id);
         if (ObjectUtil.isEmpty(mapper)) {
-            throw new TRSException("当前栏目不存在");
+            throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
         }
         Object result = columnChartService.getColumnChart(id);
         return result;
@@ -97,7 +97,7 @@ public class ColumnChartController {
         // 需要排序
         IndexPage indexPage = indexPageService.findOne(id);
         if (ObjectUtil.isEmpty(indexPage)) {
-            throw new TRSException("当前分组不存在");
+            throw new TRSException(CodeUtils.FAIL,"当前分组不存在");
         }
         Object result = columnChartService.getTopColumnChartForPage(id);
         return result;
@@ -172,14 +172,14 @@ public class ColumnChartController {
             throws TRSException {
 
         if (StringUtil.isEmpty(ids)) {
-            throw new TRSException("无数据");
+            throw new TRSException(CodeUtils.FAIL,"无数据");
         }
         List<CustomChart> customChartList = new ArrayList<>();
         String[] idArr = ids.split(";");
         for (String id : idArr) {
             CustomChart oneCustomChart = columnChartService.findOneCustomChart(id);
             if (oneCustomChart == null) {
-                throw new TRSException("不存在的自定义图表：" + id);
+                throw new TRSException(CodeUtils.FAIL,"不存在的自定义图表：" + id);
             }
             customChartList.add(oneCustomChart);
         }
@@ -216,6 +216,7 @@ public class ColumnChartController {
             @ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWordIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "xyTrsl", value = "XY轴检索表达式", dataType = "String", paramType = "query", required = false),
@@ -223,7 +224,13 @@ public class ColumnChartController {
             @ApiImplicitParam(name = "timeRange", value = "发布时间范围(2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
             @ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
-            @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false)})
+            @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
+            @ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
     public Object addCustomChart(@RequestParam("name") String name, @RequestParam(value = "tabId") String tabId,
                                  @RequestParam("columnType") String columnType,
                                  @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
@@ -231,6 +238,7 @@ public class ColumnChartController {
                                  @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
                                  @RequestParam(value = "keyWord", required = false) String keyWord,
                                  @RequestParam(value = "excludeWords", required = false) String excludeWords,
+                                 @RequestParam(value = "excludeWordIndex", required = false) String excludeWordIndex,
                                  @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
                                  @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
                                  @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -238,6 +246,12 @@ public class ColumnChartController {
                                  @RequestParam(value = "weight", required = false) boolean weight,
                                  @RequestParam(value = "simflag", required = false) String simflag,
                                  @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
+                                 @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+                                 @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+                                 @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+                                 @RequestParam(value = "filterInfo", required = false) String filterInfo,
+                                 @RequestParam(value = "contentArea", required = false) String contentArea,
+                                 @RequestParam(value = "mediaArea", required = false) String mediaArea,
                                  HttpServletRequest request)
             throws TRSException {
         String[] typeArr = type.split(";");
@@ -269,7 +283,7 @@ public class ColumnChartController {
         }
         IndexTabMapper mapper = indexTabMapperService.findOne(tabId);
         if (ObjectUtil.isEmpty(mapper)) {
-            throw new TRSException("当前自定义图表对应的栏目不存在");
+            throw new TRSException(CodeUtils.FAIL,"当前自定义图表对应的栏目不存在");
         }
 
 
@@ -300,29 +314,34 @@ public class ColumnChartController {
             // 有几个图专家模式下 必须传xy表达式
             if (SpecialType.SPECIAL.equals(specialType)) {
                 if (StringUtil.isNotEmpty(trsl)) {
-                    contrast = null;
+                    if(!IndexTabType.MAP.equals(indexTabType)){
+                        contrast = null;
+                    }
                     if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
                         if (StringUtil.isEmpty(xyTrsl)) {
-                            throw new OperationException("专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
+                            throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
                         }
                     }
                 } else {
-                    throw new OperationException("专家模式下必须填写检索表达式表达式");
+                    throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
                 }
             } else {
                 trsl = null;
                 xyTrsl = null;
                 if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
                         && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
-                    throw new OperationException("普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+                    throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                    contrast = null;
                 }
             }
             if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)) {
                 groupName = Const.PAGE_SHOW_WEIXIN;
             }
             groupName = CommonListChartUtil.changeGroupName(groupName);
-            CustomChart customChart = new CustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, timeRange, false, keyWord, excludeWords,
-                    keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, tabId, sequence, specialType);
+            CustomChart customChart = new CustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, timeRange, false, keyWord, excludeWords,excludeWordIndex,
+                    keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, tabId, sequence, specialType,mediaLevel, mediaIndustry, contentIndustry,
+                    filterInfo, contentArea, mediaArea);
             customChart = columnChartService.saveCustomChart(customChart);
             result.add(customChart);
         }
@@ -367,6 +386,7 @@ public class ColumnChartController {
             @ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWordIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "xyTrsl", value = "XY轴检索表达式", dataType = "String", paramType = "query", required = false),
@@ -374,7 +394,13 @@ public class ColumnChartController {
             @ApiImplicitParam(name = "timeRange", value = "发布时间范围(2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
             @ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
-            @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false)})
+            @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
+            @ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
     public Object updateCustomChart(@RequestParam("id") String id, @RequestParam("name") String name,
                                     @RequestParam("columnType") String columnType,
                                     @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
@@ -382,6 +408,7 @@ public class ColumnChartController {
                                     @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
                                     @RequestParam(value = "keyWord", required = false) String keyWord,
                                     @RequestParam(value = "excludeWords", required = false) String excludeWords,
+                                    @RequestParam(value = "excludeWordIndex", required = false) String excludeWordIndex,
                                     @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
                                     @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
                                     @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -389,6 +416,12 @@ public class ColumnChartController {
                                     @RequestParam(value = "weight", required = false) boolean weight,
                                     @RequestParam(value = "simflag", required = false) String simflag,
                                     @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
+                                    @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+                                    @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+                                    @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+                                    @RequestParam(value = "filterInfo", required = false) String filterInfo,
+                                    @RequestParam(value = "contentArea", required = false) String contentArea,
+                                    @RequestParam(value = "mediaArea", required = false) String mediaArea,
                                     HttpServletRequest request)
             throws TRSException {
 
@@ -434,21 +467,25 @@ public class ColumnChartController {
             // 有几个图专家模式下 必须传xy表达式
             if (SpecialType.SPECIAL.equals(specialType)) {
                 if (StringUtil.isNotEmpty(trsl)) {
-                    contrast = null;
+                    if(!IndexTabType.MAP.equals(indexTabType)){
+                        contrast = null;
+                    }
                     if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
                         if (StringUtil.isEmpty(xyTrsl)) {
-                            throw new OperationException("专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
+                            throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
                         }
                     }
                 } else {
-                    throw new OperationException("专家模式下必须填写检索表达式表达式");
+                    throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
                 }
             } else {
                 trsl = null;
                 xyTrsl = null;
                 if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
                         && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
-                    throw new OperationException("普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+                    throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                    contrast = null;
                 }
             }
             if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)) {
@@ -456,7 +493,7 @@ public class ColumnChartController {
             }
             CustomChart customChart = columnChartService.findOneCustomChart(id);
             if (ObjectUtil.isEmpty(customChart)) {
-                throw new TRSException("当前自定义图表不存在");
+                throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
             }
             customChart.setName(name);
             customChart.setSpecialType(specialType);
@@ -468,11 +505,18 @@ public class ColumnChartController {
             customChart.setTimeRange(timeRange);
             customChart.setKeyWord(keyWord);
             customChart.setExcludeWords(excludeWords);
+            customChart.setExcludeWordIndex(excludeWordIndex);
             customChart.setKeyWordIndex(keyWordIndex);
             customChart.setGroupName(groupName);
             customChart.setSimilar(isSimilar);
             customChart.setIrSimflag(irSimflag);
             customChart.setIrSimflagAll(irSimflagAll);
+            customChart.setMediaLevel(mediaLevel);
+            customChart.setMediaIndustry(mediaIndustry);
+            customChart.setContentIndustry(contentIndustry);
+            customChart.setFilterInfo(filterInfo);
+            customChart.setMediaArea(mediaArea);
+            customChart.setContentArea(contentArea);
 
             // 栏目从标题+正文修改为仅标题的时候不设置权重，但传的weight还是=true
             if ("0".equals(keyWordIndex)) {

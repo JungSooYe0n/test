@@ -230,7 +230,9 @@ public class AppApiController {
         }
         AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
         ColumnConfig config = new ColumnConfig();
-        config.initSection(indexTab, timeRan, pageNo, pageSize ,"ALL","ALL", entityType,null,null,"default","ALL","ALL", "","","","");
+        config.initSection(indexTab, timeRan, pageNo, pageSize ,"ALL","ALL", entityType,null,null,"default","ALL",
+                "ALL", "","","","","", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
+                indexTab.getContentArea(), indexTab.getMediaArea(), "");
         column.setCommonListService(commonListService);
         column.setCommonChartService(commonChartService);
         column.setDistrictInfoService(districtInfoService);
