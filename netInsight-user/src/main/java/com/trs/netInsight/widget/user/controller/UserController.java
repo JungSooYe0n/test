@@ -442,15 +442,15 @@ public class UserController {
 		}
 		user.setCheckRole(checkRole);
 		user.setOrganizationId(organizationId);
-		String ownerId = user.getId();
-		if (StringUtil.isNotEmpty(user.getSubGroupId())){
-			ownerId = user.getSubGroupId();
-		}
-		if (CheckRole.ROLE_PLATFORM.equals(checkRole) && UserUtils.isSuperAdmin()) {
-			hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,ownerId,organizationId);
-		}
 		try {
 			userService.add(user, copyFlag);
+			String ownerId = user.getId();
+			if (StringUtil.isNotEmpty(user.getSubGroupId())){
+				ownerId = user.getSubGroupId();
+			}
+			if (CheckRole.ROLE_PLATFORM.equals(checkRole) && UserUtils.isSuperAdmin()) {
+				hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,ownerId,organizationId);
+			}
 			return "添加用户成功！";
 		} catch (Exception e) {
 			log.error("添加用户失败：", e);

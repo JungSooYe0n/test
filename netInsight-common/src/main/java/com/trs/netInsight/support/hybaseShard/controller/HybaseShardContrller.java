@@ -79,7 +79,19 @@ public class HybaseShardContrller {
             trsHybaseShard.setHybaseServer("");
             trsHybaseShard.setHybasePwd("");
             trsHybaseShard.setHybaseUser("");
-        } else {
+            if(StringUtil.isEmpty(trsHybaseShard.getWeiXin())){
+                trsHybaseShard.setWeiXin(Const.WECHAT);
+            }
+            if(StringUtil.isEmpty(trsHybaseShard.getWeiBo())){
+                trsHybaseShard.setWeiBo(Const.WEIBO);
+            }
+            if(StringUtil.isEmpty(trsHybaseShard.getTradition())){
+                trsHybaseShard.setTradition(Const.HYBASE_NI_INDEX);
+            }
+            if(StringUtil.isEmpty(trsHybaseShard.getOverseas())){
+                trsHybaseShard.setOverseas(Const.HYBASE_OVERSEAS);
+            }
+        }else {
             //为空则是表示历史机构 添加默认库
             trsHybaseShard = new HybaseShard();
             trsHybaseShard.setHybaseServer("");
