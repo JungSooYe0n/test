@@ -307,11 +307,10 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                                                           long pageNo, Class<T> resultClass, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, boolean server, String type)
             throws TRSSearchException {
         queryCount();
-        // 抽取数据库，要写到添加trsl之前
-        String[] databaseArr = chooseDatabases(trsl, true);
+        //只用返回结果实体类对应的数据库
         String databases = FtsParser.getDatabases(resultClass);
-        if (databaseArr != null && databaseArr.length > 0) {
-            databases = String.join(";", databaseArr);
+        if (StringUtil.isEmpty(databases)) {
+            return null;
         }
         String db = addHybaseInsert(databases);
         // 判断是否排重
