@@ -16,7 +16,10 @@ package com.trs.netInsight.widget.special.service;
 import java.util.List;
 
 import com.trs.jpa.utils.Criteria;
+import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
+import com.trs.netInsight.widget.user.entity.User;
 
 /**
  * 专题
@@ -70,6 +73,9 @@ public interface ISpecialSubjectService {
 	 * @param oneOrTwo 一级传one  二级传two
 	 */
 	public void delete(String subjectId,String oneOrTwo);
+
+	public Object deleteSubject(String subjectId) throws TRSException;
+	public void deleteProject(String projectId) throws OperationException, TRSException;
 	public void deleteByUserId(String userId);
 	/**
 	 * 新建主题
@@ -78,6 +84,14 @@ public interface ISpecialSubjectService {
 	 * createdby xiaoying
 	 */
 	public Object addSubject(String name);
+
+	/**
+	 * 新建专题分组
+	 * @param name
+	 * @param parentId
+	 * @return
+	 */
+	public Object addSubject(String name,String parentId,User user);
 
 	/**
 	 * 根据id 批量获取主题

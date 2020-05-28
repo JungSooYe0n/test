@@ -367,6 +367,11 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
     private String location;
     @FtsField("IR_VIA")
     private String via;
+    /**
+     * 视频分享数
+     */
+    @FtsField("IR_SHARE_COUNT")
+    private long shareCount;
 //    @FtsField("IR_VRESERVED1")
 //    private String vreserved1;
 //    @FtsField("IR_VRESERVED2")

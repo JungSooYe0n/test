@@ -19,7 +19,6 @@ import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
-import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.analysis.entity.MBlogAnalyzeEntity;
 import com.trs.netInsight.widget.analysis.entity.ReportTipping;
@@ -33,10 +32,7 @@ import com.trs.netInsight.widget.spread.entity.SinaUser;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author yan.changjiang
@@ -489,6 +485,7 @@ public interface IChartAnalyzeService {
 	 */
 	public Object getWordCloud(boolean server, String trsl, boolean sim, boolean irSimflag,boolean irSimflagAll, String entityType,
 							   int limit,String type, String... data) throws TRSSearchException;
+	public Object getWordCloudNew(QueryBuilder builder, boolean sim, boolean irSimflag,boolean irSimflagAll,String entityType,String type) throws TRSSearchException;
 
 	/**
 	 * 新闻传播站点分析
@@ -502,10 +499,11 @@ public interface IChartAnalyzeService {
 	 */
 	public List<Map<String, Object>> newsSiteAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar,
 													  boolean irSimflag,boolean irSimflagAll,boolean isApi) throws TRSSearchException;
-
+	public List<Map<String, Object>> spreadAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar,
+													  boolean irSimflag,boolean irSimflagAll,boolean isApi,String groupName) throws TRSSearchException;
 	HashMap<String, Object> getUserViewsData(SpecialProject specialProject, String timeRange, String industry, String area, SpecialParam specParam) throws Exception;
 
-
+	ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange, SpecialParam specParam) throws Exception;
 	/**
 	 * 专题分析饼图和柱状图数据导出
 	 * @param dataType

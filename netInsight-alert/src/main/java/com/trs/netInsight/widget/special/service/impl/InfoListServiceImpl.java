@@ -6485,10 +6485,13 @@ public class InfoListServiceImpl implements IInfoListService {
 		for(String groupName : Const.MEDIA_TYPE_NEWS){
 			if(groupName.contains(source)){
 				//传统  IR_CHANNEL_INDUSTRY  ;分组  AND关系查找
-				builderOne.setDatabase(Const.HYBASE_NI_INDEX);
+//				builderOne.setDatabase(Const.HYBASE_NI_INDEX);
 				String idTrsl = new StringBuffer().append(FtsFieldConst.FIELD_SID).append(":").append(sid).toString();
 				builderOne.filterByTRSL(idTrsl);
-				List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocument.class, false, false,false,null);
+//				List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocument.class, false, false,false,null);
+				InfoListResult infoListResult2 = commonListService.queryPageList(builderOne,false,false,false,groupName,null,UserUtils.getUser(),false);
+				PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+				List<FtsDocumentCommonVO> ftsQuery = content2.getPageItems();
 				String channelIndustry = ftsQuery.get(0).getChannelIndustry();
 				String siteName = ftsQuery.get(0).getSiteName();
 				String groupNameInResult = ftsQuery.get(0).getGroupName();
@@ -6517,8 +6520,11 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 				//排除自己
 				channelBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.NotEqual);
-				List<FtsDocument> channelList = hybase8SearchService.ftsQuery(channelBuilder, FtsDocument.class, false, true,false,null);
-				for (FtsDocument document : channelList) {
+				InfoListResult infoListResult = commonListService.queryPageList(channelBuilder,false,true,false,groupName,null,UserUtils.getUser(),false);
+				PagedList<FtsDocumentCommonVO> content3 = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				List<FtsDocumentCommonVO> channelList = content3.getPageItems();
+//				List<FtsDocument> channelList = hybase8SearchService.ftsQuery(channelBuilder, FtsDocument.class, false, true,false,null);
+				for (FtsDocumentCommonVO document : channelList) {
 					String content = document.getContent();
 					List<String> imgSrcList = StringUtil.getImgStr(content);
 					if(imgSrcList!=null && imgSrcList.size()>0){
@@ -6543,8 +6549,11 @@ public class InfoListServiceImpl implements IInfoListService {
 			String hostTrsl = new StringBuffer().append(FtsFieldConst.FIELD_MID).append(":").append(sid).toString();
 			builderOne.filterByTRSL(hostTrsl);
 			// 一个sid对应拿到这篇文章详情，再拿screenName--博主，最后拿到他所有文章，前5篇，排序
-			List<FtsDocumentStatus> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocumentStatus.class,
-					false, false,false,null);
+//			List<FtsDocumentStatus> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocumentStatus.class,
+//					false, false,false,null);
+			InfoListResult infoListResult01 = commonListService.queryPageList(builderOne,false,false,false,Const.GROUPNAME_WEIBO,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> content01 = (PagedList<FtsDocumentCommonVO>) infoListResult01.getContent();
+			List<FtsDocumentCommonVO> ftsQuery = content01.getPageItems();
 			String screenName = ftsQuery.get(0).getScreenName();
 			// 拼接搜索表达式
 			String findArticleTrsl = new StringBuffer().append(FtsFieldConst.FIELD_SCREEN_NAME).append(":\"")
@@ -6556,36 +6565,46 @@ public class InfoListServiceImpl implements IInfoListService {
 			SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMddHHmmss);
 			channelBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.NotEqual);
 			channelBuilder.filterField(FtsFieldConst.FIELD_URLTIME, new String[]{sdf.format(DateUtil.getDate(-15)),sdf.format(new Date())}, Operator.Between);
-			List<FtsDocumentStatus> everyArticle = hybase8SearchService.ftsQuery(channelBuilder,
-					FtsDocumentStatus.class, false, true,false,null);
-
+//			List<FtsDocumentStatus> everyArticle = hybase8SearchService.ftsQuery(channelBuilder,
+//					FtsDocumentStatus.class, false, true,false,null);
+			InfoListResult infoListResult = commonListService.queryPageList(channelBuilder,false,true,false,Const.GROUPNAME_WEIBO,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> content3 = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			List<FtsDocumentCommonVO> everyArticle = content3.getPageItems();
 			map.put("simCount", 5);
 			map.put("simuList", everyArticle);
 		} else if (Const.MEDIA_TYPE_TF.contains(source)) {//海外的没出方案
-			builderOne.setDatabase(Const.HYBASE_OVERSEAS);
+//			builderOne.setDatabase(Const.HYBASE_OVERSEAS);
 			String hostTrsl = new StringBuffer().append(FtsFieldConst.FIELD_SID).append(":").append(sid).toString();
 			builderOne.filterByTRSL(hostTrsl);
-			List<FtsDocumentTF> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocumentTF.class, false,
-					false,false,null);
+//			List<FtsDocumentTF> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocumentTF.class, false,
+//					false,false,null);
+			InfoListResult infoListResult = commonListService.queryPageList(builderOne,false,false,false,Const.TYPE_TF,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> content3 = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			List<FtsDocumentCommonVO> ftsQuery = content3.getPageItems();
 			String screenName = "";
-			for (FtsDocumentTF ftsDocument : ftsQuery) {
+			for (FtsDocumentCommonVO ftsDocument : ftsQuery) {
 				screenName = ftsDocument.getScreenName();
 			}
 			// 拼接搜索表达式
 			String findArticleTrsl = new StringBuffer().append(FtsFieldConst.FIELD_SCREEN_NAME).append(":\"")
 					.append(screenName + "\"").toString();
 			channelBuilder.filterByTRSL(findArticleTrsl);
-			List<FtsDocumentTF> everyArticle = hybase8SearchService.ftsQuery(channelBuilder,
-					FtsDocumentTF.class, false, true,false,null);
-
+//			List<FtsDocumentTF> everyArticle = hybase8SearchService.ftsQuery(channelBuilder,
+//					FtsDocumentTF.class, false, true,false,null);
+			InfoListResult infoListResult1 = commonListService.queryPageList(builderOne,false,true,false,Const.TYPE_TF,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> content1 = (PagedList<FtsDocumentCommonVO>) infoListResult1.getContent();
+			List<FtsDocumentCommonVO> everyArticle = content1.getPageItems();
 			map.put("simCount", 5);
 			map.put("simuList", everyArticle);
 
 		} else if (Const.MEDIA_TYPE_WEIXIN.contains(source)) {
 			String hostTrsl = new StringBuffer().append(FtsFieldConst.FIELD_HKEY).append(":").append(sid).toString();
 			builderOne.filterByTRSL(hostTrsl);
-			List<FtsDocumentWeChat> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocumentWeChat.class,
-					false, false,false,null);
+//			List<FtsDocumentWeChat> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocumentWeChat.class,
+//					false, false,false,null);
+			InfoListResult infoListResult1 = commonListService.queryPageList(builderOne,false,false,false,Const.GROUPNAME_WEIXIN,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> content1 = (PagedList<FtsDocumentCommonVO>) infoListResult1.getContent();
+			List<FtsDocumentCommonVO> ftsQuery = content1.getPageItems();
 			String siteName = ftsQuery.get(0).getSiteName();//公众号
 			// 拼接搜索表达式
 			String findArticleTrsl = new StringBuffer().append(FtsFieldConst.FIELD_SITENAME).append(":\"")
@@ -6596,8 +6615,11 @@ public class InfoListServiceImpl implements IInfoListService {
 			channelBuilder.setEndTime(new Date());
 			SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMddHHmmss);
 			channelBuilder.filterField(FtsFieldConst.FIELD_URLTIME, new String[]{sdf.format(DateUtil.getDate(-15)),sdf.format(new Date())}, Operator.Between);
-			List<FtsDocumentWeChat> wechatList = hybase8SearchService.ftsQuery(channelBuilder,
-					FtsDocumentWeChat.class, false, true,false,null);
+//			List<FtsDocumentWeChat> wechatList = hybase8SearchService.ftsQuery(channelBuilder,
+//					FtsDocumentWeChat.class, false, true,false,null);
+			InfoListResult infoListResult = commonListService.queryPageList(channelBuilder,false,true,false,Const.GROUPNAME_WEIXIN,null,UserUtils.getUser(),false);
+			PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			List<FtsDocumentCommonVO> wechatList = content.getPageItems();
 			map.put("simCount", 5);
 			map.put("simuList", wechatList);
 		}

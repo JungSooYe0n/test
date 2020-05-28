@@ -383,7 +383,17 @@ public class CommonChartServiceImpl implements ICommonChartService {
             }
             if (ObjectUtil.isNotEmpty(newGroupWordList) && newGroupWordList.size() > 0) {
                 wordInfos.setGroupList(newGroupWordList);
-                return wordInfos;
+                List<Object> result2 = new ArrayList<>();
+                Map<String, Object> map = null;
+                for (GroupWordInfo wordInfo : wordInfos) {
+                    map = new HashMap<>();
+                    map.put("name", wordInfo.getFieldValue());
+                    map.put("value", wordInfo.getCount());
+                    map.put("entityType", wordInfo.getEntityType());
+                    result2.add(map);
+                }
+                return result2;
+//                return wordInfos;
             } else {
                 return null;
             }

@@ -7,6 +7,7 @@ import java.util.Map;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
+import com.trs.netInsight.widget.column.entity.emuns.SpecialFlag;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
@@ -19,6 +20,7 @@ import com.trs.netInsight.widget.user.entity.User;
  * Created by ChangXiaoyang on 2017/4/7.
  */
 public interface ISpecialService {
+	Integer getMaxSequenceForSpecial(String parentPageId,User user);
 
 	/**
 	 * 发送邮件
@@ -107,8 +109,8 @@ public interface ISpecialService {
 	 * @return
 	 * @throws TRSException
 	 */
-	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName, String allKeywords,
-			String anyKeywords, String excludeWords, String trsl,String statusTrsl,String weChatTrsl ,SearchScope scope, Date startTime, Date endTime,
+	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
+			String anyKeywords, String excludeWords, String trsl,SearchScope scope, Date startTime, Date endTime,
 			String source,String timerange,boolean similar,boolean weight,boolean irSimflag,boolean server,boolean irSimflagAll,String excludeWeb)
 			throws Exception;
 
@@ -137,6 +139,13 @@ public interface ISpecialService {
 	 * @throws OperationException
 	 */
 	public Object selectSpecialNew(User user)throws OperationException;
+	/**
+	 * 重构左侧专题列表
+	 * @param user
+	 * @return
+	 * @throws OperationException
+	 */
+	public Object selectSpecialReNew(User user)throws OperationException;
 
     /**
      * 添加用户时 同步数据出现的弹框里的内容
@@ -177,6 +186,15 @@ public interface ISpecialService {
 	 * @return
 	 */
 	public Object moveListNew(String id,String pid,String typeFlag,String[] ids,int[] typeFlags) throws TRSException;
+	Object moveProjectSequence(String data,String moveData,String parentId,User user)throws OperationException;
+	/**
+	 * 重新排序column，在删除一个分组或者栏目时，去掉原栏目的排序
+	 * @param moveId  被删除的对象的id
+	 * @param flag 标识是栏目还是分组  分组为 0  栏目为1
+	 * @param user
+	 * @return
+	 */
+	Object moveSequenceForSpecial(String moveId, SpecialFlag flag, User user) throws OperationException;
 	/**
 	 * 复制当前机构管理员专题到普通用户下
 	 * 

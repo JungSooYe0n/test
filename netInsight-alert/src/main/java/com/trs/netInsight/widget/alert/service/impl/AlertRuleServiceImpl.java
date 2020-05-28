@@ -654,6 +654,9 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			countList = alertRuleRepository.findBySubGroupId(user.getSubGroupId(), new Sort(Direction.DESC, "createdTime"));
 
 		}
+		for (AlertRule alertRule : countList){
+			alertRule.setGroupName(CommonListChartUtil.formatPageShowGroupName(alertRule.getGroupName()));
+		}
 		return countList;
 	}
 
@@ -1112,7 +1115,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				}
 				break;
 		}
-		countBuilder.setDatabase(Const.WEIBO);
+//		countBuilder.setDatabase(Const.WEIBO);
 		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,"alert",loginUser,false);
 //		InfoListResult<FtsDocumentStatus> docList = infoListService.getStatusList(builder, loginUser,alertRule.isRepetition(),irSimflag,irSimflagAll,false,"alert");
 		return infoListResult;
@@ -1264,7 +1267,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				break;
 			case "hot":
-				return commonListService.queryPageListForHot(builder,Const.TYPE_NEWS,loginUser,"alert",false);
+				return commonListService.queryPageListForHot(builder,source,loginUser,"alert",false);
 //			return infoListService.getHotList(builder, countBuilder, loginUser,"alert");
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
@@ -1280,10 +1283,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				}
 				break;
 		}
-		countBuilder.setDatabase(Const.HYBASE_NI_INDEX);
+//		countBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 		log.info(builder.asTRSL());
 		log.error("开始查询海贝:" + System.currentTimeMillis());
-		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.TYPE_NEWS,"alert",loginUser,false);
+		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,source,"alert",loginUser,false);
 //		InfoListResult<FtsDocument> docList = infoListService.getDocList(builder, loginUser, simflag,irSimflag,irSimflagAll,false,"alert");
 		log.error("查询完成:" + System.currentTimeMillis());
 		log.error("方法返回:" + System.currentTimeMillis());
@@ -1309,7 +1312,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			irSimflagAll = alertRule.isIrSimflagAll();
 			builder = alertRule.toSearchBuilder(time);
 			countBuilder = alertRule.toSearchBuilder(time);
-			builder.setDatabase(Const.HYBASE_OVERSEAS);
+//			builder.setDatabase(Const.HYBASE_OVERSEAS);
 			builder.setPageNo(pageNo);
 			builder.setPageSize(pageSize);
 			countBuilder.setPageNo(pageNo);
@@ -1410,8 +1413,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				}
 				break;
 		}
-		countBuilder.setDatabase(Const.HYBASE_OVERSEAS);
-		InfoListResult docList = commonListService.queryPageList(builder,alertRule.isRepetition(),irsimflag,irSimflagAll,Const.GROUPNAME_TWITTER,"alert",loginUser,false);
+//		countBuilder.setDatabase(Const.HYBASE_OVERSEAS);
+		InfoListResult docList = commonListService.queryPageList(builder,simflag,irsimflag,irSimflagAll,Const.GROUPNAME_TWITTER,"alert",loginUser,false);
 //		InfoListResult<FtsDocumentTF> docList = infoListService.getDocTFList(builder, loginUser, simflag,irsimflag,irSimflagAll,"alert");
 		return docList;
 	}

@@ -2669,6 +2669,11 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
+	public Object getWordCloudNew(QueryBuilder builder, boolean sim, boolean irSimflag, boolean irSimflagAll, String entityType, String type) throws TRSSearchException {
+		return null;
+	}
+
+	@Override
 	public Object getVolume(QueryBuilder searchBuilder, String timerange, boolean sim, boolean irSimflag,boolean irSimflagAll,String showType)
 			throws TRSException, TRSSearchException {
 		String[] timeArray = DateUtil.formatTimeRange(timerange);
@@ -3020,6 +3025,16 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			}
 			return listMapData;
 		}
+		return null;
+	}
+
+    @Override
+    public List<Map<String, Object>> spreadAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean isApi, String groupName) throws TRSSearchException {
+        return null;
+    }
+
+    @Override
+	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange, SpecialParam specParam) {
 		return null;
 	}
 

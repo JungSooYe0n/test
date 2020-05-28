@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.special.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.trs.jpa.utils.Criteria;
 import com.trs.jpa.utils.Restrictions;
 import com.trs.netInsight.config.constant.Const;
@@ -19,7 +20,7 @@ import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
-import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
+import com.trs.netInsight.widget.column.entity.emuns.SpecialFlag;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.home.service.IHomeService;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
@@ -182,8 +183,8 @@ public class SpecialServiceImpl implements ISpecialService {
 	 * 更新专项
 	 */
 	@Override
-	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName, String allKeywords,
-			String anyKeywords, String excludeWords, String trsl, String statusTrsl, String weChatTrsl,
+	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
+			String anyKeywords, String excludeWords, String trsl,
 			SearchScope scope, Date startTime, Date endTime, String source, String timerange, boolean similar,
 			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb) throws Exception {
 		SpecialProject specialProject = specialProjectRepository.findOne(specialId);
@@ -191,12 +192,9 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setSpecialType(type);
 		specialProject.setSpecialName(specialName);
 		specialProject.setSearchScope(scope);
-		specialProject.setAllKeywords(allKeywords);
 		specialProject.setAnyKeywords(anyKeywords);
 		specialProject.setExcludeWords(excludeWords);
 		specialProject.setTrsl(trsl);
-		specialProject.setStatusTrsl(statusTrsl);
-		specialProject.setWeChatTrsl(weChatTrsl);
 		specialProject.setStartTime(startTime);
 		specialProject.setStart(new SimpleDateFormat("yyyyMMddHHmmss").format(startTime));
 		specialProject.setTimeRange(timerange);
@@ -220,6 +218,36 @@ public class SpecialServiceImpl implements ISpecialService {
 		// } else {
 		// throw new OperationException("修改失败");
 		// }
+	}
+	@Override
+	public Integer getMaxSequenceForSpecial(String parentPageId, User user) {
+		Integer seq = 0;
+		List<SpecialSubject> indexPage = new ArrayList<>();
+		List<SpecialProject> indexTabMapper = new ArrayList<>();
+		if(StringUtil.isEmpty(parentPageId)){
+			Map<String,Object> oneColumn = this.getOneLevelColumnForMap(user);
+			if (oneColumn.containsKey("page")) {
+				indexPage = (List<SpecialSubject>) oneColumn.get("page");
+			}
+			if (oneColumn.containsKey("tab")) {
+				indexTabMapper = (List<SpecialProject>) oneColumn.get("tab");
+			}
+		}else{
+			SpecialSubject parentPage =specialSubjectRepository.findOne(parentPageId);
+			indexPage = parentPage.getChildrenPage();
+			indexTabMapper = parentPage.getIndexTabMappers();
+		}
+		List<Object> sortColumn = this.sortColumn(indexTabMapper,indexPage,false,false);
+		if(sortColumn != null && sortColumn.size() > 0){
+			Object column = sortColumn.get(sortColumn.size()-1);
+			if (column instanceof SpecialProject) {
+				seq = ((SpecialProject)column).getSequence();
+			} else if (column instanceof SpecialSubject) {
+				seq = ((SpecialSubject)column).getSequence();
+			}
+		}
+
+		return seq;
 	}
 
 	/**
@@ -529,6 +557,171 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 		return mapAll;
 	}
+	private List<Object> formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
+		//前端需要字段
+		/*
+		id
+		name
+		flag
+		flagSort
+		show
+		children
+		 */
+		List<Object> result = new ArrayList<>();
+		Map<String, Object> map = null;
+		if (list != null && list.size() > 0) {
+			for (Object obj : list) {
+				map = new HashMap<>();
+				if (obj instanceof SpecialProject) {
+					SpecialProject tab = (SpecialProject) obj;
+					map.put("id",  tab.getId());
+					map.put("name", tab.getSpecialName());
+					map.put("flag", SpecialFlag.SpecialProjectFlag.ordinal());
+					map.put("flagSort", level);
+					map.put("show", false);//前端需要，与后端无关
+					map.put("isMe", true);
+					map.put("share", false);
+
+					map.put("type", "");
+					map.put("contrast", "");
+					map.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getSource()));
+					map.put("keyWord", tab.getAnyKeywords());
+					map.put("keyWordIndex", tab.getSearchScope());
+					map.put("weight", tab.isWeight());
+					map.put("excludeWords", tab.getExcludeWords());
+					map.put("excludeWeb", tab.getExcludeWeb());
+					//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
+					if (tab.isSimilar()) {
+						map.put("simflag", "netRemove");
+					} else if (tab.isIrSimflag()) {
+						map.put("simflag", "urlRemove");
+					} else if (tab.isIrSimflagAll()) {
+						map.put("simflag", "sourceRemove");
+					} else {
+						map.put("simflag", "no");
+					}
+					map.put("timeRange", tab.getTimeRange());
+					map.put("trsl", tab.getTrsl());
+					map.put("xyTrsl", "");
+					map.put("active", true);
+//					result.add(map);
+
+					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
+						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
+						if(!parentHide){
+							map.put("active", true);
+							isGetOne.set(0,true);
+						}
+					}
+
+				} else if (obj instanceof SpecialSubject) {
+					SpecialSubject page = (SpecialSubject) obj;
+					map.put("id", page.getId());
+					map.put("name", page.getName());
+					map.put("flag", SpecialFlag.SpecialSubjectFlag.ordinal());
+					map.put("flagSort", level);
+					map.put("show", false);//前端需要，与后端无关
+					map.put("active", false);
+					List<Object> childColumn = page.getColumnList();
+					List<Object> child = new ArrayList<>();
+					//如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值
+					//如果父级没被隐藏，当前级被隐藏，则用当前级的隐藏值
+					//如果父级没隐藏，当前级没隐藏，用没隐藏，父级则可
+					if(!parentHide){
+							parentHide = true;
+					}
+					//如果分组被隐藏了，前端不会显示，所以这里不查询了
+					if (childColumn != null && childColumn.size() > 0) {
+						child = this.formatResultColumn(childColumn,level+1,isGetOne,parentHide);
+					}
+					map.put("children", child);
+				}
+				result.add(map);
+			}
+		}
+		return result;
+	}
+	public List<Object> sortColumn(List<SpecialProject> mapperList,List<SpecialSubject> indexPageList,Boolean sortAll,Boolean onlySortPage){
+		List<Object> result = new ArrayList<>();
+
+		List<Map<String,Object>> sortList = new ArrayList<>();
+		if(!onlySortPage){
+			if(mapperList != null && mapperList.size() >0){
+				for(int i =0;i<mapperList.size();i++){
+					Map<String,Object> map = new HashMap<>();
+					map.put("id",mapperList.get(i).getId());
+					map.put("sequence",mapperList.get(i).getSequence());
+					map.put("index",i);
+					//栏目类型为1
+					map.put("flag",SpecialFlag.SpecialProjectFlag);
+					sortList.add(map);
+				}
+			}
+		}
+		if(indexPageList != null && indexPageList.size() > 0){
+			for(int i =0;i<indexPageList.size();i++){
+				Map<String,Object> map = new HashMap<>();
+				map.put("id",indexPageList.get(i).getId());
+				map.put("sequence",indexPageList.get(i).getSequence());
+				map.put("index",i);
+				//分组类型为0
+				map.put("flag", SpecialFlag.SpecialSubjectFlag);
+				sortList.add(map);
+			}
+		}
+		if(sortList.size() >0){
+			Collections.sort(sortList, (o1, o2) -> {
+				Integer seq1 = (Integer) o1.get("sequence");
+				Integer seq2 = (Integer) o2.get("sequence");
+				return seq1.compareTo(seq2);
+			});
+			//sortList 排序过后的数据
+			//只排序当前层，排序过后的数据，按顺序取出并返回
+			for(Map<String,Object> map : sortList){
+				SpecialFlag flag = (SpecialFlag) map.get("flag");
+				Integer index = (Integer) map.get("index");
+				if(flag.equals(SpecialFlag.SpecialSubjectFlag)){
+					SpecialSubject indexPage = indexPageList.get(index);
+					if(sortAll){
+						//获取子类的数据进行排序
+						List<SpecialSubject> child_page = indexPage.getChildrenPage();
+						List<SpecialProject> child_mapper = null;
+						if(!onlySortPage){
+							child_mapper = indexPage.getIndexTabMappers();
+						}
+						if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
+							indexPage.setColumnList(sortColumn(child_mapper,child_page,sortAll,onlySortPage));
+						}
+					}
+					result.add(indexPage);
+				}else if(flag.equals(SpecialFlag.SpecialProjectFlag)){
+					SpecialProject mapper = mapperList.get(index);
+					//栏目只有一层，直接添加就行
+					result.add(mapper);
+				}
+			}
+		}
+
+		return result;
+	}
+	@Override
+	public Object selectSpecialReNew(User user) {
+		List<SpecialSubject> oneIndexPage = null;
+		List<SpecialProject> oneIndexTab = null;
+		Map<String,Object> oneSpecial = this.getOneLevelColumnForMap(user);
+		if (oneSpecial.containsKey("page")) {
+			oneIndexPage = (List<SpecialSubject>) oneSpecial.get("page");
+		}
+		if (oneSpecial.containsKey("tab")) {
+			oneIndexTab = (List<SpecialProject>) oneSpecial.get("tab");
+		}
+		//获取到了第一层的栏目和分组信息，现在对信息进行排序
+		List<Object> result =  sortColumn(oneIndexTab,oneIndexPage,true,false);
+		List<Boolean> isGetOne = new ArrayList<>();
+		isGetOne.add(false);
+		return formatResultColumn(result,0,isGetOne,false);
+	}
+
 	@Override
 	public Object selectSpecialNew(User user) throws OperationException {
 		List<Object> result = new ArrayList<>();
@@ -550,7 +743,7 @@ public class SpecialServiceImpl implements ISpecialService {
 
 		map.put("id", topList.get(0).getId());
 		map.put("name", topList.get(0).getSpecialName());
-		map.put("flag", ColumnFlag.IndexTabFlag.ordinal());
+		map.put("flag", SpecialFlag.SpecialProjectFlag.ordinal());
 		map.put("flagSort", 0);
 		map.put("show", false);//前端需要，与后端无关
 		map.put("hide", false);
@@ -584,189 +777,121 @@ public class SpecialServiceImpl implements ISpecialService {
 		return result;
 
 
+	}
 
-
-		/*//非置顶
-		List listBig = new ArrayList();
-		//查询该用户或该用户所属用户分组下所有专题文件夹
-		Criteria<SpecialSubject> criteria = new Criteria<>();
-		//flag=0 代表 一级
-		criteria.add(Restrictions.eq("flag", 0));
-		if (UserUtils.ROLE_LIST.contains(user.getCheckRole()) || StringUtil.isEmpty(subGroupId)){
-			criteria.add(Restrictions.eq("userId", userId));
-		}else {
-			criteria.add(Restrictions.eq("subGroupId", subGroupId));
-		}
-		// 只按照拖拽顺序排 不按照修改时间排
-		criteria.orderByASC("sequence");
-		List<Object> oneSpecialOrSubject = new ArrayList<>();
-
-		List<SpecialSubject> listSubject = specialSubjectRepository.findAll(criteria);
-
-		oneSpecialOrSubject.addAll(listSubject);
-
-		// 查询该用户或该用户所属用户分组下所有专题
-		Criteria<SpecialProject> criteriaProject2 = new Criteria<>();
-		if (UserUtils.ROLE_LIST.contains(user.getCheckRole()) || StringUtil.isEmpty(subGroupId)){
-			criteriaProject2.add(Restrictions.eq("userId", userId));
-		}else {
-			criteriaProject2.add(Restrictions.eq("subGroupId", subGroupId));
-		}
-		// 只按照拖拽顺序排 不按照修改时间排
-		criteriaProject2.orderByASC("sequence");
-		List<SpecialProject> listSpecialProject = specialProjectService.findAll(criteriaProject2);
-		listSpecialProject = this.removeSomeProjects(listSpecialProject,user);
-		List<SpecialProject> noGroupAndTop = new ArrayList<>();
-		for (SpecialProject special : listSpecialProject) {
-			if (StringUtil.isEmpty(special.getGroupId()) && !"top".equals(special.getTopFlag())) {
-				noGroupAndTop.add(special);
-			}
-		}
-		oneSpecialOrSubject.addAll(noGroupAndTop);
-
-		// 只按照拖拽顺序排 不按照修改时间排
-		ObjectUtil.sort(oneSpecialOrSubject, "sequence", "asc");
-		//遍历
-		for (int n = 0; n < oneSpecialOrSubject.size(); n++) {
-			Object one = oneSpecialOrSubject.get(n);
-			if (one instanceof SpecialSubject) {// 一级文件夹
-				List listMiddle = new ArrayList();
-				SpecialSubject subject = (SpecialSubject) one;
-				String name = subject.getName();// 文件夹名字放到一级
-				String id = subject.getId();
-				Criteria<SpecialSubject> criteriaSubject = new Criteria<>();
-				criteriaSubject.add(Restrictions.eq("subjectId", id));
-				// 只按照拖拽顺序排 不按照修改时间排
-				criteriaSubject.orderByASC("sequence");
-				//二级文件夹
-				List<SpecialSubject> list = specialSubjectService.findAll(criteriaSubject);
-				List<Object> subjectAndProject = new ArrayList<>();
-				subjectAndProject.addAll(list);
-
-				// 根据文件夹id查专题（一级文件夹下的专题）
-				Criteria<SpecialProject> criteria3 = new Criteria<>();
-				criteria3.add(Restrictions.eq("groupId", id));
-				if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
-					criteria3.add(Restrictions.eq("userId", userId));
-				}else {
-					criteria3.add(Restrictions.eq("subGroupId", subGroupId));
+	@Override
+	public Object moveSequenceForSpecial(String moveId, SpecialFlag flag, User user)throws OperationException{
+		try {
+			SpecialSubject movePage = null;
+			SpecialProject moveMapper = null;
+			String parentId = "";
+			String typeId = "";
+			if (flag.equals(SpecialFlag.SpecialProjectFlag)) {
+				moveMapper = specialProjectRepository.findOne(moveId);
+				if(ObjectUtil.isNotEmpty(moveMapper.getSpecialSubject())){
+					parentId = moveMapper.getSpecialSubject().getId();
 				}
-				// 只按照拖拽顺序排 不按照修改时间排
-				criteria3.orderByASC("sequence");
-				// 放到第二级
-				List<SpecialProject> listSmall = specialProjectService.findAll(criteria3);
-				listSmall = this.removeSomeProjects(listSmall,user);
-				subjectAndProject.addAll(listSmall);
-				// 只按照拖拽顺序排 不按照修改时间排
-				ObjectUtil.sort(subjectAndProject, "sequence", "asc");
-				// 反射识别是专题还是专项进行查找下一级
-				for (int i = 0; i < subjectAndProject.size(); i++) {
-					Object o = subjectAndProject.get(i);
-					if (o instanceof SpecialSubject) {// 专题
-						SpecialSubject specialSubject = (SpecialSubject) o;
-						// 二级文件夹名
-						String specialSubjectName = specialSubject.getName();
-						String specialSubjectId = specialSubject.getId();
-						// 根据二级id查专题（三级）
-						Criteria<SpecialProject> criteria2 = new Criteria<>();
-						criteria2.add(Restrictions.eq("groupId", specialSubjectId));
-						// 只按照拖拽顺序排 不按照修改时间排
-						criteria2.orderByASC("sequence");
-						// 放到第三级
-						List<SpecialProject> list2 = specialProjectService.findAll(criteria2);
-						List<SpecialProject> list3 = new ArrayList<>();
-						for (SpecialProject special : list2) {
-							if (!"top".equals(special.getTopFlag())) {
-								// 把不置顶的放进去 左侧竖着显示
-								list3.add(special);
-							}
-						}
-						//为前端将专题对象转换为所需格式
-						List<Map> level3 = new ArrayList<>();
-						if (ObjectUtil.isNotEmpty(list3)){
-							for (SpecialProject specialProject : list3) {
-								Map<String, Object> stringObjectMap = forSpeicalProjectToMap(specialProject);
-								stringObjectMap.put("levelCount",2);
-								level3.add(stringObjectMap);
-							}
-						}
-						Map<String, Object> putValue = null;
-						//不管专题下是否有方案也要装进去
-						putValue = MapUtil.putValue(
-								new String[] { "specialName", "flag", "children", "id","flagColor"},
-								specialSubjectName, specialSubject.getFlag(), level3,
-								specialSubject.getId(),false);
-						putValue.put("levelCount",1);
-						listMiddle.add(putValue);
+			} else if (flag.equals(SpecialFlag.SpecialSubjectFlag)) {
+				movePage = specialSubjectRepository.findOne(moveId);
+				parentId = movePage.getParentId();
+			}
 
-					} else if (o instanceof SpecialProject) {
-						SpecialProject specialProject = (SpecialProject) o;
-						if (ObjectUtil.isNotEmpty(specialProject) && !"top".equals(specialProject.getTopFlag())) {
-							Map<String, Object> stringObjectMap = forSpeicalProjectToMap(specialProject);
-							stringObjectMap.put("levelCount",1);
-							listMiddle.add(stringObjectMap);
-						}
+			List<SpecialProject> mapperList = null;
+			List<SpecialSubject> pageList = null;
+			if (StringUtil.isEmpty(parentId)) {
+				//无父分组，则为一级，直接获取一级的内容
+				Map<String, Object> oneColumn = getOneLevelColumnForMap(user);
+				if (oneColumn.containsKey("page")) {
+					pageList = (List<SpecialSubject>) oneColumn.get("page");
+				}
+				if (oneColumn.containsKey("tab")) {
+					mapperList = (List<SpecialProject>) oneColumn.get("tab");
+				}
+			} else {
+				SpecialSubject parentPage = specialSubjectRepository.findOne(parentId);
+				pageList = parentPage.getChildrenPage();
+				mapperList = parentPage.getIndexTabMappers();
+			}
+			List<Object> sortColumn = this.sortColumn(mapperList, pageList, false,false);
+			int seq = 1;
+			for (Object o : sortColumn) {
+				if (o instanceof SpecialProject) {
+					SpecialProject seqMapper = (SpecialProject) o;
+					if (flag.equals(SpecialFlag.SpecialProjectFlag) && !moveMapper.getId().equals(seqMapper.getId())) {
+						seqMapper.setSequence(seq);
+						seq++;
+						specialProjectRepository.saveAndFlush(seqMapper);
+					}
+				} else if (o instanceof SpecialSubject) {
+					SpecialSubject seqPage = (SpecialSubject) o;
+					if (flag.equals(SpecialFlag.SpecialSubjectFlag) && !movePage.getId().equals(seqPage.getId())) {
+						seqPage.setSequence(seq);
+						seq++;
+						specialSubjectRepository.saveAndFlush(seqPage);
 					}
 				}
-				Map<String, Object> putValue = MapUtil.putValue(
-						new String[] { "specialName", "flag", "children", "id","flagColor" }, name,
-						subject.getFlag(), listMiddle, subject.getId(),false);
-				putValue.put("levelCount",0);
-				listBig.add(putValue);
-
-			} else if (one instanceof SpecialProject) {// 专项
-				SpecialProject specialProject = (SpecialProject) one;
-				Map<String, Object> stringObjectMap = forSpeicalProjectToMap(specialProject);
-				stringObjectMap.put("levelCount",0);
-				listBig.add(stringObjectMap);
 			}
+			return "success";
+		} catch (Exception e) {
+			throw new OperationException("重新对分组和专题排序失败："+e.getMessage());
 		}
-		Map<String, Object> mapAll = new HashMap<>();
-		mapAll.put("list", listBig);
-		List<Map> arrayList = new ArrayList<>();
-		if (ObjectUtil.isNotEmpty(topList)){
-			for (SpecialProject specialProject : topList) {
-				Map<String, Object> stringObjectMap = forSpeicalProjectToMap(specialProject);
-				arrayList.add(stringObjectMap);
-			}
-		}
-		mapAll.put("topList", arrayList);
-		// 有置顶的就定位到置顶的第一个 没置顶的就定位到最后修改的那一个
-		if (topList != null && topList.size() > 0) {
-			mapAll.put("firstId", topList.get(0));
-		} else {
+	}
 
-			//董晶晶 JIRA1048 提：专题分析列表中默认选中非分组下的第一个专题。
-			Criteria<SpecialProject> criteriaLast = new Criteria<>();
-			if (UserUtils.ROLE_LIST.contains(user.getCheckRole()) || StringUtil.isEmpty(subGroupId)){
-				criteriaLast.add(Restrictions.eq("userId", userId));
-			}else {
-				criteriaLast.add(Restrictions.eq("subGroupId", subGroupId));
-			}
-			criteriaLast.add(Restrictions.eq("groupId",""));//非分组下
-			criteriaLast.orderByASC("sequence");// 只按照拖拽顺序排
-			List<SpecialProject> last = specialProjectService.findAll(criteriaLast);
-			last = this.removeSomeProjects(last,user);
-			if (last != null && last.size() > 0) {
-				mapAll.put("firstId", last.get(0));
-			}else {
-				//如果没有置顶，且非分组下无专题，则选中按修改时间最近的一个专题
-				Criteria<SpecialProject> criteria1 = new Criteria<>();
-				if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
-					criteria1.add(Restrictions.eq("userId", userId));
+	public Map<String,Object> getOneLevelColumnForMap(User loginUser){
+		Sort sort = new Sort(Sort.Direction.ASC,"sequence");
+		Specification<SpecialSubject> criteria_page = new Specification<SpecialSubject>(){
+
+			@Override
+			public Predicate toPredicate(Root<SpecialSubject> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				List<Predicate> predicate = new ArrayList<>();
+				if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+					predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
 				}else {
-					criteria1.add(Restrictions.eq("subGroupId", subGroupId));
+					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
 				}
-				criteria1.orderByASC("lastModifiedTime");// 按照修改时间排序
-				List<SpecialProject> last1 = specialProjectService.findAll(criteria1);
-				last1 = this.removeSomeProjects(last1,user);
-				if (last1 != null && last1.size() > 0) {
-					mapAll.put("firstId", last1.get(0));
-				}
-			}
-		}
+//				predicate.add(cb.equal(root.get("typeId"),typeId));
+				List<Predicate> predicateParent = new ArrayList<>();
+				predicateParent.add(cb.isNull(root.get("parentId")));
+				predicateParent.add(cb.equal(root.get("parentId"),""));
 
-		return mapAll;*/
+				predicate.add(cb.or(predicateParent.toArray(new Predicate[predicateParent.size()])));
+				Predicate[] pre = new Predicate[predicate.size()];
+				return query.where(predicate.toArray(pre)).getRestriction();
+			}
+		};
+		Specification<SpecialProject> criteria_tab_mapper = new Specification<SpecialProject>(){
+
+			@Override
+			public Predicate toPredicate(Root<SpecialProject> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				List<Predicate> predicate = new ArrayList<>();
+				if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+					predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+				}else {
+					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
+				}
+//				predicate.add(cb.equal(root.get("typeId"),typeId));
+//				predicate.add(cb.isNull(root.get("specialSubject")));
+				predicate.add(cb.isNull(root.get("groupId")));
+//				predicate.add(cb.equal(root.get("groupId"),""));
+				Predicate[] pre = new Predicate[predicate.size()];
+				return query.where(predicate.toArray(pre)).getRestriction();
+			}
+		};
+
+		Map<String,Object> result = new HashMap<>();
+		//获取当前用户一层分组内的所有内容
+		List<SpecialSubject> oneIndexPage = null;
+		List<SpecialProject> oneIndexTab = null;
+
+		oneIndexPage = specialSubjectRepository.findAll(criteria_page,sort);
+		oneIndexTab = specialProjectRepository.findAll(criteria_tab_mapper,sort);
+		if(oneIndexPage != null && oneIndexPage.size() >0){
+			result.put("page",oneIndexPage);
+		}
+		if(oneIndexTab != null && oneIndexTab.size() >0){
+			result.put("tab",oneIndexTab);
+		}
+		return  result;
 	}
 	@Override
 	public List selectSomeSpecials(String orgAdminId) throws TRSException {
@@ -1032,6 +1157,79 @@ public class SpecialServiceImpl implements ISpecialService {
 			}
 		}
 		return "success";
+	}
+
+	@Override
+	public Object moveProjectSequence(String data, String moveData, String parentId, User user)throws OperationException {
+		try {
+
+			SpecialSubject parent = null;
+			if (StringUtil.isNotEmpty(parentId)) {
+				parent = specialSubjectRepository.findOne(parentId);
+			}
+			JSONObject move = JSONObject.parseObject(moveData);
+			String moveId = move.getString("id");
+			SpecialFlag moveFlag = SpecialFlag.values()[move.getInteger("flag")];
+			String moveParentId = null;
+
+			//修改同级下的其他分组的顺序
+			if (moveFlag.equals(SpecialFlag.SpecialSubjectFlag)) {
+				SpecialSubject indexPage = specialSubjectRepository.findOne(moveId);
+				moveParentId = indexPage.getParentId();
+			} else if (moveFlag.equals(SpecialFlag.SpecialProjectFlag)) {
+				SpecialProject mapper = specialProjectRepository.findOne(moveId);
+				if(ObjectUtil.isNotEmpty(mapper.getSpecialSubject())){
+					moveParentId = mapper.getSpecialSubject().getId();
+				}
+
+			}
+			if (parentId == null) {
+				parentId = "";
+			}
+			if (moveParentId == null) {
+				moveParentId = "";
+			}
+			//被拖拽的元素更换了层级，需要对元素本来的层级的数据重新排序
+			if (!parentId.equals(moveParentId)) {
+				//对原来的同层级的数据排序
+				this.moveSequenceForSpecial(moveId,moveFlag, user);
+			}
+
+			JSONArray array = JSONArray.parseArray(data);
+			Integer sequence = 0;
+			for (Object json : array) {
+				sequence += 1;
+				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
+				String id = parseObject.getString("id");
+				//如果是分组为0 ，如果是栏目为1
+				SpecialFlag flag = SpecialFlag.values()[parseObject.getInteger("flag")];
+				if (flag.equals(SpecialFlag.SpecialSubjectFlag)) {
+					SpecialSubject indexPage = specialSubjectRepository.findOne(id);
+					indexPage.setParentId(null);
+					if (parent != null) {
+						indexPage.setParentId(parentId);
+					}
+					indexPage.setSequence(sequence);
+					specialSubjectRepository.save(indexPage);
+				} else if (flag.equals(SpecialFlag.SpecialProjectFlag)) {
+					SpecialProject indexTab = specialProjectRepository.findOne(id);
+					if (parent != null) {
+						indexTab.setSpecialSubject(parent);
+						indexTab.setGroupId(parent.getId());
+					} else {
+						indexTab.setSpecialSubject(null);
+					}
+					indexTab.setSequence(sequence);
+						indexTab.setSequence(sequence);
+						specialProjectRepository.save(indexTab);
+				}
+			}
+			specialProjectRepository.flush();
+			specialSubjectRepository.flush();
+			return "success";
+		} catch (Exception e) {
+			throw new OperationException("移动失败：" + e.getMessage());
+		}
 	}
 
 	@Override

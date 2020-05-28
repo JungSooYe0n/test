@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.special.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.trs.netInsight.config.constant.FtsFieldConst;
@@ -20,9 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -133,6 +132,11 @@ public class SpecialProject extends BaseEntity {
 	@JsonDeserialize(using = DateDeserializer.class)
 	@ApiModelProperty(value = "结束时间", example = "yyyy-MM-dd HH:mm:ss")
 	private Date endTime;
+	/**
+	 * 分类对比类型
+	 */
+	@Column(name = "contrast")
+	private String contrast;
 
 	/**
 	 * 存储3d 7d 24h
@@ -191,7 +195,7 @@ public class SpecialProject extends BaseEntity {
 	 * 置顶（新提出置顶字段）
 	 */
 	private String topFlag;
-	
+
 	/**
 	 * 是否排重
 	 */
@@ -234,7 +238,13 @@ public class SpecialProject extends BaseEntity {
     @Column(name = "sequence", columnDefinition = "INT default 0")
 	private int sequence;
 
-
+	/**
+	 * 多对一关联关系
+	 */
+	@ManyToOne()
+	@JsonIgnore
+	@JoinColumn(name = "special_subject_id")
+	private SpecialSubject specialSubject;
 
 	public void setStart(String start) throws ParseException {
 		this.start = start;
@@ -249,7 +259,37 @@ public class SpecialProject extends BaseEntity {
 		Date parse = simpleDateFormat.parse(end);
 		this.endTime = parse;
 	}
-
+	/**
+	 * 构造函数
+	 */
+	public SpecialProject(String userId, SpecialType specialType, String specialName,
+						  String anyKeywords, String excludeWords, String trsl,
+						  SearchScope searchScope, Date startTime, Date endTime, String source, String groupName,
+						  String groupId,String timeRange,int sequence,boolean isSimilar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb) {
+		this.setUserId(userId);
+		this.specialType = specialType;
+		this.specialName = specialName;
+		this.anyKeywords = anyKeywords;
+		this.excludeWords = excludeWords;
+		this.trsl = trsl;
+		this.searchScope = searchScope;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.source = source;
+		this.groupName = groupName;
+		this.groupId = groupId;
+		this.currentTheme = false;
+		this.timeRange=timeRange;
+		this.sequence = sequence;
+		this.similar = isSimilar;
+		this.irSimflag = irSimflag;
+		this.weight = weight;
+		this.server = server;
+		this.irSimflagAll = irSimflagAll;
+		this.excludeWeb =excludeWeb;
+		super.setCreatedTime(new Date());
+		super.setLastModifiedTime(new Date());
+	}
 	/**
 	 * 构造函数
 	 */
@@ -275,6 +315,41 @@ public class SpecialProject extends BaseEntity {
 		this.currentTheme = false;
 		this.flag = 2;
 		this.timeRange=timeRange;
+		this.similar = isSimilar;
+		this.irSimflag = irSimflag;
+		this.weight = weight;
+		this.server = server;
+		this.irSimflagAll = irSimflagAll;
+		this.excludeWeb =excludeWeb;
+		super.setCreatedTime(new Date());
+		super.setLastModifiedTime(new Date());
+	}
+	/**
+	 * 构造函数
+	 */
+	public SpecialProject(String userId, SpecialType specialType, String specialName, String allKeywords,
+						  String anyKeywords, String excludeWords, String trsl, String statusTrsl, String weChatTrsl,
+						  SearchScope searchScope, Date startTime, Date endTime, String source, String groupName,
+						  String groupId,String timeRange,int sequence,boolean isSimilar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb) {
+		this.setUserId(userId);
+		this.specialType = specialType;
+		this.specialName = specialName;
+		this.allKeywords = allKeywords;
+		this.anyKeywords = anyKeywords;
+		this.excludeWords = excludeWords;
+		this.trsl = trsl;
+		this.statusTrsl = statusTrsl;
+		this.weChatTrsl = weChatTrsl;
+		this.searchScope = searchScope;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.source = source;
+		this.groupName = groupName;
+		this.groupId = groupId;
+		this.currentTheme = false;
+		this.flag = 2;
+		this.timeRange=timeRange;
+		this.sequence = sequence;
 		this.similar = isSimilar;
 		this.irSimflag = irSimflag;
 		this.weight = weight;

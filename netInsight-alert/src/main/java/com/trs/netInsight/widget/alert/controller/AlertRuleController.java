@@ -18,6 +18,7 @@ import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
 import com.trs.netInsight.widget.alert.service.IAlertAccountService;
 import com.trs.netInsight.widget.alert.service.IAlertRuleService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -715,6 +716,9 @@ public class AlertRuleController {
 				if(!groupList.contains(Const.SOURCE_GROUPNAME_CONTRAST.get(source))){
 					return null;
 				}
+				if (!CommonListChartUtil.changeGroupName(groupName).contains(CommonListChartUtil.changeGroupName(source))){
+					return null;
+				}
 			}
 			// 普通模式 都搜索 专家模式 只搜索填写表达式的
 			// 选择查询的库
@@ -726,7 +730,7 @@ public class AlertRuleController {
 					&& (SpecialType.COMMON.equals(specialType) || StringUtil.isNotEmpty(alertRule.getStatusTrsl()))) {
 				return alertRuleService.statusSearch(alertRule, pageNo, pageSize, source, time, area, industry, emotion,
 						sort, keywords,fuzzyValueScope, null, null, forwarPrimary);
-			} else if (Const.MEDIA_TYPE_NEWS.contains(source)
+			} else if ((Const.MEDIA_TYPE_NEWS.contains(source) || Const.GROUPNAME_CHANGSHIPIN.contains(source) || Const.GROUPNAME_DUANSHIPIN.contains(source))
 					&& (SpecialType.COMMON.equals(specialType) || StringUtil.isNotEmpty(alertRule.getTrsl()))) {
 				log.error("进入" + source + "方法:" + System.currentTimeMillis());
 				return alertRuleService.documentSearch(alertRule, pageNo, pageSize, source, time, area, industry,

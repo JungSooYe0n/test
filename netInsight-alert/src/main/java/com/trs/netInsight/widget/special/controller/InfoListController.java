@@ -805,6 +805,7 @@ public class InfoListController {
         List<FtsDocumentCommonVO> ftsQuery = content.getPageItems();
         if (null != ftsQuery && ftsQuery.size() > 0) {
             FtsDocumentCommonVO ftsDocument = ftsQuery.get(0);
+
             // 判断是否收藏
             //原生sql
             Specification<Favourites> criteriaFav = new Specification<Favourites>() {
@@ -828,6 +829,15 @@ public class InfoListController {
                 ftsDocument.setFavourite(false);
             }
             ftsDocument.setTrslk(trslk);
+
+            if (Const.GROUPNAME_WEIBO.equals(groupName)){
+				StatusUser statusUser = queryStatusUser(ftsDocument.getScreenName(), ftsDocument.getUid());
+				if (ObjectUtil.isNotEmpty(statusUser)) {
+					ftsDocument.setFollowersCount(statusUser.getFollowersCount());
+				}else {
+					ftsDocument.setFollowersCount(0);
+				}
+			}
             if (Const.TYPE_NEWS.contains(groupName)) {
                 // 站点名是百度贴吧的 要是频道名不以吧结尾 就加上吧
                 if ("百度贴吧".equals(ftsDocument.getSiteName())) {
@@ -1440,5 +1450,34 @@ public class InfoListController {
 		GroupResult groupInfos = hybase8SearchService.categoryQuery(builder, false, false, true, FtsFieldConst.FIELD_GROUPNAME, "detail",split);
 		//	System.err.println("count："+pagedList.getTotalItemCount());
 		return groupInfos;
+	}
+	/**
+	 * 当前文章对应的用户信息
+	 * @param screenName,uid
+	 * @throws TRSException
+	 */
+	private StatusUser queryStatusUser(String screenName,String uid) throws TRSException{
+		QueryBuilder queryStatusUser = new QueryBuilder();
+		queryStatusUser.filterField(FtsFieldConst.FIELD_SCREEN_NAME,"\""+screenName+"\"",Operator.Equal);
+		queryStatusUser.setDatabase(Const.SINAUSERS);
+		//查询微博用户信息
+//		List<StatusUser> statusUsers = hybase8SearchService.ftsQuery(queryStatusUser, StatusUser.class, false, false,false,null);
+		PagedList<StatusUser> infoListResult = commonListService.queryPageListForClass(queryStatusUser, StatusUser.class, false, false,false,null);
+		List<StatusUser> statusUsers = infoListResult.getPageItems();
+		if (ObjectUtil.isEmpty(statusUsers)){
+			QueryBuilder queryStatusUser1 = new QueryBuilder();
+			queryStatusUser1.filterField(FtsFieldConst.FIELD_UID,"\""+uid+"\"",Operator.Equal);
+			queryStatusUser1.setDatabase(Const.SINAUSERS);
+			//查询微博用户信息
+//			statusUsers = hybase8SearchService.ftsQuery(queryStatusUser1, StatusUser.class, false, false,false,null);
+			PagedList<StatusUser> infoListResult1 = commonListService.queryPageListForClass(queryStatusUser1, StatusUser.class, false, false,false,null);
+			statusUsers = infoListResult1.getPageItems();
+		}
+		if (ObjectUtil.isNotEmpty(statusUsers)){
+			//放入该条微博对应的 发布人信息
+			return statusUsers.get(0);
+		}
+		return null;
+
 	}
 }

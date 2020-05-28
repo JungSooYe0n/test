@@ -13,12 +13,20 @@
  */
 package com.trs.netInsight.widget.special.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.transaction.Transactional;
 
+import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
+import com.trs.netInsight.util.CollectionsUtil;
 import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.widget.column.entity.emuns.SpecialFlag;
+import com.trs.netInsight.widget.special.service.ISpecialService;
 import com.trs.netInsight.widget.user.entity.User;
+import com.trs.netInsight.widget.user.repository.UserRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,14 +49,18 @@ import com.trs.netInsight.widget.special.service.ISpecialSubjectService;
  */
 @Service
 @Transactional
-public class SpecialSubjectServiceImpl implements ISpecialSubjectService{
+public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 
 	@Autowired
 	private SpecialSubjectRepository specialSubjectRepository;
-	
+
 	@Autowired
 	private SpecialProjectRepository specialProjectRepository;
-	
+	@Autowired
+	private ISpecialService specialService;
+	@Autowired
+	private UserRepository userService;
+
 	@Override
 	public List<SpecialSubject> findAll(Criteria<SpecialSubject> criteria) {
 		return specialSubjectRepository.findAll(criteria);
@@ -56,7 +68,7 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService{
 
 	@Override
 	public void save(SpecialSubject specialSubject) {
-		specialSubjectRepository.save(specialSubject);		
+		specialSubjectRepository.save(specialSubject);
 	}
 
 	@Override
@@ -69,6 +81,88 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService{
 		return specialSubjectRepository.findBySubjectId(id);
 	}
 
+	@Override
+	public void deleteProject(String projectId) throws TRSException {
+		try {
+			if (StringUtils.isNotBlank(projectId)) {
+				// 多个删除用;分割
+				String[] idsplit = projectId.split(";");
+				for (String ids : idsplit) {
+					SpecialProject mapper = specialProjectRepository.findOne(ids);
+					// 修改顺序
+					if (mapper != null) {
+						User user = userService.findOne(mapper.getUserId());
+
+						//对同层级的数据重新排序 - 去掉自己
+						//栏目类型为1，
+						specialService.moveSequenceForSpecial(mapper.getId(), SpecialFlag.SpecialProjectFlag, user);
+						//删除当前栏目对应的自定义图表
+//						Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+//						log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
+						specialProjectRepository.delete(mapper.getSpecialSubject().getId());
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new TRSException(e);
+		}
+	}
+
+
+	@Override
+	public String deleteSubject(String subjectId) throws OperationException  {
+		try {
+			// 删除栏目组及下级子栏目
+			//删除时需要重新排序
+			SpecialSubject indexPage = specialSubjectRepository.findOne(subjectId);
+			if(ObjectUtil.isEmpty(indexPage)){
+				throw new OperationException("当前分组不存在");
+			}
+			//重新排序
+			User user = userService.findOne(indexPage.getUserId());
+			specialService.moveSequenceForSpecial(subjectId,SpecialFlag.SpecialSubjectFlag, user);
+			List<SpecialSubject> list = new ArrayList<>();
+			list.add(indexPage);
+			//删除栏目
+			this.deleteSubjectPage(list);
+			return "success";
+		} catch (Exception e) {
+			throw new OperationException("删除分组时出错", e);
+		}
+	}
+	private Object deleteSubjectPage(List<SpecialSubject> indexPages)throws OperationException{
+		// 删除栏目组及下级子栏目
+		try {
+			if(indexPages != null && indexPages.size() >0){
+				for(SpecialSubject indexPage : indexPages){
+					List<SpecialSubject> chidPage = indexPage.getChildrenPage();
+					List<SpecialProject> chidMapper = indexPage.getIndexTabMappers();
+					//删除当前分组对应的栏目
+					if (CollectionsUtil.isNotEmpty(chidMapper)) {
+						for (SpecialProject mapper : chidMapper) {
+							//删除当前栏目对应的自定义图表
+//							Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+//							log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
+								// 删除栏目映射关系，isMe为true的栏目关系须级联删除栏目实体
+								//删除相关栏目映射的相关图表
+								//删除所有与indexTab关联的  否则剩余关联则删除indexTab时失败
+								specialProjectRepository.delete(mapper);
+						}
+					}
+					//删除当前分组对应的子分组
+					if (CollectionsUtil.isNotEmpty(chidPage)) {
+						deleteSubjectPage(chidPage);
+					}
+					// 删除栏目组
+					specialSubjectRepository.delete(indexPage);
+				}
+			}
+			return "success";
+		} catch (Exception e) {
+			throw new OperationException("删除分组失败",e);
+
+		}
+	}
 	@Override
 	public void delete(String subjectId,String oneOrTwo) {
 		User loginUser = UserUtils.getUser();
@@ -179,6 +273,29 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService{
 			specialSubjectRepository.delete(specialSubjects);
 			specialSubjectRepository.flush();
 		}
+	}
+
+	@Override
+	public Object addSubject(String name, String parentId,User loginUser) {
+		//判断父id存在不存在，
+		SpecialSubject indexPage = new SpecialSubject();
+		indexPage.setName(name);
+		//排序先按照先入在前
+
+		int seq = 0;
+		seq = specialService.getMaxSequenceForSpecial(parentId,loginUser);
+		if(StringUtil.isNotEmpty(parentId)){
+
+			List<SpecialSubject> parentList = specialSubjectRepository.findById(parentId);
+			if(parentList!= null && parentList.size() >0){
+				SpecialSubject parent = parentList.get(0);
+				indexPage.setParentId(parent.getId());
+			}
+		}
+		indexPage.setSequence(seq +1);
+		specialSubjectRepository.saveAndFlush(indexPage);
+
+		return indexPage;
 	}
 
 	/**

@@ -37,7 +37,6 @@ import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.base.enums.ESGroupName;
-import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
@@ -771,7 +770,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
 					.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
 		}
-		ChartResultField chartResultField = new ChartResultField("area_name","area_count");
+		ChartResultField chartResultField = new ChartResultField("name","value");
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
 		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
@@ -873,12 +872,21 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 			//用queryCommonBuilder和QueryBuilder 是一样的的
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
-			builder.setPageSize(10);
+			builder.setPageSize(20);
 		String groupNames ="";
 		switch (viewType){
 				case Const.OFFICIAL_VIEW:
 					groupNames = "新闻";
 					break;
+            case Const.MEDIA_VIEW:
+                groupNames = "新闻";
+                break;
+            case Const.EXPORT_VIEW:
+                groupNames = "新闻";
+                break;
+            case Const.NETIZEN_VIEW:
+                groupNames = "新闻";
+                break;
 			}
 
 			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(builder, "special", groupNames);
@@ -889,19 +897,21 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			for (FtsDocumentCommonVO vo : voList) {
 				map = new HashMap<>();
 				String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
-				map.put("id", vo.getSid());
-				if (Const.PAGE_SHOW_WEIXIN.equals(groupName)) {
-					map.put("id", vo.getHkey());
+//				map.put("id", vo.getSid());
+//				if (Const.PAGE_SHOW_WEIXIN.equals(groupName)) {
+//					map.put("id", vo.getHkey());
+//				}
+//				map.put("groupName", groupName);
+//				map.put("time", vo.getUrlTime());
+//				map.put("md5", vo.getMd5Tag());
+//				String title = vo.getTitle();
+//				if (StringUtil.isNotEmpty(title)) {
+//					title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
+//				}
+				if (ObjectUtil.isNotEmpty(vo.getTitle())){
+					map.put("name",vo.getTitle());
+					map.put("value", String.valueOf(vo.getSimCount()));
 				}
-				map.put("groupName", groupName);
-				map.put("time", vo.getUrlTime());
-				map.put("md5", vo.getMd5Tag());
-				String title = vo.getTitle();
-				if (StringUtil.isNotEmpty(title)) {
-					title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
-				}
-				map.put("title", title);
-				map.put("simNum", String.valueOf(vo.getSimCount()));
 				list.add(map);
 			}
 			return list;
@@ -3887,6 +3897,128 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
+	public Object getWordCloudNew(QueryBuilder builder, boolean sim, boolean irSimflag, boolean irSimflagAll, String entityType,String type) throws TRSSearchException {
+		{
+			GroupResult result = new GroupResult();
+			try {
+				if ("keywords".equals(entityType)) {
+					// 人物、地域、机构
+					GroupResult people = commonListService.categoryQuery(builder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("people"), type);
+					GroupResult location = commonListService.categoryQuery(builder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("location"), type);
+					GroupResult agency = commonListService.categoryQuery(builder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("agency"), type);
+//					GroupResult people = hybase8SearchService.categoryQuery(server, trsl, sim, irSimflag, irSimflagAll,
+//							Const.PARAM_MAPPING.get("people"), limit, "special", data);
+//					GroupResult location = hybase8SearchService.categoryQuery(server, trsl, sim, irSimflag, irSimflagAll,
+//							Const.PARAM_MAPPING.get("location"), limit, "special", data);
+//					GroupResult agency = hybase8SearchService.categoryQuery(server, trsl, sim, irSimflag, irSimflagAll,
+//							Const.PARAM_MAPPING.get("agency"), limit, "special", data);
+					GroupWordResult wordInfos = new GroupWordResult();
+					List<GroupInfo> peopleList = people.getGroupList();
+					List<GroupInfo> locationList = location.getGroupList();
+					List<GroupInfo> agencyList = agency.getGroupList();
+
+					for (GroupInfo groupInfo : peopleList) {
+						wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "people");
+					}
+
+					for (GroupInfo groupInfo : locationList) {
+						wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "location");
+					}
+
+					for (GroupInfo groupInfo : agencyList) {
+						wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "agency");
+					}
+
+					wordInfos.sort();
+
+					List<GroupWordInfo> groupWordList = wordInfos.getGroupList();
+					List<GroupWordInfo> newGroupWordList = new ArrayList<>();
+					if (groupWordList.size() > 50) {
+						newGroupWordList = groupWordList.subList(0, 50);
+					} else {
+						newGroupWordList = groupWordList;
+					}
+					// 数据清理
+					for (int i = 0; i < groupWordList.size(); i++) {
+						String name = groupWordList.get(i).getFieldValue();
+						if (name.endsWith("html")) {
+							groupWordList.remove(i);
+							break;
+						}
+						if (name.contains(";")) {
+							String[] split = name.split(";");
+							name = split[split.length - 1];
+						}
+						if (name.contains("\\")) {
+							String[] split = name.split("\\\\");
+							name = split[split.length - 1];
+						}
+						if (name.contains(".")) {
+							String[] split = name.split("\\.");
+							name = split[split.length - 1];
+						}
+						groupWordList.get(i).setFieldValue(name);
+					}
+					wordInfos.setGroupList(newGroupWordList);
+					List<Object> result2 = new ArrayList<>();
+					Map<String, Object> map = null;
+					for (GroupWordInfo wordInfo : wordInfos) {
+						map = new HashMap<>();
+						map.put("name", wordInfo.getFieldValue());
+						map.put("value", wordInfo.getCount());
+						map.put("entityType", wordInfo.getEntityType());
+						result2.add(map);
+					}
+					return result2;
+				} else {
+//					result = hybase8SearchService.categoryQuery(server, trsl, sim, irSimflag, irSimflagAll,
+//							Const.PARAM_MAPPING.get(entityType), limit, "special", data);
+					result = commonListService.categoryQuery(builder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get(entityType), type);
+
+				}
+
+				List<GroupInfo> list = result.getGroupList();
+				// 数据清理
+				for (int i = 0; i < list.size(); i++) {
+					String name = list.get(i).getFieldValue();
+					if (name.endsWith("html")) {
+						list.remove(i);
+						break;
+					}
+					if (name.contains(";")) {
+						String[] split = name.split(";");
+						name = split[split.length - 1];
+					}
+					if (name.contains("\\")) {
+						String[] split = name.split("\\\\");
+						name = split[split.length - 1];
+					}
+					if (name.contains(".")) {
+						String[] split = name.split("\\.");
+						name = split[split.length - 1];
+					}
+					list.get(i).setFieldValue(name);
+				}
+			} catch (TRSSearchException e) {
+				throw new TRSSearchException(e);
+			} catch (TRSException e) {
+				e.printStackTrace();
+			}
+			List<Object> result2 = new ArrayList<>();
+			Map<String, Object> map = null;
+			for (GroupInfo wordInfo : result.getGroupList()) {
+				map = new HashMap<>();
+				map.put("name", wordInfo.getFieldValue());
+				map.put("value", wordInfo.getCount());
+				map.put("entityType", entityType);
+				result2.add(map);
+			}
+			return result2;
+//			return result;
+		}
+	}
+
+	@Override
 	public Object getWordCloud(boolean server, String trsl, boolean sim, boolean irSimflag,boolean irSimflagAll, String entityType,
 							   int limit,String type, String... data) throws  TRSSearchException {
 		GroupResult result = new GroupResult();
@@ -4328,6 +4460,75 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
+	public List<Map<String, Object>> spreadAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean isApi, String groupName) throws TRSSearchException {
+		// 最多显示几个
+		int maxLength = 5;
+		List<String> list = DateUtil.getBetweenDateString(timeArray[0], timeArray[1], DateUtil.yyyyMMddHHmmss,
+				DateUtil.yyyyMMdd3);
+		if (list != null) {
+			List<Map<String, Object>> listMapData = new ArrayList<>();
+			int size = list.size();
+			//超过8个点 ，只展示8个  2020-01-06
+			if (size > 8) {
+				list = list.subList(size - 8, size);
+			}
+			for (String time : list) {
+				Map<String, Object> mapData = new HashMap<>();
+				List<GroupInfo> listData = new ArrayList<>();
+				// wxb白名单的数据
+				QueryBuilder builderWxb = new QueryBuilder(0, 1000);
+				builderWxb.filterByTRSL(searchBuilder.asTRSL());
+				builderWxb.filterField(FtsFieldConst.FIELD_URLDATE, time, Operator.Equal);
+//				builderWxb.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻", Operator.Equal);
+				builderWxb.filterField(FtsFieldConst.FIELD_WXB_LIST, "0", Operator.Equal);
+//				GroupResult resultWxb = hybase8SearchService.categoryQuery(builderWxb, similar, irSimflag,irSimflagAll,
+//						FtsFieldConst.FIELD_SITENAME,"special", searchBuilder.getDatabase());
+				GroupResult resultWxb = null;
+				try {
+					resultWxb = commonListService.categoryQuery(builderWxb, similar, irSimflag,irSimflagAll,
+							FtsFieldConst.FIELD_SITENAME,"special",groupName);
+				} catch (TRSException e) {
+					e.printStackTrace();
+				}
+				if (resultWxb != null) {
+					listData.addAll(resultWxb.getGroupList());
+				}
+				// 非wxb白名单的数据
+				QueryBuilder builderNotWxb = new QueryBuilder(0, 1000);
+				builderNotWxb.filterByTRSL(searchBuilder.asTRSL());
+//				builderNotWxb.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻", Operator.Equal);
+				builderNotWxb.filterField(FtsFieldConst.FIELD_URLDATE, time, Operator.Equal);
+				builderNotWxb.filterField(FtsFieldConst.FIELD_WXB_LIST, "0", Operator.NotEqual);
+//				GroupResult resultNotWxb = hybase8SearchService.categoryQuery(builderNotWxb, similar, irSimflag,irSimflagAll,
+//						FtsFieldConst.FIELD_SITENAME,"special" ,searchBuilder.getDatabase());
+				GroupResult resultNotWxb = null;
+				try {
+					resultNotWxb = commonListService.categoryQuery(builderNotWxb, similar, irSimflag,irSimflagAll,
+							FtsFieldConst.FIELD_SITENAME,"special",groupName);
+				} catch (TRSException e) {
+					e.printStackTrace();
+				}
+				if (resultNotWxb != null) {
+					listData.addAll(resultNotWxb.getGroupList());
+				}
+				mapData.put("count", listData.size());
+				// 取 maxLength 个
+				if ( !isApi){
+					if (listData.size() > maxLength) {
+						listData = listData.subList(0, maxLength);
+					}
+				}
+
+				mapData.put("time", time);
+				mapData.put("data", listData);
+				listMapData.add(mapData);
+			}
+			return listMapData;
+		}
+		return null;
+	}
+
+	@Override
 	public List<Map<String, Object>> newsSiteAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar,
 													  boolean irSimflag,boolean irSimflagAll,boolean isApi) throws TRSSearchException {
 		// 最多显示几个
@@ -4395,6 +4596,65 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			return listMapData;
 		}
 		return null;
+	}
+
+	@Override
+	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange, SpecialParam specParam) throws OperationException, ParseException {
+		if (StringUtils.isBlank(timeRange)) {
+			timeRange = specialProject.getTimeRange();
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+				timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+			}
+		}
+		String[] timeArray = DateUtil.formatTimeRange(timeRange);
+		if (timeArray != null && timeArray.length == 2) {
+			specialProject.setStart(timeArray[0]);
+			specialProject.setEnd(timeArray[1]);
+		}
+		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
+		boolean sim = specialProject.isSimilar();
+		String groupName = specialProject.getSource();
+		//来源处理
+		if (!"ALL".equals(groupName)){
+			String[] split = groupName.split(";");
+			List<String> choices = Arrays.asList(split);
+			List<String> whole = Arrays.asList(Const.TYPE_NEWS.split(";"));
+			//取交集
+			List<String> result = whole.stream().filter(item -> choices.contains(item)).collect(toList());
+			if (ObjectUtil.isEmpty(result)){
+				//未选中传统类来源
+				return null;
+			}
+			split = result.toArray(new String[result.size()]);
+			groupName = StringUtil.join(split,";");
+		}else {
+			groupName = Const.TYPE_NEWS;
+		}
+
+		searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace("境外媒体","国外新闻").split(";"),Operator.Equal);
+		ArrayList<HashMap<String, Object>> resultData = new ArrayList<>();
+		try {
+//			searchBuilder.filterByTRSL(" (IR_EMOTION:(\"怒\" OR \"恶\" OR \"惧\" OR \"喜\" OR \"哀\"))");
+//			searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
+
+//			String posCatTrsl = searchBuilder.asTRSL();
+//			GroupResult posResult = hybase8SearchService.categoryQuery(specialProject.isServer(), posCatTrsl, sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),
+//					FtsFieldConst.FIELD_EMOTION, 5, "special",Const.HYBASE_NI_INDEX);
+			searchBuilder.setPageSize(5);
+			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION,"special",Const.TYPE_NEWS);
+
+//			userViewResultEcapsulation(resultData, posResult);
+			for(GroupInfo groupInfo : posResult) {
+				HashMap<String, Object> result = new HashMap<>();
+				result.put("name", groupInfo.getFieldValue());
+				result.put("value", groupInfo.getCount());
+				resultData.add(result);
+			}
+		} catch (Exception e) {
+			throw new OperationException("情绪统计计算错误,message: ", e);
+		}
+		return resultData;
 	}
 
 	@Override
@@ -4643,6 +4903,17 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
 				}
 				map.put("title", title);
+				if(StringUtil.isNotEmpty(title)){
+					title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+				}
+				map.put("copyTitle", title); //前端复制功能需要用到
+				String voEmotion =  vo.getAppraise();
+				if(StringUtil.isNotEmpty(voEmotion)){
+					map.put("emotion",voEmotion);
+				}else{
+					map.put("emotion","中性");
+					map.put("isEmotion",null);
+				}
 				String content = "";
 				if (StringUtil.isNotEmpty(vo.getContent())) {
 					content = StringUtil.cutContentPro(StringUtil.replaceImg(vo.getContent()), Const.CONTENT_LENGTH);
