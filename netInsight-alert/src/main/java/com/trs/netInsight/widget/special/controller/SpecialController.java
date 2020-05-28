@@ -69,7 +69,6 @@ public class SpecialController {
 	private ISpecialComputeService computeService;
 	@Autowired
 	private SubGroupRepository subGroupRepository;
-
 	@Autowired
 	private OrganizationRepository organizationRepository;
 
@@ -149,7 +148,156 @@ public class SpecialController {
 			throw new OperationException(String.format("获取[id=%s]专项详情失败,message: %s", specialId, e));
 		}
 	}
+	/**
+	 * 添加新专项（分组）
+	 *
+	 * @param specialName
+	 *            专项名
+	 * @param anyKeywords
+	 *            任意关键词
+	 * @param excludeWords
+	 *            排除词
+	 * @param timeRange
+	 *            时间范围
+	 * @param trsl
+	 *            专家表达式
+	 * @param searchScope
+	 *            检索域
+	 * @param specialType
+	 *            专项类型
+	 * @return Object
+	 * @throws TRSException
+	 *             TRSException
+	 */
+	@ApiOperation("新建专项， 两种模式一个接口，通过 special_type 区分")
+	@FormatResult
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "specialName", value = "专项名称", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "timeRange", value = "时间范围[yyyy-MM-dd HH:mm:ss;yyyy-MM-dd HH:mm:ss]", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "anyKeywords", value = "任意关键词[中国,河北;美国,洛杉矶]", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "trsl", value = "专家模式传统库表达式", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "searchScope", value = "搜索范围[TITLE，TITLE_ABSTRACT, TITLE_CONTENT]", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "specialType", value = "专项模式[COMMON, SPECIAL]", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "source", value = "来源", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "groupName", value = "分组名", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "weight", value = "是否按照权重查找", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "server", value = "是否转换为server表达式", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "groupId", value = "分组id", dataType = "String", paramType = "query", required = false) })
+	@RequestMapping(value = "/addProject", method = RequestMethod.POST)
+	public Object addProject(HttpServletRequest request, @RequestParam("specialName") String specialName, // 验证空格
+							 @RequestParam("timeRange") String timeRange,
+							 @RequestParam(value = "anyKeywords", required = false) String anyKeywords,
+							 @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							 @RequestParam(value = "trsl", required = false) String trsl,
+							 @RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
+							 @RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
+							 @RequestParam(value = "source", required = false) String source,
+							 @RequestParam(value = "groupName", required = false) String groupName,
+							 @RequestParam(value = "weight", required = false) boolean weight,
+							 @RequestParam(value = "simflag", required = false) String simflag,
+							 @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							 @RequestParam(value = "server", required = false) boolean server,
+							 @RequestParam(value = "groupId", required = false) String groupId) throws Exception {
+		try {
 
+			//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受用户分组可创建资源数量的限制，但是受机构可创建资源数量的限制）
+			User loginUser = UserUtils.getUser();
+			Organization organization = null;
+			if ((UserUtils.isRoleAdmin()|| UserUtils.isRoleOrdinary(loginUser)) && StringUtil.isNotEmpty(loginUser.getOrganizationId())){
+				organization = organizationRepository.findOne(loginUser.getOrganizationId());
+			}
+
+			if (UserUtils.isRoleAdmin() && ObjectUtil.isNotEmpty(organization)){
+				//机构管理员
+				if (organization.getSpecialNum() <= specialProjectService.getSubGroupSpecialCount(loginUser)){
+					throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，如需更多，请联系相关运维人员。");
+				}
+			}
+			if (UserUtils.isRoleOrdinary(loginUser)){
+				//如果是普通用户 受用户分组 可创建资源的限制
+				//查询该用户所在的用户分组下 是否有可创建资源
+				SubGroup subGroup = subGroupRepository.findOne(loginUser.getSubGroupId());
+				if (subGroup.getSpecialNum() <= specialProjectService.getSubGroupSpecialCount(loginUser)){
+					throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，如需更多，请联系相关运维人员。");
+				}
+			}
+			// 默认不排重
+			boolean isSimilar = false;
+			boolean irSimflag = false;
+			boolean irSimflagAll =false;
+			if ("netRemove".equals(simflag)) {
+				isSimilar = true;
+			} else if ("urlRemove".equals(simflag)) {
+				irSimflag = true;
+			}else if ("sourceRemove".equals(simflag)){
+				irSimflagAll = true;
+			}
+			if (StringUtil.isNotEmpty(specialName) && StringUtil.isNotEmpty(timeRange)
+					&& StringUtil.isNotEmpty(specialType)) {
+				String userId = UserUtils.getUser().getId();
+				SpecialType type = SpecialType.valueOf(specialType);
+				int chineseCount = 0;
+				// 专家模式
+				if (SpecialType.SPECIAL.equals(type)) {
+					if (StringUtil.isEmpty(trsl)) {
+						throw new OperationException("创建监测方案失败");
+					}
+					if ((UserUtils.isRoleAdmin()|| UserUtils.isRoleOrdinary(loginUser))){
+						if (StringUtil.isNotEmpty(trsl)){
+							int trslCount = StringUtil.getChineseCount(trsl);
+							chineseCount = trslCount;
+						}
+					}
+				} else if (SpecialType.COMMON.equals(type)) {
+					// 普通模式
+					if (StringUtil.isEmpty(anyKeywords)) {
+						throw new OperationException("创建监测方案失败");
+					}
+					//若为机构管理员或者普通用户 若为普通模式，判断关键字字数
+					if ((UserUtils.isRoleAdmin()|| UserUtils.isRoleOrdinary(loginUser))){
+						if (StringUtil.isNotEmpty(anyKeywords)){
+							chineseCount = StringUtil.getChineseCountForSimple(anyKeywords);
+						}
+					}
+				}
+				if ((UserUtils.isRoleAdmin()|| UserUtils.isRoleOrdinary(loginUser)) && ObjectUtil.isNotEmpty(organization)){
+					if (chineseCount > organization.getKeyWordsNum()){
+						throw new TRSException(CodeUtils.FAIL,"该专题暂时仅支持检索"+organization.getKeyWordsNum()+"个关键字，如需更多，请联系相关运维人员。");
+					}
+				}
+
+				String timerange = "";
+				timerange = timeRange;
+				String[] formatTimeRange = DateUtil.formatTimeRange(timeRange);
+				SearchScope scope = SearchScope.valueOf(searchScope);
+				if (ObjectUtil.isEmpty(groupId)){
+					groupId = null;
+				}
+				String sequence = String.valueOf(specialService.getMaxSequenceForSpecial(groupId,loginUser) +1);
+				Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(formatTimeRange[0]);
+				Date endTime = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(formatTimeRange[1]);
+				SpecialProject specialProject = new SpecialProject(userId, type, specialName, anyKeywords,
+						excludeWords, trsl, scope, startTime, endTime, source, groupName,
+						groupId, timerange,Integer.valueOf(sequence),isSimilar, irSimflag, weight, server,irSimflagAll,excludeWeb);
+				String imgUrl = "";
+				specialProject.setImgUrl(imgUrl);
+				specialProject.setStart(new SimpleDateFormat("yyyyMMddHHmmss").format(startTime));
+				specialProject.setEnd(new SimpleDateFormat("yyyyMMddHHmmss").format(endTime));
+				specialService.createSpecial(specialProject);
+				PerpetualPool.put(userId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
+				return specialProject;
+			} else {
+				throw new OperationException("创建监测方案失败");
+			}
+		} catch (TRSException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new OperationException("创建监测方案失败,message:" + e, e);
+		}
+	}
 	/**
 	 * 添加新专项（分组）
 	 *
@@ -179,7 +327,6 @@ public class SpecialController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "specialName", value = "专项名称", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "timeRange", value = "时间范围[yyyy-MM-dd HH:mm:ss;yyyy-MM-dd HH:mm:ss]", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "allKeywords", value = "所有关键词[北京;雾霾]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "anyKeywords", value = "任意关键词[中国,河北;美国,洛杉矶]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "trsl", value = "专家模式传统库表达式", dataType = "String", paramType = "query", required = false),
@@ -583,8 +730,6 @@ public class SpecialController {
 	 *            专项名称
 	 * @param timeRange
 	 *            时间范围[yyyy-MM-dd HH:mm:ss;yyyy-MM-dd HH:mm:ss]
-	 * @param allKeywords
-	 *            所有关键词[北京;雾霾]
 	 * @param anyKeywords
 	 *            任意关键词[中国,河北;美国,洛杉矶]
 	 * @param excludeWords
@@ -608,7 +753,6 @@ public class SpecialController {
 			@ApiImplicitParam(name = "specialId", value = "专项Id", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "specialName", value = "专项名称", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "timeRange", value = "时间范围[yyyy-MM-dd HH:mm:ss;yyyy-MM-dd HH:mm:ss]", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "allKeywords", value = "所有关键词[北京;雾霾]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "anyKeywords", value = "任意关键词[中国,河北;美国,洛杉矶]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "trsl", value = "专家模式表达式", dataType = "String", paramType = "query", required = false),
@@ -622,12 +766,9 @@ public class SpecialController {
 	@RequestMapping(value = "/update", method = RequestMethod.POST)
 	public Object updateSpecial(@RequestParam("specialId") String specialId,
 			@RequestParam("specialName") String specialName, @RequestParam("timeRange") String timeRange,
-			@RequestParam(value = "allKeywords", required = false) String allKeywords,
 			@RequestParam(value = "anyKeywords", required = false) String anyKeywords,
 			@RequestParam(value = "excludeWords", required = false) String excludeWords,
 			@RequestParam(value = "trsl", required = false) String trsl,
-			@RequestParam(value = "statusTrsl", required = false) String statusTrsl,
-			@RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
 			@RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
 			@RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
 			@RequestParam(value = "weight", required = false) boolean weight,
@@ -644,11 +785,9 @@ public class SpecialController {
 			int chineseCount = 0;
 			if (StringUtil.isNotEmpty(anyKeywords)){
 				chineseCount = StringUtil.getChineseCountForSimple(anyKeywords);
-			}else if (StringUtil.isNotEmpty(trsl) || StringUtil.isNotEmpty(weChatTrsl) || StringUtil.isNotEmpty(statusTrsl)){
+			}else if (StringUtil.isNotEmpty(trsl)){
 				int trslCount = StringUtil.getChineseCount(trsl);
-				int weChatTrslCount = StringUtil.getChineseCount(weChatTrsl);
-				int statusTrslCount = StringUtil.getChineseCount(statusTrsl);
-				chineseCount = trslCount+weChatTrslCount+statusTrslCount;
+				chineseCount = trslCount;
 			}
 			if (chineseCount > organization.getKeyWordsNum()){
 				throw new TRSException(CodeUtils.FAIL,"该专题暂时仅支持检索"+organization.getKeyWordsNum()+"个关键字，如需更多，请联系相关运维人员。");
@@ -682,7 +821,7 @@ public class SpecialController {
 			Date endTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(formatTimeRange[1]);
 			// 专家模式
 			if (SpecialType.SPECIAL.equals(type)) {
-				if (StringUtil.isEmpty(trsl) && StringUtil.isEmpty(statusTrsl) && StringUtil.isEmpty(weChatTrsl)) {
+				if (StringUtil.isEmpty(trsl)) {
 					throw new OperationException("创建监测方案失败");
 				}
 			}
@@ -691,8 +830,8 @@ public class SpecialController {
 			if (SpecialType.COMMON.equals(specialType)) {
 				server = false;
 			}
-			SpecialProject updateSpecial = specialService.updateSpecial(specialId, type, specialName, allKeywords,
-					anyKeywords, excludeWords, trsl, statusTrsl, weChatTrsl, scope, startTime, endTime, source,
+			SpecialProject updateSpecial = specialService.updateSpecial(specialId, type, specialName,
+					anyKeywords, excludeWords, trsl, scope, startTime, endTime, source,
 					timerange, isSimilar, weight, irSimflag, server,irSimflagAll,excludeWeb);
 
 			// 修改专题成功,触发修改该专题当前日期指数
@@ -751,7 +890,7 @@ public class SpecialController {
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_DELETE, systemLogType = SystemLogType.SPECIAL, systemLogOperationPosition = "删除专项：${specialId}")
 	@FormatResult
 	@ApiImplicitParams({ @ApiImplicitParam(name = "specialId", value = "专项Id", dataType = "String", paramType = "query") })
-	@RequestMapping(value = "/delete", method = RequestMethod.GET)
+	@RequestMapping(value = "/delete", method = RequestMethod.POST)
 	public Object deleteSpecial(@RequestParam("specialId") String id) throws TRSException {
 		try {
 			specialProjectService.delete(id);
@@ -817,7 +956,8 @@ public class SpecialController {
 	@RequestMapping(value = "/selectSpecial", method = RequestMethod.GET)
 	public Object selectSpecial(HttpServletRequest request) throws TRSSearchException, TRSException {
 		User loginUser = UserUtils.getUser();
-		return specialService.selectSpecialNew(loginUser);
+//		return specialService.selectSpecialNew(loginUser);
+		return  specialService.selectSpecialReNew(loginUser);
 	}
 
 	/**
@@ -842,7 +982,30 @@ public class SpecialController {
 			@ApiParam("与ids一一对应 ;分割 一级 0，二级 1， 专题传 2") @RequestParam("typeFlags") int[] typeFlags) throws TRSException{
 		return specialService.moveListNew(id,parentId,typeFlag,ids, typeFlags);
 	}
-	
+	@FormatResult
+	@RequestMapping(value = "/moveProject", method = RequestMethod.POST)
+	@ApiOperation("拖拽专题接口")
+	public Object moveProject(@ApiParam("分组要拖拽后的父级分组") @RequestParam(value = "parentId", required = false) String parentId,
+							  @ApiParam("被拖拽的对象的信息") @RequestParam("moveData") String moveData,
+							  @ApiParam("拖拽完成后的顺序") @RequestParam("sequenceData") String sequenceData) throws TRSException{
+
+		SpecialSubject parent = null;
+		if(StringUtil.isNotEmpty(parentId)){
+			parent = specialSubjectRepository.findOne(parentId);
+			if(ObjectUtil.isEmpty(parent)){
+				throw new TRSException(CodeUtils.FAIL,"对应的专题分组不存在");
+			}
+		}
+		if(StringUtil.isEmpty(moveData)){
+			throw new TRSException(CodeUtils.FAIL,"被拖拽的分组或专题信息为空");
+		}
+		if(StringUtil.isEmpty(sequenceData)){
+			throw new TRSException(CodeUtils.FAIL,"拖拽后顺序为空");
+		}
+		User user = UserUtils.getUser();
+		return specialService.moveProjectSequence(sequenceData,moveData,parentId,user);
+	}
+
 	/**
 	 * 跨越等级拖动 （分组）
 	 * @date Created at 2018年12月19日  下午3:15:20
@@ -876,9 +1039,11 @@ public class SpecialController {
 	@ApiOperation("新建主题")
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_ADD_SUBJECT, systemLogType = SystemLogType.SPECIAL, systemLogOperationPosition = "添加主题：@{name}")
 	@FormatResult
-	@ApiImplicitParams({ @ApiImplicitParam(name = "name", value = "主题名", dataType = "String", paramType = "query") })
+	@ApiImplicitParams({ @ApiImplicitParam(name = "name", value = "主题名", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "parentId", value = "要创建的栏目分组的父级分组id", dataType = "String", paramType = "query")})
 	@RequestMapping(value = "/addSubject", method = RequestMethod.GET)
-	public Object addSubject(@RequestParam("name") String name) throws TRSException {
+	public Object addSubject(@RequestParam("name") String name,
+							 @ApiParam("要创建的栏目分组的父级分组id") @RequestParam(value = "parentId" ,required = false) String parentId) throws TRSException {
 
 		User loginUser = UserUtils.getUser();
 		if (UserUtils.isRoleAdmin()){
@@ -896,7 +1061,7 @@ public class SpecialController {
 				throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，该分组下已没有可新建专题分析的资源，如需更多，请联系相关运维人员。");
 			}
 		}
-		return specialSubjectService.addSubject(name);
+		return specialSubjectService.addSubject(name,parentId,loginUser);
 	}
 
 	/**
@@ -1014,14 +1179,15 @@ public class SpecialController {
 	 * @return
 	 * @throws TRSException
 	 */
-	@ApiOperation("删除主题")
+	@ApiOperation("删除分组")
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_DELETE_SUBJECT, systemLogType = SystemLogType.SPECIAL, systemLogOperationPosition = "删除主题：${id}")
 	@FormatResult
-	@ApiImplicitParams({ @ApiImplicitParam(name = "id", value = "主题id", dataType = "String", paramType = "query") })
-	@RequestMapping(value = "/deleteSubject", method = RequestMethod.GET)
+	@ApiImplicitParams({ @ApiImplicitParam(name = "id", value = "分组id", dataType = "String", paramType = "query") })
+	@RequestMapping(value = "/deleteSubject", method = RequestMethod.POST)
 	public Object deleteSubject(@RequestParam("id") String id) throws TRSException {
 		try {
-			specialSubjectService.delete(id, "one");
+//			specialSubjectService.delete(id, "one");
+			specialSubjectService.deleteSubject(id);
 			// }
 			return "删除主题成功";
 		} catch (Exception e) {
@@ -1029,7 +1195,6 @@ public class SpecialController {
 		}
 
 	}
-
 	/**
 	 * 删除专题
 	 * 

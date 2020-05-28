@@ -29,7 +29,13 @@ public interface SpecialSubjectRepository
 	 * @return
 	 */
 	List<SpecialSubject> findByUserId(String userId, Sort sort);
-
+	/**
+	 * 根据id获取
+	 *
+	 * @param id
+	 * @return
+	 */
+	public List<SpecialSubject> findById(String id);
 	/**
 	 * 只为历史数据迁移
 	 * @param userId
