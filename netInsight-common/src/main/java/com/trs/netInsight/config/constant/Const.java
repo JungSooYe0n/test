@@ -161,6 +161,7 @@ public class Const {
             Const.GROUPNAME_BOKE,
             Const.GROUPNAME_KEHUDUAN,
             Const.GROUPNAME_ZIMEITI,
+            "新闻",
             Const.PAGE_SHOW_XINWEN,
             Const.PAGE_SHOW_GUOWAIXINWEN,
             Const.PAGE_SHOW_LUNTAN,
@@ -196,7 +197,7 @@ public class Const {
     /**
      * 文章类型:来源-传统媒体 2018/3/12启用此常量 请慎重修改内容 PS:特别是删除
      */
-    public static final List<String> MEDIA_TYPE_FINAL_NEWS = Arrays.asList("国外新闻", "传统媒体", "国内新闻", "新闻", "论坛", "博客",
+    public static final List<String> MEDIA_TYPE_FINAL_NEWS = Arrays.asList("国外新闻", "传统媒体", "国内新闻", "新闻","新闻网站", "论坛", "博客",
             "客户端", "电子报", "国内论坛", "国内博客", "国内新闻_电子报", "国内新闻_手机客户端", "境外媒体", "境外网站");
 
     public static final String TYPE_NEWS = "国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;境外媒体";
@@ -605,7 +606,7 @@ public class Const {
     /**
      * sheet名 - 国内新闻
      */
-    public static final String PAGE_SHOW_XINWEN = "新闻";
+    public static final String PAGE_SHOW_XINWEN = "新闻网站";
 
     /**
      * sheet名 - 微博
@@ -705,6 +706,7 @@ public class Const {
 
         {
             put(GROUPNAME_XINWEN, GROUPNAME_XINWEN);
+            put("新闻", GROUPNAME_XINWEN);
             put(PAGE_SHOW_XINWEN, GROUPNAME_XINWEN);
             put(GROUPNAME_WEIBO, GROUPNAME_WEIBO);
             put(PAGE_SHOW_WEIXIN, GROUPNAME_WEIXIN);

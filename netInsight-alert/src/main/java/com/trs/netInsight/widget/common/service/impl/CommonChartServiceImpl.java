@@ -317,7 +317,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * @throws TRSException
      */
     public <T extends IQueryBuilder> Object getWordCloudColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll,
-                                                                   String groupName, String entityType, String type) throws TRSException {
+                                                                   String groupName, String entityType, String type, ChartResultField resultKey) throws TRSException {
         try {
             GroupWordResult wordInfos = new GroupWordResult();
             QueryBuilder queryBuilder =(QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(builder,groupName,0);
@@ -382,18 +382,17 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 newGroupWordList.get(i).setFieldValue(name);
             }
             if (ObjectUtil.isNotEmpty(newGroupWordList) && newGroupWordList.size() > 0) {
-                wordInfos.setGroupList(newGroupWordList);
-                List<Object> result2 = new ArrayList<>();
+
+                List<Object> result = new ArrayList<>();
                 Map<String, Object> map = null;
-                for (GroupWordInfo wordInfo : wordInfos) {
+                for (GroupWordInfo wordInfo : newGroupWordList) {
                     map = new HashMap<>();
-                    map.put("name", wordInfo.getFieldValue());
-                    map.put("value", wordInfo.getCount());
-                    map.put("entityType", wordInfo.getEntityType());
-                    result2.add(map);
+                    map.put(resultKey.getContrastField(), wordInfo.getFieldValue());
+                    map.put(resultKey.getCountField(), wordInfo.getCount());
+                    map.put(resultKey.getLineXField(), wordInfo.getEntityType());
+                    result.add(map);
                 }
-                return result2;
-//                return wordInfos;
+                return result;
             } else {
                 return null;
             }
