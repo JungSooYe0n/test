@@ -272,13 +272,11 @@ public class SpecialChartAnalyzeController {
 		//跨数据源排重
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
 	 QueryBuilder builder = specialProject.toNoPagedBuilder();
-		builder.filterField(FtsFieldConst.FIELD_GROUPNAME,specialProject.getSource().replace(";", " OR ")
-				.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
 		String contrastField = FtsFieldConst.FIELD_GROUPNAME;
 		builder.setPageSize(20);
 		ChartResultField resultField = new ChartResultField("name", "value");
 		List<Map<String, Object>> list = new ArrayList<>();
-		list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,specialProject.getSource(),null,contrastField,"special",resultField);
+		list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,CommonListChartUtil.changeGroupName(specialProject.getSource()),null,contrastField,"special",resultField);
 //		Map<String, Object> resultMap = specialChartAnalyzeService.getWebCountNew(timeRange, specialProject, area,
 //				industry);
 		return list;
@@ -792,7 +790,7 @@ public class SpecialChartAnalyzeController {
 		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new OperationException("获取媒体活跃等级出错，message:" + e);
+			throw new OperationException("获取活跃账号等级出错，message:" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
 			long end = new Date().getTime();

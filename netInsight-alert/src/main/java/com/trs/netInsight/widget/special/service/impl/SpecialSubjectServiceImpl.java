@@ -88,18 +88,18 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 				// 多个删除用;分割
 				String[] idsplit = projectId.split(";");
 				for (String ids : idsplit) {
-					SpecialProject mapper = specialProjectRepository.findOne(ids);
+					SpecialProject specialProject = specialProjectRepository.findOne(ids);
 					// 修改顺序
-					if (mapper != null) {
-						User user = userService.findOne(mapper.getUserId());
+					if (specialProject != null) {
+						User user = userService.findOne(specialProject.getUserId());
 
 						//对同层级的数据重新排序 - 去掉自己
 						//栏目类型为1，
-						specialService.moveSequenceForSpecial(mapper.getId(), SpecialFlag.SpecialProjectFlag, user);
+						specialService.moveSequenceForSpecial(specialProject.getId(), SpecialFlag.SpecialProjectFlag, user);
 						//删除当前栏目对应的自定义图表
 //						Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
 //						log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
-						specialProjectRepository.delete(mapper.getSpecialSubject().getId());
+						specialProjectRepository.delete(specialProject.getId());
 					}
 				}
 			}

@@ -579,9 +579,6 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("flag", SpecialFlag.SpecialProjectFlag.ordinal());
 					map.put("flagSort", level);
 					map.put("show", false);//前端需要，与后端无关
-					map.put("isMe", true);
-					map.put("share", false);
-
 					map.put("type", "");
 					map.put("contrast", "");
 					map.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getSource()));
@@ -590,6 +587,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("weight", tab.isWeight());
 					map.put("excludeWords", tab.getExcludeWords());
 					map.put("excludeWeb", tab.getExcludeWeb());
+					map.put("subjectId",tab.getGroupId());
 					//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
 					if (tab.isSimilar()) {
 						map.put("simflag", "netRemove");
@@ -622,6 +620,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("flagSort", level);
 					map.put("show", false);//前端需要，与后端无关
 					map.put("active", false);
+					map.put("parentId",page.getParentId());
 					List<Object> childColumn = page.getColumnList();
 					List<Object> child = new ArrayList<>();
 					//如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值

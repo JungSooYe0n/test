@@ -31,7 +31,9 @@ import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
+import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
+import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.SubGroup;
@@ -892,6 +894,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				break;
 			case "hot":
 				return commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIXIN,loginUser,"alert",false);
+//				return setInfoData(commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIXIN,loginUser,"alert",false));
 //			return infoListService.getHotListWeChat(builder, countBuilder, loginUser,"alert");
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
@@ -937,6 +940,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		// }
 		// }
 		return infoListResult;
+//		return setInfoData(infoListResult);
 	}
 
 	@Override
@@ -1100,6 +1104,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				break;
 			case "hot":
 				return commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIBO,loginUser,"alert",false);
+//				return setInfoData(commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIBO,loginUser,"alert",false));
 //			return infoListService.getHotListStatus(builder, countBuilder, loginUser,"alert");
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
@@ -1118,7 +1123,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 //		countBuilder.setDatabase(Const.WEIBO);
 		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,"alert",loginUser,false);
 //		InfoListResult<FtsDocumentStatus> docList = infoListService.getStatusList(builder, loginUser,alertRule.isRepetition(),irSimflag,irSimflagAll,false,"alert");
-		return infoListResult;
+//		return setInfoData(infoListResult);
+		return  infoListResult;
 	}
 
 	@Override
@@ -1268,6 +1274,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				break;
 			case "hot":
 				return commonListService.queryPageListForHot(builder,source,loginUser,"alert",false);
+//				return setInfoData(commonListService.queryPageListForHot(builder,source,loginUser,"alert",false));
 //			return infoListService.getHotList(builder, countBuilder, loginUser,"alert");
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
@@ -1290,6 +1297,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 //		InfoListResult<FtsDocument> docList = infoListService.getDocList(builder, loginUser, simflag,irSimflag,irSimflagAll,false,"alert");
 		log.error("查询完成:" + System.currentTimeMillis());
 		log.error("方法返回:" + System.currentTimeMillis());
+//		return setInfoData(infoListResult);
 		return infoListResult;
 	}
 
@@ -1416,6 +1424,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 //		countBuilder.setDatabase(Const.HYBASE_OVERSEAS);
 		InfoListResult docList = commonListService.queryPageList(builder,simflag,irsimflag,irSimflagAll,Const.GROUPNAME_TWITTER,"alert",loginUser,false);
 //		InfoListResult<FtsDocumentTF> docList = infoListService.getDocTFList(builder, loginUser, simflag,irsimflag,irSimflagAll,"alert");
+//		return setInfoData(docList);
 		return docList;
 	}
 	@Override
@@ -1636,6 +1645,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					hotCountBuilder.setDatabase(StringUtil.join(database,";"));
 				}
 				return commonListService.queryPageListForHot(hotBuilder,Const.ALL_GROUP,loginUser,"alert",false);
+//				return setInfoData(commonListService.queryPageListForHot(hotBuilder,Const.ALL_GROUP,loginUser,"alert",false));
 //				InfoListResult list = infoListService.getHotList(hotBuilder, hotCountBuilder, loginUser,null);
 //				if (isExport) {
 //					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) list.getContent();
@@ -1669,8 +1679,103 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		log.error("查询完成:" + System.currentTimeMillis());
 		log.error("方法返回:" + System.currentTimeMillis());
 		return list;
+//		return setInfoData(list);
 	}
+private InfoListResult setInfoData(InfoListResult infoListResult){
+	if (infoListResult != null) {
+		if (infoListResult.getContent() != null) {
+			String trslk = infoListResult.getTrslk();
+			PagedList<Object> resultContent = null;
+			List<Object> resultList = new ArrayList<>();
+			PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+				List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
+				for (FtsDocumentCommonVO vo : voList) {
+					Map<String, Object> map = new HashMap<>();
+					String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+					map.put("id", vo.getSid());
+					map.put("groupName", groupName);
+					map.put("time", vo.getUrlTime());
+					map.put("md5", vo.getMd5Tag());
+					String title= vo.getTitle();
+					map.put("title", title);
+					if(StringUtil.isNotEmpty(title)){
+						title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+					}
+					map.put("copyTitle", title); //前端复制功能需要用到
+					if(StringUtil.isEmpty(vo.getAbstracts())){
+						//摘要
+						map.put("abstracts", vo.getContent());
+					}else{
+						//摘要
+						map.put("abstracts", vo.getAbstracts());
+					}
+					if(vo.getKeywords() != null && vo.getKeywords().size() >3){
+						map.put("keyWordes", vo.getKeywords().subList(0,3));
+					}else{
+						map.put("keyWordes", vo.getKeywords());
+					}
+					String voEmotion =  vo.getAppraise();
+					if(StringUtil.isNotEmpty(voEmotion)){
+						map.put("emotion",voEmotion);
+					}else{
+						map.put("emotion","中性");
+						map.put("isEmotion",null);
+					}
 
+					map.put("nreserved1", null);
+					map.put("hkey", null);
+					if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
+						map.put("nreserved1", vo.getNreserved1());
+						map.put("hkey", vo.getHkey());
+					}
+					map.put("urlName", vo.getUrlName());
+					map.put("favourite", vo.isFavourite());
+					String fullContent = vo.getExportContent();
+					if(StringUtil.isNotEmpty(fullContent)){
+						fullContent = ReportUtil.calcuHit("",fullContent,true);
+					}
+					map.put("siteName", vo.getSiteName());
+					map.put("author", vo.getAuthors());
+					map.put("srcName", vo.getSrcName());
+					//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
+					if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
+						map.put("title", vo.getContent());
+						map.put("abstracts", vo.getContent());
+						map.put("copyTitle", fullContent); //前端复制功能需要用到
+
+						map.put("author", vo.getScreenName());
+						map.put("srcName", vo.getRetweetedScreenName());
+					} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
+						map.put("title", vo.getContent());
+						map.put("abstracts", vo.getContent());
+						map.put("copyTitle", fullContent); //前端复制功能需要用到
+						map.put("author", vo.getAuthors());
+						map.put("srcName", vo.getRetweetedScreenName());
+					} else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
+						map.put("title", vo.getContent());
+						map.put("abstracts", vo.getContent());
+						map.put("copyTitle", fullContent); //前端复制功能需要用到
+						map.put("author", vo.getAuthors());
+						map.put("srcName", vo.getSrcName());
+					}
+					map.put("trslk", trslk);
+					map.put("channel", vo.getChannel());
+					map.put("img", null);
+					//前端页面显示需要，与后端无关
+					map.put("isImg", false);
+					map.put("simNum", 0);
+
+					resultList.add(map);
+				}
+				resultContent = new PagedList<Object>(pagedList.getPageIndex(),
+						pagedList.getPageSize(), pagedList.getTotalItemCount(), resultList, 1);
+			}
+			infoListResult.setContent(resultContent);
+		}
+	}
+	return infoListResult;
+}
 	@Override
 	public Object sendBlend(String receivers, String[] sids,String urltime, String content, String userId, String[] groupNames,
 							String sendWay,String trslk) throws TRSException {

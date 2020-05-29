@@ -763,13 +763,11 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		if (timeArray != null) {
 			searchBuilder.filterField("IR_URLTIME", timeArray, Operator.Between);
 		}
-		String groupName = searchBuilder.getGroupName();
-		String[] groupNames = StringUtil.isNotEmpty(groupName)?groupName.split(";"):null;
-		String[] database = TrslUtil.chooseDatabases(groupNames);
-		if (StringUtil.isNotEmpty(groupName)) {
-			searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-					.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-		}
+		String groupName = CommonListChartUtil.changeGroupName(searchBuilder.getGroupName());
+//		if (StringUtil.isNotEmpty(groupName)) {
+//			searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+//					.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+//		}
 		ChartResultField chartResultField = new ChartResultField("name","value");
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
@@ -4614,24 +4612,24 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
 		boolean sim = specialProject.isSimilar();
 		String groupName = specialProject.getSource();
-		//来源处理
-		if (!"ALL".equals(groupName)){
-			String[] split = groupName.split(";");
-			List<String> choices = Arrays.asList(split);
-			List<String> whole = Arrays.asList(Const.TYPE_NEWS.split(";"));
-			//取交集
-			List<String> result = whole.stream().filter(item -> choices.contains(item)).collect(toList());
-			if (ObjectUtil.isEmpty(result)){
-				//未选中传统类来源
-				return null;
-			}
-			split = result.toArray(new String[result.size()]);
-			groupName = StringUtil.join(split,";");
-		}else {
-			groupName = Const.TYPE_NEWS;
-		}
+//		//来源处理
+//		if (!"ALL".equals(groupName)){
+//			String[] split = groupName.split(";");
+//			List<String> choices = Arrays.asList(split);
+//			List<String> whole = Arrays.asList(Const.TYPE_NEWS.split(";"));
+//			//取交集
+//			List<String> result = whole.stream().filter(item -> choices.contains(item)).collect(toList());
+//			if (ObjectUtil.isEmpty(result)){
+//				//未选中传统类来源
+//				return null;
+//			}
+//			split = result.toArray(new String[result.size()]);
+//			groupName = StringUtil.join(split,";");
+//		}else {
+//			groupName = Const.TYPE_NEWS;
+//		}
 
-		searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace("境外媒体","国外新闻").split(";"),Operator.Equal);
+//		searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace("境外媒体","国外新闻").split(";"),Operator.Equal);
 		ArrayList<HashMap<String, Object>> resultData = new ArrayList<>();
 		try {
 //			searchBuilder.filterByTRSL(" (IR_EMOTION:(\"怒\" OR \"恶\" OR \"惧\" OR \"喜\" OR \"哀\"))");
@@ -4641,7 +4639,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //			GroupResult posResult = hybase8SearchService.categoryQuery(specialProject.isServer(), posCatTrsl, sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),
 //					FtsFieldConst.FIELD_EMOTION, 5, "special",Const.HYBASE_NI_INDEX);
 			searchBuilder.setPageSize(5);
-			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION,"special",Const.TYPE_NEWS);
+			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION,"special",CommonListChartUtil.changeGroupName(groupName));
 
 //			userViewResultEcapsulation(resultData, posResult);
 			for(GroupInfo groupInfo : posResult) {
