@@ -879,7 +879,24 @@ public class SpecialController {
 			throw new OperationException("置顶失败,message" + e, e);
 		}
 	}
-
+	/**
+	 * 删除
+	 *
+	 * @param projectId
+	 *            专项id
+	 */
+	@ApiOperation("删除专题（新版）")
+	@FormatResult
+	@ApiImplicitParams({ @ApiImplicitParam(name = "projectId", value = "专题Id", dataType = "String", paramType = "query") })
+	@RequestMapping(value = "/deleteProject", method = RequestMethod.POST)
+	public Object deleteProject(@RequestParam("projectId") String projectId) throws TRSException {
+		try {
+			specialSubjectService.deleteProject(projectId);
+			return "delete success";
+		} catch (Exception e) {
+			throw new OperationException("删除失败,message" + e, e);
+		}
+	}
 	/**
 	 * 删除
 	 *
@@ -1061,7 +1078,8 @@ public class SpecialController {
 				throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，该分组下已没有可新建专题分析的资源，如需更多，请联系相关运维人员。");
 			}
 		}
-		return specialSubjectService.addSubject(name,parentId,loginUser);
+//		return specialSubjectService.addSubject(name,parentId,loginUser);
+		return specialSubjectService.addSubject(name);
 	}
 
 	/**

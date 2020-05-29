@@ -34,7 +34,6 @@ public class SpecialSubject extends BaseEntity {
 	@JoinColumn(name = "parent_id")
 	@OrderBy("sequence asc")
 	private List<SpecialSubject> childrenPage = new ArrayList<>();
-
 	@Column(name = "parent_id")
 	private String parentId;
 	/**
