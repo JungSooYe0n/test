@@ -3269,8 +3269,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 							xType = "中国\\\\" + xType + "*";
 						}*/
 						// xType = "中国\\\\" + xType + "*";
-						xType = Const.PROVINCE_FULL_NAME.get(xType);
-						xType = "中国\\\\" + xType;
+						xType = Const.CONTTENT_PROVINCE_NAME.get(xType);
 						builder.filterByTRSL(FtsFieldConst.CATALOG_AREANEW + ":(" + xType+")");
 						countBuilder.filterByTRSL(FtsFieldConst.CATALOG_AREANEW + ":(" + xType+")");
 					} else if (chartType.equals(ChartType.WORDCLOUD.getType())) {

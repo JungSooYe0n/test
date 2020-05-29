@@ -46,33 +46,24 @@ public class PieColumn extends AbstractColumn {
 			String groupName = indexTab.getGroupName();
 			builder.setPageSize(8);
 			ChartResultField resultField = new ChartResultField("name", "value");
-			if (StringUtils.isNotBlank(indexTab.getContrast())
-					|| ChartPageInfo.StatisticalChart.equals(super.config.getChartPage())) {// 对比类别不为空,断言简单模式
+			if (StringUtils.isNotBlank(indexTab.getContrast())) {// 对比类别不为空,断言简单模式
 				String contrastField = FtsFieldConst.FIELD_GROUPNAME;
 				String type = indexTab.getType();
-				if(ChartPageInfo.StatisticalChart.equals(super.config.getChartPage())){
-					if(ColumnConst.CHART_PIE.equals(type)){
-						contrastField = FtsFieldConst.FIELD_GROUPNAME;
-						builder.setPageSize(20);
-
-					}else if(ColumnConst.CHART_PIE_EMOTION.equals(type)){
-						contrastField = FtsFieldConst.FIELD_APPRAISE;
-						builder.setPageSize(20);
-
-					}
-				} else{
-					// 来源分类对比图
-					if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_GROUP)) {
-						builder.setPageSize(20);
-					}
-					// 站点对比图
-					if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_SITE)) {
-						contrastField = FtsFieldConst.FIELD_SITENAME;
-					}
-					//微信公众号对比
-					if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT)){
-						contrastField = FtsFieldConst.FIELD_SITENAME;
-					}
+				// 来源分类对比图
+				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_GROUP)) {
+					builder.setPageSize(20);
+				}
+				// 站点对比图
+				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_SITE)) {
+					contrastField = FtsFieldConst.FIELD_SITENAME;
+				}
+				//微信公众号对比
+				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT)) {
+					contrastField = FtsFieldConst.FIELD_SITENAME;
+				}
+				// 正负面对比
+				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_EMOTION)) {
+					contrastField = FtsFieldConst.FIELD_APPRAISE;
 				}
 				list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,groupName,null,contrastField,"column",resultField);
 			} else {// 专家模式

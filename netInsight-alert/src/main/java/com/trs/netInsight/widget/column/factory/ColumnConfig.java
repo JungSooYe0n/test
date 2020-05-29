@@ -19,10 +19,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * 栏目配置类
@@ -313,12 +310,7 @@ public class ColumnConfig {
 		}
 		// 情感值
 		if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
-			// 处理中性问题
-			if ("中性".equals(emotion)) {
-				queryBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, "(\"正面\" OR \"负面\")", Operator.NotEqual);
-			} else {
-				queryBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
-			}
+			addFieldFilter(FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE);
 		}
 
 		//媒体等级
@@ -548,14 +540,18 @@ public class ColumnConfig {
 	}
 
 	private void addAreaFilter(String field,String areas){
-		if(StringUtil.isNotEmpty(areas)){
+		Map<String,String> areaMap = null;
+		if(FtsFieldConst.FIELD_MEDIA_AREA.equals(field)){
+			areaMap = Const.MEDIA_PROVINCE_NAME;
+		}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field)){
+			areaMap = Const.CONTTENT_PROVINCE_NAME;
+		}
+		if(StringUtil.isNotEmpty(areas) && areaMap!= null){
 			String[] areaArr = areas.split(";");
 			List<String> areaList = new ArrayList<>();
 			for(String area : areaArr){
-				if(Const.PROVINCE_FULL_NAME.containsKey(area)){
-					area = Const.PROVINCE_FULL_NAME.get(area);
-					area = "中国\\\\"+area;
-					areaList.add(area);
+				if(areaMap.containsKey(area)){
+					areaList.add(areaMap.get(area));
 				}
 			}
 			this.queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
