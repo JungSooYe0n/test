@@ -700,7 +700,7 @@ public class SepcialReportTask implements Runnable{
 		ColumnConfig config = new ColumnConfig();
 		config.setMaxSize(maxSize);
 		config.initSection(indexTab, indexTab.getTimeRange(), 0, maxSize, null, null, "keywords", "", "", "desc",
-				"", "", "", "", "","","","","","","","",
+				 "", "", "","","","","","","","",
 				"","");
 		column.setDistrictInfoService(districtInfoService);
 		boolean mix = false ;

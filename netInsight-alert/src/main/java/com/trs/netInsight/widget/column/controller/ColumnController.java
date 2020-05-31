@@ -964,7 +964,7 @@ public class ColumnController {
 							  @RequestParam(value = "chartPage", defaultValue = "TabChart") String chartPage,
 							  @RequestParam(value = "showType", required = false, defaultValue = "") String showType,
 							  @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,//上部为查询图必须的条件
-							  @RequestParam(value = "mapContrast", required = false, defaultValue = "hitArticle") String mapContrast,
+							  @RequestParam(value = "mapContrast", required = false) String mapContrast,
 							  //查询时的暂时可变筛选条件  openFiltrate
 							  @RequestParam(value = "openFiltrate", defaultValue = "false") Boolean openFiltrate,
 							  @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -1016,6 +1016,10 @@ public class ColumnController {
 		String timerange = indexTab.getTimeRange();
 		if (StringUtil.isNotEmpty(timeRange)) {
 			timerange = timeRange;
+		}
+		IndexTabType indexTabType = ColumnFactory.chooseType(indexTab.getType());
+		if(StringUtil.isNotEmpty(mapContrast) && IndexTabType.MAP.equals(indexTabType)){
+			indexTab.setContrast(mapContrast);
 		}
 		if(openFiltrate != null && openFiltrate){
 			//排重
@@ -1072,10 +1076,10 @@ public class ColumnController {
 		AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 		ColumnConfig config = new ColumnConfig();
 		if(openFiltrate != null && openFiltrate){
-			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default", "", "", "", "",
+			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default", "", "",
 					"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 		}else{
-			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default", "", "", "", "",
+			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default",  "", "",
 					"", "",read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
 					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
 		}
@@ -1153,7 +1157,7 @@ public class ColumnController {
 	/**
 	 * 原日常监测栏目进入列表页 预计做成同一列表页(分组)
 	 *
-	 * @param indexMapperId
+	 * @param id
 	 * @param source
 	 * @param sort
 	 * @param emotion
@@ -1169,18 +1173,18 @@ public class ColumnController {
 	//此接口不能加redis缓存  会导致文章删除功能无效
 	@FormatResult
 	@RequestMapping(value = "/list", method = RequestMethod.POST)
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）更多数据：${indexMapperId}")
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）更多数据：${id}")
 	@ApiOperation("进入到列表页")
 	public Object list(
-			@ApiParam("日常监测栏目id") @RequestParam(value = "indexMapperId", required = false) String indexMapperId,
+			@ApiParam("日常监测栏目或图表的id") @RequestParam(value = "id", required = false) String id,
 			@ApiParam("图的页面类型") @RequestParam(value = "chartPage", required = false) String chartPage,
 			@ApiParam("来源") @RequestParam(value = "source", defaultValue = "ALL") String source,
 			@ApiParam("分类占比和单一媒体时 用于取得xy轴对应的表达式") @RequestParam(value = "key", required = false) String key,
-			@ApiParam("地域名（点地图进去）") @RequestParam(value = "area", defaultValue = "ALL") String area,
-			@ApiParam("词云点击进去") @RequestParam(value = "irKeyword", defaultValue = "ALL") String irKeyword,
+			/*@ApiParam("地域名（点地图进去）") @RequestParam(value = "area", defaultValue = "ALL") String area,
+			@ApiParam("词云点击进去") @RequestParam(value = "irKeyword", defaultValue = "ALL") String irKeyword,*/
 			@ApiParam("折线图 数据时间") @RequestParam(value = "dateTime", required = false) String dateTime,
 			@ApiParam("通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
-			@ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false, defaultValue = "hitArticle") String mapContrast,
+			@ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false) String mapContrast,
 			@ApiParam("排序方式") @RequestParam(value = "sort", defaultValue = "default") String sort,
 			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
 			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
@@ -1215,14 +1219,14 @@ public class ColumnController {
 		IndexTab indexTab = null;
 		ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
 		if(ChartPageInfo.CustomChart.equals(chartPageInfo)){
-			CustomChart customChart = columnChartService.findOneCustomChart(indexMapperId);
+			CustomChart customChart = columnChartService.findOneCustomChart(id);
 			if(ObjectUtil.isEmpty(customChart)){
 				throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
 			}
 			//待写， 需要通过自定义图表的类生成一个indextab
 			indexTab = customChart.indexTab();
 		}else if(ChartPageInfo.StatisticalChart.equals(chartPageInfo)){
-			StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(indexMapperId);
+			StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
 			if(ObjectUtil.isEmpty(statisticalChart)){
 				throw new TRSException(CodeUtils.FAIL,"当前统计分析图表不存在");
 			}
@@ -1232,16 +1236,24 @@ public class ColumnController {
 			StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(statisticalChart.getChartType());
 			indexTab.setContrast(statisticalChartInfo.getContrast());
 		}else{
-			IndexTabMapper mapper = indexTabMapperService.findOne(indexMapperId);
+			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
 				throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
 			}
 			indexTab = mapper.getIndexTab();
 		}
 
+		if(ObjectUtil.isNotEmpty(indexTab) && StringUtil.isNotEmpty(indexTab.getContrast())
+				&& ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())){
+			source = key;
+		}
 
 		if(StringUtil.isNotEmpty(timeRange)){
 			indexTab.setTimeRange(timeRange);
+		}
+		IndexTabType indexTabType = ColumnFactory.chooseType(indexTab.getType());
+		if(StringUtil.isNotEmpty(mapContrast) && IndexTabType.MAP.equals(indexTabType)){
+			indexTab.setContrast(mapContrast);
 		}
 		if(openFiltrate != null && openFiltrate){
 			//排重
@@ -1289,11 +1301,11 @@ public class ColumnController {
 				indexTab.setGroupName(groupName);
 			}
 			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
-					sort, area, irKeyword, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, mediaLevel, mediaIndustry,
+					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, mediaLevel, mediaIndustry,
 					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 		}else{
 			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
-					sort, area, irKeyword, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
+					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
 					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
 		}
 	}
@@ -1392,7 +1404,7 @@ public class ColumnController {
 			indexTab.setGroupName(groupName);
 		}
 		return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, "", "", "",
-				sort, "", "", "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
+				sort, "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
 				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 	}
 
@@ -1480,7 +1492,7 @@ public class ColumnController {
 		AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 		ColumnConfig config = new ColumnConfig();
 		//这个页面中的筛选条件，前端会将回显数据传回来，所以直接用回显数据
-		config.initSection(indexTab, indexTab.getTimeRange(), 0, 15, null, emotion, null, "", "", "default", "", "", "", "",
+		config.initSection(indexTab, indexTab.getTimeRange(), 0, 15, null, emotion, null, "", "", "default",  "", "",
 				"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 		column.setDistrictInfoService(districtInfoService);
 		column.setCommonListService(commonListService);
@@ -1494,8 +1506,8 @@ public class ColumnController {
 	@PostMapping("/exportChartData")
 	public void exportChartData(HttpServletResponse response,
 								@ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType") String chartType,
-								@ApiParam("词云图当前的类型") @RequestParam(value = "entityType", required = true) String entityType,
-								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
+								@ApiParam("词云图当前的类型") @RequestParam(value = "entityType") String entityType,
+								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data") String data) {
 		try {
 			IndexTabType indexTabType = ColumnFactory.chooseType(chartType);
 			ServletOutputStream outputStream = response.getOutputStream();

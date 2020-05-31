@@ -95,17 +95,16 @@ public class ColumnConfig {
 	/**
 	 * 地域分布图
 	 */
-	private String area;
+	//private String area;
+	/**
+	 * 词云
+	 */
+	//private String irKeyword;
 
 	/**
 	 * 数据时间(折线图使用,x轴坐标)
 	 */
 	private String dataTime;
-
-	/**
-	 * 词云
-	 */
-	private String irKeyword;
 
 	/**
 	 * 主回帖标记
@@ -633,8 +632,9 @@ public class ColumnConfig {
 	 */
 	//TODO  如果是日常监测筛选  因为普通模式添加了筛选字段，包括地域和行业等筛选字段需要添加
 	public void initSection(IndexTab indexTab, String timeRange, int pageNo, int pageSize, String groupName,
-							String emotion, String entityType, String dataTime, String key, String orderBy, String area,
-							String irKeyword, String invitationCard, String fuzzyValue,String fuzzyValueScope, String forwarPrimary
+							String emotion, String entityType, String dataTime, String key, String orderBy,
+							//String area, String irKeyword,
+							String invitationCard, String fuzzyValue,String fuzzyValueScope, String forwarPrimary
 							,String read, String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
 							String contentArea,String mediaArea,String preciseFilter
 	) throws OperationException {
@@ -643,8 +643,8 @@ public class ColumnConfig {
 		this.key = key;
 		this.groupName = groupName;
 		this.emotion = emotion;
-		this.area = area;
-		this.irKeyword = irKeyword;
+		//this.area = area;
+		//this.irKeyword = irKeyword;
 		this.invitationCard = invitationCard;
 		this.fuzzyValue = fuzzyValue;
 		this.fuzzyValueScope = fuzzyValueScope;
