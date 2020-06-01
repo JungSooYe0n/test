@@ -198,9 +198,9 @@ public class CommonListColumn extends AbstractColumn {
 		try {
 			if ("hot".equals(this.config.getOrderBy())) {
 				//暂时先改成false，提升查询速度
-				return commonListService.queryPageListForHot(queryBuilder, groupName, loginUser, "column", false);
+				return commonListService.queryPageListForHot(queryBuilder, groupName, loginUser, "column", true);
 			} else {
-				return commonListService.queryPageList(queryBuilder, sim, irSimflag, irSimflagAll, groupName, "column", loginUser, false);
+				return commonListService.queryPageList(queryBuilder, sim, irSimflag, irSimflagAll, groupName, "column", loginUser, true);
 			}
 		} catch (TRSException e) {
 			throw new TRSSearchException(e);

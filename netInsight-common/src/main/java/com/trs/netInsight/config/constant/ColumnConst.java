@@ -106,9 +106,15 @@ public class ColumnConst {
 	 */
 	public static final String CONTRAST_TYPE_MEDIA_AREA = "mediaArea";
 
+	/**
+	 * 分类对比图类型-按情感分类
+	 */
+	public static final String CONTRAST_TYPE_EMOTION = "contrastEmotion";
 
-
-
+	/**
+	 * 分类对比图类型-按来源分类
+	 */
+	public static final String CONTRAST_TYPE_TOPIC = "contrastTopic";
 
 
 

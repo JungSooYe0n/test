@@ -300,6 +300,11 @@ public class Const {
      */
     public static final List<String> APPRAISE = Arrays.asList("正面", "中性 OR \"\"", "负面");
 
+    /**
+     * 情感  因库里 中性 没标  暂用 “” 空字符串代替中性情感
+     */
+    public static final List<String> ARRAY_APPRAISE = Arrays.asList("正面", "中性", "负面");
+
     public static final List<String> SUB_INDEX = Arrays.asList("dc_chuantong_0913", "dc_sina_weibo0711");
 
     public static final String DATA_SOURCE = "data-source";
@@ -1098,11 +1103,131 @@ public class Const {
             put(SHEET_FACEBOOK, EXPORT_FIRLD_FACEBOOK);
         }
     };
+    /**
+     * 省份 - 和省份全称对应 -- 媒体地域字段中的   hybase - 页面
+     */
+    public static final Map<String, String> PAGE_SHOW_PROVINCE_NAME = new HashMap<String, String>() {
+        private static final long serialVersionUID = 1L;
+
+        {
+            put("北京市", "北京");
+            put("中国\\北京市", "北京");
+            put("天津市", "天津");
+            put("中国\\天津市", "天津");
+            put("上海市", "上海");
+            put("中国\\上海市", "上海");
+            put("重庆市", "重庆");
+            put("中国\\重庆市", "重庆");
+            put("河北省", "河北");
+            put("中国\\河北省", "河北");
+            put("山西省", "山西");
+            put("中国\\山西省", "山西");
+            put("辽宁省", "辽宁");
+            put("中国\\辽宁省", "辽宁");
+            put("吉林省", "吉林");
+            put("中国\\吉林省", "吉林");
+            put("黑龙江省", "黑龙江");
+            put("中国\\黑龙江省", "黑龙江");
+            put("江苏省", "江苏");
+            put("中国\\江苏省", "江苏");
+            put("浙江省", "浙江");
+            put("中国\\浙江省", "浙江");
+            put("安徽省", "安徽");
+            put("中国\\安徽省", "安徽");
+            put("福建省", "福建");
+            put("中国\\福建省", "福建");
+            put("江西省", "江西");
+            put("中国\\江西省", "江西");
+            put("山东省", "山东");
+            put("中国\\山东省", "山东");
+            put("河南省", "河南");
+            put("中国\\河南省", "河南");
+            put("湖北省", "湖北");
+            put("中国\\湖北省", "湖北");
+            put("湖南省", "湖南");
+            put("中国\\湖南省", "湖南");
+            put("广东省", "广东");
+            put("中国\\广东省", "广东");
+            put("海南省", "海南");
+            put("中国\\海南省", "海南");
+            put("四川省", "四川");
+            put("中国\\四川省", "四川");
+            put("贵州省", "贵州");
+            put("中国\\贵州省", "贵州");
+            put("云南省", "云南");
+            put("中国\\云南省", "云南");
+            put("陕西省", "陕西");
+            put("中国\\陕西省", "陕西");
+            put("甘肃省", "甘肃");
+            put("中国\\甘肃省", "甘肃");
+            put("青海省", "青海");
+            put("中国\\青海省", "青海");
+            put("台湾省", "台湾");
+            put("中国\\台湾省", "台湾");
+            put("内蒙古自治区", "内蒙古");
+            put("中国\\内蒙古自治区", "内蒙古");
+            put("广西壮族自治区", "广西");
+            put("中国\\广西壮族自治区", "广西");
+            put("西藏自治区", "西藏");
+            put("中国\\西藏自治区", "西藏");
+            put("宁夏回族自治区", "宁夏");
+            put("中国\\宁夏回族自治区", "宁夏");
+            put("新疆维吾尔族自治区", "新疆");
+            put("中国\\新疆自治区", "新疆");
+            put("香港特别行政区", "香港");
+            put("中国\\香港特别行政区", "香港");
+            put("澳门特别行政区", "澳门");
+            put("中国\\澳门特别行政区", "澳门");
+        }
+    };
 
     /**
-     * 省份 - 和省份全称对应
+     * 省份 - 和省份全称对应 ---  内容地域中的  页面到 - hybase
      */
-    public static final Map<String, String> PROVINCE_FULL_NAME = new HashMap<String, String>() {
+    public static final Map<String, String> CONTTENT_PROVINCE_NAME = new HashMap<String, String>() {
+        private static final long serialVersionUID = 1L;
+
+        {
+            put("北京", "中国\\\\北京市");
+            put("天津", "中国\\\\天津市");
+            put("上海", "中国\\\\上海市");
+            put("重庆", "中国\\\\重庆市");
+            put("河北", "中国\\\\河北省");
+            put("山西", "中国\\\\山西省");
+            put("辽宁", "中国\\\\辽宁省");
+            put("吉林", "中国\\\\吉林省");
+            put("黑龙江", "中国\\\\黑龙江省");
+            put("江苏", "中国\\\\江苏省");
+            put("浙江", "中国\\\\浙江省");
+            put("安徽", "中国\\\\安徽省");
+            put("福建", "中国\\\\福建省");
+            put("江西", "中国\\\\江西省");
+            put("山东", "中国\\\\山东省");
+            put("河南", "中国\\\\河南省");
+            put("湖北", "中国\\\\湖北省");
+            put("湖南", "中国\\\\湖南省");
+            put("广东", "中国\\\\广东省");
+            put("海南", "中国\\\\海南省");
+            put("四川", "中国\\\\四川省");
+            put("贵州", "中国\\\\贵州省");
+            put("云南", "中国\\\\云南省");
+            put("陕西", "中国\\\\陕西省");
+            put("甘肃", "中国\\\\甘肃省");
+            put("青海", "中国\\\\青海省");
+            put("台湾", "中国\\\\台湾省");
+            put("内蒙古", "中国\\\\内蒙古自治区");
+            put("广西", "中国\\\\广西壮族自治区");
+            put("西藏", "中国\\\\西藏自治区");
+            put("宁夏", "中国\\\\宁夏回族自治区");
+            put("新疆", "中国\\\\新疆自治区");// hybase中是这个 正确是新疆维吾尔自治区
+            put("香港", "中国\\\\香港特别行政区");
+            put("澳门", "中国\\\\澳门特别行政区");
+        }
+    };
+    /**
+     * 省份 - 和省份全称对应 -- 媒体地域字段中的  页面到 - hybase
+     */
+    public static final Map<String, String> MEDIA_PROVINCE_NAME = new HashMap<String, String>() {
         private static final long serialVersionUID = 1L;
 
         {
@@ -1137,7 +1262,7 @@ public class Const {
             put("广西", "广西壮族自治区");
             put("西藏", "西藏自治区");
             put("宁夏", "宁夏回族自治区");
-            put("新疆", "新疆自治区");// hybase中是这个 正确是新疆维吾尔自治区
+            put("新疆", "新疆维吾尔族自治区");
             put("香港", "香港特别行政区");
             put("澳门", "澳门特别行政区");
         }
@@ -1169,7 +1294,7 @@ public class Const {
     /**
      * 媒体等级
      */
-    public static final List<String> MEDIA_LEVEL = Arrays.asList("中央党媒","地方党媒","重点商业媒体","其他");
+    public static final List<String> MEDIA_LEVEL = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体","其他");
     /**
      * 媒体行业
      */

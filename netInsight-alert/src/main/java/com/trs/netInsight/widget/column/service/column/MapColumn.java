@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.column.service.column;
 
+import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.TRSException;
@@ -41,8 +42,12 @@ public class MapColumn extends AbstractColumn {
 		List<Map<String, Object>> list = new ArrayList<>();
 		builder.setPageSize(Integer.MAX_VALUE);
         ChartResultField resultField = new ChartResultField("name", "value");
+        String contrastField = FtsFieldConst.FIELD_CATALOG_AREA;
+        if(StringUtil.isNotEmpty(contrastField) && contrastField.equals(ColumnConst.CONTRAST_TYPE_MEDIA_AREA)){
+			contrastField = FtsFieldConst.FIELD_MEDIA_AREA;
+		}
 		try {
-			list = (List<Map<String, Object>>) commonChartService.getMapColumnData(builder, sim, irSimflag, irSimflagAll, groupNames, FtsFieldConst.FIELD_CATALOG_AREA, "column",resultField);
+			list = (List<Map<String, Object>>) commonChartService.getMapColumnData(builder, sim, irSimflag, irSimflagAll, groupNames, contrastField, "column",resultField);
 			if(list == null){
 				return null;
 			}
@@ -87,8 +92,7 @@ public class MapColumn extends AbstractColumn {
 				2019-12-30改
 				//原有规则是查询这个字段包含这个省，但是统计方法改变，只统计到省，存在历史数据问题（没有单独追加省，造成很多数据没有到省数据），所以查询时不能模糊查询
 				*/
-				areaSplit[i] = Const.PROVINCE_FULL_NAME.get(areaSplit[i]);
-				areaSplit[i] = "中国\\\\" + areaSplit[i];
+				areaSplit[i] = Const.CONTTENT_PROVINCE_NAME.get(areaSplit[i]);
 				if (i != areaSplit.length - 1) {
 					areaSplit[i] += " OR ";
 				}

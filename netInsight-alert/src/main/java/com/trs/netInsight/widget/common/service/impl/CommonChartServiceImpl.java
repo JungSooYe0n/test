@@ -274,19 +274,12 @@ public class CommonChartServiceImpl implements ICommonChartService {
                     // 查询结果之间相互对比 所以把城市放开也不耽误查询速度
                     for (GroupInfo classEntry : categoryInfos) {
                         String area = classEntry.getFieldValue();
-                        if (area.contains(";")) {
-                            continue;
+                        //将从hybase查询到的地域 信息转化为页面中要显示的样子，也跟从mysql库中查询到的一样
+                        area = Const.PAGE_SHOW_PROVINCE_NAME.get(area);
+                        if(entry.getKey().equals(area)){
+                            num = (int)classEntry.getCount();
+                            break;
                         }
-                        //因为该查询字段形式类似数组，文章命中访问的是这个字段中的每个值的个数，例如一条数据的这个字段的值为：中国\北京市\朝阳区;中国\北京市\海淀区
-                        //按注释方法算 - 这样同一条数据北京市被计算2次，因为朝阳与海淀都是北京下属地域，2019-12该字段修改为在上面基础上增加当前条所属市，为：中国\北京市\朝阳区;中国\北京市\海淀区;中国\北京市
-                        //如果继续计算下属市则北京被计算3次，所以只计算到省，则需要数据库中改字段的值定义不变，为：中国\北京市
-                        String[] areaArr = area.split("\\\\");
-                        if (areaArr.length == 2) {
-                            if (areaArr[1].contains(entry.getKey())) {
-                                num += classEntry.getCount();
-                            }
-                        }
-
                     }
                     reMap.put(resultKey.getContrastField(), entry.getKey());
                     reMap.put(resultKey.getCountField(), num);

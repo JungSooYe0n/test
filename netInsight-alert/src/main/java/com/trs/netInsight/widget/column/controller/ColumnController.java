@@ -34,6 +34,7 @@ import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
+import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
@@ -1003,6 +1004,8 @@ public class ColumnController {
 			IndexTabMapper mapper = indexTabMapperService.findOne(statisticalChart.getParentId());
 			indexTab = mapper.getIndexTab();
 			indexTab.setType(statisticalChart.getChartType());
+			StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(statisticalChart.getChartType());
+			indexTab.setContrast(statisticalChartInfo.getContrast());
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
@@ -1171,7 +1174,6 @@ public class ColumnController {
 	public Object list(
 			@ApiParam("日常监测栏目id") @RequestParam(value = "indexMapperId", required = false) String indexMapperId,
 			@ApiParam("图的页面类型") @RequestParam(value = "chartPage", required = false) String chartPage,
-			@ApiParam("热搜关键词/热搜人物") @RequestParam(value = "hotKeywords", required = false) String hotKeywords,
 			@ApiParam("来源") @RequestParam(value = "source", defaultValue = "ALL") String source,
 			@ApiParam("分类占比和单一媒体时 用于取得xy轴对应的表达式") @RequestParam(value = "key", required = false) String key,
 			@ApiParam("地域名（点地图进去）") @RequestParam(value = "area", defaultValue = "ALL") String area,
@@ -1227,6 +1229,8 @@ public class ColumnController {
 			IndexTabMapper mapper = indexTabMapperService.findOne(statisticalChart.getParentId());
 			indexTab = mapper.getIndexTab();
 			indexTab.setType(statisticalChart.getChartType());
+			StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(statisticalChart.getChartType());
+			indexTab.setContrast(statisticalChartInfo.getContrast());
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(indexMapperId);
 			if(ObjectUtil.isEmpty(mapper)){
@@ -1387,7 +1391,7 @@ public class ColumnController {
 			}
 			indexTab.setGroupName(groupName);
 		}
-		return columnService.selectList(indexTab, pageNo, pageSize, source, "", "", "", "",
+		return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, "", "", "",
 				sort, "", "", "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
 				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 	}

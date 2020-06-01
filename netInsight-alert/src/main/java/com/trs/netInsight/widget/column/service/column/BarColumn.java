@@ -47,24 +47,7 @@ public class BarColumn extends AbstractColumn {
 
 			//判断类型，如果是横向柱状图或微博热点话题，需要
 			ChartResultField resultField = new ChartResultField("name", "value");
-			if (StringUtils.isNotBlank(indexTab.getContrast())  && !ChartPageInfo.StatisticalChart.equals(super.config.getChartPage())) {// 对比类别不为空,断言简单模式
-				String contrastField = FtsFieldConst.FIELD_GROUPNAME;
-				// 来源分类对比图
-				if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {
-					builder.setPageSize(20);
-				}
-
-				// 站点对比图
-				if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {
-					contrastField = FtsFieldConst.FIELD_SITENAME;
-				}
-
-				//微信公众号对比
-				if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
-					contrastField = FtsFieldConst.FIELD_SITENAME;
-				}
-				return commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,groupName, null,contrastField,"column",resultField);
-			} else if(ChartPageInfo.StatisticalChart.equals(super.config.getChartPage())){
+			if(ChartPageInfo.StatisticalChart.equals(super.config.getChartPage())){
 				String type = indexTab.getType();
 				builder.setPageSize(10);
 				List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
@@ -105,15 +88,29 @@ public class BarColumn extends AbstractColumn {
 							oneInfo.put("name", Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));
 							oneInfo.put("info",changeList);
 							result.add(oneInfo);
-						}/*else{
-							oneInfo.put("name",Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));
-							oneInfo.put("info",null);
-						}*/
+						}
 					}
 					return result;
 				}
 				return null;
-			}else {// 专家模式
+			}else if (StringUtils.isNotBlank(indexTab.getContrast())) {// 对比类别不为空,断言简单模式
+				String contrastField = FtsFieldConst.FIELD_GROUPNAME;
+				// 来源分类对比图
+				if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {
+					builder.setPageSize(20);
+				}
+
+				// 站点对比图
+				if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {
+					contrastField = FtsFieldConst.FIELD_SITENAME;
+				}
+
+				//微信公众号对比
+				if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
+					contrastField = FtsFieldConst.FIELD_SITENAME;
+				}
+				return commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,groupName, null,contrastField,"column",resultField);
+			} else {// 专家模式
 				return commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,groupName, indexTab.getXyTrsl(),null,"column",resultField);
 			}
 		} catch (TRSException | TRSSearchException e) {
