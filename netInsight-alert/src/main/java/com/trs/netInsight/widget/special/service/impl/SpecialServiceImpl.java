@@ -557,7 +557,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 		return mapAll;
 	}
-	private List<Object> formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
+	private List<Object> formatResultSpecial(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
 		//前端需要字段
 		/*
 		id
@@ -601,15 +601,13 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("timeRange", tab.getTimeRange());
 					map.put("trsl", tab.getTrsl());
 					map.put("xyTrsl", "");
-					map.put("active", true);
+					map.put("active", false);
 //					result.add(map);
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
-						if(!parentHide){
 							map.put("active", true);
 							isGetOne.set(0,true);
-						}
 					}
 
 				} else if (obj instanceof SpecialSubject) {
@@ -620,7 +618,8 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("flagSort", level);
 					map.put("show", false);//前端需要，与后端无关
 					map.put("active", false);
-					map.put("parentId",page.getParentId());
+//					map.put("parentId",page.getParentId());
+					map.put("parentId",page.getSubjectId());
 					List<Object> childColumn = page.getColumnList();
 					List<Object> child = new ArrayList<>();
 					//如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值
@@ -631,7 +630,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					}
 					//如果分组被隐藏了，前端不会显示，所以这里不查询了
 					if (childColumn != null && childColumn.size() > 0) {
-						child = this.formatResultColumn(childColumn,level+1,isGetOne,parentHide);
+						child = this.formatResultSpecial(childColumn,level+1,isGetOne,parentHide);
 					}
 					map.put("children", child);
 				}
@@ -718,7 +717,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		List<Object> result =  sortColumn(oneIndexTab,oneIndexPage,true,false);
 		List<Boolean> isGetOne = new ArrayList<>();
 		isGetOne.add(false);
-		return formatResultColumn(result,0,isGetOne,false);
+		return formatResultSpecial(result,0,isGetOne,false);
 	}
 
 	@Override
@@ -792,7 +791,8 @@ public class SpecialServiceImpl implements ISpecialService {
 				}
 			} else if (flag.equals(SpecialFlag.SpecialSubjectFlag)) {
 				movePage = specialSubjectRepository.findOne(moveId);
-				parentId = movePage.getParentId();
+//				parentId = movePage.getParentId();
+				parentId = movePage.getSubjectId();
 			}
 
 			List<SpecialProject> mapperList = null;
@@ -850,8 +850,10 @@ public class SpecialServiceImpl implements ISpecialService {
 				}
 //				predicate.add(cb.equal(root.get("typeId"),typeId));
 				List<Predicate> predicateParent = new ArrayList<>();
-				predicateParent.add(cb.isNull(root.get("parentId")));
-				predicateParent.add(cb.equal(root.get("parentId"),""));
+//				predicateParent.add(cb.isNull(root.get("parentId")));
+//				predicateParent.add(cb.equal(root.get("parentId"),""));
+				predicateParent.add(cb.isNull(root.get("subjectId")));
+				predicateParent.add(cb.equal(root.get("subjectId"),""));
 
 				predicate.add(cb.or(predicateParent.toArray(new Predicate[predicateParent.size()])));
 				Predicate[] pre = new Predicate[predicate.size()];
@@ -1174,7 +1176,8 @@ public class SpecialServiceImpl implements ISpecialService {
 			//修改同级下的其他分组的顺序
 			if (moveFlag.equals(SpecialFlag.SpecialSubjectFlag)) {
 				SpecialSubject indexPage = specialSubjectRepository.findOne(moveId);
-				moveParentId = indexPage.getParentId();
+//				moveParentId = indexPage.getParentId();
+				moveParentId = indexPage.getSubjectId();
 			} else if (moveFlag.equals(SpecialFlag.SpecialProjectFlag)) {
 				SpecialProject mapper = specialProjectRepository.findOne(moveId);
 				if(ObjectUtil.isNotEmpty(mapper.getSpecialSubject())){
@@ -1204,9 +1207,11 @@ public class SpecialServiceImpl implements ISpecialService {
 				SpecialFlag flag = SpecialFlag.values()[parseObject.getInteger("flag")];
 				if (flag.equals(SpecialFlag.SpecialSubjectFlag)) {
 					SpecialSubject indexPage = specialSubjectRepository.findOne(id);
-					indexPage.setParentId(null);
+//					indexPage.setParentId(null);
+					indexPage.setSubjectId(null);
 					if (parent != null) {
-						indexPage.setParentId(parentId);
+//						indexPage.setParentId(parentId);
+						indexPage.setSubjectId(parentId);
 					}
 					indexPage.setSequence(sequence);
 					specialSubjectRepository.save(indexPage);
@@ -1217,9 +1222,9 @@ public class SpecialServiceImpl implements ISpecialService {
 						indexTab.setGroupId(parent.getId());
 					} else {
 						indexTab.setSpecialSubject(null);
+						indexTab.setGroupId(null);
 					}
 					indexTab.setSequence(sequence);
-						indexTab.setSequence(sequence);
 						specialProjectRepository.save(indexTab);
 				}
 			}

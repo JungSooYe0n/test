@@ -1626,7 +1626,7 @@ public class SpecialChartAnalyzeController {
 			}
 			statBuilder.page(0, pageSize);
 			List<Map> resultList = new ArrayList<>();
-
+			type = CommonListChartUtil.formatPageShowGroupName(type);
 			switch (type) {
 				case Const.GROUPNAME_WEIBO:
 					//找十个转发数量最多的原发 按时间排序
@@ -1638,10 +1638,6 @@ public class SpecialChartAnalyzeController {
 					statBuilder.setDatabase(Const.WEIBO);
 					log.info(statBuilder.asTRSL());
 					statBuilder.setServer(specialProject.isServer());
-//					if(StringUtil.isNotEmpty(groupName)){
-//						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-//								.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-//					}
 					InfoListResult infoListResult = commonListService.queryPageList(statBuilder,sim,irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,type,UserUtils.getUser(),true);
 					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 					List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
@@ -1654,48 +1650,25 @@ public class SpecialChartAnalyzeController {
 					// 防止这个的第一条和时间的那一条重复
 					//微博走势 不走special/chart/trendTime接口，不需要去掉第一条数据
 					for (FtsDocumentCommonVO ftsStatus : ftsQueryWeiBo) {
+						ftsStatus.setSiteName(ftsStatus.getScreenName());
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSimCount(), ftsStatus));
 					}
 //				for (FtsDocumentStatus ftsStatus : ftsQueryWeiBo) {
 //					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSim(), ftsStatus));
 //				}
 					return ftsQueryWeiBo;
-				case "新闻":
-					/*
-					 * String trsl = FtsFieldConst.FIELD_GROUPNAME +
-					 * ":((国内新闻) OR (国内论坛) OR (国内新闻_手机客户端) OR (国内新闻_电子报) OR (国内博客))"
-					 * ; statBuilder.filterByTRSL(trsl);
-					 */
+				case "新闻网站":
 					List<FtsDocumentCommonVO> listChuan = new ArrayList<>();
-					// statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,
-					// "国内新闻*", Operator.Equal);
-					if (statBuilder.isServer()) {
-						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
-					} else {
-						statBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
-					}
-					// for (String[] time : timeList) {
-
 					QueryBuilder queryFts = new QueryBuilder();
 					String trsl = statBuilder.asTRSL();
 					queryFts.filterByTRSL(trsl);
-					// 不同小时间段
-					// queryFts.filterField(FtsFieldConst.FIELD_URLTIME, time,
-					// Operator.Between);
 					queryFts.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 					queryFts.setPageSize(10);
 					queryFts.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-					queryFts.setDatabase(Const.HYBASE_NI_INDEX);
-					log.info(queryFts.asTRSL());
 					queryFts.setServer(specialProject.isServer());
 					if(StringUtil.isNotEmpty(md5)){
 						queryFts.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.NotEqual);
 					}
-					//找原发
-//				if(StringUtil.isNotEmpty(groupName)){
-//					queryFts.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-//							.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-//				}
 					GroupResult categoryChuan = commonListService.categoryQuery(queryFts,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_MD5TAG,"special",Const.TYPE_NEWS);
 //				GroupResult categoryChuan = hybase8SearchService.categoryQuery(queryFts, sim, irSimflag,irSimflagAll,
 //						FtsFieldConst.FIELD_MD5TAG,"special", Const.HYBASE_NI_INDEX);
@@ -1706,26 +1679,13 @@ public class SpecialChartAnalyzeController {
 							QueryBuilder queryMd5 = new QueryBuilder();
 							// 小时间段里MD5分类统计 时间排序取第一个结果 去查
 							queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
-							// queryMd5.filterField(FtsFieldConst.FIELD_URLTIME,
-							// time, Operator.Between);
 							queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 							queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-							if (specialProject.isServer()) {
-								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
-							} else {
-								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
-							}
-							queryMd5.setDatabase(Const.HYBASE_NI_INDEX);
 							queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
 							log.info(queryMd5.asTRSL());
-
 							final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
 							String trslk = "redisKey" + pageId;
 							RedisUtil.setString(trslk, queryMd5.asTRSL());
-							if(StringUtil.isNotEmpty(groupName)){
-								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-										.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-							}
 							InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5,sim,irSimflag,irSimflagAll,Const.TYPE_NEWS,"special",UserUtils.getUser(),true);
 							PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
 							List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
@@ -1753,9 +1713,6 @@ public class SpecialChartAnalyzeController {
 					for (FtsDocumentCommonVO ftsDocument : listChuan) {
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
 					}
-//				for (FtsDocument ftsDocument : listChuan) {
-//					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSim(), ftsDocument));
-//				}
 					return listChuan;
 				case "微信":
 					List<FtsDocumentCommonVO> listweixin = new ArrayList<>();
@@ -1824,7 +1781,7 @@ public class SpecialChartAnalyzeController {
 					queryFts3.filterByTRSL(trsl3);
 					// 不同小时间段
 					queryFts3.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-					queryFts3.setPageSize(10);
+					queryFts3.setPageSize(pageSize);
 					queryFts3.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 					queryFts3.setServer(specialProject.isServer());
 					if(StringUtil.isNotEmpty(md5)){
@@ -1840,10 +1797,8 @@ public class SpecialChartAnalyzeController {
 							queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
 							queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 							queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-//							queryMd5.setDatabase(Const.WECHAT_COMMON);
 							queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
 							log.info(queryMd5.asTRSL());
-
 							final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
 							String trslk = "redisKey" + pageId;
 							RedisUtil.setString(trslk, queryMd5.asTRSL());
@@ -1862,8 +1817,6 @@ public class SpecialChartAnalyzeController {
 							}
 						}
 					}
-					// }
-
 					// 按urltime降序
 					SortListAll sort3 = new SortListAll();
 					// Collections.sort(listChuan, sort);
