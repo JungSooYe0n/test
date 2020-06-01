@@ -23,6 +23,7 @@ import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.util.CollectionsUtil;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.widget.column.entity.emuns.SpecialFlag;
+import com.trs.netInsight.widget.special.service.ISpecialCustomChartService;
 import com.trs.netInsight.widget.special.service.ISpecialService;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.UserRepository;
@@ -60,6 +61,7 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 	private ISpecialService specialService;
 	@Autowired
 	private UserRepository userService;
+	private ISpecialCustomChartService specialCustomChartService;
 
 	@Override
 	public List<SpecialSubject> findAll(Criteria<SpecialSubject> criteria) {
@@ -97,8 +99,8 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 						//栏目类型为1，
 						specialService.moveSequenceForSpecial(specialProject.getId(), SpecialFlag.SpecialProjectFlag, user);
 						//删除当前栏目对应的自定义图表
-//						Integer deleteColumnChart = .deleteCustomChartForTabMapper(specialProject.getId());
-//						log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
+						Integer deleteColumnChart = specialCustomChartService.deleteCustomChart(specialProject.getId());
+//						Log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
 						specialProjectRepository.delete(specialProject.getId());
 					}
 				}
@@ -139,14 +141,15 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 					List<SpecialProject> chidMapper = indexPage.getIndexTabMappers();
 					//删除当前分组对应的栏目
 					if (CollectionsUtil.isNotEmpty(chidMapper)) {
-						for (SpecialProject mapper : chidMapper) {
+						for (SpecialProject specialProject : chidMapper) {
 							//删除当前栏目对应的自定义图表
 //							Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+							Integer deleteColumnChart = specialCustomChartService.deleteCustomChart(specialProject.getId());
 //							log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
 								// 删除栏目映射关系，isMe为true的栏目关系须级联删除栏目实体
 								//删除相关栏目映射的相关图表
 								//删除所有与indexTab关联的  否则剩余关联则删除indexTab时失败
-								specialProjectRepository.delete(mapper);
+								specialProjectRepository.delete(specialProject);
 						}
 					}
 					//删除当前分组对应的子分组
