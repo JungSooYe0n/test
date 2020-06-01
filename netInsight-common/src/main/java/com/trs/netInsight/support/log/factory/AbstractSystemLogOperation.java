@@ -1,11 +1,11 @@
 package com.trs.netInsight.support.log.factory;
 
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
-import com.trs.netInsight.widget.column.service.IIndexPageService;
-import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
-import com.trs.netInsight.widget.column.service.INavigationService;
-import com.trs.netInsight.widget.special.service.ISpecialProjectService;
-import com.trs.netInsight.widget.special.service.ISpecialSubjectService;
+import com.trs.netInsight.widget.column.repository.IndexPageRepository;
+import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
+import com.trs.netInsight.widget.column.repository.NavigationRepository;
+import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
+import com.trs.netInsight.widget.special.entity.repository.SpecialSubjectRepository;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -26,11 +26,11 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractSystemLogOperation {
 
-	protected ISpecialProjectService specialProjectService;
-	protected IIndexTabMapperService indexTabMapperService;
-	protected IIndexPageService indexPageService;
-	protected INavigationService navigationService;
-	protected ISpecialSubjectService specialSubjectService;
+	protected SpecialProjectRepository specialProjectService;
+	protected IndexTabMapperRepository indexTabMapperService;
+	protected IndexPageRepository indexPageService;
+	protected NavigationRepository navigationService;
+	protected SpecialSubjectRepository specialSubjectService;
 	/**
 	 * 初始化
 	 * 
@@ -42,8 +42,8 @@ public abstract class AbstractSystemLogOperation {
 	 * @param indexPageService
 	 * @param navigationService
 	 */
-	public void init(ISpecialProjectService specialProjectService, IIndexTabMapperService indexTabMapperService,
-			IIndexPageService indexPageService, INavigationService navigationService,ISpecialSubjectService specialSubjectService) {
+	public void init(SpecialProjectRepository specialProjectService, IndexTabMapperRepository indexTabMapperService,
+					 IndexPageRepository indexPageService, NavigationRepository navigationService, SpecialSubjectRepository specialSubjectService) {
 		this.specialProjectService = specialProjectService;
 		this.indexTabMapperService = indexTabMapperService;
 		this.indexPageService = indexPageService;

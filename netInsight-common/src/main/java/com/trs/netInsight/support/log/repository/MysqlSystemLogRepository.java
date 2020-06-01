@@ -14,6 +14,7 @@
 package com.trs.netInsight.support.log.repository;
 
 import com.trs.netInsight.support.log.entity.SystemLog;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -29,6 +30,7 @@ import java.util.List;
  * @date 2018年7月25日 下午4:27:52
  * @version 
  */
+@Primary
 @Repository("mysqlSystemLogRepository")
 public interface MysqlSystemLogRepository extends JpaRepository<SystemLog, String>,JpaSpecificationExecutor<SystemLog> {
 
