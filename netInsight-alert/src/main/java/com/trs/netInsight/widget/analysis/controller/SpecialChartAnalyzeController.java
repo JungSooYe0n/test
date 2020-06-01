@@ -1626,7 +1626,7 @@ public class SpecialChartAnalyzeController {
 			}
 			statBuilder.page(0, pageSize);
 			List<Map> resultList = new ArrayList<>();
-
+			type = CommonListChartUtil.formatPageShowGroupName(type);
 			switch (type) {
 				case Const.GROUPNAME_WEIBO:
 					//找十个转发数量最多的原发 按时间排序
@@ -1654,13 +1654,14 @@ public class SpecialChartAnalyzeController {
 					// 防止这个的第一条和时间的那一条重复
 					//微博走势 不走special/chart/trendTime接口，不需要去掉第一条数据
 					for (FtsDocumentCommonVO ftsStatus : ftsQueryWeiBo) {
+						ftsStatus.setSiteName(ftsStatus.getScreenName());
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSimCount(), ftsStatus));
 					}
 //				for (FtsDocumentStatus ftsStatus : ftsQueryWeiBo) {
 //					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSim(), ftsStatus));
 //				}
 					return ftsQueryWeiBo;
-				case "新闻":
+				case "新闻网站":
 					/*
 					 * String trsl = FtsFieldConst.FIELD_GROUPNAME +
 					 * ":((国内新闻) OR (国内论坛) OR (国内新闻_手机客户端) OR (国内新闻_电子报) OR (国内博客))"
@@ -1710,22 +1711,22 @@ public class SpecialChartAnalyzeController {
 							// time, Operator.Between);
 							queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
 							queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-							if (specialProject.isServer()) {
-								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
-							} else {
-								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
-							}
-							queryMd5.setDatabase(Const.HYBASE_NI_INDEX);
+//							if (specialProject.isServer()) {
+//								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
+//							} else {
+//								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
+//							}
+//							queryMd5.setDatabase(Const.HYBASE_NI_INDEX);
 							queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
 							log.info(queryMd5.asTRSL());
 
 							final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
 							String trslk = "redisKey" + pageId;
 							RedisUtil.setString(trslk, queryMd5.asTRSL());
-							if(StringUtil.isNotEmpty(groupName)){
-								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-										.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-							}
+//							if(StringUtil.isNotEmpty(groupName)){
+//								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+//										.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+//							}
 							InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5,sim,irSimflag,irSimflagAll,Const.TYPE_NEWS,"special",UserUtils.getUser(),true);
 							PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
 							List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
