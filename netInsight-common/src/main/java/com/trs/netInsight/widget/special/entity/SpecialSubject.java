@@ -31,7 +31,7 @@ public class SpecialSubject extends BaseEntity {
 	 */
 	@JsonIgnore
 	@OneToMany(cascade={CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.EAGER )
-	@JoinColumn(name = "parent_id")
+	@JoinColumn(name = "subject_id")
 	@OrderBy("sequence asc")
 	private List<SpecialSubject> childrenPage = new ArrayList<>();
 	@Column(name = "parent_id")
@@ -57,9 +57,9 @@ public class SpecialSubject extends BaseEntity {
 //	private String subjectName;
 	
 	/**
-	 * 所属主题id
+	 * 所属分组id（父id）
 	 */
-	@Column(name = "`subject_id`")
+	@Column(name = "subject_id")
 	private String subjectId;
 	
 	/**
@@ -112,8 +112,9 @@ public class SpecialSubject extends BaseEntity {
 	 *
 	 * @param name
 	 */
-	public SpecialSubject(String name, String parentId) {
+	public SpecialSubject(String name, String subjectId) {
 		this.name = name;
+		this.subjectId = subjectId;//所属主题id
 		// 默认不隐藏
 	}
 

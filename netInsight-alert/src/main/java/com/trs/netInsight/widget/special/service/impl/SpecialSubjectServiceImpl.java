@@ -97,7 +97,7 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 						//栏目类型为1，
 						specialService.moveSequenceForSpecial(specialProject.getId(), SpecialFlag.SpecialProjectFlag, user);
 						//删除当前栏目对应的自定义图表
-//						Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
+//						Integer deleteColumnChart = .deleteCustomChartForTabMapper(specialProject.getId());
 //						log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
 						specialProjectRepository.delete(specialProject.getId());
 					}
@@ -289,7 +289,8 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 			List<SpecialSubject> parentList = specialSubjectRepository.findById(parentId);
 			if(parentList!= null && parentList.size() >0){
 				SpecialSubject parent = parentList.get(0);
-				indexPage.setParentId(parent.getId());
+//				indexPage.setParentId(parent.getId());
+				indexPage.setSubjectId(parent.getId());
 			}
 		}
 		indexPage.setSequence(seq +1);
