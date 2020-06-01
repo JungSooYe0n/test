@@ -557,7 +557,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 		return mapAll;
 	}
-	private List<Object> formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
+	private List<Object> formatResultSpecial(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
 		//前端需要字段
 		/*
 		id
@@ -601,7 +601,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("timeRange", tab.getTimeRange());
 					map.put("trsl", tab.getTrsl());
 					map.put("xyTrsl", "");
-					map.put("active", true);
+					map.put("active", false);
 //					result.add(map);
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
@@ -631,7 +631,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					}
 					//如果分组被隐藏了，前端不会显示，所以这里不查询了
 					if (childColumn != null && childColumn.size() > 0) {
-						child = this.formatResultColumn(childColumn,level+1,isGetOne,parentHide);
+						child = this.formatResultSpecial(childColumn,level+1,isGetOne,parentHide);
 					}
 					map.put("children", child);
 				}
@@ -718,7 +718,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		List<Object> result =  sortColumn(oneIndexTab,oneIndexPage,true,false);
 		List<Boolean> isGetOne = new ArrayList<>();
 		isGetOne.add(false);
-		return formatResultColumn(result,0,isGetOne,false);
+		return formatResultSpecial(result,0,isGetOne,false);
 	}
 
 	@Override

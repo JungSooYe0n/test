@@ -1078,8 +1078,8 @@ public class SpecialController {
 				throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，该分组下已没有可新建专题分析的资源，如需更多，请联系相关运维人员。");
 			}
 		}
-//		return specialSubjectService.addSubject(name,parentId,loginUser);
-		return specialSubjectService.addSubject(name);
+		return specialSubjectService.addSubject(name,parentId,loginUser);
+//		return specialSubjectService.addSubject(name);
 	}
 
 	/**
