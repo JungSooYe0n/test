@@ -17,10 +17,7 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
-import com.trs.netInsight.support.fts.entity.FtsDocument;
-import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
-import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
-import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
+import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.model.result.GroupWordInfo;
@@ -850,6 +847,14 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		return resultMap;
 	}
 
+	/**
+	 * 观点分析
+	 * @param specialProject
+	 * @param timeRange
+	 * @param viewType
+	 * @return
+	 * @throws TRSException
+	 */
 	@Override
 	public List<Map<String, Object>> getSentimentAnalysis(SpecialProject specialProject, String timeRange, String viewType) throws TRSException {
 		List<Map<String, Object>> list = new ArrayList<>();
@@ -907,7 +912,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //					title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
 //				}
 				if (ObjectUtil.isNotEmpty(vo.getTitle())){
-					map.put("name",vo.getTitle());
+					map.put("name",StringUtil.replaceFont(vo.getTitle()));
 					map.put("value", String.valueOf(vo.getSimCount()));
 				}
 				list.add(map);
@@ -5137,6 +5142,94 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		result.put("links", links);
 	}
 
+	@Override
+	public int getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException {
+		List<Map<String, Object>> list=new ArrayList<>();
+		boolean sim = specialProject.isSimilar();
+		boolean irSimflag = specialProject.isIrSimflag();
+		boolean irSimflagAll = specialProject.isIrSimflagAll();
+		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
+		ChartResultField chartResultField = new ChartResultField("name","num");
+		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,groupName,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
+
+		double total = 0;
+		for (Map<String, Object> mapList : list){
+		    if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("新闻"))){
+                total += getScore(Long.valueOf(mapList.get("num").toString()),300,500,800) * 0.1;
+            }
+            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("微博"))){
+                total += getScore(Long.valueOf(mapList.get("num").toString()),10000,15000,20000) * 0.4;
+            }
+            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("微信"))){
+                total += getScore(Long.valueOf(mapList.get("num").toString()),200,300,500) * 0.3;
+            }
+            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("客户端"))){
+                total += getScore(Long.valueOf(mapList.get("num").toString()),300,500,800) * 0.1;
+            }
+            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("自媒体"))){
+                total += getScore(Long.valueOf(mapList.get("num").toString()),200,300,500) * 0.05;
+            }
+            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("论坛"))){
+                total += getScore(Long.valueOf(mapList.get("num").toString()),100,150,200) * 0.05;
+            }
+        }
+//        searchBuilder.setPageSize(200);
+//		InfoListResult infoListResult = commonListService.queryPageList(searchBuilder,false,false,false,Const.GROUPNAME_WEIBO,"special",UserUtils.getUser(),false);
+//		PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+//		List<FtsDocumentCommonVO> ftsQuery = content.getPageItems();
+//		int weiboVipNum = 0;
+//		if (null != ftsQuery && ftsQuery.size() > 0) {
+//			for (FtsDocumentCommonVO ftsDocument : ftsQuery) {
+//				StatusUser statusUser = queryStatusUser(ftsDocument.getScreenName(), ftsDocument.getUid());
+//				if (ObjectUtil.isNotEmpty(statusUser) && ObjectUtil.isNotEmpty(statusUser.getVerified()) && (statusUser.getVerified().contains("新浪个人认证") || statusUser.getVerified().contains("新浪机构认证"))) {
+//					weiboVipNum++;
+//				}
+//			}
+//		}
+//		total += getScore(Long.valueOf(weiboVipNum),100,150,200) * 0.1;
+		return Integer.parseInt(new DecimalFormat("0").format(total));
+	}
+private int getScore(Long score,int lev1,int lev2,int lev3){
+		if (score < lev1){
+	        return 60;
+	    }
+    if (score < lev2){
+        return 80;
+    }
+    if (score < lev3){
+        return 100;
+    }
+    return 100;
+}
+	/**
+	 * 当前文章对应的用户信息
+	 * @param screenName,uid
+	 * @throws TRSException
+	 */
+	private StatusUser queryStatusUser(String screenName,String uid) throws TRSException{
+		QueryBuilder queryStatusUser = new QueryBuilder();
+		queryStatusUser.filterField(FtsFieldConst.FIELD_SCREEN_NAME,"\""+screenName+"\"",Operator.Equal);
+		queryStatusUser.setDatabase(Const.SINAUSERS);
+		//查询微博用户信息
+//		List<StatusUser> statusUsers = hybase8SearchService.ftsQuery(queryStatusUser, StatusUser.class, false, false,false,null);
+		PagedList<StatusUser> infoListResult = commonListService.queryPageListForClass(queryStatusUser, StatusUser.class, false, false,false,null);
+		List<StatusUser> statusUsers = infoListResult.getPageItems();
+		if (ObjectUtil.isEmpty(statusUsers)){
+			QueryBuilder queryStatusUser1 = new QueryBuilder();
+			queryStatusUser1.filterField(FtsFieldConst.FIELD_UID,"\""+uid+"\"",Operator.Equal);
+			queryStatusUser1.setDatabase(Const.SINAUSERS);
+			//查询微博用户信息
+//			statusUsers = hybase8SearchService.ftsQuery(queryStatusUser1, StatusUser.class, false, false,false,null);
+			PagedList<StatusUser> infoListResult1 = commonListService.queryPageListForClass(queryStatusUser1, StatusUser.class, false, false,false,null);
+			statusUsers = infoListResult1.getPageItems();
+		}
+		if (ObjectUtil.isNotEmpty(statusUsers)){
+			//放入该条微博对应的 发布人信息
+			return statusUsers.get(0);
+		}
+		return null;
+
+	}
 	@Override
 	public List<Map<String, String>> emotionOption(QueryBuilder searchBuilder, SpecialProject specialProject) {
 		List<Map<String, String>> list=new ArrayList<>();
