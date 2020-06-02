@@ -110,6 +110,36 @@ public class SpecialCustomChart extends BaseEntity{
      */
     @Column(name = "tab_width")
     private int tabWidth = 50;
+    /**
+     * 媒体等级
+     */
+    @Column(name = "media_level")
+    private String mediaLevel;
+    /**
+     * 媒体行业
+     */
+    @Column(name = "media_industry")
+    private String mediaIndustry;
+    /**
+     * 内容行业
+     */
+    @Column(name = "content_industry")
+    private String contentIndustry;
+    /**
+     * 信息过滤  -  信息性质打标，如抽奖
+     */
+    @Column(name = "filter_info")
+    private String filterInfo;
+    /**
+     * 内容所属地域
+     */
+    @Column(name = "content_area")
+    private String contentArea;
+    /**
+     * 媒体所属地域
+     */
+    @Column(name = "media_area")
+    private String mediaArea;
 
     /**
      * 对应的日常监测的栏目id
@@ -153,5 +183,16 @@ public class SpecialCustomChart extends BaseEntity{
         this.sequence = sequence;
         this.parentId = parentId;
         this.specialType = specialType;
+    }
+    public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, String keyWord, String excludeWords,
+                              String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,
+                              String filterInfo, String contentArea,String mediaArea) {
+        this(name, trsl, xyTrsl, type, contrast, excludeWeb, timeRange, keyWord, excludeWords, keyWordIndex, groupName, similar, irSimflag, irSimflagAll, weight, tabWidth, parentId, sequence, specialType);
+        this.mediaLevel = mediaLevel;
+        this.mediaIndustry = mediaIndustry;
+        this.contentIndustry = contentIndustry;
+        this.filterInfo = filterInfo;
+        this.contentArea = contentArea;
+        this.mediaArea = mediaArea;
     }
 }

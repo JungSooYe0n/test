@@ -138,9 +138,9 @@ public class SpecialChartAnalyzeController {
 			specialProject.setStart(timeArray[0]);
 			specialProject.setEnd(timeArray[1]);
 		}
-		int max=100,min=50;
-	    int ran = (int) (Math.random()*(max-min)+min);
-		return ran;
+		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
+		searchBuilder.setGroupName(specialProject.getSource());
+		return specialChartAnalyzeService.getSituationAssessment(searchBuilder,specialProject);
 
 	}
 	@FormatResult

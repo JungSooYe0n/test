@@ -114,7 +114,13 @@ public class SpecialChartController {
             @ApiImplicitParam(name = "timeRange", value = "发布时间范围(2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
             @ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
-            @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false)})
+            @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
+            @ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
     public Object addCustomChart(@RequestParam("name") String name, @RequestParam(value = "specialId") String specialId,
                                  @RequestParam("specialType") String specialType,
                                  @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
@@ -129,6 +135,12 @@ public class SpecialChartController {
                                  @RequestParam(value = "weight", required = false) boolean weight,
                                  @RequestParam(value = "simflag", required = false) String simflag,
                                  @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
+                                 @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+                                 @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+                                 @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+                                 @RequestParam(value = "filterInfo", required = false) String filterInfo,
+                                 @RequestParam(value = "contentArea", required = false) String contentArea,
+                                 @RequestParam(value = "mediaArea", required = false) String mediaArea,
                                  HttpServletRequest request)
             throws TRSException {
         String[] typeArr = type.split(";");
@@ -218,7 +230,8 @@ public class SpecialChartController {
             }
             groupName = CommonListChartUtil.changeGroupName(groupName);
             SpecialCustomChart customChart = new SpecialCustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, timeRange, keyWord, excludeWords,
-                    keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, specialId, sequence, specialType1);
+                    keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, specialId, sequence, specialType1,mediaLevel, mediaIndustry, contentIndustry,
+                    filterInfo, contentArea, mediaArea);
             customChart = specialCustomChartService.saveSpecialCustomChart(customChart);
             result.add(customChart);
         }

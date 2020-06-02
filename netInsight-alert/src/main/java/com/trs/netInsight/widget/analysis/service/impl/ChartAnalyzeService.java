@@ -3126,6 +3126,11 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
+	public int getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException {
+		return 0;
+	}
+
+	@Override
 	public List<ClassInfo> ordinarySearchstatistics(boolean sim, boolean irSimflag,boolean irSimflagAll,String keywords,String[] timeRange, String source,String keyWordIndex,Boolean weight,String searchType) throws TRSException{
 		List<ClassInfo> list = new ArrayList<>();
 
