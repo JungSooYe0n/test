@@ -1248,16 +1248,16 @@ public class ColumnController {
 			}
 			indexTab = mapper.getIndexTab();
 		}
-
-		if(ObjectUtil.isNotEmpty(indexTab) && StringUtil.isNotEmpty(indexTab.getContrast())
-				&& ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())){
-			source = key;
-		}
-
 		if(StringUtil.isNotEmpty(timeRange)){
 			indexTab.setTimeRange(timeRange);
 		}
 		IndexTabType indexTabType = ColumnFactory.chooseType(indexTab.getType());
+
+		if(ObjectUtil.isNotEmpty(indexTab) && StringUtil.isNotEmpty(indexTab.getContrast())
+				&& ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())
+				&&( IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType))){
+			source = key;
+		}
 		if(StringUtil.isNotEmpty(mapContrast) && IndexTabType.MAP.equals(indexTabType)){
 			indexTab.setContrast(mapContrast);
 		}

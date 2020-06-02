@@ -80,6 +80,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneScInfo.put("chartType", statisticalChartInfo.getChartType());
                 oneScInfo.put("isTop", oneSc.getIsTop());
                 oneScInfo.put("sequence", statisticalChartInfo.getSequence());
+                oneScInfo.put("contrast", statisticalChartInfo.getContrast());
                 scList.add(oneScInfo);
             }
         }
