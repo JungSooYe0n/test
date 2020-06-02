@@ -21,8 +21,11 @@ import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.column.entity.CustomChart;
 import com.trs.netInsight.widget.column.entity.IndexTabType;
+import com.trs.netInsight.widget.column.entity.StatisticalChart;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
+import com.trs.netInsight.widget.column.repository.CustomChartRepository;
+import com.trs.netInsight.widget.column.repository.StatisticalChartRepository;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
@@ -50,6 +53,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
     private ICommonChartService commonChartService;
     @Autowired
     private ICommonListService commonListService;
+    @Autowired
+    private CustomChartRepository customChartRepository;
 
     @Override
     public Object getCustomChart(String id) {
@@ -145,6 +150,23 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
     @Transactional
     public void deleteSpecialCustomChart(String id) {
         specialCustomChartRepository.delete(id);
+    }
+
+    @Override
+    public Integer deleteCustomChart(String id) {
+        Integer deleteCount = 0;
+        List<SpecialCustomChart> customChartList = specialCustomChartRepository.findByParentId(id);
+        if(customChartList != null && customChartList.size() >0){
+            specialCustomChartRepository.delete(customChartList);
+            deleteCount += customChartList.size();
+        }
+
+//        List<StatisticalChart> statisticalChartList = customChartRepository.findByParentId(id);
+//        if(statisticalChartList != null && statisticalChartList.size() >0){
+//            customChartRepository.delete(statisticalChartList);
+//            deleteCount += statisticalChartList.size();
+//        }
+        return deleteCount;
     }
 
     @Override

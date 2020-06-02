@@ -24,7 +24,7 @@ public class KafkaConst {
 	/**
 	 * kafka topic
 	 */
-	public static final String KAFKA_TOPIC ="ALERT_NETINSIGHT_DEFAULT";
+	public static final String KAFKA_TOPIC ="log_system";
 }
 
 

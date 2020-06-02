@@ -47,6 +47,13 @@ public interface ISpecialCustomChartService {
     void deleteSpecialCustomChart(String id);
 
     /**
+     * 删除专题对应自定义图表
+     * @param id
+     * @return
+     */
+    Integer deleteCustomChart(String id);
+
+    /**
      * 查询自定义图标的数据
      * @param customChart 自定义图表
      * @param timeRange 时间 - 页面上选择的

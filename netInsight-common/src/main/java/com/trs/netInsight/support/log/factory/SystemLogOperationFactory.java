@@ -17,11 +17,11 @@ import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.factory.systemlogoperation.ColumnSystemLogOperation;
 import com.trs.netInsight.support.log.factory.systemlogoperation.LoginSystemLogOperation;
 import com.trs.netInsight.support.log.factory.systemlogoperation.SpecialSystemLogOperation;
-import com.trs.netInsight.widget.column.service.IIndexPageService;
-import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
-import com.trs.netInsight.widget.column.service.INavigationService;
-import com.trs.netInsight.widget.special.service.ISpecialProjectService;
-import com.trs.netInsight.widget.special.service.ISpecialSubjectService;
+import com.trs.netInsight.widget.column.repository.IndexPageRepository;
+import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
+import com.trs.netInsight.widget.column.repository.NavigationRepository;
+import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
+import com.trs.netInsight.widget.special.entity.repository.SpecialSubjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,34 +38,34 @@ import org.springframework.stereotype.Component;
 @Component
 public class SystemLogOperationFactory {
 
-	private static ISpecialProjectService specialProjectService;
-	private static IIndexTabMapperService indexTabMapperService;
-	private static IIndexPageService indexPageService;
-	private static INavigationService navigationService;
-	private static ISpecialSubjectService specialSubjectService;
+	private static SpecialProjectRepository specialProjectService;
+	private static IndexTabMapperRepository indexTabMapperService;
+	private static IndexPageRepository indexPageService;
+	private static NavigationRepository navigationService;
+	private static SpecialSubjectRepository specialSubjectService;
 
 	@Autowired
-	public void setSpecialSubjectRepository(ISpecialSubjectService specialSubjectService) {
+	public void setSpecialSubjectRepository(SpecialSubjectRepository specialSubjectService) {
 		SystemLogOperationFactory.specialSubjectService = specialSubjectService;
 	}
 
 	@Autowired
-	public void setSpecialProjectService(ISpecialProjectService specialProjectService) {
+	public void setSpecialProjectService(SpecialProjectRepository specialProjectService) {
 		SystemLogOperationFactory.specialProjectService = specialProjectService;
 	}
 
 	@Autowired
-	public void setIndexTabMapperService(IIndexTabMapperService indexTabMapperService) {
+	public void setIndexTabMapperService(IndexTabMapperRepository indexTabMapperService) {
 		SystemLogOperationFactory.indexTabMapperService = indexTabMapperService;
 	}
 
 	@Autowired
-	public void setIndexPageService(IIndexPageService indexPageService) {
+	public void setIndexPageService(IndexPageRepository indexPageService) {
 		SystemLogOperationFactory.indexPageService = indexPageService;
 	}
 
 	@Autowired
-	public void setNavigationService(INavigationService navigationService) {
+	public void setNavigationService(NavigationRepository navigationService) {
 		SystemLogOperationFactory.navigationService = navigationService;
 	}
 
