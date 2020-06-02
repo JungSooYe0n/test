@@ -83,7 +83,7 @@ public class WordCloudColumn extends AbstractColumn {
             QueryCommonBuilder queryBuilder = super.config.getCommonBuilder();
             queryBuilder.setPageNo(config.getPageNo());
             queryBuilder.setPageSize(config.getPageSize());
-            String irKeyword = this.config.getIrKeyword();
+            String irKeyword = this.config.getKey();
             if (StringUtil.isNotEmpty(irKeyword)) {
                 String entityType = this.config.getEntityType();
                 if ("location".equals(entityType) && !"省".equals(irKeyword.substring(irKeyword.length() - 1)) && !irKeyword.contains("自治区")) {
@@ -102,11 +102,11 @@ public class WordCloudColumn extends AbstractColumn {
                     queryBuilder.filterField(Const.PARAM_MAPPING.get(entityType), irKeyword, Operator.Equal);
                 }
             }
-            String emotion = super.config.getEmotion();
+            /*String emotion = super.config.getEmotion();
             if (StringUtil.isNotEmpty(emotion) && !"ALL".equals(emotion)) {
                 queryBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
             }
-            String area = super.config.getArea();
+            String area = super.config.getKey();
             // 取地域名
             if (!"ALL".equals(area)) { // 地域
                 String[] areaSplit = area.split(";");
@@ -119,7 +119,7 @@ public class WordCloudColumn extends AbstractColumn {
                     contentArea += areaSplit[i];
                 }
                 queryBuilder.filterByTRSL(FtsFieldConst.FIELD_CATALOG_AREA + ":" + contentArea);
-            }
+            }*/
 
             if ("ALL".equals(checkGroupName)) {
                 checkGroupName = indexTab.getGroupName();

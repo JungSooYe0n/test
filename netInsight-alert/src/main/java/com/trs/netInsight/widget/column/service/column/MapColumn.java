@@ -43,7 +43,8 @@ public class MapColumn extends AbstractColumn {
 		builder.setPageSize(Integer.MAX_VALUE);
         ChartResultField resultField = new ChartResultField("name", "value");
         String contrastField = FtsFieldConst.FIELD_CATALOG_AREA;
-        if(StringUtil.isNotEmpty(contrastField) && contrastField.equals(ColumnConst.CONTRAST_TYPE_MEDIA_AREA)){
+        String contrast = indexTab.getContrast();
+        if(StringUtil.isNotEmpty(contrast) && contrast.equals(ColumnConst.CONTRAST_TYPE_MEDIA_AREA)){
 			contrastField = FtsFieldConst.FIELD_MEDIA_AREA;
 		}
 		try {
@@ -73,32 +74,25 @@ public class MapColumn extends AbstractColumn {
 	public Object getSectionList() throws TRSSearchException {
 		//用queryCommonBuilder和QueryBuilder 是一样的的
 		QueryCommonBuilder commonBuilder = super.config.getCommonBuilder();
-		String emotion = this.config.getEmotion();
 		IndexTab indexTab = super.config.getIndexTab();
 		boolean sim = indexTab.isSimilar();
 		boolean irSimflag = indexTab.isIrSimflag();
 		boolean irSimflagAll = indexTab.isIrSimflagAll();
-		if (StringUtil.isNotEmpty(emotion) && !emotion.equals("ALL")) {
-			commonBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
-		}
-		String area = this.config.getArea();
+		String area = this.config.getKey();
 		// 取地域名
 		if (!"ALL".equals(area)) { // 地域
-
-			String[] areaSplit = area.split(";");
-			String contentArea = "";
-			for (int i = 0; i < areaSplit.length; i++) {
-				/*
-				2019-12-30改
-				//原有规则是查询这个字段包含这个省，但是统计方法改变，只统计到省，存在历史数据问题（没有单独追加省，造成很多数据没有到省数据），所以查询时不能模糊查询
-				*/
-				areaSplit[i] = Const.CONTTENT_PROVINCE_NAME.get(areaSplit[i]);
-				if (i != areaSplit.length - 1) {
-					areaSplit[i] += " OR ";
-				}
-				contentArea += areaSplit[i];
+			String contrastField = FtsFieldConst.FIELD_CATALOG_AREA;
+			String contrast = indexTab.getContrast();
+			if(StringUtil.isNotEmpty(contrast) && contrast.equals(ColumnConst.CONTRAST_TYPE_MEDIA_AREA)){
+				contrastField = FtsFieldConst.FIELD_MEDIA_AREA;
 			}
-			commonBuilder.filterByTRSL(FtsFieldConst.FIELD_CATALOG_AREA + ":(" + contentArea +")");
+			Map<String,String> areaMap = null;
+			if(FtsFieldConst.FIELD_MEDIA_AREA.equals(contrastField)){
+				areaMap = Const.MEDIA_PROVINCE_NAME;
+			}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
+				areaMap = Const.CONTTENT_PROVINCE_NAME;
+			}
+			commonBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(area) +")");
 		}
 		// 取userId
 		User loginUser = UserUtils.getUser();
@@ -116,9 +110,6 @@ public class MapColumn extends AbstractColumn {
 			}else{
 				return commonListService.queryPageList(commonBuilder,sim,irSimflag,irSimflagAll,checkGroupName,"column",loginUser,true);
 			}
-
-
-
 		} catch (TRSException e) {
 			throw new TRSSearchException(e);
 		}

@@ -1482,7 +1482,7 @@ public class ColumnServiceImpl implements IColumnService {
 	 */
 	@Override
 	public Object selectList(IndexTab indexTab, int pageNo, int pageSize, String source, String emotion, String entityType,
-							 String dateTime, String key, String sort, String area, String irKeyword, String invitationCard,
+							 String dateTime, String key, String sort,  String invitationCard,
 							 String forwarPrimary, String keywords, String fuzzyValueScope,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
 							 String contentArea,String mediaArea,String preciseFilter) {
 		String userName = UserUtils.getUser().getUserName();
@@ -1493,7 +1493,7 @@ public class ColumnServiceImpl implements IColumnService {
 				AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 				ColumnConfig config = new ColumnConfig();
 				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
-				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, area, irKeyword, invitationCard,
+				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort,  invitationCard,
 						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				column.setCommonListService(commonListService);
 				column.setCommonChartService(commonChartService);

@@ -186,6 +186,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                         oneColumnChart.put("timeRange", tab.getTimeRange());
                         oneColumnChart.put("chartPage", ChartPageInfo.TabChart);
                         oneColumnChart.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
+                        oneColumnChart.put("contrast", tab.getContrast());
                         result.add(oneColumnChart);
                         this.getTopColumnChartForTab(result,mapper);
                     }
@@ -221,9 +222,17 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneScInfo.put("columnType", null);
                 oneScInfo.put("chartPage", ChartPageInfo.StatisticalChart);
                 oneScInfo.put("chartType", statisticalChartInfo.getChartType());
+                oneScInfo.put("contrast", statisticalChartInfo.getContrast());
                 oneScInfo.put("isTop", oneSc.getIsTop());
                 oneScInfo.put("timeRange", timeRange);
                 oneScInfo.put("topSequence", oneSc.getTopSequence());
+                oneScInfo.put("timeRange", 50);
+                if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)
+                        || StatisticalChartInfo.MAP.equals(statisticalChartInfo)
+                        || StatisticalChartInfo.CHART_LINE.equals(statisticalChartInfo)){
+                    oneScInfo.put("timeRange", 100);
+                }
+
                 //拿到统计分析图的基本数据
                 columnChartList.add(oneScInfo);
             }
@@ -243,6 +252,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                     oneCcInfo.put("topSequence", oneCc.getTopSequence());
                     oneCcInfo.put("tabWidth", oneCc.getTabWidth());
                     oneCcInfo.put("timeRange", oneCc.getTimeRange());
+                    oneCcInfo.put("contrast", oneCc.getContrast());
                     oneCcInfo.put("groupName", CommonListChartUtil.formatPageShowGroupName(oneCc.getGroupName()));
                     //拿到基本数据
                     columnChartList.add(oneCcInfo);
