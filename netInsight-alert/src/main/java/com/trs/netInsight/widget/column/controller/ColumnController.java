@@ -1006,6 +1006,9 @@ public class ColumnController {
 			indexTab.setType(statisticalChart.getChartType());
 			StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(statisticalChart.getChartType());
 			indexTab.setContrast(statisticalChartInfo.getContrast());
+			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
+				indexTab.setTabWidth(100);
+			}
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
@@ -1183,7 +1186,7 @@ public class ColumnController {
 			/*@ApiParam("地域名（点地图进去）") @RequestParam(value = "area", defaultValue = "ALL") String area,
 			@ApiParam("词云点击进去") @RequestParam(value = "irKeyword", defaultValue = "ALL") String irKeyword,*/
 			@ApiParam("折线图 数据时间") @RequestParam(value = "dateTime", required = false) String dateTime,
-			@ApiParam("通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+			@ApiParam("通用：keywords；人物：people；地域：location；机构：agency，当前点击的词的性质，不是当前图的性质") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
 			@ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false) String mapContrast,
 			@ApiParam("排序方式") @RequestParam(value = "sort", defaultValue = "default") String sort,
 			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
@@ -1235,6 +1238,9 @@ public class ColumnController {
 			indexTab.setType(statisticalChart.getChartType());
 			StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(statisticalChart.getChartType());
 			indexTab.setContrast(statisticalChartInfo.getContrast());
+			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
+				indexTab.setTabWidth(100);
+			}
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){

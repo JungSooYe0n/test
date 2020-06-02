@@ -92,7 +92,7 @@ public class MapColumn extends AbstractColumn {
 			}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
 				areaMap = Const.CONTTENT_PROVINCE_NAME;
 			}
-			commonBuilder.filterByTRSL(FtsFieldConst.FIELD_CATALOG_AREA + ":(" + areaMap.get(area) +")");
+			commonBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(area) +")");
 		}
 		// 取userId
 		User loginUser = UserUtils.getUser();

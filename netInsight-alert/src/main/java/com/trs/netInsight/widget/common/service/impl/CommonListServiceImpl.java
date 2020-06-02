@@ -100,7 +100,6 @@ public class CommonListServiceImpl implements ICommonListService {
                     document.setTitle(StringUtil.replaceAnnotation(document.getTitle()).replace("&amp;nbsp;", ""));
                 }
                 if (Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())) {
-                    document.setGroupName("微信");
                     document.setSid(document.getHkey());
                     // 检验收藏
                     document.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(document.getHkey())));
@@ -116,6 +115,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 }
                 // 控制标题长度
                 document.setId(document.getSid());
+                document.setGroupName(CommonListChartUtil.formatPageShowGroupName(document.getGroupName()));
                 document.setTrslk(trslk);
                 md5List.add(document.getMd5Tag());
                 ftsList.add(document);
