@@ -191,7 +191,6 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Object mediaActiveAccount(QueryBuilder builder, String source, String[] timeArray, boolean sim, boolean irSimflag, boolean irSimflagAll) throws TRSException {
-		String contrastField = FtsFieldConst.FIELD_SITENAME;
 		List<String> allList = Const.ALL_GROUPNAME_SORT;
 		List<Object> result = new ArrayList<>();
 		List<String> sourceList = CommonListChartUtil.formatGroupName(source);
@@ -200,6 +199,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 			//只显示选择的数据源
 			if(sourceList.contains(oneGroupName)){
+				String contrastField = FtsFieldConst.FIELD_SITENAME;
+				if(Const.GROUPNAME_WEIBO.equals(oneGroupName)){
+					contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+				}else if(Const.MEDIA_TYPE_TF.contains(oneGroupName)){
+					contrastField = FtsFieldConst.FIELD_AUTHORS;
+				}
 				Map<String,Object> oneInfo = new HashMap<>();
 				Object list = commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"special",resultField);
 				List<Map<String, Object>> changeList = new ArrayList<>();
