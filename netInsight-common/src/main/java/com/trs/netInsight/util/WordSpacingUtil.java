@@ -121,6 +121,42 @@ public class WordSpacingUtil {
                                         " OR "+FtsFieldConst.FIELD_CONTENT+":"+childTrsl.toString();
                             }
                         }
+                    }else if (keyWordindex.trim().equals("2")) {// 标题加摘要
+                        if (StringUtil.isNotEmpty(expressionElement)){
+                            //词距+标题命中
+                            if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0 && weight){
+                                if (wordOrder){
+                                    //#PRE
+                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
+                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
+                                }else{
+                                    //#POS
+                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
+                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
+                                }
+                            }else if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){
+                                //仅词距
+                                if (wordOrder){
+                                    //#PRE
+                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
+                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
+                                }else{
+                                    //#POS
+                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
+                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
+                                }
+                            }else if (weight){
+                                //仅标题命中
+                                queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
+                                expressionElement = queryBuilder.asTRSL()+FtsFieldConst.WEIGHT+
+                                        " OR "+FtsFieldConst.FIELD_ABSTRACTS+":"+childTrsl.toString();
+                            }else {
+                                //标题+正文  时间排序  无词距
+                                queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
+                                expressionElement = queryBuilder.asTRSL() +
+                                        " OR "+FtsFieldConst.FIELD_ABSTRACTS+":"+childTrsl.toString();
+                            }
+                        }
                     } else {// 仅标题
 
                         if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){

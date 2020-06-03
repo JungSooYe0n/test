@@ -773,23 +773,24 @@ public class InfoListController {
      * @throws TRSSearchException
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    @ApiOperation("首页和列表页点击单条文章进入详情页---全部")
-    @FormatResult
-    @RequestMapping(value = "/oneInfoAll", method = RequestMethod.GET)
-    public Object oneInfoAll(@ApiParam("文章sid") @RequestParam("sid") String sid,
-                          @ApiParam("md5值") @RequestParam(value = "md5", required = false) String md5,
-                          @ApiParam("trslk") @RequestParam(value = "trslk", required = false) String trslk,
-                             @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
-                          @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "nreserved1", required = false) String nreserved1)
+	@ApiOperation("首页和列表页点击单条文章进入详情页---全部")
+	@FormatResult
+	@RequestMapping(value = "/oneInfoAll", method = RequestMethod.GET)
+	public Object oneInfoAll(@ApiParam("文章sid") @RequestParam("sid") String sid,
+							 @ApiParam("md5值") @RequestParam(value = "md5", required = false) String md5,
+							 @ApiParam("trslk") @RequestParam(value = "trslk", required = false) String trslk,
+							 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
+							 @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "nreserved1", required = false) String nreserved1)
             throws TRSSearchException, TRSException {
-        String userId = UserUtils.getUser().getId();
+    	User user = UserUtils.getUser();
+        String userId = user.getId();
         String trsl = RedisUtil.getString(trslk);
         fixedThreadPool.execute(() -> infoListService.simCount(sid, md5,null));
         QueryBuilder queryBuilder = new QueryBuilder();
         if (StringUtil.isEmpty(trsl) || (StringUtil.isNotEmpty(trsl) && !trsl.contains(sid))) {
-            if (Const.GROUPNAME_WEIBO.contains(groupName)){
+            if (Const.PAGE_SHOW_WEIBO.contains(groupName)){
                 queryBuilder.filterField(FtsFieldConst.FIELD_MID, sid, Operator.Equal);
-            }else if(groupName.contains("微信")){
+            }else if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
                 queryBuilder.filterField(FtsFieldConst.FIELD_HKEY, sid, Operator.Equal);
             }else {
                 queryBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.Equal);
@@ -797,9 +798,7 @@ public class InfoListController {
         }
 
         queryBuilder.filterByTRSL(trsl);
-//        queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
         queryBuilder.page(0, 1);
-//        List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(queryBuilder, FtsDocument.class, false, false,false,"detail");
         InfoListResult infoListResult = commonListService.queryPageList(queryBuilder,false,false,false,groupName,"detail",UserUtils.getUser(),false);
         PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
         List<FtsDocumentCommonVO> ftsQuery = content.getPageItems();
