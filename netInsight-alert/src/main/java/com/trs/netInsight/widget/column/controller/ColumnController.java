@@ -965,9 +965,9 @@ public class ColumnController {
 							  @RequestParam(value = "showType", required = false, defaultValue = "") String showType,
 							  @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,//上部为查询图必须的条件
 							  @RequestParam(value = "mapContrast", required = false) String mapContrast,
-							  //查询时的暂时可变筛选条件  openFiltrate
-							  @RequestParam(value = "openFiltrate", defaultValue = "false") Boolean openFiltrate,
 							  @RequestParam(value = "timeRange", required = false) String timeRange,
+							  //查询时的暂时可变筛选条件  openFiltrate -- 只有有条件筛选时，才会使用下面的参数
+							  @RequestParam(value = "openFiltrate", defaultValue = "false") Boolean openFiltrate,
 							  @RequestParam(value = "emotion", required = false) String emotion,
 							  @RequestParam(value = "simflag", required = false) String simflag,
 							  @RequestParam(value = "wordIndex", required = false) String wordIndex,
@@ -1003,9 +1003,9 @@ public class ColumnController {
 			}
 			IndexTabMapper mapper = indexTabMapperService.findOne(statisticalChart.getParentId());
 			indexTab = mapper.getIndexTab();
-			indexTab.setType(statisticalChart.getChartType());
+			indexTab.setType(statisticalChart.getChartType());// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，拿统计分析的参数填充
 			StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(statisticalChart.getChartType());
-			indexTab.setContrast(statisticalChartInfo.getContrast());
+			indexTab.setContrast(statisticalChartInfo.getContrast());// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，拿统计分析的参数填充
 			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
 				indexTab.setTabWidth(100);
 			}
@@ -1086,6 +1086,7 @@ public class ColumnController {
 					"", "",read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
 					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
 		}
+		// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，用统计分析的StatisticalChart，其他图用tabChart
 		config.setChartPage(chartPageInfo);
 		config.setShowType(showType);
 		column.setDistrictInfoService(districtInfoService);
@@ -1195,9 +1196,9 @@ public class ColumnController {
 			@ApiParam("结果中搜索de范围")@RequestParam(value = "fuzzyValueScope", defaultValue = "fullText",required = false) String fuzzyValueScope,
 			@ApiParam("页数") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
 			@ApiParam("一页多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-
-			@ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "false") Boolean openFiltrate,
 			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+			// 只有有条件筛选时，才会使用下面的参数 - 例如统计分析传下面的参数，其他时候不传
+			@ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "false") Boolean openFiltrate,
 			@ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
 			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
 			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
@@ -1253,7 +1254,7 @@ public class ColumnController {
 		}
 		IndexTabType indexTabType = ColumnFactory.chooseType(indexTab.getType());
 
-		if(ObjectUtil.isNotEmpty(indexTab) && StringUtil.isNotEmpty(indexTab.getContrast())
+		if( "ALL".equals(source) && ObjectUtil.isNotEmpty(indexTab) && StringUtil.isNotEmpty(indexTab.getContrast())
 				&& ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())
 				&&( IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType))){
 			source = key;
@@ -1311,8 +1312,8 @@ public class ColumnController {
 					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 		}else{
 			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
-					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
+					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(),
+					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
 		}
 	}
 

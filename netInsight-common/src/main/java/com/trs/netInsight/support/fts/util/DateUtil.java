@@ -186,10 +186,10 @@ public class DateUtil {
 
 	public static void main(String[] args) {
 		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date dateExpire = sdf.parse("2018-10-28 00:00:00");
-			int n = daysBetween(dateExpire);
-			System.out.println(n);
+			String time = "10n";
+			String[] timeArray = formatTimeRangeMinus1(time);
+			System.out.println(timeArray[0]);
+			System.out.println(timeArray[1]);
 		}catch (Exception e){
 			e.printStackTrace();
 		}
@@ -1724,12 +1724,9 @@ public class DateUtil {
 			timeArray[1] = new SimpleDateFormat(yyyyMMddHHmmss).format(new Date());
 			switch (timeFlag) {
 				case 'h':
-					timeArray[0] = getDateBefore(timeNum, Calendar.HOUR_OF_DAY);
+					timeArray[0] = getDateBefore(timeNum+1, Calendar.HOUR_OF_DAY);
 					break;
 				case 'd':
-//				if (timeNum > 0) {
-//					timeNum = timeNum - 1;
-//				}
 					timeArray[0] = getDateBefore(timeNum, Calendar.DAY_OF_MONTH);
 					timeArray[0] = timeArray[0].substring(0,8)+"000000";
 					break;
@@ -1742,11 +1739,11 @@ public class DateUtil {
 					timeArray[0] = timeArray[0].substring(0,8)+"000000";
 					break;
 				case 'y':
-					timeArray[0] = getDateBefore(timeNum, Calendar.YEAR);
+					timeArray[0] = getDateBefore(timeNum+1, Calendar.YEAR);
 					timeArray[0] = timeArray[0].substring(0,8)+"000000";
 					break;
 				case 'n':
-					timeArray[0] = getDateBefore(timeNum, Calendar.MINUTE);
+					timeArray[0] = getDateBefore(timeNum+1, Calendar.MINUTE);
 					timeArray[0] = timeArray[0].substring(0,8)+"000000";
 					break;
 				default:
