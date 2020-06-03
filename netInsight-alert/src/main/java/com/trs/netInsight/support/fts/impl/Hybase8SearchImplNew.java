@@ -1464,6 +1464,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                 trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
             } else {
                 trsHybaseShard = hybaseShardService.findByOwnerUserId(ownerId);
+                if(ObjectUtil.isNotEmpty(trsHybaseShard)){
+                    RedisFactory.setValueToRedis(ownerId + "xiaoku",trsHybaseShard);
+                }
             }
         } else {
             String valueFromRedis = "";
@@ -1471,10 +1474,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if (StringUtil.isNotEmpty(valueFromRedis)) {
                 trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
             } else {
-                if (StringUtil.isNotEmpty(user.getOrganizationId()))
+                if (StringUtil.isNotEmpty(user.getOrganizationId())){
                     trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+                    if(ObjectUtil.isNotEmpty(trsHybaseShard)){
+                        RedisFactory.setValueToRedis(user.getOrganizationId() + "xiaoku",trsHybaseShard);
+                    }
+                }
             }
-
         }
         if (ObjectUtil.isNotEmpty(trsHybaseShard)) {
 
