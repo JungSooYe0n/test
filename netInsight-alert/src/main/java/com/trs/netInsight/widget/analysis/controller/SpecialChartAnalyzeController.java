@@ -1592,6 +1592,7 @@ public class SpecialChartAnalyzeController {
 						   @ApiParam("类型：新闻/微博/微信/自媒体号") @RequestParam(value = "groupName", required = false) String type,
 						   @ApiParam("md5Tag") @RequestParam(value = "md5Tag", required = false) String md5,
 						   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange) throws TRSException {
+		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -1631,19 +1632,16 @@ public class SpecialChartAnalyzeController {
 				case Const.GROUPNAME_WEIBO:
 					//找十个转发数量最多的原发 按时间排序
 					statBuilder.filterField(FtsFieldConst.FIELD_CREATED_AT, timeArray, Operator.Between);
-//				statBuilder.filterField(FtsFieldConst.FIELD_RETWEETED_MID, "", Operator.Equal);
-					statBuilder.filterByTRSL(FtsFieldConst.FIELD_RETWEETED_MID+":(0 OR \"\")");
-					statBuilder.setPageSize(10);
-					statBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
-					statBuilder.setDatabase(Const.WEIBO);
+//					statBuilder.filterByTRSL(FtsFieldConst.FIELD_RETWEETED_MID+":(0 OR \"\")");
+					statBuilder.setPageSize(pageSize);
+//					statBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
 					log.info(statBuilder.asTRSL());
 					statBuilder.setServer(specialProject.isServer());
-					InfoListResult infoListResult = commonListService.queryPageList(statBuilder,sim,irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,type,UserUtils.getUser(),true);
-					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
-					List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
+//					InfoListResult infoListResult = commonListService.queryPageList(statBuilder,sim,irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,type,UserUtils.getUser(),true);
+//					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 
-//				List<FtsDocumentStatus> ftsQueryWeiBo = hybase8SearchService.ftsQuery(statBuilder,
-//						FtsDocumentStatus.class, sim, irSimflag,irSimflagAll,"special");
+                    PagedList<FtsDocumentCommonVO> content = commonListService.queryPageListForHotNoFormat(statBuilder, "special", Const.GROUPNAME_WEIBO);
+                    List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
 					SortListAll sortListWeiBo = new SortListAll();
 					//按时间排序
 					Collections.sort(ftsQueryWeiBo, sortListWeiBo);
@@ -1653,9 +1651,6 @@ public class SpecialChartAnalyzeController {
 						ftsStatus.setSiteName(ftsStatus.getScreenName());
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSimCount(), ftsStatus));
 					}
-//				for (FtsDocumentStatus ftsStatus : ftsQueryWeiBo) {
-//					resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSim(), ftsStatus));
-//				}
 					return ftsQueryWeiBo;
 				case "新闻网站":
 					List<FtsDocumentCommonVO> listChuan = new ArrayList<>();
@@ -1663,7 +1658,7 @@ public class SpecialChartAnalyzeController {
 					String trsl = statBuilder.asTRSL();
 					queryFts.filterByTRSL(trsl);
 					queryFts.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-					queryFts.setPageSize(10);
+					queryFts.setPageSize(pageSize);
 					queryFts.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 					queryFts.setServer(specialProject.isServer());
 					if(StringUtil.isNotEmpty(md5)){
@@ -1706,10 +1701,10 @@ public class SpecialChartAnalyzeController {
 					SortListAll sort = new SortListAll();
 					// Collections.sort(listChuan, sort);
 					Collections.sort(listChuan, sort);
-					// 防止这个的第一条和时间的那一条重复
-					if (listChuan.size() > 0) {
-						listChuan.remove(0);
-					}
+//					// 防止这个的第一条和时间的那一条重复
+//					if (listChuan.size() > 0) {
+//						listChuan.remove(0);
+//					}
 					for (FtsDocumentCommonVO ftsDocument : listChuan) {
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
 					}
@@ -1721,7 +1716,7 @@ public class SpecialChartAnalyzeController {
 					queryFts2.filterByTRSL(trsl2);
 					// 不同小时间段
 					queryFts2.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-					queryFts2.setPageSize(10);
+					queryFts2.setPageSize(pageSize);
 					queryFts2.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 					log.info(queryFts2.asTRSL());
 					queryFts2.setServer(specialProject.isServer());
@@ -1767,9 +1762,9 @@ public class SpecialChartAnalyzeController {
 					// Collections.sort(listChuan, sort);
 					Collections.sort(listweixin, sort2);
 					// 防止这个的第一条和时间的那一条重复
-					if (listweixin.size() > 0) {
-						listweixin.remove(0);
-					}
+//					if (listweixin.size() > 0) {
+//						listweixin.remove(0);
+//					}
 					for (FtsDocumentCommonVO ftsDocument : listweixin) {
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
 					}
@@ -1822,9 +1817,9 @@ public class SpecialChartAnalyzeController {
 					// Collections.sort(listChuan, sort);
 					Collections.sort(listzimeiti, sort3);
 					// 防止这个的第一条和时间的那一条重复
-					if (listzimeiti.size() > 0) {
-						listzimeiti.remove(0);
-					}
+//					if (listzimeiti.size() > 0) {
+//						listzimeiti.remove(0);
+//					}
 					for (FtsDocumentCommonVO ftsDocument : listzimeiti) {
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
 					}
