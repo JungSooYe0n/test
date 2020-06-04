@@ -65,6 +65,7 @@ public class ColumnChartController {
      * @throws TRSException
      */
     @FormatResult
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_TAB_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前栏目对应的图表 - 统计分析图表+自定义图表：${id}")
     @RequestMapping(value = "/selectTabChartList", method = RequestMethod.GET)
     @ApiOperation("查找当前栏目对应的图表 - 统计分析图表+自定义图表")
     public Object selectTabChartList(HttpServletRequest request,
@@ -88,6 +89,7 @@ public class ColumnChartController {
      * @throws OperationException
      */
     @FormatResult
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_PAGE_TOP_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前分组下所要显示的豆腐块缩略图 - 栏目+统计分析+自定义图表被置顶的数据：${id}")
     @RequestMapping(value = "/selectPageTopChartList", method = RequestMethod.GET)
     @ApiOperation("查找当前分组下所要显示的豆腐块缩略图 - 栏目+统计分析+自定义图表被置顶的数据")
     public Object selectPageTopChartList(HttpServletRequest request,
@@ -113,7 +115,7 @@ public class ColumnChartController {
      * @throws TRSException
      */
     @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_INDEX_TAB, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "置顶 或 取消置顶 一个自定义图表或统计分析图表：${id}")
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_TOP_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "置顶 或 取消置顶 一个自定义图表或统计分析图表：${id}")
     @RequestMapping(value = "/topColumnChart", method = RequestMethod.POST)
     @ApiOperation("置顶 或 取消置顶 一个自定义图表或统计分析图表")
     @ApiImplicitParams({
@@ -162,7 +164,6 @@ public class ColumnChartController {
      * @throws TRSException
      */
     @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_INDEX_TAB, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "对自定义图表进行排序")
     @RequestMapping(value = "/moveCustomChart", method = RequestMethod.POST)
     @ApiOperation("对自定义图表进行排序")
     @ApiImplicitParams({
@@ -204,7 +205,7 @@ public class ColumnChartController {
      * @throws OperationException
      */
     @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_ADD_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_ADD_CUSTOM_CHART, systemLogType = SystemLogType.COLUMN,
             systemLogOperationPosition = "栏目下添加自定义图表：${tabId}/@{name}", methodDescription = "添加自定义图表:${name}")
     @RequestMapping(value = "/addCustomChart", method = RequestMethod.POST)
     @ApiOperation("栏目下自定义图表添加接口")
@@ -321,9 +322,9 @@ public class ColumnChartController {
                         if (StringUtil.isEmpty(xyTrsl)) {
                             throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
                         }
+                    }else {
+                        throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式表达式");
                     }
-                } else {
-                    throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
                 }
             } else {
                 trsl = null;
@@ -374,7 +375,7 @@ public class ColumnChartController {
      */
     @FormatResult
     @RequestMapping(value = "/updateCustomChart", method = RequestMethod.POST)
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_UPDATE_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_UPDATE_CUSTOM_CHART, systemLogType = SystemLogType.COLUMN,
             systemLogOperationPosition = "修改栏目下自定义图表：${id}", methodDescription = "${name}")
     @ApiOperation("栏目下自定义图表修改接口")
     @ApiImplicitParams({
@@ -474,9 +475,9 @@ public class ColumnChartController {
                         if (StringUtil.isEmpty(xyTrsl)) {
                             throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
                         }
+                    } else {
+                        throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式表达式");
                     }
-                } else {
-                    throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
                 }
             } else {
                 trsl = null;
@@ -542,7 +543,7 @@ public class ColumnChartController {
      * @throws TRSException
      */
     @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_INDEX_TAB, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "删除栏目下自定义图表（图表）：${id}")
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_CUSTOM_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "删除栏目下自定义图表（图表）：${id}")
     @RequestMapping(value = "/deleteCustomChart", method = RequestMethod.POST)
     @ApiOperation("栏目下自定义图表删除")
     @ApiImplicitParams({

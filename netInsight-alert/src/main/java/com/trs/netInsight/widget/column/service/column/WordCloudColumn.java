@@ -50,7 +50,7 @@ public class WordCloudColumn extends AbstractColumn {
         QueryCommonBuilder queryBuilder = super.config.getCommonBuilder();
         Integer pagesize = 50;
         if ("100".equals(indexTab.getTabWidth())) {
-            pagesize = 200;
+            pagesize = 100;
         }
         queryBuilder.page(0, pagesize);
         String metas = indexTab.getGroupName();

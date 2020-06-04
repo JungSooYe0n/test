@@ -215,9 +215,40 @@ public enum SystemLogOperation {
 	 */
 	COLUMN_HIDE_INDEX_TAB("隐藏二级栏目（图表）"),
 	/**
-	 * 查看二级栏目（图表）数据
+	 * 查询图表数据
 	 */
-	COLUMN_SELECT_INDEX_TAB_DATA("查询二级栏目（图表）"),
+	COLUMN_SELECT_INDEX_TAB_DATA("查询图表数据"),
+	/**
+	 * 查询栏目的信息列表数据
+	 */
+	COLUMN_SELECT_INDEX_TAB_INFO("查询栏目的信息列表数据"),
+
+	/**
+	 * 添加自定义图表
+	 */
+	COLUMN_ADD_CUSTOM_CHART("添加自定义图表"),
+	/**
+	 * 修改自定义图表
+	 */
+	COLUMN_UPDATE_CUSTOM_CHART("修改自定义图表"),
+	/**
+	 * 删除自定义图表
+	 */
+	COLUMN_DELETE_CUSTOM_CHART("删除自定义图表"),
+
+	/**
+	 * 查询栏目下对应的统计分析 + 自定义图表
+	 */
+	COLUMN_SELECT_TAB_CHART("查询栏目下对应的统计分析 + 自定义图表"),
+	/**
+	 * 查询分类下的栏目和被置顶的统计分析 + 自定义图表
+	 */
+	COLUMN_SELECT_PAGE_TOP_CHART("查询分类下的栏目和被置顶的统计分析 + 自定义图表"),
+	/**
+	 * 置顶图表
+	 */
+	COLUMN_TOP_CHART("置顶图表"),
+
 	// ------------预警--------------
 	// ------------舆情报告--------------
 	/**

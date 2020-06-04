@@ -459,9 +459,9 @@ public class ColumnController {
 					if (StringUtil.isEmpty(xyTrsl)) {
 						throw new TRSException(CodeUtils.FAIL,"专家模式下"+indexTabType.getTypeName() + "时必须传xy表达式");
 					}
+				}else{
+					throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式");
 				}
-			}else{
-				throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
 			}
 		} else{
 			trsl=null;
@@ -673,9 +673,9 @@ public class ColumnController {
 						if (StringUtil.isEmpty(xyTrsl)) {
 							throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
 						}
+					}else {
+						throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式");
 					}
-				} else {
-					throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
 				}
 			} else {
 				trsl = null;
@@ -1319,8 +1319,8 @@ public class ColumnController {
 
 	@FormatResult
 	@RequestMapping(value = "/columnList", method = RequestMethod.POST)
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "栏目下对应信息列表页：${id}")
-	@ApiOperation("信息列表页")
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_INFO, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "栏目对应信息列表页面数据查询：${id}")
+	@ApiOperation("栏目对应信息列表页面数据查询")
 	public Object columnList(
 			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,
 			@ApiParam("来源") @RequestParam(value = "source", defaultValue = "ALL") String source,
@@ -1417,8 +1417,8 @@ public class ColumnController {
 
 	@FormatResult
 	@RequestMapping(value = "/columnStattotal", method = RequestMethod.POST)
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）更多数据：${id}")
-	@ApiOperation("信息列表页")
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_INFO, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "信息列表页的数据源统计：${id}")
+	@ApiOperation("信息列表页的数据源统计")
 	public Object columnStattotal(
 			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,
 			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -1513,12 +1513,11 @@ public class ColumnController {
 	@PostMapping("/exportChartData")
 	public void exportChartData(HttpServletResponse response,
 								@ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType") String chartType,
-								@ApiParam("词云图当前的类型") @RequestParam(value = "entityType") String entityType,
 								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data") String data) {
 		try {
 			IndexTabType indexTabType = ColumnFactory.chooseType(chartType);
 			ServletOutputStream outputStream = response.getOutputStream();
-			columnService.exportChartData(data,indexTabType,entityType).writeTo(outputStream);
+			columnService.exportChartData(data,indexTabType).writeTo(outputStream);
 		} catch (Exception e) {
 			log.error("导出excel出错！", e);
 		}

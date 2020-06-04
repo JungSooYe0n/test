@@ -174,9 +174,39 @@ public class ColumnSystemLogOperation extends AbstractSystemLogOperation {
 				}
 			}
 			break;
+			/**
+			 * 查询栏目的信息列表数据
+			 */
+			case COLUMN_SELECT_INDEX_TAB_INFO:
 
-		default:
-			break;
+			/**
+			 * 添加自定义图表
+			 */
+			case COLUMN_ADD_CUSTOM_CHART:
+			/**
+			 * 修改自定义图表
+			 */
+			case COLUMN_UPDATE_CUSTOM_CHART:
+			/**
+			 * 删除自定义图表
+			 */
+			case COLUMN_DELETE_CUSTOM_CHART:
+
+			/**
+			 * 查询栏目下对应的统计分析 + 自定义图表
+			 */
+			case COLUMN_SELECT_TAB_CHART:
+			/**
+			 * 查询分类下的栏目和被置顶的统计分析 + 自定义图表
+			 */
+			case COLUMN_SELECT_PAGE_TOP_CHART:
+			/**
+			 * 置顶图表
+			 */
+			case COLUMN_TOP_CHART:
+
+			default:
+				break;
 		}
 
 		newStr = buffer.toString();

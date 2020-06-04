@@ -10,10 +10,7 @@ import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
-import com.trs.netInsight.widget.column.repository.CustomChartRepository;
-import com.trs.netInsight.widget.column.repository.IndexPageRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabRepository;
-import com.trs.netInsight.widget.column.repository.StatisticalChartRepository;
+import com.trs.netInsight.widget.column.repository.*;
 import com.trs.netInsight.widget.column.service.IColumnChartService;
 import com.trs.netInsight.widget.column.service.IColumnService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
@@ -47,6 +44,8 @@ public class ColumnChartServiceImpl implements IColumnChartService {
 
     @Autowired
     private IndexTabRepository indexTabRepository;
+    @Autowired
+    private IndexTabMapperRepository indexTabMapperRepository;
 
     /**
      * 获取当前栏目对应的所有图表，包括统计分析图表和自定义图表
@@ -60,6 +59,8 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         if (StringUtil.isEmpty(id)) {
             return null;
         }
+        IndexTabMapper mapper = indexTabMapperRepository.findOne(id);
+        String timeRange = mapper.getIndexTab().getTimeRange();
         Sort sort = new Sort(Sort.Direction.ASC, "sequence");
         Map<String, Object> map = new HashMap<>();
         map.put("statisticalChart", null);
@@ -81,6 +82,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneScInfo.put("isTop", oneSc.getIsTop());
                 oneScInfo.put("sequence", statisticalChartInfo.getSequence());
                 oneScInfo.put("contrast", statisticalChartInfo.getContrast());
+                oneScInfo.put("timeRange", timeRange);
                 scList.add(oneScInfo);
             }
         }
@@ -128,7 +130,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneCcInfo.put("filterInfo", oneCc.getFilterInfo());
                 oneCcInfo.put("contentArea", oneCc.getContentArea());
                 oneCcInfo.put("mediaArea", oneCc.getMediaArea());
-
+                addTypeSeq(oneCcInfo,oneCc.getType());
                 ccList.add(oneCcInfo);
             }
         }
@@ -188,6 +190,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                         oneColumnChart.put("chartPage", ChartPageInfo.TabChart);
                         oneColumnChart.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
                         oneColumnChart.put("contrast", tab.getContrast());
+                        addTypeSeq(oneColumnChart,tab.getType());
                         result.add(oneColumnChart);
                         this.getTopColumnChartForTab(result,mapper);
                     }
@@ -203,6 +206,35 @@ public class ColumnChartServiceImpl implements IColumnChartService {
             }
         }
         return result;
+    }
+
+    /**
+     * 因为前端页面需要根据type顺序判断echart插件，来添加时间插件和回显时间，所以添加一个序号，统计分析页面不需要
+     * @param map
+     * @param type
+     */
+    private void addTypeSeq(Map<String, Object> map,String type){
+        if("pieChart".equals(type)){
+            map.put("index",1);
+        }else if("mapChart".equals(type)){
+            map.put("index",2);
+        }else if("wordCloudChart".equals(type)){
+            map.put("index",3);
+        }else if("barGraphChart".equals(type)){
+            map.put("index",4);
+        }else if("brokenLineChart".equals(type)){
+            map.put("index",5);
+        }else if("timeListInfo".equals(type)){
+            map.put("index",6);
+        }else if("md5ListInfo".equals(type)){
+            map.put("index",7);
+        }else if("emotionPieChart".equals(type)){
+            map.put("index",8);
+        }else if("crossBarGraphChart".equals(type)){
+            map.put("index",9);
+        }else if("hotTopicSort".equals(type)){
+            map.put("index",10);
+        }
     }
 
     private List<Object> getTopColumnChartForTab(List<Object> result,IndexTabMapper mapper){
@@ -227,13 +259,13 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneScInfo.put("isTop", oneSc.getIsTop());
                 oneScInfo.put("timeRange", timeRange);
                 oneScInfo.put("topSequence", oneSc.getTopSequence());
-                oneScInfo.put("timeRange", 50);
+                oneScInfo.put("tabWidth", 50);
                 if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)
                         || StatisticalChartInfo.MAP.equals(statisticalChartInfo)
                         || StatisticalChartInfo.CHART_LINE.equals(statisticalChartInfo)){
-                    oneScInfo.put("timeRange", 100);
+                    oneScInfo.put("tabWidth", 100);
                 }
-
+                addTypeSeq(oneScInfo,statisticalChartInfo.getChartType());
                 //拿到统计分析图的基本数据
                 columnChartList.add(oneScInfo);
             }
@@ -255,6 +287,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                     oneCcInfo.put("timeRange", oneCc.getTimeRange());
                     oneCcInfo.put("contrast", oneCc.getContrast());
                     oneCcInfo.put("groupName", CommonListChartUtil.formatPageShowGroupName(oneCc.getGroupName()));
+                    addTypeSeq(oneCcInfo,oneCc.getType());
                     //拿到基本数据
                     columnChartList.add(oneCcInfo);
                 }
