@@ -186,7 +186,8 @@ public class SpecialServiceImpl implements ISpecialService {
 	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
 			String anyKeywords, String excludeWords, String trsl,
 			SearchScope scope, Date startTime, Date endTime, String source, String timerange, boolean similar,
-			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb) throws Exception {
+			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String mediaLevel,
+										String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea) throws Exception {
 		SpecialProject specialProject = specialProjectRepository.findOne(specialId);
 		// 修改专项
 		specialProject.setSpecialType(type);
@@ -208,6 +209,12 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setServer(server);
 		specialProject.setIrSimflagAll(irSimflagAll);
 		specialProject.setExcludeWeb(excludeWeb);
+		specialProject.setMediaLevel(mediaLevel);
+		specialProject.setMediaIndustry(mediaIndustry);
+		specialProject.setContentIndustry(contentIndustry);
+		specialProject.setFilterInfo(filterInfo);
+		specialProject.setMediaArea(mediaArea);
+		specialProject.setContentArea(contentArea);
 		// if (legal(specialProject)) {
 		specialProjectRepository.save(specialProject);
 		reportService.saveMaterialLibrary(specialProject);
@@ -603,7 +610,12 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("xyTrsl", "");
 					map.put("active", false);
 //					result.add(map);
-
+					map.put("mediaLevel", tab.getMediaLevel());
+					map.put("mediaIndustry", tab.getMediaIndustry());
+					map.put("contentIndustry", tab.getContentIndustry());
+					map.put("filterInfo", tab.getFilterInfo());
+					map.put("contentArea", tab.getContentArea());
+					map.put("mediaArea", tab.getMediaArea());
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
 							map.put("active", true);

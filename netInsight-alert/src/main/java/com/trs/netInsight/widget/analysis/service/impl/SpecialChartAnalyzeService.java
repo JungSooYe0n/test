@@ -5153,9 +5153,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		boolean sim = specialProject.isSimilar();
 		boolean irSimflag = specialProject.isIrSimflag();
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
-		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
+//		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
 		ChartResultField chartResultField = new ChartResultField("name","num");
-		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,groupName,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
+		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,Const.ALL_GROUP_COLLECT,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
 
 		double total = 0;
 		for (Map<String, Object> mapList : list){

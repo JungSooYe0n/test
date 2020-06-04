@@ -139,7 +139,6 @@ public class SpecialChartAnalyzeController {
 			specialProject.setEnd(timeArray[1]);
 		}
 		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
-		searchBuilder.setGroupName(specialProject.getSource());
 		return specialChartAnalyzeService.getSituationAssessment(searchBuilder,specialProject);
 
 	}
@@ -1620,11 +1619,11 @@ public class SpecialChartAnalyzeController {
 			String[] timeArray = DateUtil.formatTimeRange(timeRange);
 
 			QueryBuilder statBuilder = null;
-			if (Const.GROUPNAME_WEIBO.equals(type)) {
-				statBuilder = specialProject.toNoTimeBuilderWeiBo(0, pageSize);
-			} else {
+//			if (Const.GROUPNAME_WEIBO.equals(type)) {
+//				statBuilder = specialProject.toNoTimeBuilderWeiBo(0, pageSize);
+//			} else {
 				statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
-			}
+//			}
 			statBuilder.page(0, pageSize);
 			List<Map> resultList = new ArrayList<>();
 			type = CommonListChartUtil.formatPageShowGroupName(type);

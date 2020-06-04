@@ -185,7 +185,13 @@ public class SpecialController {
 			@ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "server", value = "是否转换为server表达式", dataType = "boolean", paramType = "query", required = false),
-			@ApiImplicitParam(name = "groupId", value = "分组id", dataType = "String", paramType = "query", required = false) })
+			@ApiImplicitParam(name = "groupId", value = "分组id", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
 	@RequestMapping(value = "/addProject", method = RequestMethod.POST)
 	public Object addProject(HttpServletRequest request, @RequestParam("specialName") String specialName, // 验证空格
 							 @RequestParam("timeRange") String timeRange,
@@ -200,7 +206,13 @@ public class SpecialController {
 							 @RequestParam(value = "simflag", required = false) String simflag,
 							 @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 							 @RequestParam(value = "server", required = false) boolean server,
-							 @RequestParam(value = "groupId", required = false) String groupId) throws Exception {
+							 @RequestParam(value = "groupId", required = false) String groupId,
+							 @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							 @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							 @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							 @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							 @RequestParam(value = "contentArea", required = false) String contentArea,
+							 @RequestParam(value = "mediaArea", required = false) String mediaArea) throws Exception {
 		try {
 
 			//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受用户分组可创建资源数量的限制，但是受机构可创建资源数量的限制）
@@ -286,6 +298,12 @@ public class SpecialController {
 				specialProject.setImgUrl(imgUrl);
 				specialProject.setStart(new SimpleDateFormat("yyyyMMddHHmmss").format(startTime));
 				specialProject.setEnd(new SimpleDateFormat("yyyyMMddHHmmss").format(endTime));
+				specialProject.setMediaLevel(mediaLevel);
+				specialProject.setMediaIndustry(mediaIndustry);
+				specialProject.setContentIndustry(contentIndustry);
+				specialProject.setFilterInfo(filterInfo);
+				specialProject.setMediaArea(mediaArea);
+				specialProject.setContentArea(contentArea);
 				specialService.createSpecial(specialProject);
 				PerpetualPool.put(userId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
 				return specialProject;
@@ -762,7 +780,14 @@ public class SpecialController {
 			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "server", value = "是否转换为server表达式", dataType = "boolean", paramType = "query", required = false),
-			@ApiImplicitParam(name = "source", value = "来源", dataType = "String", paramType = "query", required = false) })
+			@ApiImplicitParam(name = "source", value = "来源", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")
+	})
 	@RequestMapping(value = "/update", method = RequestMethod.POST)
 	public Object updateSpecial(@RequestParam("specialId") String specialId,
 			@RequestParam("specialName") String specialName, @RequestParam("timeRange") String timeRange,
@@ -775,7 +800,13 @@ public class SpecialController {
 			@RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 			@RequestParam(value = "simflag", required = false) String simflag,
 			@RequestParam(value = "server", required = false) boolean server,
-			@RequestParam(value = "source", required = false) String source) throws TRSException {
+			@RequestParam(value = "source", required = false) String source,
+								@RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+								@RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+								@RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+								@RequestParam(value = "filterInfo", required = false) String filterInfo,
+								@RequestParam(value = "contentArea", required = false) String contentArea,
+								@RequestParam(value = "mediaArea", required = false) String mediaArea) throws TRSException {
 
 		//若为机构管理员或者普通用户 若为普通模式，判断关键字字数
 		User loginUser = UserUtils.getUser();
@@ -832,7 +863,8 @@ public class SpecialController {
 			}
 			SpecialProject updateSpecial = specialService.updateSpecial(specialId, type, specialName,
 					anyKeywords, excludeWords, trsl, scope, startTime, endTime, source,
-					timerange, isSimilar, weight, irSimflag, server,irSimflagAll,excludeWeb);
+					timerange, isSimilar, weight, irSimflag, server,irSimflagAll,excludeWeb, mediaLevel,
+					 mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 
 			// 修改专题成功,触发修改该专题当前日期指数
 			fixedThreadPool.execute(() -> computeBySpecialId(specialId, new Date(), new Date()));

@@ -3,6 +3,7 @@ package com.trs.netInsight.widget.special.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.config.serualizer.DateDeserializer;
 import com.trs.netInsight.handler.exception.OperationException;
@@ -24,7 +25,10 @@ import org.apache.commons.lang3.StringUtils;
 import javax.persistence.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 专项实体
@@ -78,6 +82,25 @@ public class SpecialProject extends BaseEntity {
 	@JsonView(SaveView.class)
 	@Column(name = "exclude_words", columnDefinition = "TEXT")
 	private String excludeWords;
+	/**
+	 * 排除词检索位置 0：标题 1：标题+正文  2：标题+摘要
+	 */
+	@Column(name = "exclude_word_index", columnDefinition = "TEXT")
+	private String excludeWordIndex = "1";
+//	public String getExcludeWordIndex(){
+//		if(StringUtil.isEmpty(this.excludeWordIndex)){
+//			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
+//				return "1";
+//			}
+//			if(SearchScope.TITLE.equals(this.searchScope)){//标题
+//				return "0";
+//			}
+//			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
+//				return "2";
+//			}
+//		}
+//		return this.excludeWordIndex;
+//	}
 
 	/**
 	 * 排除网站
@@ -195,6 +218,8 @@ public class SpecialProject extends BaseEntity {
 	 * 置顶（新提出置顶字段）
 	 */
 	private String topFlag;
+//	private String read;//  阅读标记
+	private String preciseFilter;//精准筛选
 
 	/**
 	 * 是否排重
@@ -245,6 +270,36 @@ public class SpecialProject extends BaseEntity {
 	@JsonIgnore
 	@JoinColumn(name = "special_subject_id")
 	private SpecialSubject specialSubject;
+	/**
+	 * 媒体等级
+	 */
+	@Column(name = "media_level")
+	private String mediaLevel;
+	/**
+	 * 媒体行业
+	 */
+	@Column(name = "media_industry")
+	private String mediaIndustry;
+	/**
+	 * 内容行业
+	 */
+	@Column(name = "content_industry")
+	private String contentIndustry;
+	/**
+	 * 信息过滤  -  信息性质打标，如抽奖
+	 */
+	@Column(name = "filter_info")
+	private String filterInfo;
+	/**
+	 * 内容所属地域
+	 */
+	@Column(name = "content_area")
+	private String contentArea;
+	/**
+	 * 媒体所属地域
+	 */
+	@Column(name = "media_area")
+	private String mediaArea;
 
 	public void setStart(String start) throws ParseException {
 		this.start = start;
@@ -446,7 +501,7 @@ public class SpecialProject extends BaseEntity {
 	 *            是否带时间查询
 	 * @return CreateBy xiaoying
 	 */
-	private QueryBuilder toSearchBuilder(int pageNo, int pageSize, boolean withTime) {
+	public QueryBuilder toSearchBuilder(int pageNo, int pageSize, boolean withTime) {
 		String startTime=null;
 		String endTime=null;
 		if(StringUtils.isNotBlank(start)&&StringUtils.isNotBlank(end)&&(!"0".equals(start))&&(!"0".equals(end))){
@@ -456,32 +511,84 @@ public class SpecialProject extends BaseEntity {
 			startTime = new SimpleDateFormat("yyyyMMddHHmmss").format(this.startTime);
 			endTime = new SimpleDateFormat("yyyyMMddHHmmss").format(this.endTime);
 		}
-		QueryBuilder searchBuilder = new QueryBuilder();
+		 QueryBuilder queryBuilder = new QueryBuilder();
 		switch (this.specialType) {
 		case COMMON:
-			// 根据关键词位置，任意关键词，排除词，拼凑表达式
-			String keywordIndex = "0";//仅标题
+			setNewFilter();
+			String keyWordindex = "1";
 			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
+				keyWordindex =  "1";
+			}
+			if(SearchScope.TITLE.equals(this.searchScope)){//标题
+				keyWordindex = "0";
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
+				keyWordindex = "2";
+			}
+			createFilter(queryBuilder,anyKeywords,keyWordindex,excludeWords,excludeWordIndex,weight);
+
+
+			String keywordIndex = "0";//仅标题
+			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)) {//标题 + 正文
 				keywordIndex = "1";//标题+正文
 			}
-			searchBuilder = WordSpacingUtil.handleKeyWords(this.anyKeywords,keywordIndex,this.weight);
+			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)) {//标题 + 正文
+				keywordIndex = "2";//标题+摘要
+			}
+			QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeywords, keywordIndex, this.weight);
+			queryBuilder.filterByTRSL(builder.asTRSL());
 			//拼凑排除词
 			for (String field : this.searchScope.getField()) {
 				StringBuilder childBuilder = new StringBuilder();
 				if (StringUtil.isNotEmpty(this.excludeWords)) {
 					childBuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					searchBuilder.filterByTRSL(childBuilder.toString());
+					queryBuilder.filterByTRSL(childBuilder.toString());
 				}
 			}
 			//排除网站
 			if (StringUtil.isNotEmpty(this.excludeWeb)) {
-				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeWeb.replaceAll(";|；", " OR "), Operator.NotEqual);
+				queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeWeb.replaceAll(";|；", " OR "), Operator.NotEqual);
+			}
+			//媒体等级
+			if(StringUtil.isNotEmpty(mediaLevel)){
+				addFieldFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
+			}
+			//媒体行业
+			if(StringUtil.isNotEmpty(mediaIndustry )){
+				addFieldFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
+			}
+			//内容行业
+			if(StringUtil.isNotEmpty(contentIndustry )){
+				addFieldFilter(queryBuilder,FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
+			}
+			//内容地域
+			if(StringUtil.isNotEmpty(contentArea )){
+				addAreaFilter(queryBuilder,FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
+			}
+			//媒体地域
+			if(StringUtil.isNotEmpty(mediaArea )){
+				addAreaFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
+			}
+			//信息过滤
+			if(StringUtil.isNotEmpty(filterInfo )){
+				String trsl = queryBuilder.asTRSL();
+				StringBuilder sb = new StringBuilder(trsl);
+				String[] valueArr = filterInfo.split(";");
+				List<String> valueArrList = new ArrayList<>();
+				for(String v : valueArr){
+					if(Const.FILTER_INFO.contains(v)){
+						valueArrList.add(v);
+					}
+				}
+				sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+				queryBuilder = new QueryBuilder();
+				queryBuilder.filterByTRSL(sb.toString());
 			}
 			break;
 		case SPECIAL:
-			searchBuilder.filterByTRSL(this.trsl);
+			queryBuilder.filterByTRSL(this.trsl);
 			if(server){
-				searchBuilder.setServer(true);
+				queryBuilder.setServer(true);
 			}
 			break;
 		default:
@@ -491,15 +598,15 @@ public class SpecialProject extends BaseEntity {
 //			searchBuilder.filterByTRSL(Const.IR_SIMFLAG_TRSL);
 //		}
 		if (pageNo != -1) {
-			searchBuilder.setPageNo(pageNo);
-			searchBuilder.setPageSize(pageSize);
+			queryBuilder.setPageNo(pageNo);
+			queryBuilder.setPageSize(pageSize);
 		}
 
 		if (withTime) {
-			searchBuilder.filterField(FtsFieldConst.FIELD_URLTIME, new String[] { startTime, endTime },
+			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, new String[] { startTime, endTime },
 					Operator.Between);
 		}
-		return searchBuilder;
+		return queryBuilder;
 	}
 
 	/**
@@ -778,9 +885,52 @@ public class SpecialProject extends BaseEntity {
 		case COMMON:
 			// 根据关键词位置，任意关键词，排除词，拼凑表达式
 			//关键词
+
+//			setNewFilter();
+//
+//			//媒体等级
+//			if(StringUtil.isNotEmpty(mediaLevel)){
+//				addFieldFilter(FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
+//			}
+//			//媒体行业
+//			if(StringUtil.isNotEmpty(mediaIndustry )){
+//				addFieldFilter(FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
+//			}
+//			//内容行业
+//			if(StringUtil.isNotEmpty(contentIndustry )){
+//				addFieldFilter(FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
+//			}
+//			//内容地域
+//			if(StringUtil.isNotEmpty(contentArea )){
+//				addAreaFilter(FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
+//			}
+//			//媒体地域
+//			if(StringUtil.isNotEmpty(mediaArea )){
+//				addAreaFilter(FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
+//			}
+//			//信息过滤
+//			if(StringUtil.isNotEmpty(filterInfo )){
+//				String trsl = searchBuilder.asTRSL();
+//				StringBuilder sb = new StringBuilder(trsl);
+//				String[] valueArr = filterInfo.split(";");
+//				List<String> valueArrList = new ArrayList<>();
+//				for(String v : valueArr){
+//					if(Const.FILTER_INFO.contains(v)){
+//						valueArrList.add(v);
+//					}
+//				}
+//				sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+//				searchBuilder = new QueryCommonBuilder();
+//				searchBuilder.filterByTRSL(sb.toString());
+//			}
+
+
 			String keywordIndex = "0";//仅标题
 			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)) {//标题 + 正文
 				keywordIndex = "1";//标题+正文
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)) {//标题 + 正文
+				keywordIndex = "2";//标题+摘要
 			}
 			QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeywords, keywordIndex, this.weight);
 			searchBuilder.filterByTRSL(builder.asTRSL());
@@ -796,6 +946,7 @@ public class SpecialProject extends BaseEntity {
 			if (StringUtil.isNotEmpty(this.excludeWeb)) {
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeWeb.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
+
 			break;
 		case SPECIAL:
 			searchBuilder.filterByTRSL(this.trsl);
@@ -814,5 +965,248 @@ public class SpecialProject extends BaseEntity {
 		}
 		return searchBuilder;
 	}
+	public QueryBuilder toSpecialBuilder(int pageNo, int pageSize, boolean withTime) {
+		String[] timeArray = new String[2];
+		try {
+			timeArray = DateUtil.formatTimeRangeMinus1(timeRange);
+		} catch (OperationException e) {
+			e.printStackTrace();
+		}
+		QueryBuilder queryBuilder = new QueryBuilder();
 
+		switch (this.specialType) {
+			case COMMON:
+				// 根据关键词位置，任意关键词，排除词，拼凑表达式
+				//关键词
+				setNewFilter();
+				String keyWordindex = "1";
+			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
+				keyWordindex =  "1";
+			}
+			if(SearchScope.TITLE.equals(this.searchScope)){//标题
+				keyWordindex = "0";
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
+				keyWordindex = "2";
+			}
+				createFilter(queryBuilder,anyKeywords,keyWordindex,excludeWords,excludeWordIndex,weight);
+
+
+				String keywordIndex = "0";//仅标题
+				if(SearchScope.TITLE_CONTENT.equals(this.searchScope)) {//标题 + 正文
+					keywordIndex = "1";//标题+正文
+				}
+				if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)) {//标题 + 正文
+					keywordIndex = "2";//标题+摘要
+				}
+				QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeywords, keywordIndex, this.weight);
+				queryBuilder.filterByTRSL(builder.asTRSL());
+				//拼凑排除词
+				for (String field : this.searchScope.getField()) {
+					StringBuilder childBuilder = new StringBuilder();
+					if (StringUtil.isNotEmpty(this.excludeWords)) {
+						childBuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+						queryBuilder.filterByTRSL(childBuilder.toString());
+					}
+				}
+				//排除网站
+				if (StringUtil.isNotEmpty(this.excludeWeb)) {
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeWeb.replaceAll(";|；", " OR "), Operator.NotEqual);
+				}
+				//媒体等级
+				if(StringUtil.isNotEmpty(mediaLevel)){
+					addFieldFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
+				}
+				//媒体行业
+				if(StringUtil.isNotEmpty(mediaIndustry )){
+					addFieldFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
+				}
+				//内容行业
+				if(StringUtil.isNotEmpty(contentIndustry )){
+					addFieldFilter(queryBuilder,FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
+				}
+				//内容地域
+				if(StringUtil.isNotEmpty(contentArea )){
+					addAreaFilter(queryBuilder,FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
+				}
+				//媒体地域
+				if(StringUtil.isNotEmpty(mediaArea )){
+					addAreaFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
+				}
+				//信息过滤
+				if(StringUtil.isNotEmpty(filterInfo )){
+					String trsl = queryBuilder.asTRSL();
+					StringBuilder sb = new StringBuilder(trsl);
+					String[] valueArr = filterInfo.split(";");
+					List<String> valueArrList = new ArrayList<>();
+					for(String v : valueArr){
+						if(Const.FILTER_INFO.contains(v)){
+							valueArrList.add(v);
+						}
+					}
+					sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+					queryBuilder = new QueryBuilder();
+					queryBuilder.filterByTRSL(sb.toString());
+				}
+				break;
+			case SPECIAL:
+				queryBuilder.filterByTRSL(this.trsl);
+				break;
+			default:
+				break;
+		}
+
+		if (pageNo != -1) {
+			queryBuilder.setPageNo(pageNo);
+			queryBuilder.setPageSize(pageSize);
+		}
+		if (withTime) {
+			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray,
+					Operator.Between);
+		}
+		return queryBuilder;
+	}
+	private void addFieldFilter(QueryBuilder queryBuilder,String field,String value,List<String> allValue){
+		if(StringUtil.isNotEmpty(value)){
+			String[] valueArr = value.split(";");
+			List<String> valueArrList = new ArrayList<>();
+			for(String v : valueArr){
+				if(allValue.contains(v)){
+					valueArrList.add(v);
+				}
+			}
+			queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+		}
+	}
+	private void addAreaFilter(QueryBuilder queryBuilder,String field,String areas){
+		Map<String,String> areaMap = null;
+		if(FtsFieldConst.FIELD_MEDIA_AREA.equals(field)){
+			areaMap = Const.MEDIA_PROVINCE_NAME;
+		}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field)){
+			areaMap = Const.CONTTENT_PROVINCE_NAME;
+		}
+		if(StringUtil.isNotEmpty(areas) && areaMap!= null){
+			String[] areaArr = areas.split(";");
+			List<String> areaList = new ArrayList<>();
+			for(String area : areaArr){
+				if(areaMap.containsKey(area)){
+					areaList.add(areaMap.get(area));
+				}
+			}
+			queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+		}
+	}
+	/**
+	 * 添加筛选条件信息
+	 * @param read  阅读标记
+	 * @param mediaLevel  媒体等级
+	 * @param mediaIndustry  媒体行业
+	 * @param contentIndustry  内容行业
+	 * @param filterInfo  过滤信息
+	 * @param contentArea  内容行业
+	 * @param mediaArea  媒体行业
+	 * @param preciseFilter  精准筛选
+	 */
+	public void addFilterCondition(String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
+								   String contentArea,String mediaArea,String preciseFilter){
+		//媒体等级
+		if(StringUtil.isNotEmpty(mediaLevel)){
+			if("ALL".equals(mediaLevel)){
+				mediaLevel = org.thymeleaf.util.StringUtils.join(Const.MEDIA_LEVEL,";");
+			}
+		}
+		//媒体行业
+		if(StringUtil.isNotEmpty(mediaIndustry)){
+			if("ALL".equals(mediaIndustry)){
+				mediaIndustry = org.thymeleaf.util.StringUtils.join(Const.MEDIA_INDUSTRY,";");
+			}
+		}
+		//内容行业
+		if(StringUtil.isNotEmpty(contentIndustry)){
+			if("ALL".equals(contentIndustry)){
+				contentIndustry = org.thymeleaf.util.StringUtils.join(Const.CONTENT_INDUSTRY,";");
+			}
+		}
+		//信息过滤
+		if(StringUtil.isNotEmpty(filterInfo)){
+			if("ALL".equals(filterInfo)){
+				filterInfo = org.thymeleaf.util.StringUtils.join(Const.FILTER_INFO,";");
+			}
+		}
+//		this.read = read;
+		this.mediaLevel = mediaLevel;
+		this.mediaIndustry = mediaIndustry;
+		this.contentIndustry = contentIndustry;
+		this.filterInfo = filterInfo;
+		this.contentArea = contentArea;
+		this.mediaArea = mediaArea;
+		this.preciseFilter = preciseFilter;
+	}
+	public void setNewFilter(){
+		//媒体等级
+		if(StringUtil.isNotEmpty(mediaLevel)){
+			if("ALL".equals(mediaLevel)){
+				mediaLevel = org.thymeleaf.util.StringUtils.join(Const.MEDIA_LEVEL,";");
+			}
+		}
+		//媒体行业
+		if(StringUtil.isNotEmpty(mediaIndustry)){
+			if("ALL".equals(mediaIndustry)){
+				mediaIndustry = org.thymeleaf.util.StringUtils.join(Const.MEDIA_INDUSTRY,";");
+			}
+		}
+		//内容行业
+		if(StringUtil.isNotEmpty(contentIndustry)){
+			if("ALL".equals(contentIndustry)){
+				contentIndustry = org.thymeleaf.util.StringUtils.join(Const.CONTENT_INDUSTRY,";");
+			}
+		}
+		//信息过滤
+		if(StringUtil.isNotEmpty(filterInfo)){
+			if("ALL".equals(filterInfo)){
+				filterInfo = org.thymeleaf.util.StringUtils.join(Const.FILTER_INFO,";");
+			}
+		}
+	}
+
+	private void createFilter(QueryBuilder queryBuilder,String keyWords, String keyWordindex, String excludeWords,String excludeWordsIndex, boolean weight) {
+		if (StringUtil.isNotEmpty(keyWordindex) && (StringUtil.isNotEmpty(keyWords) || StringUtil.isNotEmpty(excludeWords))) {// 普通模式
+
+			queryBuilder = WordSpacingUtil.handleKeyWords(keyWords, keyWordindex, this.weight);
+			//拼接排除词
+			if("0".equals(excludeWordsIndex)){ //标题
+				if (StringUtil.isNotEmpty(excludeWords)) {
+					StringBuilder exbuilder = new StringBuilder();
+					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+					queryBuilder.filterByTRSL(exbuilder.toString());
+				}
+			} else if ("1".equals(excludeWordsIndex)) {// 标题加正文
+				if (StringUtil.isNotEmpty(excludeWords)) {
+					StringBuilder exbuilder = new StringBuilder();
+					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+					queryBuilder.filterByTRSL(exbuilder.toString());
+					StringBuilder exbuilder2 = new StringBuilder();
+					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
+					queryBuilder.filterByTRSL(exbuilder2.toString());
+				}
+			}else if("2".equals(excludeWordsIndex)){ //标题 +摘要
+				if (StringUtil.isNotEmpty(excludeWords)) {
+					StringBuilder exbuilder = new StringBuilder();
+					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+					queryBuilder.filterByTRSL(exbuilder.toString());
+					StringBuilder exbuilder2 = new StringBuilder();
+					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
+					queryBuilder.filterByTRSL(exbuilder2.toString());
+				}
+			}
+		} else {// 专家模式
+			queryBuilder.filterByTRSL(this.trsl);// 专家模式
+		}
+
+	}
 }
