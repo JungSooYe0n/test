@@ -459,7 +459,10 @@ public class ColumnController {
 					if (StringUtil.isEmpty(xyTrsl)) {
 						throw new TRSException(CodeUtils.FAIL,"专家模式下"+indexTabType.getTypeName() + "时必须传xy表达式");
 					}
-				}else{
+				}
+			}else{
+				if (!(IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType)
+						|| IndexTabType.CHART_PIE.equals(indexTabType))) {
 					throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式");
 				}
 			}
@@ -673,7 +676,10 @@ public class ColumnController {
 						if (StringUtil.isEmpty(xyTrsl)) {
 							throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
 						}
-					}else {
+					}
+				}else{
+					if (!(IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType)
+							|| IndexTabType.CHART_PIE.equals(indexTabType))) {
 						throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式");
 					}
 				}
