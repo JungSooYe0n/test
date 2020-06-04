@@ -50,7 +50,7 @@ public enum StatisticalChartInfo {
     /**
      * 柱状图  横向柱状图，主要为展示效果不同，则
      */
-    CHART_BAR_CROSS(ColumnConst.CHART_BAR_CROSS, "活跃账号", 4, ColumnConst.CONTRAST_TYPE_SITE),
+    CHART_BAR_CROSS(ColumnConst.CHART_BAR_CROSS, "活跃帐号", 4, ColumnConst.CONTRAST_TYPE_SITE),
 
     /**
      * 微博热点话题榜  ---  统计方式与统计柱状图的方式一样，所以用同一个方法

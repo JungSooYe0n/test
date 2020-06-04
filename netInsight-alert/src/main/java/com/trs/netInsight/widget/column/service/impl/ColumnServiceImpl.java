@@ -1616,7 +1616,7 @@ public class ColumnServiceImpl implements IColumnService {
 	 * 日常监测图表数据导出
 	 */
 	@Override
-	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType, String entityType) throws IOException {
+	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType) throws IOException {
 		ExcelData content = new ExcelData();
 		if (indexTabType != null) {
 			if (StringUtil.isNotEmpty(data)) {
@@ -1626,7 +1626,7 @@ public class ColumnServiceImpl implements IColumnService {
 				}else{
 					JSONArray array = JSONObject.parseArray(data);
 					if (IndexTabType.WORD_CLOUD.equals(indexTabType)) {
-						exportWordCloud(entityType, array, content);
+						exportWordCloud(array, content);
 					} else if (IndexTabType.MAP.equals(indexTabType)) {
 						exportMap(array, content);
 					} else if (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)) {
@@ -1690,9 +1690,11 @@ public class ColumnServiceImpl implements IColumnService {
 
 	private void exportChartLine(JSONObject jsonObject,ExcelData content) throws IOException {
 
-		JSONArray groupNameArr = jsonObject.getJSONArray("legendData");
-		JSONArray timeArr = jsonObject.getJSONArray("lineXdata");
-		JSONArray countArr = jsonObject.getJSONArray("lineYdata");
+		JSONObject single = jsonObject.getJSONObject("single");
+
+		JSONArray groupNameArr = single.getJSONArray("legendData");
+		JSONArray timeArr = single.getJSONArray("lineXdata");
+		JSONArray countArr = single.getJSONArray("lineYdata");
 
 		List<String> headList = new ArrayList<>();
 		headList.add("");
@@ -1723,23 +1725,21 @@ public class ColumnServiceImpl implements IColumnService {
 	/**
 	 * 词云数据的导出
 	 */
-	private void exportWordCloud(String dataType,JSONArray array,ExcelData content) throws IOException {
+	private void exportWordCloud(JSONArray array,ExcelData content) throws IOException {
 		content.setHead(ExcelConst.HEAD_WORDCLOUD); // {"词语", "所属分组", "信息数量"}
 		for (Object object : array) {
 			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
 
 			String word = parseObject.get("name").toString();
 			String count = parseObject.get("value").toString();
+			String entityType = parseObject.get("entityType").toString();
 			String group = "";
-			if ("通用".equals(dataType)){
-				group = parseObject.get("entityType").toString();
-			}
-			if("地域".equals(dataType) || "location".equals(group)){
-				group = "地域";
-			}else if("机构".equals(dataType) || "agency".equals(group)){
-				group = "机构";
-			}else{
+			if ("people".equals(entityType)){
 				group = "人物";
+			}else if("location".equals(entityType)){
+				group = "地域";
+			}else if( "agency".equals(entityType)){
+				group = "机构";
 			}
 			content.addRow(word, group, count);
 		}

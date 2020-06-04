@@ -459,9 +459,9 @@ public class ColumnController {
 					if (StringUtil.isEmpty(xyTrsl)) {
 						throw new TRSException(CodeUtils.FAIL,"专家模式下"+indexTabType.getTypeName() + "时必须传xy表达式");
 					}
+				}else{
+					throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式");
 				}
-			}else{
-				throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
 			}
 		} else{
 			trsl=null;
@@ -673,9 +673,9 @@ public class ColumnController {
 						if (StringUtil.isEmpty(xyTrsl)) {
 							throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "时必须传xy表达式");
 						}
+					}else {
+						throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式");
 					}
-				} else {
-					throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
 				}
 			} else {
 				trsl = null;
@@ -965,9 +965,9 @@ public class ColumnController {
 							  @RequestParam(value = "showType", required = false, defaultValue = "") String showType,
 							  @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,//上部为查询图必须的条件
 							  @RequestParam(value = "mapContrast", required = false) String mapContrast,
-							  //查询时的暂时可变筛选条件  openFiltrate
-							  @RequestParam(value = "openFiltrate", defaultValue = "false") Boolean openFiltrate,
 							  @RequestParam(value = "timeRange", required = false) String timeRange,
+							  //查询时的暂时可变筛选条件  openFiltrate -- 只有有条件筛选时，才会使用下面的参数
+							  @RequestParam(value = "openFiltrate", defaultValue = "false") Boolean openFiltrate,
 							  @RequestParam(value = "emotion", required = false) String emotion,
 							  @RequestParam(value = "simflag", required = false) String simflag,
 							  @RequestParam(value = "wordIndex", required = false) String wordIndex,
@@ -1003,9 +1003,9 @@ public class ColumnController {
 			}
 			IndexTabMapper mapper = indexTabMapperService.findOne(statisticalChart.getParentId());
 			indexTab = mapper.getIndexTab();
-			indexTab.setType(statisticalChart.getChartType());
+			indexTab.setType(statisticalChart.getChartType());// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，拿统计分析的参数填充
 			StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(statisticalChart.getChartType());
-			indexTab.setContrast(statisticalChartInfo.getContrast());
+			indexTab.setContrast(statisticalChartInfo.getContrast());// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，拿统计分析的参数填充
 			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
 				indexTab.setTabWidth(100);
 			}
@@ -1086,6 +1086,7 @@ public class ColumnController {
 					"", "",read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
 					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
 		}
+		// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，用统计分析的StatisticalChart，其他图用tabChart
 		config.setChartPage(chartPageInfo);
 		config.setShowType(showType);
 		column.setDistrictInfoService(districtInfoService);
@@ -1195,9 +1196,9 @@ public class ColumnController {
 			@ApiParam("结果中搜索de范围")@RequestParam(value = "fuzzyValueScope", defaultValue = "fullText",required = false) String fuzzyValueScope,
 			@ApiParam("页数") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
 			@ApiParam("一页多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-
-			@ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "false") Boolean openFiltrate,
 			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+			// 只有有条件筛选时，才会使用下面的参数 - 例如统计分析传下面的参数，其他时候不传
+			@ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "false") Boolean openFiltrate,
 			@ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
 			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
 			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
@@ -1253,7 +1254,7 @@ public class ColumnController {
 		}
 		IndexTabType indexTabType = ColumnFactory.chooseType(indexTab.getType());
 
-		if(ObjectUtil.isNotEmpty(indexTab) && StringUtil.isNotEmpty(indexTab.getContrast())
+		if( "ALL".equals(source) && ObjectUtil.isNotEmpty(indexTab) && StringUtil.isNotEmpty(indexTab.getContrast())
 				&& ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())
 				&&( IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType))){
 			source = key;
@@ -1311,15 +1312,15 @@ public class ColumnController {
 					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 		}else{
 			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
-					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
+					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(),
+					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
 		}
 	}
 
 	@FormatResult
 	@RequestMapping(value = "/columnList", method = RequestMethod.POST)
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "栏目下对应信息列表页：${id}")
-	@ApiOperation("信息列表页")
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_INFO, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "栏目对应信息列表页面数据查询：${id}")
+	@ApiOperation("栏目对应信息列表页面数据查询")
 	public Object columnList(
 			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,
 			@ApiParam("来源") @RequestParam(value = "source", defaultValue = "ALL") String source,
@@ -1416,8 +1417,8 @@ public class ColumnController {
 
 	@FormatResult
 	@RequestMapping(value = "/columnStattotal", method = RequestMethod.POST)
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）更多数据：${id}")
-	@ApiOperation("信息列表页")
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_INFO, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "信息列表页的数据源统计：${id}")
+	@ApiOperation("信息列表页的数据源统计")
 	public Object columnStattotal(
 			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,
 			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -1512,12 +1513,11 @@ public class ColumnController {
 	@PostMapping("/exportChartData")
 	public void exportChartData(HttpServletResponse response,
 								@ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType") String chartType,
-								@ApiParam("词云图当前的类型") @RequestParam(value = "entityType") String entityType,
 								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data") String data) {
 		try {
 			IndexTabType indexTabType = ColumnFactory.chooseType(chartType);
 			ServletOutputStream outputStream = response.getOutputStream();
-			columnService.exportChartData(data,indexTabType,entityType).writeTo(outputStream);
+			columnService.exportChartData(data,indexTabType).writeTo(outputStream);
 		} catch (Exception e) {
 			log.error("导出excel出错！", e);
 		}

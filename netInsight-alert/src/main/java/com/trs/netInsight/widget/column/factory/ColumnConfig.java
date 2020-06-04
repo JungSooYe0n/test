@@ -699,7 +699,9 @@ public class ColumnConfig {
 				}
 			}
 		} else {// 专家模式
-			queryBuilder.filterByTRSL(this.indexTab.getTrsl());// 专家模式
+			if(StringUtil.isNotEmpty(this.indexTab.getTrsl())){
+				queryBuilder.filterByTRSL(this.indexTab.getTrsl());// 专家模式
+			}
 		}
 
 	}

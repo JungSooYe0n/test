@@ -17,10 +17,7 @@ import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.user.entity.User;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 地域热力图
@@ -46,11 +43,16 @@ public class MapColumn extends AbstractColumn {
         String contrast = indexTab.getContrast();
         if(StringUtil.isNotEmpty(contrast) && contrast.equals(ColumnConst.CONTRAST_TYPE_MEDIA_AREA)){
 			contrastField = FtsFieldConst.FIELD_MEDIA_AREA;
+		}else{
+			contrast = ColumnConst.CONTRAST_TYPE_HIT_ARTICLE;
 		}
 		try {
 			list = (List<Map<String, Object>>) commonChartService.getMapColumnData(builder, sim, irSimflag, irSimflagAll, groupNames, contrastField, "column",resultField);
 			if(list == null){
 				return null;
+			}
+			for(Map<String,Object> oneMap : list){
+				oneMap.put("contrast",contrast);
 			}
 			if(list != null && list.size() >0){
 				Collections.sort(list, (o1, o2) -> {
@@ -59,10 +61,10 @@ public class MapColumn extends AbstractColumn {
 					return seq2.compareTo(seq1);
 				});
 			}
+			return list;
 		} catch (TRSException | TRSSearchException e) {
 			throw new TRSSearchException(e);
 		}
-		return list;
 	}
 
 	@Override

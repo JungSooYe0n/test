@@ -302,14 +302,17 @@ public class ChartLineColumn extends AbstractColumn{
 					}
 				}
 			}else{
-				//站点对比 + 微信公众号对比
-				if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast()) ||ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
+				if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {// 舆论来源对比
+                    String key = StringUtils.join(CommonListChartUtil.formatGroupName(super.config.getKey()), ";");
+                    commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);
+				}else if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast()) ||ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
+					//站点对比 + 微信公众号对比
 					String sitename = super.config.getKey().replaceAll(";"," OR ");
 					if (sitename.endsWith(" OR ")){
 						sitename = sitename.substring(0,sitename.length()-4);
 					}
 					commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, sitename, Operator.Equal);
-				}else if(!ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())){
+				}else{
 					//除去专家模式，柱状图只有三种模式，如果不是这三种，则无对比模式
 					throw new TRSSearchException("未获取到检索条件");
 				}
