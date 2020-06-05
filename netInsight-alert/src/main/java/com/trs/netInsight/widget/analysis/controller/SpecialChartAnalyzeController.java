@@ -986,26 +986,6 @@ public class SpecialChartAnalyzeController {
 		String[] timeArr = com.trs.netInsight.util.DateUtil.formatTimeRange(timeRange);
 		String time0 = timeArr[0];
 		if (!com.trs.netInsight.util.DateUtil.isExpire("2019-10-01 00:00:00",time0)){
-			String metas = specialProject.getSource();
-			String[] data = null;
-			if (!"ALL".equals(metas)){
-				String[] split = metas.split(";");
-				data = TrslUtil.chooseDatabases(split);
-				metas = metas.replaceAll("境外媒体", "国外新闻");
-				metas = metas.replaceAll("微信", "国内微信");
-
-				// 统一来源
-				metas = metas.trim();
-				if (metas.endsWith(";")) {
-					metas = metas.substring(0, metas.length() - 2);
-				}
-				metas = "(" + metas.replaceAll(";", " OR ") + ")";
-				if (!metas.equals("(传统媒体)")) {
-					searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, metas, Operator.Equal);
-				}
-			}else {
-				data = Const.MIX_DATABASE.split(";");
-			}
 			ChartResultField resultField = new ChartResultField("name", "value","entityType");
 			wordCloud = commonChartService.getWordCloudColumnData(searchBuilder,sim, irSimflag,irSimflagAll,specialProject.getSource(),entityType,"special",resultField);
 		}else {

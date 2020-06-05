@@ -609,6 +609,27 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("trsl", tab.getTrsl());
 					map.put("xyTrsl", "");
 					map.put("active", false);
+					//获取词距信息
+					String keywordJson = tab.getAnyKeywords();
+					map.put("updateWordForm", false);
+					map.put("wordFromNum", 0);
+					map.put("wordFromSort",false);
+					if(StringUtil.isNotEmpty(keywordJson)){
+						JSONArray jsonArray = JSONArray.parseArray(keywordJson);
+						//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
+						if(jsonArray!= null && jsonArray.size() ==1 ){
+							Object o = jsonArray.get(0);
+							JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+							String key = jsonObject.getString("keyWords");
+							if(StringUtil.isNotEmpty(key) && key.contains(",")){
+								String wordFromNum = jsonObject.getString("wordSpace");
+								Boolean wordFromSort = jsonObject.getBoolean("wordOrder");
+								map.put("updateWordForm", true);
+								map.put("wordFromNum", wordFromNum);
+								map.put("wordFromSort",wordFromSort);
+							}
+						}
+					}
 //					result.add(map);
 					map.put("mediaLevel", tab.getMediaLevel());
 					map.put("mediaIndustry", tab.getMediaIndustry());
