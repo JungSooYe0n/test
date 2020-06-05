@@ -14,6 +14,7 @@ import com.trs.netInsight.support.fts.model.result.IDocument;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
+import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.data.domain.Page;
 
@@ -589,26 +590,22 @@ public interface IInfoListService {
 	/**
 	 * 专题分析混合列表
 	 * @since changjiang @ 2018年4月25日
-	 * @param specialId
 	 * @param pageNo
 	 * @param pageSize
 	 * @param source
 	 * @param time
-	 * @param area
-	 * @param industry
 	 * @param emotion
 	 * @param sort
 	 * @param invitationCard
 	 * @param keywords
 	 * @param notKeyWords
-	 * @param keyWordIndex
 	 * @return
 	 * @throws TRSException
 	 * @Return : Object
 	 */
-	public Object documentCommonSearch(String specialId, int pageNo, int pageSize, String source, String time,
-			String area, String industry, String emotion, String sort, String invitationCard, String forwarPrimary, String keywords,String fuzzyValueScope,
-			String notKeyWords, String keyWordIndex,String foreign,String type) throws TRSException;
+	public Object documentCommonSearch(SpecialProject specialProject, int pageNo, int pageSize, String source, String time, String emotion, String sort, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
+									   String notKeyWords, String type,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
+									   String contentArea,String mediaArea,String preciseFilter) throws TRSException;
 	
 	public void setForeignData(String foreign,QueryBuilder builder, QueryBuilder countBuilder,QueryCommonBuilder builderCom,QueryCommonBuilder countBuilderCom);
 

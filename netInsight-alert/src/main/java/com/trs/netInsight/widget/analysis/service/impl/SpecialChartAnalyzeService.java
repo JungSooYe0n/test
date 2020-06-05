@@ -5153,9 +5153,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		boolean sim = specialProject.isSimilar();
 		boolean irSimflag = specialProject.isIrSimflag();
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
-		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
+//		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
 		ChartResultField chartResultField = new ChartResultField("name","num");
-		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,groupName,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
+		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,Const.ALL_GROUP_COLLECT,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
 
 		double total = 0;
 		for (Map<String, Object> mapList : list){
@@ -5243,15 +5243,15 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
 		//微博情感分析 -->  情感分析 ！！！按专题分析创建的来源统计  20200107
 		String groupName = specialProject.getSource();
-		String[] groupNames = StringUtil.isNotEmpty(groupName)?groupName.split(";"):null;
-		String[] database = TrslUtil.chooseDatabases(groupNames);
-		if (ObjectUtil.isEmpty(database)){
-			return null;
-		}
-		if (StringUtil.isNotEmpty(groupName)) {
-			searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-					.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-		}
+//		String[] groupNames = StringUtil.isNotEmpty(groupName)?groupName.split(";"):null;
+//		String[] database = TrslUtil.chooseDatabases(groupNames);
+//		if (ObjectUtil.isEmpty(database)){
+//			return null;
+//		}
+//		if (StringUtil.isNotEmpty(groupName)) {
+//			searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
+//					.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
+//		}
 		String trsl = searchBuilder.asTRSL();
 		log.info(trsl);
 //		GroupResult records = hybase8SearchService.categoryQuery(specialProject.isServer(), trsl, sim, irSimflag,irSimflagAll,
@@ -5270,8 +5270,8 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 		searchBuilder = new QueryBuilder();
 		searchBuilder.filterByTRSL(trsl);
 
-		String join = StringUtil.join(database, ";");
-		searchBuilder.setDatabase(join);
+//		String join = StringUtil.join(database, ";");
+//		searchBuilder.setDatabase(join);
 
 //		long ftsCount = hybase8SearchService.ftsCount(searchBuilder, sim, irSimflag,irSimflagAll,"special" );
 		long ftsCount = 0;
