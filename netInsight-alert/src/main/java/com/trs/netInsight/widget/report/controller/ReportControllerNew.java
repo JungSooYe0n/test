@@ -504,7 +504,7 @@ public class ReportControllerNew {
 			@RequestParam(value = "groupName",required = true)String groupName,
 			@RequestParam(value = "trsl",required = false)String trsl,
 			@RequestParam(value = "weight",required = false, defaultValue = "false")boolean weight) throws Exception{
-		
+
 			ReportNew report = new ReportNew.Builder().withReportName(reportName)
 					.withTotalIssue(totalIssue)
 					.withThisIssue(thisIssue)
@@ -512,7 +512,8 @@ public class ReportControllerNew {
 					.withPreparationAuthors(preparationAuthors)
 					.withGroupName(groupName)
 					.withReportType("专报").build();
-			return sepcialReportService.calculateSpecialReportData(false,report, keyWords, excludeWords, keyWordsIndex, excludeWebs, simflag, timeRange, trsl, searchType,weight);
+			//TODO 不需要进行筛选参数添加
+			return sepcialReportService.calculateSpecialReportData(false,report, keyWords, excludeWords, keyWordsIndex, excludeWebs, simflag, timeRange, trsl, searchType,weight,null);
 	}
 	
 	/**
@@ -529,6 +530,24 @@ public class ReportControllerNew {
 	@FormatResult
 	public Object findSpecialReportData(@RequestParam(value = "reportId",required = false)String reportId) throws ParseException{
 		List<Object> result = sepcialReportService.findSpecialData(reportId);
+		return result;
+	}
+
+
+	/**
+	 *
+	 * @author shao.guangze
+	 * @param reportId
+	 * @return
+	 * @throws ParseException
+	 */
+	@ApiOperation("供页面轮询查看专报数据。此时用户并没有选择某个模板")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true)})
+	@RequestMapping(value = "/findReportById", method = RequestMethod.GET)
+	@FormatResult
+	public Object findReportById(@RequestParam(value = "reportId",required = true)String reportId) throws ParseException{
+		Object result = sepcialReportService.findReportById(reportId);
 		return result;
 	}
 	

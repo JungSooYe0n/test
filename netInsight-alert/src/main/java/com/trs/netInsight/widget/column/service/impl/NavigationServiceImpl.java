@@ -56,16 +56,30 @@ public class NavigationServiceImpl implements INavigationService {
 		List<NavigationConfig> navigationList = navigationRepository.findByUserIdAndSubGroupIdNull(userId, sort);
 		// 如果用户为超管
 		if (UserUtils.isSuperAdmin()) {
-			NavigationConfig config1 = new NavigationConfig(NavigationEnum.monitoring, "数据监测", 1, false, false, false);
-			NavigationConfig config2 = new NavigationConfig(NavigationEnum.management, "机构管理", 2, false, false, false);
-			NavigationConfig config3 = new NavigationConfig(NavigationEnum.log, "系统日志", 3, false, false, false);
-			NavigationConfig config4 = new NavigationConfig(NavigationEnum.setup, "系统设置", 4, false, false, false);
+			//TODO 需要放开
+//			NavigationConfig config1 = new NavigationConfig(NavigationEnum.monitoring, "数据监测", 1, false, false, false);
+//			NavigationConfig config2 = new NavigationConfig(NavigationEnum.management, "机构管理", 2, false, false, false);
+//			NavigationConfig config3 = new NavigationConfig(NavigationEnum.log, "系统日志", 3, false, false, false);
+//			NavigationConfig config4 = new NavigationConfig(NavigationEnum.setup, "系统设置", 4, false, false, false);
+
+			//TODO 后期需要删除
+			NavigationConfig config1 = new NavigationConfig(NavigationEnum.column, "日常监测", 1, false, false, false);
+			NavigationConfig config2 = new NavigationConfig(NavigationEnum.special, "专题分析", 2, false, false, false);
+			NavigationConfig config3 = new NavigationConfig(NavigationEnum.alert, "预警中心", 3, false, false, false);
+			NavigationConfig config4 = new NavigationConfig(NavigationEnum.report, "舆情报告", 4, false, false, false);
+			NavigationConfig config5 = new NavigationConfig(NavigationEnum.management, "机构管理", 5, false, false, false);
+			NavigationConfig config6 = new NavigationConfig(NavigationEnum.log, "系统日志", 6, false, false, false);
+			NavigationConfig config7 = new NavigationConfig(NavigationEnum.share, "共享监测", 7, false, false, false);
+			NavigationConfig config8 = new NavigationConfig(NavigationEnum.square, "应用中心", 8, false, false, false);
+
 			// 要保存的
 			List<NavigationConfig> navigationListData = new ArrayList<>();
 			navigationListData.add(config1);
 			navigationListData.add(config2);
 			navigationListData.add(config3);
 			navigationListData.add(config4);
+			//TODO 需要删除
+			navigationListData.add(config5); navigationListData.add(config6); navigationListData.add(config7); navigationListData.add(config8);
 			if (navigationList == null || navigationList.size() == 0) {
 				// 为空 就添加原来的那些
 				return navigationRepository.save(navigationListData);

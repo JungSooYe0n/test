@@ -76,7 +76,13 @@ public class ReportDataNew extends BaseEntity{
 	 * 微信活跃用户TOP10
 	 * */
 	@Column(name = "wechat_active_top10", columnDefinition = "mediumtext")
-	private String wechatActiveTop10; 
+	private String wechatActiveTop10;
+
+	/**
+	 * 自媒体号
+	 * */
+	@Column(name = "we_media_hot", columnDefinition = "mediumtext")
+	private String weMediaHot;
 	/**
 	 * 全国地域分布
 	 * */
@@ -104,6 +110,62 @@ public class ReportDataNew extends BaseEntity{
 	@Column(name = "wechat_hot_top10", columnDefinition = "mediumtext")
 	private String wechatHotTop10;
 
+	/**
+	 * 态势评估
+	 */
+	@Column(name = "situation_accessment", columnDefinition = "mediumtext")
+	private String situationAccessment;
+
+	/**
+	 * 观点分析
+	 */
+	@Column(name = "opinion_analysis", columnDefinition = "mediumtext")
+	private String opinionAnalysis;
+
+	/**
+	 *  情绪统计
+	 */
+	@Column(name = "mood_statistics", columnDefinition = "mediumtext")
+	private String moodStatistics;
+
+	/**
+	 *  词云统计
+	 */
+	@Column(name = "word_cloud_statistics", columnDefinition = "mediumtext")
+	private String wordCloudStatistics;
+
+	/**
+	 * 添加事件脉络 - 在word中走列表
+	 */
+	/**
+	 * 微信事件脉络
+	 */
+	@Column(name = "wechat_event_context", columnDefinition = "mediumtext")
+	private String wechatEventContext;
+
+	/**
+	 * 微博事件脉络
+	 */
+	@Column(name = "weibo_event_context", columnDefinition = "mediumtext")
+	private String weiboEventContext;
+
+	/**
+	 * 新闻网站事件脉络
+	 */
+	@Column(name = "news_event_context", columnDefinition = "mediumtext")
+	private String newsEventContext;
+
+	/**
+	 * 自媒体报事件脉络
+	 */
+	@Column(name = "wemedia_event_context", columnDefinition = "mediumtext")
+	private String wemediaEventContext;
+
+	/**
+	 * 活跃账号
+	 */
+	@Column(name = "active_account", columnDefinition = "mediumtext")
+	private String activeAccount;
 	/**
 	 * 极简模式  自定义模块
 	 */

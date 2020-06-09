@@ -53,7 +53,7 @@ import java.util.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/src/main/resources/report")
+@RequestMapping("/report")
 @Api(description = "舆情报告模块接口")
 public class ReportController {
 
