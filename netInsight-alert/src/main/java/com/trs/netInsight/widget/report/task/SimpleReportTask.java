@@ -204,66 +204,6 @@ public class SimpleReportTask implements Runnable {
 						reportResourceRepository.save(reportResourcesList);
 						break;
 
-					// case NEWSTOP10key:
-					// IndexTab webSiteResource = StringUtils.isEmpty(trsl) ?
-					// createIndexTab(keyWords,excludeWords, searchScope,
-					// similar,irSimflag, timeRange, weight,25) :
-					// createIndexTab(trsl,similar,irSimflag, timeRange, weight
-					// ,10);
-					// webSiteResource.setGroupName("传统媒体");
-					// webSiteResource.setTradition("国内新闻");
-					// webSiteResource.setType(ColumnConst.LIST_NO_SIM);
-					// reportResourcesList = new ArrayList<>();
-					// try {
-					// Object newTOP10Result = columnSearch(webSiteResource, 10);
-					// saveListResources(newTOP10Result,NEWSTOP10,reportResourcesList,3);
-					// } catch (OperationException e) {
-					// insertEmpatyDataIntoResources(NEWSTOP10,null,3,reportResourcesList);
-					// log.error(NEWSTOP10 , e);
-					// }
-					// reportResourceRepository.save(reportResourcesList);
-					// break;
-					// case WEIBOTOP10key:
-					// IndexTab weiboTop10 = StringUtils.isEmpty(trsl) ?
-					// createIndexTab(keyWords,excludeWords, searchScope,
-					// similar,irSimflag, timeRange, weight,25) :
-					// createIndexTab(trsl,similar,irSimflag, timeRange, weight
-					// ,10);
-					// weiboTop10.setGroupName("微博");
-					// weiboTop10.setTradition("");
-					// weiboTop10.setType(ColumnConst.LIST_STATUS_COMMON);
-					// reportResourcesList = new ArrayList<>();
-					//
-					// try {
-					// Object weiboTOP10Result = columnSearch(weiboTop10, 10);
-					// saveListResources(weiboTOP10Result,WEIBOTOP10,reportResourcesList,4);
-					// } catch (OperationException e) {
-					// insertEmpatyDataIntoResources(WEIBOTOP10,null,4,reportResourcesList);
-					// log.error(WEIBOTOP10 , e);
-					// }
-					// reportResourceRepository.save(reportResourcesList);
-					// break;
-					// case WECHATTOP10key:
-					// IndexTab weChatTop10 = StringUtils.isEmpty(trsl) ?
-					// createIndexTab(keyWords,excludeWords, searchScope, similar,
-					// irSimflag,timeRange, weight,25) :
-					// createIndexTab(trsl,similar, irSimflag,timeRange, weight
-					// ,10);
-					// weChatTop10.setGroupName("微信");
-					// weChatTop10.setTradition("");
-					// weChatTop10.setType(ColumnConst.LIST_WECHAT_COMMON);
-					// reportResourcesList = new ArrayList<>();
-					//
-					// try {
-					// Object weChatTOP10Result = columnSearch(weChatTop10, 10);
-					// saveListResources(weChatTOP10Result,WECHATTOP10,reportResourcesList,5);
-					// } catch (OperationException e) {
-					// insertEmpatyDataIntoResources(WECHATTOP10,null,5,reportResourcesList);
-					// log.error(WECHATTOP10 , e);
-					// }
-					// reportResourceRepository.save(reportResourcesList);
-					// break;
-
 					case DATASOURCEANALYSISkey:
 						reportResourcesList = new ArrayList<>();
 						IndexTab dataSourceOfDataIT = StringUtils.isEmpty(trsl) ? createIndexTab(keyWords, excludeWords,excludeWebs,
@@ -664,12 +604,7 @@ public class SimpleReportTask implements Runnable {
 			} else {
 				reportResource.setUrlDate(timeAgo2urlDate(map.get("timeAgo")));
 			}
-			// 位置信息赋值
-			// if("新闻网站TOP10".equals(chapter) || "微博TOP10".equals(chapter) ||
-			// "微信TOP10".equals(chapter) || "新闻热点话题".equals(chapter) ||
-			// "微博热点话题".equals(chapter)){
-			// reportResource.setDocPosition( ++position );
-			// }
+
 			if ("热点新闻".equals(chapter) || "热点微博".equals(chapter)) {
 				reportResource.setDocPosition(++position);
 			}
@@ -744,55 +679,6 @@ public class SimpleReportTask implements Runnable {
 		// produceRttCount(reportResourcesList);
 		return reportResourcesList;
 	}
-
-	/**
-	 * 计算转载数
-	 *
-	 * @author shao.guangze
-	 * @param reportResourcePool
-	 */
-	// private void produceRttCount(List<ReportResource> reportResourcePool) {
-	// for (int i = 0; i < reportResourcePool.size(); i++) {
-	// ReportResource reportResource = reportResourcePool.get(i);
-	// if (reportResource.getMd5Tag() == null) {
-	// reportResource.setRttCount(new Long(0));
-	// reportResourcePool.remove(i);
-	// reportResourcePool.add(i, reportResource);
-	// continue;
-	// }
-	// String md5queryTRSL = FtsFieldConst.FIELD_MD5TAG + ":"+
-	// reportResource.getMd5Tag();
-	// QueryCommonBuilder queryBuilder = new QueryCommonBuilder();
-	// queryBuilder.setDatabase(Const.MIX_DATABASE.split(";"));
-	// queryBuilder.filterByTRSL(md5queryTRSL);
-	// // 昨天0点到当前时间
-	// queryBuilder.filterByTRSL(FtsFieldConst.FIELD_URLTIME + ":"
-	// + getFormatDateTRSL());
-	// long ftsCount = hybase8SearchService.ftsCountCommon(
-	// queryBuilder, false,false);
-	// reportResource.setRttCount(ftsCount);
-	// reportResourcePool.remove(i);
-	// reportResourcePool.add(i, reportResource);
-	// }
-	// }
-
-	/**
-	 * 获取昨天0点到当前时间的 时间数组， 24h+
-	 *
-	 * @author shao.guangze
-	 * @return
-	 */
-	// private String getFormatDateTRSL() {
-	// Calendar calendar = Calendar.getInstance();
-	// String currentDate = new SimpleDateFormat("yyyyMMddHHmmss")
-	// .format(calendar.getTime());
-	// calendar.add(Calendar.DAY_OF_MONTH, -1);
-	// String yesterdayDate = new SimpleDateFormat("yyyyMMddHHmmss")
-	// .format(calendar.getTime());
-	// // 获取到昨天
-	// yesterdayDate = yesterdayDate.substring(0, 8) + "000000";
-	// return "[" + yesterdayDate + " TO " + currentDate + "]";
-	// }
 
 	private String generateActiveTrsl(String key, String timeRange, String keyWords, String excludeWords,String excludeWebs,
 									  String keyWordsIndex, boolean weight) throws OperationException {

@@ -36,6 +36,16 @@ public interface ReportDataNewRepository extends PagingAndSortingRepository<Repo
 	@Transactional
 	@Modifying
 	public void saveDataTrendAnalysis(String dataTrendAnalysis, String id);
+
+	@Query(value = "update report_data_new set opinion_analysis=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveOpinionAnalysis(String opinionAnalysis, String id);
+
+	@Query(value = "update report_data_new set situation_accessment=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveSituationAccessment(String situationAccessment, String id);
 	
 	@Query(value = "update report_data_new set data_source_analysis=?1 where id=?2 ", nativeQuery = true)
 	@Transactional
@@ -66,6 +76,16 @@ public interface ReportDataNewRepository extends PagingAndSortingRepository<Repo
 	@Transactional
 	@Modifying
 	public void saveEmotionAnalysis(String emotionAnalysis, String id);
+
+	@Query(value = "update report_data_new set mood_statistics=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveMoodStatistics(String moodStatistics, String id);
+
+	@Query(value = "update report_data_new set word_cloud_statistics=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveWordCloudStatistics(String moodStatistics, String id);
 	
 	@Query(value = "update report_data_new set news_hot_topics=?1 where id=?2 ", nativeQuery = true)
 	@Transactional
@@ -81,6 +101,36 @@ public interface ReportDataNewRepository extends PagingAndSortingRepository<Repo
 	@Transactional
 	@Modifying
 	public void saveWechatHotTop10(String wechatHotTop10, String id);
+
+	@Query(value = "update report_data_new set we_media_hot=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveWeMediaHot(String weMediaHot, String id);
+
+	@Query(value = "update report_data_new set wemedia_event_context=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveWemediaEventContex(String weMediaHot, String id);
+
+	@Query(value = "update report_data_new set news_event_context=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveNewsEventContex(String weMediaHot, String id);
+
+	@Query(value = "update report_data_new set weibo_event_context=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveWeiboEventContex(String weMediaHot, String id);
+
+	@Query(value = "update report_data_new set wechat_event_context=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveWechatEventContex(String weMediaHot, String id);
+
+	@Query(value = "update report_data_new set active_account=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveActiveAccount(String activeAccount, String id);
 	
 	@Query(value = "update report_data_new set done_flag=?1 where id=?2 ", nativeQuery = true)
 	@Transactional

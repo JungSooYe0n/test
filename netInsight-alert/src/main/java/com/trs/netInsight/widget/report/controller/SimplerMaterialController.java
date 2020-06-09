@@ -71,7 +71,7 @@ public class SimplerMaterialController {
     @Log(systemLogOperation = SystemLogOperation.SIMPLER_MATERIAL_ADD_UPDATE, systemLogType = SystemLogType.SIMPLER_MATERIAL, systemLogOperationPosition = "")
     @ApiOperation("添加/修改素材库某分组")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "素材库分组id", dataType = "String", paramType = "query",required = true),
+            @ApiImplicitParam(name = "id", value = "素材库分组id", dataType = "String", paramType = "query",required = false),
             @ApiImplicitParam(name = "name", value = "素材库分组名字", dataType = "String", paramType = "query",required = true)})
     @FormatResult
     public Object saveMaterial(String id,String name) {

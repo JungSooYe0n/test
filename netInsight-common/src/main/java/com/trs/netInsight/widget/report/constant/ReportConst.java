@@ -17,20 +17,37 @@ public class ReportConst {
     public static final String NEWSTOP10 = "新闻网站TOP10"; // 新闻网站TOP10
     public static final String WEIBOTOP10 = "微博TOP10"; // 微博TOP10
     public static final String WECHATTOP10 = "微信TOP10"; // 微信TOP10
-    public static final String DATATRENDANALYSIS = "数据趋势分析"; // 数据趋势分析
+
+    //事件脉络
+    public static final String WECHATEVENTCONTEXT = "微信事件脉络";
+    public static final String WEIBOEVENTCONTEXT = "微博事件脉络";
+    public static final String NEWSEVENTCONTEXT = "新闻网站事件脉络";
+    public static final String WEMEDIAEVENTCONTEXT = "自媒体报事件脉络";
+
+    //活跃账号 新 20200609
+    public static final String ACTIVEACCOUNT = "活跃账号";
+
+
+    public static final String DATATRENDANALYSIS = "各舆论场趋势分析"; // 数据趋势分析
+    public static final String OPININOANALYSIS = "观点分析"; // 观点分析
     public static final String DATASOURCEANALYSIS = "数据来源对比"; // 数据来源对比
     public static final String WEBSITESOURCETOP10 = "网站来源TOP10"; // 网站来源TOP10
     public static final String WEIBOACTIVETOP10 = "微博活跃用户TOP10"; // 微博活跃用户TOP10
     public static final String WECHATACTIVETOP10 = "微信活跃用户TOP10"; // 微信活跃用户TOP10
-    public static final String AREA = "全国地域分布"; // 全国地域分布
-    public static final String EMOTIONANALYSIS = "情感分析"; // 情感分析
+    public static final String AREA = "地域统计"; // 全国地域分布
+    public static final String EMOTIONANALYSIS = "正负面占比"; // 正负面占比
+    public static final String MOODSTATISTICS = "情绪统计";
     public static final String NEWSHOTTOPICS = "新闻热点话题"; // 新闻热点话题
     public static final String WEIBOHOTTOPICS = "微博热点话题"; // 微博热点话题
+    public static final String WORDCLOUDSTATISTICS = "词云统计";
 
+    //新网察
+    public static final String SITUATIONACCESSMENT = "态势评估";
     //专题报 改造
-    public static final String NEWSHOTTOP10 = "新闻热点TOP10"; // 新闻热点TOP10
-    public static final String WEIBOHOTTOP10 = "微博热点TOP10"; // 微博热点TOP10
-    public static final String WECHATHOTTOP10 = "微信热点TOP10"; // 微信热点TOP10
+    public static final String NEWSHOTTOP10 = "新闻热点"; // 新闻热点TOP10
+    public static final String WEIBOHOTTOP10 = "微博热点"; // 微博热点TOP10
+    public static final String WECHATHOTTOP10 = "微信热点"; // 微信热点TOP10
+    public static final String WEMEDIA = "自媒体号热点"; // 自媒体号
 
     public static final String REPORTINTRONew = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATANew = "OVERVIEWOFDATA"; // 数据统计概述
@@ -64,15 +81,25 @@ public class ReportConst {
 
     public static final String REPORTINTROkey = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATAkey = "OVERVIEWOFDATA"; // 数据统计概述
-    public static final String NEWSTOP10key = "NEWSTOP10"; // 新闻网站TOP10
-    public static final String WEIBOTOP10key = "WEIBOTOP10"; // 微博TOP10
-    public static final String WECHATTOP10key = "WECHATTOP10"; // 微信TOP10
+
+    public static final String SITUATIONACCESSMENTkey = "SITUATIONACCESSMENT";
     public static final String DATATRENDANALYSISkey = "DATATRENDANALYSIS"; // 数据趋势分析
     public static final String DATASOURCEANALYSISkey = "DATASOURCEANALYSIS"; // 数据来源对比
+    //事件脉络
+    public static final String WECHATEVENTCONTEXTkey = "WECHATEVENTCONTEXT";
+    public static final String WEIBOEVENTCONTEXTkey = "WEIBOEVENTCONTEXT";
+    public static final String NEWSEVENTCONTEXTkey = "NEWSEVENTCONTEXT";
+    public static final String WEMEDIAEVENTCONTEXTkey = "WEMEDIAEVENTCONTEXT";
+
+    //专题分析新增观点分析
+    public static final String OPINIONANALYSISkey = "OPINIONANALYSIS";
     public static final String WEBSITESOURCETOP10key = "WEBSITESOURCETOP10"; // 网站来源TOP10
     public static final String WEIBOACTIVETOP10key = "WEIBOACTIVETOP10"; // 微博活跃用户TOP10
     public static final String WECHATACTIVETOP10key = "WECHATACTIVETOP10"; // 微信活跃用户TOP10
     public static final String AREAkey = "AREA"; // 全国地域分布
+    public static final String MOODSTATISTICSkey = "MOODSTATISTICS"; // 情绪统计
+    public static final String WORDCLOUDSTATISTICSkey = "WORDCLOUDSTATISTICS"; // 词云统计
+
     public static final String EMOTIONANALYSISkey = "EMOTIONANALYSIS"; // 情感分析
     public static final String NEWSHOTTOPICSkey = "NEWSHOTTOPICS"; // 新闻热点话题
     public static final String WEIBOHOTTOPICSkey = "WEIBOHOTTOPICS"; // 微博热点话题
@@ -81,6 +108,9 @@ public class ReportConst {
     public static final String NEWSHOTTOP10key = "NEWSHOTTOP10"; // 新闻热点TOP10
     public static final String WEIBOHOTTOP10key = "WEIBOHOTTOP10"; // 微博热点TOP10
     public static final String WECHATHOTTOP10key = "WECHATHOTTOP10"; // 微信热点TOP10
+    public static final String WEMEDIAkey = "WEMEDIAHOT"; // 自媒体号热点
+
+    public static final String ACTIVEACCOUNTkey = "ACTIVEACCOUNT";
 
     public static final String GENERATEREPORTLOG = "舆情报告生成word报告：%s";
     public static final String REPORTRESOURCELOG = "舆情报告添加报告资源：%s";
@@ -133,23 +163,37 @@ public class ReportConst {
         ROMAN2CHINESE.put(14, "十四");
         ROMAN2CHINESE.put(15, "十五");
 
+        //舆情报告新版
         CHAPTERS = new ArrayList<>();
         CHAPTERS.add("REPORTINTRO");
         CHAPTERS.add("OVERVIEWOFDATA");
-       // CHAPTERS.add("NEWSTOP10");
-      //  CHAPTERS.add("WEIBOTOP10");
-      //  CHAPTERS.add("WECHATTOP10");
+        CHAPTERS.add("SITUATIONACCESSMENT");
+        CHAPTERS.add("DATATRENDANALYSIS");
+        CHAPTERS.add("DATASOURCEANALYSIS");
+        CHAPTERS.add(OPINIONANALYSISkey);
+        CHAPTERS.add("EMOTIONANALYSIS");
+        CHAPTERS.add(MOODSTATISTICSkey);
+        CHAPTERS.add(WORDCLOUDSTATISTICSkey);
+        CHAPTERS.add("AREA");
         //专题报 改造 20191121
         CHAPTERS.add("NEWSHOTTOP10");
         CHAPTERS.add("WEIBOHOTTOP10");
         CHAPTERS.add("WECHATHOTTOP10");
-        CHAPTERS.add("DATATRENDANALYSIS");
-        CHAPTERS.add("DATASOURCEANALYSIS");
+        CHAPTERS.add(WEMEDIAkey);
+
+        // 事件脉络
+        CHAPTERS.add(WEMEDIAEVENTCONTEXTkey);
+        CHAPTERS.add(WECHATEVENTCONTEXTkey);
+        CHAPTERS.add(WEIBOEVENTCONTEXTkey);
+        CHAPTERS.add(NEWSEVENTCONTEXTkey);
+
+        //活跃账号
+        CHAPTERS.add(ACTIVEACCOUNTkey);
+
         CHAPTERS.add("WEBSITESOURCETOP10");
         CHAPTERS.add("WEIBOACTIVETOP10");
         CHAPTERS.add("WECHATACTIVETOP10");
-        CHAPTERS.add("AREA");
-        CHAPTERS.add("EMOTIONANALYSIS");
+
         CHAPTERS.add("NEWSHOTTOPICS");
         CHAPTERS.add("WEIBOHOTTOPICS");
 
@@ -200,6 +244,13 @@ public class ReportConst {
         CHAPTERS2METHODSETNEW.put("EMOTIONANALYSIS", "setEmotionAnalysis");
         CHAPTERS2METHODSETNEW.put("NEWSHOTTOPICS", "setNewsHotTopics");
         CHAPTERS2METHODSETNEW.put("WEIBOHOTTOPICS", "setWeiboHotTopics");
+        CHAPTERS2METHODSETNEW.put(SITUATIONACCESSMENTkey, "setSituationAccessment");
+        CHAPTERS2METHODSETNEW.put(OPINIONANALYSISkey, "setOpinionAnalysis");
+
+        CHAPTERS2METHODSETNEW.put(MOODSTATISTICSkey, "setMoodStatistics");
+        CHAPTERS2METHODSETNEW.put(WORDCLOUDSTATISTICSkey, "setWordCloudStatistics");
+        CHAPTERS2METHODSETNEW.put(WEMEDIAkey, "setWeMediaHot");
+        CHAPTERS2METHODSETNEW.put(ACTIVEACCOUNTkey, "setActiveAccount");
 
         CHAPTERS2METHODSETNEW.put("WECHATHOTTOP10", "setWechatHotTop10");
         //配合历史数据 （专题报  改造 20191121）

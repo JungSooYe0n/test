@@ -89,7 +89,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     @Override
     public List<Object> calculateSpecialReportData(boolean server, ReportNew report, String keyWords,
                                                    String excludeWords, Integer keyWordsIndex, String excludeWebs,
-                                                   String simflag, String timeRange, String trsl, Integer searchType, boolean weight) throws Exception {
+                                                   String simflag, String timeRange, String trsl, Integer searchType, boolean weight,SpecialProject specialProject) throws Exception {
         //数据统计概述 和 数据来源对比公用1组数据
         //为了能够查出1个来页面就能显示1个，每查询完成1次，保存到数据库1次。
         //真正计算数据之前先保证report中有reportDataId
@@ -102,7 +102,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         report.setStatisticsTime(ReportUtil.statisticsTimeHandle(timeRange));
         reportNewRepository.save(report);
         //单起1个线程计算数据
-        fixedThreadPool.execute(new SepcialReportTask(server, weight, keyWords, excludeWords, keyWordsIndex, excludeWebs, simflag, timeRange, trsl, searchType, reportData,UserUtils.getUser().getId()));
+        fixedThreadPool.execute(new SepcialReportTask(server, weight, keyWords, excludeWords, keyWordsIndex, excludeWebs, simflag, timeRange, trsl, searchType, reportData,UserUtils.getUser().getId(),specialProject));
 
         List<Object> resultList = new ArrayList<>();
         resultList.add(report);		//报告头
@@ -587,7 +587,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         //设置默认分组
         List<SpecialReportGroup> groups = this.findAllGroup();
         report.setGroupName(groups.get(0).getGroupName());
-        this.calculateSpecialReportData(specialProject.isServer(), report,specialProject.getAnyKeywords(),specialProject.getExcludeWords(),keywordsIndex,"" ,simFlaf ,timeRange ,trsl,searchType, weight);
+        this.calculateSpecialReportData(specialProject.isServer(), report,specialProject.getAnyKeywords(),specialProject.getExcludeWords(),keywordsIndex,"" ,simFlaf ,timeRange ,trsl,searchType, weight,specialProject);
     }
 
     @Override
@@ -715,6 +715,11 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     @Override
     public void updateSpecialReport(ReportNew reportNew) {
         reportNewRepository.saveAndFlush(reportNew);
+    }
+
+    @Override
+    public Object findReportById(String id) {
+        return reportDataNewRepository.findOne(id);
     }
 
     public static String deleteOne(List<ReportResource> newsTop10Array, String resourceId){

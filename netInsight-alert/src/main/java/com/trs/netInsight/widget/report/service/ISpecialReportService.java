@@ -4,6 +4,7 @@ import com.trs.netInsight.widget.report.entity.Report;
 import com.trs.netInsight.widget.report.entity.ReportNew;
 import com.trs.netInsight.widget.report.entity.SpecialReportGroup;
 import com.trs.netInsight.widget.report.entity.TemplateNew;
+import com.trs.netInsight.widget.special.entity.SpecialProject;
 import freemarker.template.Template;
 
 import java.text.ParseException;
@@ -27,7 +28,7 @@ public interface ISpecialReportService {
      */
     List<Object> calculateSpecialReportData(boolean server, ReportNew report, String keyWords,
                                             String excludeWords, Integer keyWordsIndex, String excludeWebs,
-                                            String simflag, String timeRange, String trsl, Integer searchType, boolean weight) throws Exception;
+                                            String simflag, String timeRange, String trsl, Integer searchType, boolean weight, SpecialProject specialProject) throws Exception;
     /**
      * 查询专报中的report_data.
      * @author shao.guangze
@@ -140,4 +141,6 @@ public interface ISpecialReportService {
     List<TemplateNew> findMoRenSpecialByUserId(String userId);
     List<TemplateNew> findMoRenSpecialBySubGroupId(String subGroupId);
     void updateSpecialReport(ReportNew reportNew);
+
+    Object findReportById(String id);
 }
