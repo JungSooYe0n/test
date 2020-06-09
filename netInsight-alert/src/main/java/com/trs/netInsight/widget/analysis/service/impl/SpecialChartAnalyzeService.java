@@ -2203,6 +2203,204 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
+	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope, String notKeyWords, String type, String read, String mediaLevel, String mediaIndustry, String contentIndustry, String filterInfo, String contentArea, String mediaArea, String preciseFilter) throws TRSException{
+		specialProject.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+		QueryBuilder builder = null;
+		if(StringUtil.isNotEmpty(time)){
+			builder = specialProject.toSearchBuilder(0, 20, false);
+			// 时间
+			builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
+		}else{
+			builder = specialProject.toSearchBuilder(0, 20, true);
+		}
+
+		boolean sim = specialProject.isSimilar();
+		boolean irSimflag = specialProject.isIrSimflag();
+		boolean irSimflagAll = specialProject.isIrSimflagAll();
+		boolean weight = specialProject.isWeight();
+		List<String> searchSourceList = CommonListChartUtil.formatGroupName(source);
+
+		//只在原转发和主回帖筛选时添加要查询数据源，因为底层方法通过参数中的groupName去添加了对应的数据源和数据库信息
+		//只有包含微博和论坛数据源时，原转发、主回帖才生效
+		if ((searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) ||
+				(searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwarPrimary))) {
+			StringBuffer sb = new StringBuffer();
+			if (searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) {
+				sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+				if ("0".equals(invitationCard)) {// 主贴
+					sb.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+				} else if ("1".equals(invitationCard)) {// 回帖
+					sb.append(" AND (").append(FtsFieldConst.FIELD_NRESERVED1).append(":(1)").append(")");
+				}
+				sb.append(")");
+				searchSourceList.remove(Const.GROUPNAME_LUNTAN);
+			}
+			if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwarPrimary)) {
+				if (sb.length() > 0) {
+					sb.append(" OR ");
+				}
+				sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+				if ("primary".equals(forwarPrimary)) {
+					// 原发
+					sb.append(" AND ").append(Const.PRIMARY_WEIBO);
+				} else if ("forward".equals(forwarPrimary)) {
+					//转发
+					sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
+				}
+				sb.append(")");
+				searchSourceList.remove(Const.GROUPNAME_WEIBO);
+			}
+			if (searchSourceList.size() > 0) {
+				if (sb.length() > 0) {
+					sb.append(" OR ");
+				}
+				sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
+			}
+			builder.filterByTRSL(sb.toString());
+		}
+		List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+		//精准筛选 与上面论坛的主回帖和微博的原转发类似 ，都需要在数据源的基础上进行修改
+		if(StringUtil.isNotEmpty(preciseFilter )) {
+			String[] arr = preciseFilter.split(";");
+			if (arr != null && arr.length > 0) {
+				List<String> preciseFilterList = new ArrayList<>();
+				for (String filter : arr) {
+					preciseFilterList.add(filter);
+				}
+				StringBuffer buffer = new StringBuffer();
+				// 新闻筛选  --- 屏蔽新闻转发 就是新闻 不要新闻不为空的时候，也就是要新闻原发
+				if (sourceList.contains(Const.GROUPNAME_XINWEN) && preciseFilterList.contains("notNewsForward")) {
+
+					buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_XINWEN + ")");
+					buffer.append(" AND (").append(Const.SRCNAME_XINWEN).append(")");
+					buffer.append(")");
+					sourceList.remove(Const.GROUPNAME_XINWEN);
+				}
+
+				//论坛筛选  ---  屏蔽论坛主贴  -  为回帖  、屏蔽论坛回帖为主贴
+				if (sourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
+					if (buffer.length() > 0) {
+						buffer.append(" OR ");
+					}
+					buffer.append("(");
+					buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+					if (preciseFilterList.contains("notLuntanForward")) { //屏蔽论坛回帖 -- 主贴
+						buffer.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+					}
+					if (preciseFilterList.contains("notLuntanPrimary")) { //屏蔽论坛主贴
+						buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
+					}
+					buffer.append(")");
+					sourceList.remove(Const.GROUPNAME_LUNTAN);
+				}
+
+				//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
+				if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
+						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
+						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
+				)) {
+					if (buffer.length() > 0) {
+						buffer.append(" OR ");
+					}
+					buffer.append("(");
+					buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+					if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
+						buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
+					}
+					if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
+						buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
+					}
+					if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
+
+					}
+					if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
+
+					}
+					if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
+
+					}
+					if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+
+					}
+					if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+
+					}
+					if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+
+					}
+					buffer.append(")");
+					sourceList.remove(Const.GROUPNAME_WEIBO);
+				}
+				if (sourceList.size() > 0) {
+					if (buffer.length() > 0) {
+						buffer.append(" OR ");
+					}
+					buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+				}
+				builder.filterByTRSL(buffer.toString());
+
+			}
+		}
+
+
+		if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
+			builder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
+		}
+
+		// 结果中搜索
+		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)) {
+			String[] split = keywords.split(",");
+			String splitNode = "";
+			for (int i = 0; i < split.length; i++) {
+				if (StringUtil.isNotEmpty(split[i])) {
+					splitNode += split[i] + ",";
+				}
+			}
+			keywords = splitNode.substring(0, splitNode.length() - 1);
+			if (keywords.endsWith(";") || keywords.endsWith(",") || keywords.endsWith("；")
+					|| keywords.endsWith("，")) {
+				keywords = keywords.substring(0, keywords.length() - 1);
+
+			}
+			StringBuilder fuzzyBuilder  = new StringBuilder();
+			String hybaseField = "fullText";
+			switch (fuzzyValueScope){
+				case "title":
+					hybaseField = FtsFieldConst.FIELD_URLTITLE;
+					break;
+				case "source":
+					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					break;
+				case "author":
+					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					break;
+			}
+			if("fullText".equals(hybaseField)){
+				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
+			}else {
+				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
+			}
+			builder.filterByTRSL(fuzzyBuilder.toString());
+			log.info(builder.asTRSL());
+		}
+		ChartResultField resultField = new ChartResultField("name", "value");
+		List<Map<String, Object>> cateqoryQuery = (List<Map<String, Object>>) commonListService.queryListGroupNameStattotal(builder,sim,irSimflag,irSimflagAll,source,"special",resultField);
+		Long count = 0L;
+		for(Map<String, Object> map :cateqoryQuery){
+			count += (Long)map.get(resultField.getCountField());
+		}
+		Map<String, Object> total = new HashMap<>();
+		total.put(resultField.getContrastField(),"全部");
+		total.put(resultField.getCountField(),count);
+		cateqoryQuery.add(0,total);
+		return cateqoryQuery;
+	}
+
+	@Override
 	public Object stattotal(SpecialProject specialProject, String start, String end, String industryType,
 									 String area, String foreign) throws TRSException {
 		List<ClassInfo> classInfo = new ArrayList<>();
