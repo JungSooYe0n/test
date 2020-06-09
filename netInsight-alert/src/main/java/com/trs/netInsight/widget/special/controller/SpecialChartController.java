@@ -213,7 +213,10 @@ public class SpecialChartController {
                         }
                     }
                 } else {
-                    throw new TRSException(CodeUtils.FAIL,"专家模式下必须填写检索表达式表达式");
+                    if (!(IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_LINE.equals(indexTabType)
+                            || IndexTabType.CHART_PIE.equals(indexTabType))) {
+                        throw new TRSException(CodeUtils.FAIL,"专家模式下" + indexTabType.getTypeName() + "必须填写检索表达式");
+                    }
                 }
             } else {
                 trsl = null;

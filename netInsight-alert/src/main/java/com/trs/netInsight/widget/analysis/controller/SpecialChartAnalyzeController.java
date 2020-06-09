@@ -1832,7 +1832,7 @@ public class SpecialChartAnalyzeController {
 	public Object hotMessage(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
 							  @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
 							  @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-							  @RequestParam(value = "source", defaultValue = "ALL", required = false) String source)
+							  @RequestParam(value = "groupName", defaultValue = "ALL", required = false) String groupName)
 			throws TRSException {
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
@@ -1852,8 +1852,8 @@ public class SpecialChartAnalyzeController {
 			}
 		}
 		// 跟统计表格一样 如果来源没选 就不查数据
-		source = CommonListChartUtil.changeGroupName(source);
-		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(source,
+		groupName = CommonListChartUtil.changeGroupName(groupName);
+		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(groupName,
 				specialProject, timeRange,pageSize);
 		return result;
 	}

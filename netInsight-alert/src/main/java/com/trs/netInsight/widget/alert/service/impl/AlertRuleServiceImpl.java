@@ -1850,7 +1850,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult){
 					QueryBuilder queryBuilder = new QueryBuilder();
 					queryBuilder.filterByTRSL(trsl);
 					queryBuilder.setPageSize(-1);
-					queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
+//					queryBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 					queryBuilder.setStartTime(start);
 					queryBuilder.setEndTime(end);
 					if(StringUtil.isNotEmpty(startString) && StringUtil.isNotEmpty(endString)){
