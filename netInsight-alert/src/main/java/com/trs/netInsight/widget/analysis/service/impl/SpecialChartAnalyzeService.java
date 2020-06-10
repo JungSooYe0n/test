@@ -39,6 +39,7 @@ import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
+import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.spread.entity.GraphMap;
 import com.trs.netInsight.widget.spread.entity.SinaUser;
@@ -5127,13 +5128,20 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					vo.setAbstracts(StringUtil.cutContentPro(StringUtil.replaceImg(vo.getAbstracts()), Const.CONTENT_LENGTH));
 				}
 				//摘要
-				map.put("abstracts", vo.getAbstracts());
+//				map.put("abstracts", vo.getAbstracts());
 
 				map.put("nreserved1", null);
 				map.put("hkey", null);
 				if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
 					map.put("nreserved1", vo.getNreserved1());
 					map.put("hkey", vo.getHkey());
+				}
+				if(SearchScope.TITLE_CONTENT.equals(specialProject.getSearchScope())){
+					//摘要
+					map.put("abstracts", vo.getContent());
+				}else{
+					//摘要
+					map.put("abstracts", vo.getAbstracts());
 				}
 				map.put("urlName", vo.getUrlName());
 				//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
