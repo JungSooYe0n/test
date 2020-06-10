@@ -97,12 +97,6 @@ public class ReportResource extends BaseEntity {
 	@Column(name = "news_abstract", columnDefinition="TEXT")
 	private String newsAbstract;
 
-	/**
-	 * 文章地址
-	 */
-	@Column(name = "urlName")
-	private String urlName;
-
 	/***
 	 * 0:单条文字
 	 * 1:列表资源
@@ -121,6 +115,12 @@ public class ReportResource extends BaseEntity {
 	 * */
 	@Column(name = "title" , columnDefinition="TEXT")
 	private String title;
+
+	/**
+	 * 摘要
+	 * */
+	@Column(name = "abstracts" , columnDefinition="TEXT")
+	private String abstracts;
 	/**
 	 * 正文或摘要
 	 * */
@@ -174,6 +174,15 @@ public class ReportResource extends BaseEntity {
 	@Column(name = "time_ago")
 	private String timeAgo;
 
+	@Column(name = "time")
+	private String time;
+
+	@Column(name = "url_name")
+	private String urlName;
+
+	@Column(name = "url_time")
+	private String urlTime;
+
 	/***
 	 * 0 报告资源预览页显示内容
 	 * 1 报告列表点击预览显示内容
@@ -186,6 +195,12 @@ public class ReportResource extends BaseEntity {
 	 */
 	@Column(name = "sim_count")
 	private String simCount;
+
+	/**
+	 *   为热点微博、热点新闻的热度值
+	 */
+	@Column(name = "sim_num")
+	private String simNum;
 	/***
 	 * 0 正在查
 	 * 1 已完成

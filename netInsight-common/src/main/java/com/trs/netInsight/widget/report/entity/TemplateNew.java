@@ -15,7 +15,7 @@ import javax.persistence.Table;
 @Getter
 @Setter
 @Entity
-@Table(name = "report_template_new")
+@Table(name = "report_new_template")
 public class TemplateNew extends BaseEntity{
 
 	/**

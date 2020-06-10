@@ -18,12 +18,6 @@ public class ReportConst {
     public static final String WEIBOTOP10 = "微博TOP10"; // 微博TOP10
     public static final String WECHATTOP10 = "微信TOP10"; // 微信TOP10
 
-    //事件脉络
-    public static final String WECHATEVENTCONTEXT = "微信事件脉络";
-    public static final String WEIBOEVENTCONTEXT = "微博事件脉络";
-    public static final String NEWSEVENTCONTEXT = "新闻网站事件脉络";
-    public static final String WEMEDIAEVENTCONTEXT = "自媒体报事件脉络";
-
     //活跃账号 新 20200609
     public static final String ACTIVEACCOUNT = "活跃账号";
 
@@ -48,6 +42,15 @@ public class ReportConst {
     public static final String WEIBOHOTTOP10 = "微博热点"; // 微博热点TOP10
     public static final String WECHATHOTTOP10 = "微信热点"; // 微信热点TOP10
     public static final String WEMEDIA = "自媒体号热点"; // 自媒体号
+
+    //事件脉络
+    public static final String WECHATEVENTCONTEXT = "微信事件脉络";
+    public static final String WEIBOEVENTCONTEXT = "微博事件脉络";
+    public static final String NEWSEVENTCONTEXT = "新闻网站事件脉络";
+    public static final String WEMEDIAEVENTCONTEXT = "自媒体号事件脉络";
+
+    //传播分析
+    public static final String PROPAFATIONANALYSIS = "传播分析";
 
     public static final String REPORTINTRONew = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATANew = "OVERVIEWOFDATA"; // 数据统计概述
@@ -139,6 +142,8 @@ public class ReportConst {
     public static final HashMap<Integer,String> ROMAN2CHINESE;
 
     public static final ArrayList<String> CHAPTERS;
+    //专题分析返回数据顺序问题
+    public static final ArrayList<String> CHAPTERS4SPECIAL;
 
     public static final HashMap<String,String> CHAPTERS2METHOD;
     public static final HashMap<String,String> CHAPTERS2METHODNEW;
@@ -196,6 +201,31 @@ public class ReportConst {
 
         CHAPTERS.add("NEWSHOTTOPICS");
         CHAPTERS.add("WEIBOHOTTOPICS");
+
+
+        CHAPTERS4SPECIAL = new ArrayList<>();
+        CHAPTERS4SPECIAL.add("REPORTINTRO");
+        CHAPTERS4SPECIAL.add("OVERVIEWOFDATA");
+        CHAPTERS4SPECIAL.add("SITUATIONACCESSMENT");
+        CHAPTERS4SPECIAL.add("DATATRENDANALYSIS");
+        CHAPTERS4SPECIAL.add("DATASOURCEANALYSIS");
+        CHAPTERS4SPECIAL.add(OPINIONANALYSISkey);
+        CHAPTERS4SPECIAL.add("EMOTIONANALYSIS");
+        CHAPTERS4SPECIAL.add(MOODSTATISTICSkey);
+        CHAPTERS4SPECIAL.add(WORDCLOUDSTATISTICSkey);
+        CHAPTERS4SPECIAL.add("AREA");
+        //专题报 改造 20191121
+        CHAPTERS4SPECIAL.add("NEWSHOTTOP10");
+        CHAPTERS4SPECIAL.add("WEIBOHOTTOP10");
+        CHAPTERS4SPECIAL.add("WECHATHOTTOP10");
+        CHAPTERS4SPECIAL.add(WEMEDIAkey);
+        // 事件脉络
+        CHAPTERS4SPECIAL.add(WEMEDIAEVENTCONTEXTkey);
+        CHAPTERS4SPECIAL.add(WECHATEVENTCONTEXTkey);
+        CHAPTERS4SPECIAL.add(WEIBOEVENTCONTEXTkey);
+        CHAPTERS4SPECIAL.add(NEWSEVENTCONTEXTkey);
+        //活跃账号
+        CHAPTERS4SPECIAL.add(ACTIVEACCOUNTkey);
 
         CHAPTERS2METHODSET = new HashMap<>();
         CHAPTERS2METHODSET.put("报告简介", "setReportIntro");

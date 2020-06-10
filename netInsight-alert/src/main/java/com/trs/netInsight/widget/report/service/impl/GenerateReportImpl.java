@@ -75,7 +75,6 @@ public class GenerateReportImpl implements IGenerateReport {
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
 		List<TElementNew> elementList = JSONArray.parseArray(template.getTemplateList(), TElementNew.class);
-		//elementList = ReportUtil.tElementListHandle(elementList);
 		elementList = elementList.stream().filter(e -> e.getSelected() == 1).sorted(Comparator.comparing(TElementNew::getChapterPosition)).collect(Collectors.toList());
 		int i = 0;
 		for(TElementNew element : elementList){
@@ -91,39 +90,6 @@ public class GenerateReportImpl implements IGenerateReport {
 				singleParagraph(xwpfDocument, OVERVIEWOFDATA, reportData.getOverviewOfdata(), i);
 				log.info(String.format(GENERATEREPORTLOG,OVERVIEWOFDATA + DONE));
 				break;
-//			case NEWSTOP10New:
-//				String jsonStr = reportData.getNewsTop10();
-//				i++;
-//				if(StringUtil.isNotEmpty(jsonStr)){
-//					//使用TypeReference解析带泛型的List
-//					List<ReportResource> chapaterContent = JSONObject.parseObject(jsonStr, new TypeReference<List<ReportResource>>() {});
-//					dataListParagraph(xwpfDocument, element.getChapterName(),chapaterContent, i,element.getElementNewType());
-//				}else{
-//					//选中了NEWSTOP10,但是并没有向里面放数据
-//					dataListParagraph(xwpfDocument,element.getChapterName(),null,i,element.getElementNewType());
-//				}
-//				log.info(String.format(GENERATEREPORTLOG,NEWSTOP10 + DONE));
-//				break;
-//			case WEIBOTOP10New:
-//				i++;
-//				if(StringUtil.isNotEmpty(reportData.getWeiboTop10())){
-//					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeiboTop10(), new TypeReference<List<ReportResource>>() {});
-//					dataListParagraph(xwpfDocument, element.getChapterName(),chapaterContent, i,element.getElementNewType());
-//				}else{
-//					dataListParagraph(xwpfDocument,element.getChapterName(),null,i,element.getElementNewType());
-//				}
-//				log.info(String.format(GENERATEREPORTLOG,WEIBOTOP10 + DONE));
-//				break;
-//			case WECHATTOP10New:
-//				i++;
-//				if(StringUtil.isNotEmpty(reportData.getWechatTop10())){
-//					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWechatTop10(), new TypeReference<List<ReportResource>>() {});
-//					dataListParagraph(xwpfDocument, element.getChapterName(),chapaterContent, i,element.getElementNewType());
-//				}else{
-//					dataListParagraph(xwpfDocument,element.getChapterName(),null,i,element.getElementNewType());
-//				}
-//				log.info(String.format(GENERATEREPORTLOG,WECHATTOP10 + DONE));
-//				break;
 			case NEWSHOTTOP10New:
 				String jsonStr = reportData.getNewsHotTopics();
 				i++;

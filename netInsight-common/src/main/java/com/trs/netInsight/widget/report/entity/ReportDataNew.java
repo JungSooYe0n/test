@@ -156,7 +156,7 @@ public class ReportDataNew extends BaseEntity{
 	private String newsEventContext;
 
 	/**
-	 * 自媒体报事件脉络
+	 * 自媒体号事件脉络
 	 */
 	@Column(name = "wemedia_event_context", columnDefinition = "mediumtext")
 	private String wemediaEventContext;
