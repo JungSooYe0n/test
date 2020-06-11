@@ -24,7 +24,7 @@ public class ReportConst {
 
     public static final String DATATRENDANALYSIS = "各舆论场趋势分析"; // 数据趋势分析
     public static final String OPININOANALYSIS = "观点分析"; // 观点分析
-    public static final String DATASOURCEANALYSIS = "数据来源对比"; // 数据来源对比
+    public static final String DATASOURCEANALYSIS = "各舆论场发布统计"; // 各舆论场发布统计
     public static final String WEBSITESOURCETOP10 = "网站来源TOP10"; // 网站来源TOP10
     public static final String WEIBOACTIVETOP10 = "微博活跃用户TOP10"; // 微博活跃用户TOP10
     public static final String WECHATACTIVETOP10 = "微信活跃用户TOP10"; // 微信活跃用户TOP10
@@ -33,7 +33,7 @@ public class ReportConst {
     public static final String MOODSTATISTICS = "情绪统计";
     public static final String NEWSHOTTOPICS = "新闻热点话题"; // 新闻热点话题
     public static final String WEIBOHOTTOPICS = "微博热点话题"; // 微博热点话题
-    public static final String WORDCLOUDSTATISTICS = "词云统计";
+    public static final String WORDCLOUDSTATISTICS = "热点词云";
 
     //新网察
     public static final String SITUATIONACCESSMENT = "态势评估";
@@ -107,6 +107,8 @@ public class ReportConst {
     public static final String NEWSHOTTOPICSkey = "NEWSHOTTOPICS"; // 新闻热点话题
     public static final String WEIBOHOTTOPICSkey = "WEIBOHOTTOPICS"; // 微博热点话题
 
+    //传播分析
+    public static final String PROPAFATIONANALYSISkey = "PROPAFATIONANALYSIS";
     //专题报 改造 20191121
     public static final String NEWSHOTTOP10key = "NEWSHOTTOP10"; // 新闻热点TOP10
     public static final String WEIBOHOTTOP10key = "WEIBOHOTTOP10"; // 微博热点TOP10
@@ -289,6 +291,7 @@ public class ReportConst {
 
         CHAPTERS2METHODNEW = new HashMap<>();
         CHAPTERS2METHODNEW.put("REPORTINTRO", "getReportIntro");
+
         CHAPTERS2METHODNEW.put("OVERVIEWOFDATA", "getOverviewOfdata");
         CHAPTERS2METHODNEW.put("NEWSTOP10", "getNewsTop10");
         CHAPTERS2METHODNEW.put("WEIBOTOP10", "getWeiboTop10");
@@ -307,6 +310,17 @@ public class ReportConst {
         //配合历史数据  （专题报  改造 20191121）
         CHAPTERS2METHODNEW.put("NEWSHOTTOP10", "getNewsHotTopics");
         CHAPTERS2METHODNEW.put("WEIBOHOTTOP10", "getWeiboHotTopics");
+
+        CHAPTERS2METHODNEW.put(SITUATIONACCESSMENTkey, "getSituationAccessment");
+        CHAPTERS2METHODNEW.put(OPINIONANALYSISkey, "getOpinionAnalysis");
+        CHAPTERS2METHODNEW.put(MOODSTATISTICSkey, "getMoodStatistics");
+        CHAPTERS2METHODNEW.put(WEMEDIAkey, "getweMediaHot");
+        CHAPTERS2METHODNEW.put(WEIBOEVENTCONTEXTkey, "getWeiboEventContext");
+        CHAPTERS2METHODNEW.put(WECHATEVENTCONTEXTkey, "getWechatEventContext");
+        CHAPTERS2METHODNEW.put(WEMEDIAEVENTCONTEXTkey, "getWemediaEventContext");
+        CHAPTERS2METHODNEW.put(NEWSEVENTCONTEXTkey, "getNewsEventContext");
+        CHAPTERS2METHODNEW.put(ACTIVEACCOUNTkey, "getActiveAccount");
+
     }
 
 }

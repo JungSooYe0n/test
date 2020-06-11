@@ -183,6 +183,9 @@ public class ReportResource extends BaseEntity {
 	@Column(name = "url_time")
 	private String urlTime;
 
+	@Column(name = "url_title")
+	private String urlTitle;
+
 	/***
 	 * 0 报告资源预览页显示内容
 	 * 1 报告列表点击预览显示内容

@@ -633,11 +633,20 @@ public class ReportUtil {
 		List<TElementNew> allChapters = new ArrayList<>();
 		for (int i = 0; i < values.length; i++) {
 			TElementNew tElementNew = new TElementNew();
+			if (StringUtil.isNotEmpty(values[i].getValue()) && (values[i].getValue().indexOf("事件脉络")!=-1 || values[i].getValue().indexOf("热点")!=-1)){
+				if (values[i].getValue().indexOf("微博")!=-1 || values[i].getValue().indexOf("词云")!=-1){
+					tElementNew.setSelected(selected);
+				}else {
+					tElementNew.setSelected(0);
+				}
+			}else {
+				tElementNew.setSelected(selected);
+			}
 			tElementNew.setChapterName(values[i].getValue());
 			tElementNew.setChapterType(values[i].getValueType());
 			tElementNew.setChapterDetail(values[i].toString());
 			tElementNew.setChapterPosition(i);
-			tElementNew.setSelected(selected);
+
 			allChapters.add(tElementNew);
 		}
 		return allChapters;

@@ -871,11 +871,12 @@ public class SepcialReportTask implements Runnable {
                     || "自媒体号热点".equals(chapter) || "新闻网站事件脉络".equals(chapter) || "微博事件脉络".equals(chapter)
                     || "微信事件脉络".equals(chapter) || "自媒体号事件脉络".equals(chapter)) {
                 reportResource.setSimCount(map.get("simCount")!=null?map.get("simCount"):map.get("simNum"));
-                reportResource.setSimCount(map.get("simNum"));
+                reportResource.setSimNum(map.get("simNum"));
             }
             reportResource.setTimeAgo(map.get("timeAgo"));
             reportResource.setTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
-            reportResource.setUrlTime(map.get("urlTime"));
+            reportResource.setUrlTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
+            reportResource.setUrlTitle(map.get("urlTitle"));
             reportResource.setSiteName(map.get("siteName"));
             reportResource.setSrcName(map.get("siteName"));
             reportResource.setUrlName(map.get("urlName"));
