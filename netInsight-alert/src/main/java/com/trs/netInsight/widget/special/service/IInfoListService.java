@@ -324,6 +324,11 @@ public interface IInfoListService {
 	 * @throws TRSException
 	 */
 	public void simCount(String sid,String md5,String type);
+
+	/**
+	 * 实时获取微博转评赞数据
+	 */
+	public void getRealTimeInfoOfStatus(String urlName,String sid);
 	
 	/**
 	 * 查相似文章信息--微博

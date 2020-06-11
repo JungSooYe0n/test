@@ -1,6 +1,7 @@
 
 package com.trs.netInsight.widget.special.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.ESFieldConst;
@@ -93,6 +94,12 @@ public class InfoListServiceImpl implements IInfoListService {
 	 */
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
+
+	/**
+	 * 实时获取微信舆情信息
+	 */
+	@Value("${realtime.info.url}")
+	private String realTimeInfo;
 
 	/**
 	 * 线程池跑任务
@@ -2298,6 +2305,17 @@ public class InfoListServiceImpl implements IInfoListService {
 
 		// all.add(map);
 		// return ftsCount;
+	}
+
+	@Override
+	public void getRealTimeInfoOfStatus(String urlName,String sid) {
+		//调数据中心接口
+		String param = "{"+"\"url\":"+"\""+urlName+"\""+"}";
+		JSONObject jsonObject = JSONObject.parseObject(param);
+		String sendPost = HttpUtil.sendPost(realTimeInfo, jsonObject);
+		if (sendPost.indexOf("created")!=-1 && sendPost.indexOf("added")!=-1){
+			RedisUtil.setString(sid+"_realTimeInfo","true");
+		}
 	}
 
 	@Override
