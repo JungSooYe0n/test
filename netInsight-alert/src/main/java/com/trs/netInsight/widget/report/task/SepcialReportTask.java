@@ -157,13 +157,14 @@ public class SepcialReportTask implements Runnable {
                     overviewOfDataIT.setGroupName(groupName);
                     overviewOfDataIT.setType(ColumnConst.CHART_PIE);
                     overviewOfDataIT.setContrast(ColumnConst.CONTRAST_TYPE_GROUP);
+                    ReportResource overviewRR = new ReportResource();
                     try {
                         overviewOfDataResult = columnSearch(overviewOfDataIT, REPORTCHARTDATASIZE, groupName);
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OVERVIEWOFDATA, (endMillis - startMillis)));
-                        ReportResource overviewRR = new ReportResource();
                         overviewRR.setImgComment(ReportUtil.getOverviewOfData(JSON.toJSONString(overviewOfDataResult)));
-                        reportData.setOverviewOfdata(overviewRR.getImgComment());
+                        overviewRR.setImg_data(ReportUtil.getOverviewOfData(JSON.toJSONString(overviewOfDataResult)));
+                        reportData.setOverviewOfdata(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(overviewRR))));
                     } catch (Exception e) {
                         setEmptyData(reportData, ReportConst.SINGLERESOURCE, OVERVIEWOFDATAkey);
                         log.error(OVERVIEWOFDATA, e);
@@ -710,8 +711,11 @@ public class SepcialReportTask implements Runnable {
      * @param chapterDetail
      */
     private void setEmptyData(ReportDataNew reportData, String chapterType, String chapterDetail) {
-        if (ReportConst.SINGLERESOURCE.equals(chapterType)) {
-            reportData.setOverviewOfdata("暂无数据");
+        if (ReportConst.SINGLERESOURCE.equals(chapterType) && OVERVIEWOFDATAkey.equals(chapterDetail)) {
+            ReportResource overviewRR = new ReportResource();
+            overviewRR.setImgComment("暂无数据！");
+            overviewRR.setImg_data("暂无数据！");
+            reportData.setOverviewOfdata(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(overviewRR))));
         } else {
             ReportResource emptyResource = new ReportResource();
             ArrayList<ReportResource> resources = new ArrayList<>();

@@ -654,6 +654,19 @@ public class ReportControllerNew {
 	}
 
 	/**
+	 * 日常监测跳转日常监测报
+	 * */
+	@ApiOperation("日常监测跳转日常监测报")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "id", value = "日常监测映射id", dataType = "String", paramType = "query", required = true)})
+	@RequestMapping(value = "/indexTabReportCal", method = RequestMethod.POST)
+	@FormatResult
+	public Object indexTabReportCal(String id) throws Exception {
+		sepcialReportService.jumptoIndexTabReport(id);
+		return Const.SUCCESS;
+	}
+
+	/**
 	 * 删除专报分组
 	 * */
 	@ApiOperation("删除专报分组")

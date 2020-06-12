@@ -122,6 +122,7 @@ public class ReportConst {
     public static final String GENERATEREPORTLOG = "舆情报告生成word报告：%s";
     public static final String REPORTRESOURCELOG = "舆情报告添加报告资源：%s";
     public static final String SPECILAREPORTLOG = "舆情报告专题报告计算数据：%s";
+    public static final String INDEXTABREPORTLOG = "舆情报告日常监测报告计算数据：%s";
     public static final String SPECIALREPORTTIMELOG = "耗时：%d";
     public static final String DONE = "生成完毕";
 
