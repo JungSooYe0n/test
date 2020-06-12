@@ -5,13 +5,20 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.handler.exception.TRSException;
+import com.trs.netInsight.util.CodeUtils;
+import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
+import com.trs.netInsight.widget.column.service.IColumnChartService;
 import com.trs.netInsight.widget.report.constant.ReportConst;
 import com.trs.netInsight.widget.report.entity.*;
 import com.trs.netInsight.widget.report.entity.repository.*;
 import com.trs.netInsight.widget.report.service.IGenerateReport;
 import com.trs.netInsight.widget.report.service.ISpecialReportService;
+import com.trs.netInsight.widget.report.task.IndexTabReportTask;
 import com.trs.netInsight.widget.report.task.SepcialReportTask;
 import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
@@ -78,6 +85,12 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     
     @Autowired
 	private ReportResourceRepository reportResourceRepository;
+
+    @Autowired
+    private IndexTabMapperRepository indexTabMapperRepository;
+
+    @Autowired
+    private IColumnChartService columnChartService;
     /**
      * 单拿一个线程计算数据
      * 日报月报周报 添加报告资源时需要
@@ -103,6 +116,24 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         reportNewRepository.save(report);
         //单起1个线程计算数据
         fixedThreadPool.execute(new SepcialReportTask(server, weight, keyWords, excludeWords, keyWordsIndex, excludeWebs, simflag, timeRange, trsl, searchType, reportData,UserUtils.getUser().getId(),specialProject));
+
+        List<Object> resultList = new ArrayList<>();
+        resultList.add(report);		//报告头
+        return resultList;
+    }
+
+    public List<Object> calculateIndexTabReportData(ReportNew report, ArrayList<HashMap<String,Object>> statistics,String timeRange) throws Exception {
+
+        ReportDataNew reportData = new ReportDataNew();
+        reportData.setDoneFlag(0);
+        reportData = reportDataNewRepository.save(reportData);
+        report.setReportDataId(reportData.getId());
+        //保存 report ，保存 report_data。用户进入专报预览页时，并未选择模板， 但是仍要保存数据。
+        report.setTemplateId("无");	//后期废弃该字段
+        report.setStatisticsTime(ReportUtil.statisticsTimeHandle(timeRange));
+        reportNewRepository.save(report);
+        //单起1个线程计算数据
+        fixedThreadPool.execute(new IndexTabReportTask(statistics));
 
         List<Object> resultList = new ArrayList<>();
         resultList.add(report);		//报告头
@@ -588,6 +619,36 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         List<SpecialReportGroup> groups = this.findAllGroup();
         report.setGroupName(groups.get(0).getGroupName());
         this.calculateSpecialReportData(specialProject.isServer(), report,specialProject.getAnyKeywords(),specialProject.getExcludeWords(),keywordsIndex,"" ,simFlaf ,timeRange ,trsl,searchType, weight,specialProject);
+    }
+
+    @Override
+    public void jumptoIndexTabReport(String indexTabMapperId) throws Exception {
+        User user = UserUtils.getUser();
+        IndexTabMapper mapper = indexTabMapperRepository.findOne(indexTabMapperId);
+        ReportNew report = new ReportNew.Builder().withReportName(mapper.getIndexTab().getName())
+                .withTotalIssue(" XX ")
+                .withThisIssue(" XX ")
+                .withPreparationUnits("XX编制单位")
+                .withPreparationAuthors("XX编制作者")
+                .withGroupName(String.valueOf(System.currentTimeMillis()))
+                .withReportType("专报").build();
+        String organizationId = UserUtils.getUser().getOrganizationId();
+        if(StringUtil.isNotEmpty(organizationId)){
+            Organization organization = organizationRepository.findOne(organizationId);
+            report.setPreparationUnits(organization == null ? null : organization.getOrganizationName());
+        }
+        //设置默认分组
+        List<SpecialReportGroup> groups = this.findAllGroup();
+        report.setGroupName(groups.get(0).getGroupName());
+        if (ObjectUtil.isEmpty(mapper)) {
+            throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
+        }
+        String timeRange = mapper.getIndexTab().getTimeRange();
+
+        Object result = columnChartService.getColumnChart(indexTabMapperId);
+        Map<String,Object> statisticMap = (HashMap<String,Object>)result;
+        ArrayList<HashMap<String,Object>> statistics =  (ArrayList<HashMap<String,Object>>)statisticMap.get("statisticalChart");
+        this.calculateIndexTabReportData(report,statistics,timeRange);
     }
 
     @Override
