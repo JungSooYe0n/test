@@ -75,7 +75,6 @@ public class GenerateReportImpl implements IGenerateReport {
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
 		List<TElementNew> elementList = JSONArray.parseArray(template.getTemplateList(), TElementNew.class);
-		//elementList = ReportUtil.tElementListHandle(elementList);
 		elementList = elementList.stream().filter(e -> e.getSelected() == 1).sorted(Comparator.comparing(TElementNew::getChapterPosition)).collect(Collectors.toList());
 		int i = 0;
 		for(TElementNew element : elementList){
@@ -91,39 +90,6 @@ public class GenerateReportImpl implements IGenerateReport {
 				singleParagraph(xwpfDocument, OVERVIEWOFDATA, reportData.getOverviewOfdata(), i);
 				log.info(String.format(GENERATEREPORTLOG,OVERVIEWOFDATA + DONE));
 				break;
-//			case NEWSTOP10New:
-//				String jsonStr = reportData.getNewsTop10();
-//				i++;
-//				if(StringUtil.isNotEmpty(jsonStr)){
-//					//使用TypeReference解析带泛型的List
-//					List<ReportResource> chapaterContent = JSONObject.parseObject(jsonStr, new TypeReference<List<ReportResource>>() {});
-//					dataListParagraph(xwpfDocument, element.getChapterName(),chapaterContent, i,element.getElementNewType());
-//				}else{
-//					//选中了NEWSTOP10,但是并没有向里面放数据
-//					dataListParagraph(xwpfDocument,element.getChapterName(),null,i,element.getElementNewType());
-//				}
-//				log.info(String.format(GENERATEREPORTLOG,NEWSTOP10 + DONE));
-//				break;
-//			case WEIBOTOP10New:
-//				i++;
-//				if(StringUtil.isNotEmpty(reportData.getWeiboTop10())){
-//					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeiboTop10(), new TypeReference<List<ReportResource>>() {});
-//					dataListParagraph(xwpfDocument, element.getChapterName(),chapaterContent, i,element.getElementNewType());
-//				}else{
-//					dataListParagraph(xwpfDocument,element.getChapterName(),null,i,element.getElementNewType());
-//				}
-//				log.info(String.format(GENERATEREPORTLOG,WEIBOTOP10 + DONE));
-//				break;
-//			case WECHATTOP10New:
-//				i++;
-//				if(StringUtil.isNotEmpty(reportData.getWechatTop10())){
-//					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWechatTop10(), new TypeReference<List<ReportResource>>() {});
-//					dataListParagraph(xwpfDocument, element.getChapterName(),chapaterContent, i,element.getElementNewType());
-//				}else{
-//					dataListParagraph(xwpfDocument,element.getChapterName(),null,i,element.getElementNewType());
-//				}
-//				log.info(String.format(GENERATEREPORTLOG,WECHATTOP10 + DONE));
-//				break;
 			case NEWSHOTTOP10New:
 				String jsonStr = reportData.getNewsHotTopics();
 				i++;
@@ -164,6 +130,88 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 				log.info(String.format(GENERATEREPORTLOG,WECHATHOTTOP10 + DONE));
 				break;
+
+			case WEMEDIAkey:
+				i++;
+				if(StringUtil.isNotEmpty(reportData.getWeMediaHot())){
+					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeMediaHot(), new TypeReference<List<ReportResource>>() {});
+					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
+				}else{
+					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
+				}
+				log.info(String.format(GENERATEREPORTLOG,WEMEDIA + DONE));
+				break;
+			//事件脉络
+			case WEMEDIAEVENTCONTEXTkey:
+				i++;
+				if(StringUtil.isNotEmpty(reportData.getWemediaEventContext())){
+					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWemediaEventContext(), new TypeReference<List<ReportResource>>() {});
+					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
+				}else{
+					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
+				}
+				log.info(String.format(GENERATEREPORTLOG,WEMEDIAEVENTCONTEXT + DONE));
+				break;
+			case WECHATEVENTCONTEXTkey:
+				i++;
+				if(StringUtil.isNotEmpty(reportData.getWechatEventContext())){
+					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWemediaEventContext(), new TypeReference<List<ReportResource>>() {});
+					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
+				}else{
+					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
+				}
+				log.info(String.format(GENERATEREPORTLOG,WECHATEVENTCONTEXT + DONE));
+				break;
+			case NEWSEVENTCONTEXTkey:
+				i++;
+				if(StringUtil.isNotEmpty(reportData.getNewsEventContext())){
+					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getNewsEventContext(), new TypeReference<List<ReportResource>>() {});
+					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
+				}else{
+					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
+				}
+				log.info(String.format(GENERATEREPORTLOG,NEWSEVENTCONTEXT + DONE));
+				break;
+			case WEIBOEVENTCONTEXTkey:
+				i++;
+				if(StringUtil.isNotEmpty(reportData.getWeiboEventContext())){
+					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeiboEventContext(), new TypeReference<List<ReportResource>>() {});
+					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
+				}else{
+					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
+				}
+				log.info(String.format(GENERATEREPORTLOG,WEIBOEVENTCONTEXT + DONE));
+				break;
+			case SITUATIONACCESSMENTkey:
+				i++;
+				if(base64data.get(element.getChapterName()) != null){
+					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
+					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+				}else{
+					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+				}
+				log.info(String.format(GENERATEREPORTLOG,SITUATIONACCESSMENT + DONE));
+				break;
+			case PROPAFATIONANALYSISkey:
+				i++;
+				if(base64data.get(element.getChapterName()) != null){
+					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
+					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+				}else{
+					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+				}
+				log.info(String.format(GENERATEREPORTLOG,PROPAFATIONANALYSIS + DONE));
+				break;
+			case ACTIVEACCOUNTkey:
+				i++;
+				if(base64data.get(element.getChapterName()) != null){
+					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
+					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+				}else{
+					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+				}
+				log.info(String.format(GENERATEREPORTLOG,ACTIVEACCOUNT + DONE));
+				break;
 			case DATATRENDANALYSISNew:
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
@@ -174,6 +222,8 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 				log.info(String.format(GENERATEREPORTLOG,DATATRENDANALYSIS + DONE));
 				break;
+
+
 			case DATASOURCEANALYSISNew:
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
@@ -184,6 +234,19 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 				log.info(String.format(GENERATEREPORTLOG,DATASOURCEANALYSIS + DONE));
 				break;
+			case OPINIONANALYSISkey:
+				i++;
+				if(base64data.get(element.getChapterName()) != null){
+					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
+					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+				}else{
+					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+				}
+				log.info(String.format(GENERATEREPORTLOG,OPININOANALYSIS + DONE));
+				break;
+
+
+
 			case WEBSITESOURCETOP10New:
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
@@ -233,6 +296,26 @@ public class GenerateReportImpl implements IGenerateReport {
 					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,EMOTIONANALYSIS + DONE));
+				break;
+			case MOODSTATISTICSkey:
+				i++;
+				if(base64data.get(element.getChapterName()) != null){
+					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
+					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+				}else{
+					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+				}
+				log.info(String.format(GENERATEREPORTLOG,MOODSTATISTICS + DONE));
+				break;
+			case WORDCLOUDSTATISTICSkey:
+				i++;
+				if(base64data.get(element.getChapterName()) != null){
+					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
+					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+				}else{
+					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+				}
+				log.info(String.format(GENERATEREPORTLOG,WORDCLOUDSTATISTICS + DONE));
 				break;
 
 
@@ -563,10 +646,16 @@ public class GenerateReportImpl implements IGenerateReport {
         		chapterContent = chapterContent.subList(0, 10);
         	}
 			if (null == eleType){//专报
-        		//专题报 改造 20191121 （热点模块要加一列 热度）
-        		//列数应该按照章节类型进行判断，暂时写4
-				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 5);
-				createTable(dTable, xdoc, chapterContent, chapterDetail,true);
+        		if(chapterDetail.indexOf("EVENTCONTEXT")!=-1){
+        			//事件脉络
+					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 5);
+					createTable4Context(dTable, xdoc, chapterContent, chapterDetail,true);
+				}else {
+					//专题报 改造 20191121 （热点模块要加一列 热度）
+					//列数应该按照章节类型进行判断，暂时写4
+					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 5);
+					createTable(dTable, xdoc, chapterContent, chapterDetail,true);
+				}
 			}else if ("表格".equals(eleType)){//日报、周报、月报
 				//列数应该按照章节类型进行判断，暂时写4
 				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 4);
@@ -590,15 +679,16 @@ public class GenerateReportImpl implements IGenerateReport {
 		tblWidth.setW(new BigInteger("8600"));
 		tblWidth.setType(STTblWidth.DXA);
 		setCellTitle(xdoc, getCellHight(xTable, 0, 0), "序号", bgColor, 700);	//1000
-		if(chapterDetail.contains("WEIBO")){
-			setCellTitle(xdoc, getCellHight(xTable, 0, 1), "正文", bgColor, 4300);	//6400
-		}else{
-			setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 4300);
-		}
+		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 4300);
 		int indexHead = 2;
-		if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail))){
-			setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "热度", bgColor, 1200);	//2000
-			indexHead += 1;
+		if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail) || WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail))){
+			if (WEIBOHOTTOP10key.equals(chapterDetail)){
+				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "转发", bgColor, 1200);	//2000
+				indexHead += 1;
+			}else {
+				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "热度", bgColor, 1200);	//2000
+				indexHead += 1;
+			}
 		}
 		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 1200);	//2000
 		indexHead += 1;
@@ -611,8 +701,12 @@ public class GenerateReportImpl implements IGenerateReport {
 				//标题
 				setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 4300);
 				int index = 2;
-				if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail))){
-					setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1200);
+				if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail) || WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail))){
+					if (WEIBOHOTTOP10key.equals(chapterDetail)){
+						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getRttCount()==null?"0":chapaterContent.get(i).getRttCount().toString(),bgColor, 1200);
+					}else {
+						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1200);
+					}
 					index += 1;
 				}
 				//来源
@@ -626,6 +720,48 @@ public class GenerateReportImpl implements IGenerateReport {
 					setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 2150);
 				}
 			}
+	}
+
+	//事件脉络表格处理
+	private void createTable4Context(XWPFTable xTable, XWPFDocument xdoc, List<ReportResource> chapaterContent, String chapterDetail,boolean hotCountFlag)
+			throws Exception {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String bgColor = "111111";
+		CTTbl ttbl = xTable.getCTTbl();
+		CTTblPr tblPr = ttbl.getTblPr() == null ? ttbl.addNewTblPr() : ttbl.getTblPr();
+
+		CTTblWidth tblWidth = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
+		tblWidth.setW(new BigInteger("8600"));
+		tblWidth.setType(STTblWidth.DXA);
+		setCellTitle(xdoc, getCellHight(xTable, 0, 0), "序号", bgColor, 700);	//1000
+		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 4300);
+		int indexHead = 2;
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 1200);	//2000
+		indexHead += 1;
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "相似文章", bgColor, 1200);	//2000
+		indexHead += 1;
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 2150);	//3000
+
+		for(int i = 0; i < chapaterContent.size(); i++){
+			//序号
+			setCellText(xdoc, getCellHight(xTable, i + 1, 0), i + 1 + "",bgColor, 700);
+			//标题
+			setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 4300);
+			int index = 2;
+			//来源
+			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 1200);
+			index += 1;
+
+			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1200);
+			index += 1;
+			//时间
+			Date urlDate = chapaterContent.get(i).getUrlDate();
+			if(urlDate != null){
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 2150);
+			}else{
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 2150);
+			}
+		}
 	}
 	private void dataSimplerListParagraph(XWPFDocument xdoc, String title, List<ReportResource> chapterContent, int i,String eleType,String chapterDetail) throws Exception {
 		XWPFParagraph titleParagraph = xdoc.createParagraph();

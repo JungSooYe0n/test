@@ -116,17 +116,25 @@ public class InfoListController {
 	private static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
 
 	/**
+	 * 线程池跑任务
+	 */
+	private static ExecutorService realInfoThreadPool = Executors.newFixedThreadPool(10);
+
+
+	// @Autowired
+	// private LogPrintUtil loginpool;
+	/**
+	 * 线程池跑任务
+	 */
+	private static ExecutorService nowInfoThreadPool = Executors.newFixedThreadPool(10);
+
+	/**
 	 * 专项检测信息列表
 	 *
 	 * @param specialId
 	 *            专项ID
 	 * @param source
 	 *            来源
-	 * @param time
-	 *            时间
-	 * @param area
-	 *            内容地域
-	 * @param industry
 	 *            行业类型
 	 * @param emotion
 	 *            情感
@@ -898,6 +906,7 @@ public class InfoListController {
             ftsDocument.setTrslk(trslk);
 
             if (Const.GROUPNAME_WEIBO.equals(groupName)){
+				realInfoThreadPool.execute(()->infoListService.getRealTimeInfoOfStatus(ftsDocument.getUrlName(),ftsDocument.getSid()));
 				StatusUser statusUser = queryStatusUser(ftsDocument.getScreenName(), ftsDocument.getUid());
 				if (ObjectUtil.isNotEmpty(statusUser)) {
 					ftsDocument.setFollowersCount(statusUser.getFollowersCount());
@@ -954,6 +963,13 @@ public class InfoListController {
         System.err.println("方法结束" + System.currentTimeMillis());
         return all;
     }
+
+	@ApiOperation("实时获取微博信息")
+	@FormatResult
+	@RequestMapping(value = "/getRealTimeInfo", method = RequestMethod.GET)
+	public Object getRealTimeInfo(@ApiParam("文章sid") @RequestParam("sid") String sid){
+    	return RedisUtil.getString(sid+" _present_data_info");
+	}
 
 	/**
 	 * 信息列表页单条的详情

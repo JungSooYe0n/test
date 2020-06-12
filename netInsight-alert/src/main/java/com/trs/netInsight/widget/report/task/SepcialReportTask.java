@@ -260,10 +260,10 @@ public class SepcialReportTask implements Runnable {
                         //网民观点
                         Object netizenResult = specialChartAnalyzeService.getSentimentAnalysis(specialProject,rangeTime,"NETIZEN_VIEW");
                         Map<String , Object> opinionResult = new HashMap<>();
-                        opinionResult.put("official",officialResult);
-                        opinionResult.put("media",mediaResult);
-                        opinionResult.put("export",exportResult);
-                        opinionResult.put("netizen",netizenResult);
+                        opinionResult.put("OFFICIAL_VIEW",officialResult);
+                        opinionResult.put("MEDIA_VIEW",mediaResult);
+                        opinionResult.put("EXPORT_VIEW",exportResult);
+                        opinionResult.put("NETIZEN_VIEW",netizenResult);
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OPININOANALYSIS, (endMillis - startMillis)));
 
@@ -408,7 +408,7 @@ public class SepcialReportTask implements Runnable {
                         ReportResource areaRR = new ReportResource();
                         areaRR.setImg_data(JSON.toJSONString(result));
                         areaRR.setImgType("mapChart");
-                        areaRR.setImgComment(ReportUtil.getImgComment(areaRR.getImg_data(), areaRR.getImgType(), AREA));
+                        areaRR.setImgComment("暂定！");
                         areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
                         reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
                     } catch (Exception e) {
@@ -870,12 +870,18 @@ public class SepcialReportTask implements Runnable {
             if ("新闻热点".equals(chapter) || "微博热点".equals(chapter) || "微信热点".equals(chapter)
                     || "自媒体号热点".equals(chapter) || "新闻网站事件脉络".equals(chapter) || "微博事件脉络".equals(chapter)
                     || "微信事件脉络".equals(chapter) || "自媒体号事件脉络".equals(chapter)) {
-                reportResource.setSimCount(map.get("simCount"));
+                reportResource.setSimCount(map.get("simCount")!=null?map.get("simCount"):map.get("simNum"));
+                reportResource.setSimNum(map.get("simNum"));
             }
             reportResource.setTimeAgo(map.get("timeAgo"));
+            reportResource.setTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
+            reportResource.setUrlTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
+            reportResource.setUrlTitle(map.get("urlTitle"));
             reportResource.setSiteName(map.get("siteName"));
             reportResource.setSrcName(map.get("siteName"));
+            reportResource.setUrlName(map.get("urlName"));
             reportResource.setTitle(map.get("title"));
+            reportResource.setAbstracts(map.get("abstracts"));
             reportResource.setContent(StringUtil.isEmpty(map.get("content")) ? map.get("title") : map.get("content"));
             reportResource.setSid(map.get("sid"));
             reportResource.setGroupName(map.get("groupName"));

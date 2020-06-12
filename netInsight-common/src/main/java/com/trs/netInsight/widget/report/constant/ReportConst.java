@@ -18,28 +18,22 @@ public class ReportConst {
     public static final String WEIBOTOP10 = "微博TOP10"; // 微博TOP10
     public static final String WECHATTOP10 = "微信TOP10"; // 微信TOP10
 
-    //事件脉络
-    public static final String WECHATEVENTCONTEXT = "微信事件脉络";
-    public static final String WEIBOEVENTCONTEXT = "微博事件脉络";
-    public static final String NEWSEVENTCONTEXT = "新闻网站事件脉络";
-    public static final String WEMEDIAEVENTCONTEXT = "自媒体报事件脉络";
-
     //活跃账号 新 20200609
     public static final String ACTIVEACCOUNT = "活跃账号";
 
 
     public static final String DATATRENDANALYSIS = "各舆论场趋势分析"; // 数据趋势分析
     public static final String OPININOANALYSIS = "观点分析"; // 观点分析
-    public static final String DATASOURCEANALYSIS = "数据来源对比"; // 数据来源对比
+    public static final String DATASOURCEANALYSIS = "各舆论场发布统计"; // 各舆论场发布统计
     public static final String WEBSITESOURCETOP10 = "网站来源TOP10"; // 网站来源TOP10
-    public static final String WEIBOACTIVETOP10 = "微博活跃用户TOP10"; // 微博活跃用户TOP10
+    public static final String WEIBOACTIVETOP10 = "活跃账号"; // 微博活跃用户TOP10
     public static final String WECHATACTIVETOP10 = "微信活跃用户TOP10"; // 微信活跃用户TOP10
     public static final String AREA = "地域统计"; // 全国地域分布
     public static final String EMOTIONANALYSIS = "正负面占比"; // 正负面占比
     public static final String MOODSTATISTICS = "情绪统计";
     public static final String NEWSHOTTOPICS = "新闻热点话题"; // 新闻热点话题
-    public static final String WEIBOHOTTOPICS = "微博热点话题"; // 微博热点话题
-    public static final String WORDCLOUDSTATISTICS = "词云统计";
+    public static final String WEIBOHOTTOPICS = "微博热点话题榜"; // 微博热点话题
+    public static final String WORDCLOUDSTATISTICS = "热点词云";
 
     //新网察
     public static final String SITUATIONACCESSMENT = "态势评估";
@@ -48,6 +42,15 @@ public class ReportConst {
     public static final String WEIBOHOTTOP10 = "微博热点"; // 微博热点TOP10
     public static final String WECHATHOTTOP10 = "微信热点"; // 微信热点TOP10
     public static final String WEMEDIA = "自媒体号热点"; // 自媒体号
+
+    //事件脉络
+    public static final String WECHATEVENTCONTEXT = "微信事件脉络";
+    public static final String WEIBOEVENTCONTEXT = "微博事件脉络";
+    public static final String NEWSEVENTCONTEXT = "新闻网站事件脉络";
+    public static final String WEMEDIAEVENTCONTEXT = "自媒体号事件脉络";
+
+    //传播分析
+    public static final String PROPAFATIONANALYSIS = "传播分析";
 
     public static final String REPORTINTRONew = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATANew = "OVERVIEWOFDATA"; // 数据统计概述
@@ -73,11 +76,13 @@ public class ReportConst {
     public static final String WEEKLYREPORT = "周报";
     public static final String MONTHLYREPORT = "月报";
     public static final String SPECIALREPORT = "专报";
+    public static final String INDEXTABREPORT = "日常监测报";
 
     public static final String DEFAULTDAILYTEMPLATE = "日报默认模版";
     public static final String DEFAULTWEEKLYTEMPLATE = "周报默认模版";
     public static final String DEFAULTMONTHLYTEMPLATE = "月报默认模版";
     public static final String DEFAULTSPECIALTEMPLATE= "专报默认模版";
+    public static final String DEFAULTINDEXTABTEMPLATE= "日常监测报默认模版";
 
     public static final String REPORTINTROkey = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATAkey = "OVERVIEWOFDATA"; // 数据统计概述
@@ -104,6 +109,8 @@ public class ReportConst {
     public static final String NEWSHOTTOPICSkey = "NEWSHOTTOPICS"; // 新闻热点话题
     public static final String WEIBOHOTTOPICSkey = "WEIBOHOTTOPICS"; // 微博热点话题
 
+    //传播分析
+    public static final String PROPAFATIONANALYSISkey = "PROPAFATIONANALYSIS";
     //专题报 改造 20191121
     public static final String NEWSHOTTOP10key = "NEWSHOTTOP10"; // 新闻热点TOP10
     public static final String WEIBOHOTTOP10key = "WEIBOHOTTOP10"; // 微博热点TOP10
@@ -139,6 +146,8 @@ public class ReportConst {
     public static final HashMap<Integer,String> ROMAN2CHINESE;
 
     public static final ArrayList<String> CHAPTERS;
+    //专题分析返回数据顺序问题
+    public static final ArrayList<String> CHAPTERS4SPECIAL;
 
     public static final HashMap<String,String> CHAPTERS2METHOD;
     public static final HashMap<String,String> CHAPTERS2METHODNEW;
@@ -196,6 +205,31 @@ public class ReportConst {
 
         CHAPTERS.add("NEWSHOTTOPICS");
         CHAPTERS.add("WEIBOHOTTOPICS");
+
+
+        CHAPTERS4SPECIAL = new ArrayList<>();
+        CHAPTERS4SPECIAL.add("REPORTINTRO");
+        CHAPTERS4SPECIAL.add("OVERVIEWOFDATA");
+        CHAPTERS4SPECIAL.add("SITUATIONACCESSMENT");
+        CHAPTERS4SPECIAL.add("DATATRENDANALYSIS");
+        CHAPTERS4SPECIAL.add("DATASOURCEANALYSIS");
+        CHAPTERS4SPECIAL.add(OPINIONANALYSISkey);
+        CHAPTERS4SPECIAL.add("EMOTIONANALYSIS");
+        CHAPTERS4SPECIAL.add(MOODSTATISTICSkey);
+        CHAPTERS4SPECIAL.add(WORDCLOUDSTATISTICSkey);
+        CHAPTERS4SPECIAL.add("AREA");
+        //专题报 改造 20191121
+        CHAPTERS4SPECIAL.add("NEWSHOTTOP10");
+        CHAPTERS4SPECIAL.add("WEIBOHOTTOP10");
+        CHAPTERS4SPECIAL.add("WECHATHOTTOP10");
+        CHAPTERS4SPECIAL.add(WEMEDIAkey);
+        // 事件脉络
+        CHAPTERS4SPECIAL.add(WEMEDIAEVENTCONTEXTkey);
+        CHAPTERS4SPECIAL.add(WECHATEVENTCONTEXTkey);
+        CHAPTERS4SPECIAL.add(WEIBOEVENTCONTEXTkey);
+        CHAPTERS4SPECIAL.add(NEWSEVENTCONTEXTkey);
+        //活跃账号
+        CHAPTERS4SPECIAL.add(ACTIVEACCOUNTkey);
 
         CHAPTERS2METHODSET = new HashMap<>();
         CHAPTERS2METHODSET.put("报告简介", "setReportIntro");
@@ -259,6 +293,7 @@ public class ReportConst {
 
         CHAPTERS2METHODNEW = new HashMap<>();
         CHAPTERS2METHODNEW.put("REPORTINTRO", "getReportIntro");
+
         CHAPTERS2METHODNEW.put("OVERVIEWOFDATA", "getOverviewOfdata");
         CHAPTERS2METHODNEW.put("NEWSTOP10", "getNewsTop10");
         CHAPTERS2METHODNEW.put("WEIBOTOP10", "getWeiboTop10");
@@ -277,6 +312,17 @@ public class ReportConst {
         //配合历史数据  （专题报  改造 20191121）
         CHAPTERS2METHODNEW.put("NEWSHOTTOP10", "getNewsHotTopics");
         CHAPTERS2METHODNEW.put("WEIBOHOTTOP10", "getWeiboHotTopics");
+
+        CHAPTERS2METHODNEW.put(SITUATIONACCESSMENTkey, "getSituationAccessment");
+        CHAPTERS2METHODNEW.put(OPINIONANALYSISkey, "getOpinionAnalysis");
+        CHAPTERS2METHODNEW.put(MOODSTATISTICSkey, "getMoodStatistics");
+        CHAPTERS2METHODNEW.put(WEMEDIAkey, "getweMediaHot");
+        CHAPTERS2METHODNEW.put(WEIBOEVENTCONTEXTkey, "getWeiboEventContext");
+        CHAPTERS2METHODNEW.put(WECHATEVENTCONTEXTkey, "getWechatEventContext");
+        CHAPTERS2METHODNEW.put(WEMEDIAEVENTCONTEXTkey, "getWemediaEventContext");
+        CHAPTERS2METHODNEW.put(NEWSEVENTCONTEXTkey, "getNewsEventContext");
+        CHAPTERS2METHODNEW.put(ACTIVEACCOUNTkey, "getActiveAccount");
+
     }
 
 }
