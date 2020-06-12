@@ -26,13 +26,13 @@ public class ReportConst {
     public static final String OPININOANALYSIS = "观点分析"; // 观点分析
     public static final String DATASOURCEANALYSIS = "各舆论场发布统计"; // 各舆论场发布统计
     public static final String WEBSITESOURCETOP10 = "网站来源TOP10"; // 网站来源TOP10
-    public static final String WEIBOACTIVETOP10 = "微博活跃用户TOP10"; // 微博活跃用户TOP10
+    public static final String WEIBOACTIVETOP10 = "活跃账号"; // 微博活跃用户TOP10
     public static final String WECHATACTIVETOP10 = "微信活跃用户TOP10"; // 微信活跃用户TOP10
     public static final String AREA = "地域统计"; // 全国地域分布
     public static final String EMOTIONANALYSIS = "正负面占比"; // 正负面占比
     public static final String MOODSTATISTICS = "情绪统计";
     public static final String NEWSHOTTOPICS = "新闻热点话题"; // 新闻热点话题
-    public static final String WEIBOHOTTOPICS = "微博热点话题"; // 微博热点话题
+    public static final String WEIBOHOTTOPICS = "微博热点话题榜"; // 微博热点话题
     public static final String WORDCLOUDSTATISTICS = "热点词云";
 
     //新网察
@@ -76,11 +76,13 @@ public class ReportConst {
     public static final String WEEKLYREPORT = "周报";
     public static final String MONTHLYREPORT = "月报";
     public static final String SPECIALREPORT = "专报";
+    public static final String INDEXTABREPORT = "日常监测报";
 
     public static final String DEFAULTDAILYTEMPLATE = "日报默认模版";
     public static final String DEFAULTWEEKLYTEMPLATE = "周报默认模版";
     public static final String DEFAULTMONTHLYTEMPLATE = "月报默认模版";
     public static final String DEFAULTSPECIALTEMPLATE= "专报默认模版";
+    public static final String DEFAULTINDEXTABTEMPLATE= "日常监测报默认模版";
 
     public static final String REPORTINTROkey = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATAkey = "OVERVIEWOFDATA"; // 数据统计概述

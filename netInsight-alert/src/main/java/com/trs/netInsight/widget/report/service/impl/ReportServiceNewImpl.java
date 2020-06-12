@@ -334,6 +334,11 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			templateNew.setTemplateType(SPECIALREPORT);
 			templateNew.setTemplateName(DEFAULTSPECIALTEMPLATE);
 			return templateNew;
+		}else if(INDEXTABREPORT.equals(templateType)){
+			templateNew.setTemplateList(JSON.toJSONString(ReportUtil.createEmptyTemplateForIndexTab(1)));
+			templateNew.setTemplateType(INDEXTABREPORT);
+			templateNew.setTemplateName(DEFAULTINDEXTABTEMPLATE);
+			return templateNew;
 		}else if(DAILYREPORT.equals(templateType)){
 			templateNew.setTemplateList(JSON.toJSONString(ReportUtil.createEmptyTemplate(1)));
 			setTemplateHeader(templateNew,new String("30"), new String("1") ,getPreparedUnion(), preparedAuthor, "24h");

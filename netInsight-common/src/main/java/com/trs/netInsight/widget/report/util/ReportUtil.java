@@ -7,10 +7,7 @@ import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.SpringUtil;
 import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.widget.report.constant.Chapter;
-import com.trs.netInsight.widget.report.constant.ReportConst;
-import com.trs.netInsight.widget.report.constant.SimplerChapter;
-import com.trs.netInsight.widget.report.constant.SpeicealChapter;
+import com.trs.netInsight.widget.report.constant.*;
 import com.trs.netInsight.widget.report.entity.ReportDataNew;
 import com.trs.netInsight.widget.report.entity.ReportResource;
 import com.trs.netInsight.widget.report.entity.TElementNew;
@@ -647,6 +644,21 @@ public class ReportUtil {
 			tElementNew.setChapterDetail(values[i].toString());
 			tElementNew.setChapterPosition(i);
 
+			allChapters.add(tElementNew);
+		}
+		return allChapters;
+	}
+
+	public static List<TElementNew> createEmptyTemplateForIndexTab(Integer selected) {
+		IndexTabChapter[] values = IndexTabChapter.values();
+		List<TElementNew> allChapters = new ArrayList<>();
+		for (int i = 0; i < values.length; i++) {
+			TElementNew tElementNew = new TElementNew();
+			tElementNew.setSelected(selected);
+			tElementNew.setChapterName(values[i].getValue());
+			tElementNew.setChapterType(values[i].getValueType());
+			tElementNew.setChapterDetail(values[i].toString());
+			tElementNew.setChapterPosition(i);
 			allChapters.add(tElementNew);
 		}
 		return allChapters;
