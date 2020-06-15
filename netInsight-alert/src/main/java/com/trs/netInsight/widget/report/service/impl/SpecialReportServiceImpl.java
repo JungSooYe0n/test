@@ -133,7 +133,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         report.setStatisticsTime(ReportUtil.statisticsTimeHandle(timeRange));
         reportNewRepository.save(report);
         //单起1个线程计算数据
-        fixedThreadPool.execute(new IndexTabReportTask(statistics));
+        fixedThreadPool.execute(new IndexTabReportTask(statistics,reportData,reportDataNewRepository));
 
         List<Object> resultList = new ArrayList<>();
         resultList.add(report);		//报告头

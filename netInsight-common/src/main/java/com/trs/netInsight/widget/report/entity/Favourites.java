@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.report.entity;
 
 import com.trs.netInsight.support.template.GUIDGenerator;
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -63,6 +64,9 @@ public class Favourites extends BaseEntity {
 	 */
 	@Column(name = "authors")
 	private String authors;
+
+	@Column(name = "author")
+	private String author;
 
 	/**
 	 * 标题
@@ -201,8 +205,8 @@ public class Favourites extends BaseEntity {
 		this.urlName = urlName;
 		this.mdsTag = md5;
 		this.authors = authors;
-		this.title = title;
-		this.content=content;
+		this.title = StringUtil.filterEmoji(StringUtil.replaceImg(title));
+		this.content=StringUtil.filterEmoji(StringUtil.replaceImg(content));
 		this.screenName = screenName;
 		this.urlDate = urlDate;
 		this.siteName = siteName;
@@ -215,8 +219,8 @@ public class Favourites extends BaseEntity {
 		this.send = send;
 		this.favourite = favourite;
 		this.createdAt = createdAt;
-		this.statusContent = statusContent;
-		this.urlTitle = urlTitle;
+		this.statusContent = StringUtil.filterEmoji(StringUtil.replaceImg(statusContent));
+		this.urlTitle = StringUtil.filterEmoji(StringUtil.replaceImg(urlTitle));
 
 
 		super.setUserId(userId);

@@ -87,7 +87,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				break;
 			case OVERVIEWOFDATANew:
 				i++;
-				singleParagraph(xwpfDocument, OVERVIEWOFDATA, reportData.getOverviewOfdata(), i);
+				JSONObject object = (JSONObject)(JSONObject.parseArray(reportData.getOverviewOfdata()).get(0));
+
+				singleParagraph(xwpfDocument, OVERVIEWOFDATA, object.getString("imgComment"), i);
 				log.info(String.format(GENERATEREPORTLOG,OVERVIEWOFDATA + DONE));
 				break;
 			case NEWSHOTTOP10New:
