@@ -146,6 +146,7 @@ public class TrslUtil {
 				data = new String[count];
 				data[0] = Const.HYBASE_OVERSEAS;
 			}
+			count++;
 		}
 		if (TrsArrayUtil.compileArray(Const.MEDIA_TYPE_VIDEO.toArray(), groupNames)) {
 			if (count == 2) {
