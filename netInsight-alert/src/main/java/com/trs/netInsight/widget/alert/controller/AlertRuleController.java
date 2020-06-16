@@ -513,6 +513,8 @@ public class AlertRuleController {
 		// 判断预警发送时的 接收人与接收方式 是否一一对应
 		checkParams(receivers,sendWay);
 		String userId = UserUtils.getUser().getId();
+//		String[] documentIds = sids.split("[;|；]");
+//		String[] groupName = groupNames.split("[;|；]");
 		try {
 			return alertRuleService.sendBlend(receivers, sids, urltime, content, userId, groupNames, sendWay,trslk);
 

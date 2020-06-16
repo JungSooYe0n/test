@@ -4,6 +4,7 @@ package com.trs.netInsight.widget.special.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.trs.jpa.utils.Criteria;
 import com.trs.jpa.utils.Restrictions;
+import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
@@ -14,15 +15,13 @@ import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.entity.repository.SpecialSubjectRepository;
-import com.trs.netInsight.widget.special.service.ISpecialComputeService;
-import com.trs.netInsight.widget.special.service.ISpecialProjectService;
-import com.trs.netInsight.widget.special.service.ISpecialService;
-import com.trs.netInsight.widget.special.service.ISpecialSubjectService;
+import com.trs.netInsight.widget.special.service.*;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.SubGroup;
 import com.trs.netInsight.widget.user.entity.User;
@@ -32,6 +31,7 @@ import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,6 +71,8 @@ public class SpecialController {
 	private SubGroupRepository subGroupRepository;
 	@Autowired
 	private OrganizationRepository organizationRepository;
+	@Autowired
+	private IInfoListService infoListService;
 
 
 	/**
@@ -889,6 +891,142 @@ public class SpecialController {
 			this.computeService.computeBySpecialId(specialId, new Date(), new Date());
 		} catch (TRSSearchException | TRSException | ParseException e) {
 			log.error("异步修改该专题当前日期指数失败!specialId:[" + specialId + "]", e);
+		}
+	}
+	@RequestMapping(value = "/specialList", method = RequestMethod.POST)
+	public Object specialList(@RequestParam(value = "specialId") String specialId,
+						   @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+						   @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+						   @RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
+						   @RequestParam(value = "sort", defaultValue = "", required = false) String sort,
+						   @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+						   @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
+						   @ApiParam("结果中搜索")@RequestParam(value = "keywords", required = false) String keywords,
+						   @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
+
+						   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+						   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+						   @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+						   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+						   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+						   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+						   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
+						   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
+						   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+						   @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+						   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+						   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+						   @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+						   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+						   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+						   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
+		//防止前端乱输入
+		pageSize = pageSize>=1?pageSize:10;
+		long start = new Date().getTime();
+		long id = Thread.currentThread().getId();
+		LogPrintUtil loginpool = new LogPrintUtil();
+		RedisUtil.setLog(id, loginpool);
+		log.info(loginpool.toString());
+		log.warn("专项检测信息列表  开始调用接口"+ com.trs.netInsight.support.fts.util.DateUtil.formatCurrentTime(com.trs.netInsight.support.fts.util.DateUtil.yyyyMMdd));
+		String userName = UserUtils.getUser().getUserName();
+		long startTime = System.currentTimeMillis();
+
+		try {
+			SpecialProject specialProject = specialProjectService.findOne(specialId);
+			ObjectUtil.assertNull(specialProject, "专题ID");
+			if (StringUtils.isBlank(timeRange)) {
+				timeRange = specialProject.getTimeRange();
+				if (StringUtils.isBlank(timeRange)) {
+					timeRange = com.trs.netInsight.support.fts.util.DateUtil.format2String(specialProject.getStartTime(), com.trs.netInsight.support.fts.util.DateUtil.yyyyMMdd) + ";";
+					timeRange += com.trs.netInsight.support.fts.util.DateUtil.format2String(specialProject.getEndTime(), com.trs.netInsight.support.fts.util.DateUtil.yyyyMMdd);
+				}
+			}
+			//排重
+			if ("netRemove".equals(simflag)) { //单一媒体排重
+				specialProject.setSimilar(true);
+				specialProject.setIrSimflag(false);
+				specialProject.setIrSimflagAll(false);
+			} else if ("urlRemove".equals(simflag)) { //站内排重
+				specialProject.setSimilar(false);
+				specialProject.setIrSimflag(true);
+				specialProject.setIrSimflagAll(false);
+			} else if ("sourceRemove".equals(simflag)) { //全网排重
+				specialProject.setSimilar(false);
+				specialProject.setIrSimflag(false);
+				specialProject.setIrSimflagAll(true);
+			}
+			//命中规则
+			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {
+//				specialProject.setKeyWordIndex(wordIndex);
+				if (SearchScope.TITLE.equals(wordIndex)){
+					specialProject.setSearchScope(SearchScope.TITLE);
+				}
+				if (SearchScope.TITLE_CONTENT.equals(wordIndex)){
+					specialProject.setSearchScope(SearchScope.TITLE_CONTENT);
+				}
+				if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)){
+					specialProject.setSearchScope(SearchScope.TITLE_ABSTRACT);
+				}
+
+			}
+			specialProject.setExcludeWeb(excludeWeb);
+			//排除关键词
+			specialProject.setExcludeWordIndex(excludeWordIndex);
+			specialProject.setExcludeWords(excludeWord);
+
+			//修改词距 选择修改词距时，才能修改词距
+			if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(specialProject.getTrsl()) && wordFromNum >= 0) {
+				String keywordJson = specialProject.getAnyKeywords();
+				com.alibaba.fastjson.JSONArray jsonArray = com.alibaba.fastjson.JSONArray.parseArray(keywordJson);
+				//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
+				if (jsonArray != null && jsonArray.size() == 1) {
+					Object o = jsonArray.get(0);
+					JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+					jsonObject.put("wordSpace", wordFromNum);
+					jsonObject.put("wordOrder", wordFromSort);
+					jsonArray.set(0, jsonObject);
+					specialProject.setAnyKeywords(jsonArray.toJSONString());
+				}
+			}
+			// 跟统计表格一样 如果来源没选 就不查数据
+			List<String> specialSource = CommonListChartUtil.formatGroupName(specialProject.getSource());
+			if(!"ALL".equals(source)){
+				source = CommonListChartUtil.changeGroupName(source);
+				if(!specialSource.contains(source)){
+					return null;
+				}
+			}else{
+				source = StringUtils.join(specialSource,";");
+			}
+//			String keyWordIndex = "positioCon";// 标题加正文 与日常监测统一
+
+			Object documentCommonSearch = infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
+					timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null,
+					"special", read, mediaLevel, mediaIndustry,
+					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+			long endTime = System.currentTimeMillis();
+			log.warn("间隔时间："+(endTime - startTime));
+			return documentCommonSearch;
+
+
+		} catch (TRSException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new OperationException("查询出错：" + e,e);
+		} finally {
+			LogPrintUtil logReids = RedisUtil.getLog(id);
+			long end = new Date().getTime();
+			int timeApi = (int) (end - start);
+			logReids.setComeBak(start);
+			logReids.setFinishBak(end);
+			logReids.setFullBak(timeApi);
+			if (logReids.getFullHybase() > FtsFieldConst.OVER_TIME) {
+				logReids.printTime(LogPrintUtil.INFO_LIST);
+			}
+			log.info("调用接口用了" + timeApi + "ms"+ com.trs.netInsight.support.fts.util.DateUtil.formatCurrentTime(com.trs.netInsight.support.fts.util.DateUtil.yyyyMMdd));
 		}
 	}
 
