@@ -640,8 +640,11 @@ public class ColumnServiceImpl implements IColumnService {
 			this.moveSequenceForColumn(indexPageId, ColumnFlag.IndexPageFlag, user);
 			List<IndexPage> list = new ArrayList<>();
 			list.add(indexPage);
-			//删除栏目
+			//删除栏目 以及 栏目下对应的其他元素
 			this.deleteIndexPage(list);
+			//因为当删除元素过多，删除失败（原因可能是数据库连接的缓存占满，导致子元素被删除两次），所以上面只删除分类下的内容，再通过父节点删除子元素。
+			//注解 CascadeType.REMOVE 会使删除父节点时，一起删除相关子元素
+			indexPageRepository.delete(list);
 			return "success";
 		} catch (Exception e) {
 			throw new OperationException("删除分组时出错", e);
@@ -683,8 +686,6 @@ public class ColumnServiceImpl implements IColumnService {
 					if (CollectionsUtil.isNotEmpty(chidPage)) {
 						deleteIndexPage(chidPage);
 					}
-					// 删除栏目组
-					indexPageRepository.delete(indexPage);
 				}
 			}
 			return "success";
