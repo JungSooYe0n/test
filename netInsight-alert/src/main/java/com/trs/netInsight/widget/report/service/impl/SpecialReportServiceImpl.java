@@ -184,6 +184,49 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     }
 
     @Override
+    public List<Object> findIndexTabData(String reportId) {
+        ReportNew report ;
+        if(StringUtils.isEmpty(reportId)){
+            //第一次请求
+            User loginUser = UserUtils.getUser();
+            Page<ReportNew> reports = null;
+            if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+                reports = reportNewRepository.findByReportTypeAndUserIdAndTemplateId("日常监测报",loginUser.getId(),"无", new PageRequest(0, 10, new Sort(Sort.Direction.DESC , "createdTime")));
+            }else {
+                reports = reportNewRepository.findByReportTypeAndSubGroupIdAndTemplateId("日常监测报",loginUser.getSubGroupId(),"无", new PageRequest(0, 10, new Sort(Sort.Direction.DESC , "createdTime")));
+            }
+            if (reports != null && reports.getTotalElements() < 1) { // 未检索到指定专报
+                return null;
+            }
+            report = reports.getContent().get(0);
+        }else{
+            report = reportNewRepository.findOne(reportId);
+        }
+        String reportDataId = report.getReportDataId();
+        ReportDataNew reportData = reportDataId == null ? null :reportDataNewRepository.findOne(reportDataId);
+        if (reportData == null){// 非空,return
+            return null;
+        }
+        List<Object> resultList = new ArrayList<>();
+
+        List<TElementNew> elements = ReportUtil.createEmptyTemplateForSpecial(1);
+        resultList.add(report);	//报告头
+
+        List<TElementNew> tElementNews = ReportUtil.setDataInElements(elements,reportData);
+        if (StringUtil.isNotEmpty(reportId)){
+            List<TElementNew> elements4page = getUsefulElements(tElementNews,reportId);
+            resultList.add(elements4page);
+        }else{
+            resultList.add(tElementNews);	//报告各章节内容
+        }
+
+        HashMap<String, Integer> hashMap = new HashMap<>();
+        hashMap.put("doneFlag", reportData.getDoneFlag() == null ||  reportData.getDoneFlag() == 0 ? 0 :reportData.getDoneFlag());
+        resultList.add(hashMap);
+        return resultList;
+    }
+
+    @Override
     public List<Object> findSRDByTemplate(String reportId, String templateId) {
         if(StringUtils.isEmpty(reportId) || StringUtils.isEmpty(templateId)){
             return null;
@@ -631,7 +674,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
                 .withPreparationUnits("XX编制单位")
                 .withPreparationAuthors("XX编制作者")
                 .withGroupName(String.valueOf(System.currentTimeMillis()))
-                .withReportType("专报").build();
+                .withReportType("日常监测报").build();
         String organizationId = UserUtils.getUser().getOrganizationId();
         if(StringUtil.isNotEmpty(organizationId)){
             Organization organization = organizationRepository.findOne(organizationId);

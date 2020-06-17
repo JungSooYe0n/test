@@ -114,8 +114,8 @@ public class GenerateReportImpl implements IGenerateReport {
 				if (WEIBOHOTTOPICS.equals(chapterName)){
 					chapterName = WEIBOHOTTOP10;
 				}
-				if(StringUtil.isNotEmpty(reportData.getWeiboHotTopics())){
-					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeiboHotTopics(), new TypeReference<List<ReportResource>>() {});
+				if(StringUtil.isNotEmpty(reportData.getWeiboTop10())){
+					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeiboTop10(), new TypeReference<List<ReportResource>>() {});
 					dataListParagraph(xwpfDocument, chapterName,element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument,chapterName,element.getChapterDetail(),null,i,element.getElementNewType());
@@ -193,6 +193,17 @@ public class GenerateReportImpl implements IGenerateReport {
 					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,SITUATIONACCESSMENT + DONE));
+				break;
+			case WEIBOHOTTOPICSkey:
+				i++;
+				String topicJson = reportData.getWeiboHotTopics();
+				if (base64data.get(element.getChapterName()) != null){
+					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
+					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+				}else {
+					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+				}
+				log.info(String.format(GENERATEREPORTLOG,WEIBOHOTTOPICS + DONE));
 				break;
 			case PROPAFATIONANALYSISkey:
 				i++;
@@ -938,7 +949,7 @@ public class GenerateReportImpl implements IGenerateReport {
 			createRun4.setText(preparationUnits + countSpace(preparationUnits) + new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
 	}
 	private void createFirstPage(XWPFDocument xwpfDocument, ReportNew report) throws Exception{
-		if("日报".equals(report.getReportType()) || "专报".equals(report.getReportType())){
+		if("日报".equals(report.getReportType()) || "专报".equals(report.getReportType()) || "日常监测报".equals(report.getReportType())){
 			//第一段：红色，33号字体，居中，楷体GB2312
 			createP1(xwpfDocument, report.getReportName());
 			//第二段：黑色 12号字 居中 楷体

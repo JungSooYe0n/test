@@ -941,6 +941,9 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			if(SPECIALREPORT.equals(reportType)){
 				//专报
 				reportTypeDiffPredicate = cb.equal(root.get("groupName").as(String.class), groupName);
+			}else if(INDEXTABREPORT.equals(reportType)){
+				//日常监测报
+				reportTypeDiffPredicate = cb.equal(root.get("groupName").as(String.class), groupName);
 			}else if(DAILYREPORT.equals(reportType)){
 				//日报
 				reportTypeDiffPredicate = cb.greaterThan(root.get("createdTime").as(Date.class), getDeletedNodeTime(DailyReportExpiration, Calendar.DAY_OF_MONTH));

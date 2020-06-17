@@ -37,6 +37,9 @@ public interface ISpecialReportService {
      */
     List<Object> findSpecialData(String reportId) throws ParseException;
 
+
+    List<Object> findIndexTabData(String reportId) throws ParseException;
+
     /**
      * @author shao.guangze
      * @param reportId

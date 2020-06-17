@@ -32,7 +32,7 @@ public class ReportConst {
     public static final String EMOTIONANALYSIS = "正负面占比"; // 正负面占比
     public static final String MOODSTATISTICS = "情绪统计";
     public static final String NEWSHOTTOPICS = "新闻热点话题"; // 新闻热点话题
-    public static final String WEIBOHOTTOPICS = "微博热点话题榜"; // 微博热点话题
+    public static final String WEIBOHOTTOPICS = "微博热点话题排行"; // 微博热点话题
     public static final String WORDCLOUDSTATISTICS = "热点词云";
 
     //新网察
@@ -155,7 +155,76 @@ public class ReportConst {
 
     public static final HashMap<String, String> CHAPTERS2METHODSET;
     public static final HashMap<String, String> CHAPTERS2METHODSETNEW;
+
+    public static final HashMap<String,HashMap> chapterInfoForIndexTab = new HashMap<>() ;
     static{
+
+
+        HashMap<String,String> item0 = new HashMap<>();
+        item0.put("key",OVERVIEWOFDATAkey);
+        item0.put("name",OVERVIEWOFDATA);
+        item0.put("mapContrast","contrastGroup");
+        item0.put("entityType","keywords");
+        item0.put("chapterType","SingleResource");
+        chapterInfoForIndexTab.put("数据统计概述",item0);
+
+        HashMap<String,String> item1 = new HashMap<>();
+        item1.put("key",DATATRENDANALYSISkey);
+        item1.put("name",DATATRENDANALYSIS);
+        item1.put("mapContrast","contrastGroup");
+        item1.put("showType","day;hour");
+        item1.put("entityType","keywords");
+        item1.put("chapterType","chart");
+        chapterInfoForIndexTab.put("各舆论场趋势分析",item1);
+
+        HashMap<String,String> item2 = new HashMap<>();
+        item2.put("key",DATASOURCEANALYSISkey);
+        item2.put("name",DATASOURCEANALYSIS);
+        item2.put("mapContrast","contrastGroup");
+        item2.put("entityType","keywords");
+        item2.put("chapterType","chart");
+        chapterInfoForIndexTab.put("媒体来源占比",item2);
+
+        HashMap<String,String> item3 = new HashMap<>();
+        item3.put("key",EMOTIONANALYSISkey);
+        item3.put("name",EMOTIONANALYSIS);
+        item3.put("mapContrast","contrastEmotion");
+        item3.put("entityType","keywords");
+        item3.put("chapterType","chart");
+        chapterInfoForIndexTab.put("正负面占比",item3);
+
+        HashMap<String,String> item4 = new HashMap<>();
+        item4.put("key",ACTIVEACCOUNTkey);
+        item4.put("name",ACTIVEACCOUNT);
+        item4.put("mapContrast","contrastSite");
+        item4.put("entityType","keywords");
+        item4.put("chapterType","chart");
+        chapterInfoForIndexTab.put("活跃帐号",item4);
+
+        HashMap<String,String> item5 = new HashMap<>();
+        item5.put("key",WEIBOHOTTOPICSkey);
+        item5.put("name",WEIBOHOTTOPICS);
+        item5.put("mapContrast","contrastTopic");
+        item5.put("entityType","keywords");
+        item5.put("chapterType","chart");
+        chapterInfoForIndexTab.put("微博热点话题排行",item5);
+
+        HashMap<String,String> item6 = new HashMap<>();
+        item6.put("key",WORDCLOUDSTATISTICSkey);
+        item6.put("name",WORDCLOUDSTATISTICS);
+        item6.put("mapContrast","hitArticle");
+        item6.put("entityType","keywords;people;location;agency");
+        item6.put("chapterType","chart");
+        chapterInfoForIndexTab.put("词云统计",item6);
+
+        HashMap<String,String> item7 = new HashMap<>();
+        item7.put("key",AREAkey);
+        item7.put("name",AREA);
+        item7.put("mapContrast","hitArticle;mediaArea");
+        item7.put("keyStr","catalogArea;mediaArea");
+        item7.put("entityType","keywords");
+        item7.put("chapterType","chart");
+        chapterInfoForIndexTab.put("地域统计",item7);
         ROMAN2CHINESE = new HashMap<>();
         ROMAN2CHINESE.put(1, "一");
         ROMAN2CHINESE.put(2, "二");
@@ -325,5 +394,8 @@ public class ReportConst {
         CHAPTERS2METHODNEW.put(ACTIVEACCOUNTkey, "getActiveAccount");
 
     }
+
+
+
 
 }

@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.report.util;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -13,6 +14,7 @@ import com.trs.netInsight.widget.report.entity.ReportResource;
 import com.trs.netInsight.widget.report.entity.TElementNew;
 import com.trs.netInsight.widget.report.entity.TemplateNew;
 import com.trs.netInsight.widget.report.entity.repository.ReportResourceRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.text.NumberFormat;
@@ -29,6 +31,7 @@ import static com.trs.netInsight.widget.report.constant.ReportConst.*;
 /***
  * Created by shao.guangze on 2018/6/27
  */
+@Slf4j
 public class ReportUtil {
 
 	// 生成报告后需在页面上二次编辑，样式代码会原样显示在页面上，现决定将其去掉
@@ -953,5 +956,114 @@ public class ReportUtil {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * 将TOP10类型的列表json数据转换为List<ReportResource>并且给位置信息赋值
+	 *
+	 * @author shao.guangze
+	 */
+	public static List<ReportResource> top10list2RR(String jsonData, String chapter) {
+		if (StringUtils.isEmpty(jsonData)) {
+			return null;
+		}
+		jsonData = StringUtil.removeFourChar(jsonData);
+		List<Map<String, String>> lists = JSONObject.parseObject(jsonData, new TypeReference<List<Map<String, String>>>() {
+		});
+		List<ReportResource> listResult = new ArrayList<>();
+		int position = 0;
+		for (Map<String, String> map : lists) {
+			ReportResource reportResource = new ReportResource();
+			reportResource.setMd5Tag(map.get("md5Tag"));
+			if (StringUtil.isNotEmpty(map.get("urlTime")) && (new Long(map.get("urlTime")) > 345398400000L)) {
+				reportResource.setUrlDate(new Date(new Long(map.get("urlTime"))));
+			} else {
+				reportResource.setUrlDate(timeAgo2urlDate(map.get("timeAgo")));
+			}
+			//位置信息赋值
+			if ("新闻网站TOP10".equals(chapter) || "微博TOP10".equals(chapter) || "微信TOP10".equals(chapter)
+					|| "新闻热点话题".equals(chapter) || "微博热点话题".equals(chapter) || "新闻热点".equals(chapter)
+					|| "微博热点".equals(chapter) || "微信热点".equals(chapter) || "自媒体号热点".equals(chapter)
+					|| "新闻网站事件脉络".equals(chapter) || "微博事件脉络".equals(chapter) || "微信事件脉络".equals(chapter)
+					|| "自媒体号事件脉络".equals(chapter)) {
+				reportResource.setDocPosition(++position);
+			}
+			//专题报 改造  20191121
+			if ("新闻热点".equals(chapter) || "微博热点".equals(chapter) || "微信热点".equals(chapter)
+					|| "自媒体号热点".equals(chapter) || "新闻网站事件脉络".equals(chapter) || "微博事件脉络".equals(chapter)
+					|| "微信事件脉络".equals(chapter) || "自媒体号事件脉络".equals(chapter)) {
+				reportResource.setSimCount(map.get("simCount")!=null?map.get("simCount"):map.get("simNum"));
+				reportResource.setSimNum(map.get("simNum"));
+			}
+			reportResource.setTimeAgo(map.get("timeAgo"));
+			reportResource.setTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
+			reportResource.setUrlTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
+			reportResource.setUrlTitle(map.get("urlTitle"));
+			reportResource.setSiteName(map.get("siteName"));
+			reportResource.setSrcName(map.get("siteName"));
+			reportResource.setUrlName(map.get("urlName"));
+			reportResource.setTitle(map.get("title"));
+			reportResource.setAbstracts(map.get("abstracts"));
+			reportResource.setContent(StringUtil.isEmpty(map.get("content")) ? map.get("title") : map.get("content"));
+			reportResource.setSid(map.get("sid"));
+			reportResource.setGroupName(map.get("groupName"));
+			reportResource.setReportType("专报");
+			reportResource.setChapter(chapter);
+			reportResource.setId(UUID.randomUUID().toString().replace("-", ""));
+			//重新截取微博title
+			if (chapter.contains("微博")) {
+				String content = ReportUtil.replaceHtml(map.get("content"));
+				String subStr = "";
+				if (content == null)
+					content = ReportUtil.replaceHtml(map.get("title"));
+				if (content.length() > 160) {
+					subStr = content.substring(0, 160);
+				} else {
+					subStr = content.substring(0, content.length());
+				}
+				reportResource.setTitle(subStr);
+			}
+			listResult.add(reportResource);
+		}
+		return listResult;
+	}
+
+	public static Date timeAgo2urlDate(String timeAgo) {
+		Calendar cal = Calendar.getInstance();
+		if (StringUtils.isNotEmpty(timeAgo) && timeAgo.contains("分钟")) {
+			cal.add(Calendar.MINUTE, new Integer("-" + timeAgo.replace("分钟前", "")));
+		} else if (StringUtils.isNotEmpty(timeAgo) && timeAgo.contains("小时")) {
+			cal.add(Calendar.HOUR_OF_DAY, new Integer("-" + timeAgo.replace("小时前", "")));
+		} else if (StringUtils.isNotEmpty(timeAgo) && timeAgo.contains("天")) {
+			cal.add(Calendar.DAY_OF_MONTH, new Integer("-" + timeAgo.replace("天前", "")));
+		} else if (StringUtils.isNotEmpty(timeAgo) && timeAgo.contains(".")) {
+			try {
+				return new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").parse(timeAgo);
+			} catch (Exception e) {
+				return cal.getTime();
+			}
+		}
+		// Date -> 时间戳
+		return cal.getTime();
+	}
+
+	public static void  setEmptyData(ReportDataNew reportData, String chapterType, String chapterDetail) {
+		if (ReportConst.SINGLERESOURCE.equals(chapterType) && OVERVIEWOFDATAkey.equals(chapterDetail)) {
+			ReportResource overviewRR = new ReportResource();
+			overviewRR.setImgComment("暂无数据！");
+			overviewRR.setImg_data("暂无数据！");
+			reportData.setOverviewOfdata(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(overviewRR))));
+		} else {
+			ReportResource emptyResource = new ReportResource();
+			ArrayList<ReportResource> resources = new ArrayList<>();
+			resources.add(emptyResource);
+			String data = JSONArray.toJSONString(resources);
+			try {
+				reportData.getClass().getDeclaredMethod(CHAPTERS2METHODSETNEW.get(chapterDetail), String.class).invoke(reportData, data);
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.error("存储");
+			}
+		}
 	}
 }
