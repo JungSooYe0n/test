@@ -70,7 +70,7 @@ public class ReportUtil {
 		Object parse = JSONArray.parse(data);
 		List list = (List) parse;
 		if (list.size() > 0) {
-			if (((JSONObject) list.get(0)).getInteger("num") == null) {
+			if (((JSONObject) list.get(0)).getInteger("value") == null) {
 				// 进入折线图模式
 				return lineOverviewOfData(data);
 			}
@@ -79,7 +79,7 @@ public class ReportUtil {
 		ArrayList<Integer> arrayList = new ArrayList<Integer>();
 		for (int i = 0; i < list.size(); i++) {
 			JSONObject jObj = (JSONObject) list.get(i);
-			arrayList.add(jObj.getInteger("num"));
+			arrayList.add(jObj.getInteger("value"));
 		}
 		Collections.sort(arrayList);
 		IntSummaryStatistics collect = arrayList.stream().collect(Collectors.summarizingInt(value -> value));
@@ -88,12 +88,12 @@ public class ReportUtil {
 		numberFormat.setMinimumFractionDigits(2);
 		for (int i = 0; i < list.size(); i++) {
 			JSONObject jObj = (JSONObject) list.get(i);
-			strResult.append(jObj.getString("groupName") + "信息" + jObj.getInteger("num") + "条，信息占比"
-					+ numberFormat.format(jObj.getInteger("num").longValue() * 1.0 / collect.getSum()) + ",");
-			if (arrayList.get(arrayList.size() - 1).equals(jObj.getInteger("num"))) {
-				str1 = jObj.getString("groupName");
-			} else if (jObj.getInteger("num").equals(arrayList.get(arrayList.size() - 2))) {
-				str2 = jObj.getString("groupName");
+			strResult.append(jObj.getString("name") + "信息" + jObj.getInteger("value") + "条，信息占比"
+					+ numberFormat.format(jObj.getInteger("value").longValue() * 1.0 / collect.getSum()) + ",");
+			if (arrayList.get(arrayList.size() - 1).equals(jObj.getInteger("value"))) {
+				str1 = jObj.getString("name");
+			} else if (jObj.getInteger("value").equals(arrayList.get(arrayList.size() - 2))) {
+				str2 = jObj.getString("name");
 			}
 		}
 		strResult.append("由此可见，" + str1 + "报道数据量最多，" + "其次为" + str2 + "数据。");

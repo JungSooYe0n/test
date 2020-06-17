@@ -183,7 +183,7 @@ public class ReportResource extends BaseEntity {
 	@Column(name = "url_time")
 	private String urlTime;
 
-	@Column(name = "url_title")
+	@Column(name = "url_title",columnDefinition="TEXT")
 	private String urlTitle;
 
 	/***

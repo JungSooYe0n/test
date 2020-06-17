@@ -72,6 +72,8 @@ public class NavigationServiceImpl implements INavigationService {
 			NavigationConfig config7 = new NavigationConfig(NavigationEnum.share, "共享监测", 7, false, false, false);
 			NavigationConfig config8 = new NavigationConfig(NavigationEnum.square, "应用中心", 8, false, false, false);
 
+			NavigationConfig config9 = new NavigationConfig(NavigationEnum.monitoring, "数据监测", 9, false, false, false);
+			NavigationConfig config10 = new NavigationConfig(NavigationEnum.setup, "系统设置", 10, false, false, false);
 			// 要保存的
 			List<NavigationConfig> navigationListData = new ArrayList<>();
 			navigationListData.add(config1);
@@ -80,6 +82,7 @@ public class NavigationServiceImpl implements INavigationService {
 			navigationListData.add(config4);
 			//TODO 需要删除
 			navigationListData.add(config5); navigationListData.add(config6); navigationListData.add(config7); navigationListData.add(config8);
+			navigationListData.add(config9); navigationListData.add(config10);
 			if (navigationList == null || navigationList.size() == 0) {
 				// 为空 就添加原来的那些
 				return navigationRepository.save(navigationListData);

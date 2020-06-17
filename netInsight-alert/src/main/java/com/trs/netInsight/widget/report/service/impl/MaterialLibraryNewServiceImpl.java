@@ -24,6 +24,7 @@ import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.report.entity.repository.MaterialLibraryNewRepository;
 import com.trs.netInsight.widget.report.service.IMaterialLibraryNewService;
 import com.trs.netInsight.widget.report.service.IReportService;
+import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
 import org.apache.commons.lang3.StringUtils;
@@ -245,6 +246,7 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     String content = fav.getContent();
                     if (StringUtil.isNotEmpty(content)) {
                         content = StringUtil.replaceImg(content);
+                        content = StringUtil.filterEmoji(content);
                     }
                     fav.setContent(content);
 
@@ -253,6 +255,8 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     }else{
                         screenName = fav.getScreenName();
                     }
+                    screenName = StringUtil.replaceImg(screenName);
+                    screenName = StringUtil.filterEmoji(screenName);
                     String sid = fav.getSid();
                     if(Const.GROUPNAME_WEIBO.equals(fav.getGroupName())){
                         sid = fav.getMid();
@@ -1256,6 +1260,10 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             list.forEach(item -> {
                 if (item.getGroupName().equals("Twitter") || item.getGroupName().equals("Facebook") || item.getGroupName().equals("国内微信")){
                     item.setScreenName(item.getAuthors());
+                }
+                if (item.getGroupName().equals("微博")){
+                    item.setAbstracts(item.getTitle());
+                    item.setAuthor(item.getAuthors());
                 }
                 if(StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null) item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
                 item.setUrlTitle(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getUrlTitle())),Const.CONTENT_LENGTH));

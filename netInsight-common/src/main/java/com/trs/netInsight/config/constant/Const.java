@@ -198,9 +198,9 @@ public class Const {
      * 文章类型:来源-传统媒体 2018/3/12启用此常量 请慎重修改内容 PS:特别是删除
      */
     public static final List<String> MEDIA_TYPE_FINAL_NEWS = Arrays.asList("国外新闻", "传统媒体", "国内新闻", "新闻","新闻网站", "论坛", "博客",
-            "客户端", "电子报", "国内论坛", "国内博客", "国内新闻_电子报", "国内新闻_手机客户端", "境外媒体", "境外网站");
+            "客户端", "电子报", "国内论坛", "国内博客", "国内新闻_电子报", "国内新闻_手机客户端", "境外媒体", "境外网站","自媒体号");
 
-    public static final String TYPE_NEWS = "国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;境外媒体";
+    public static final String TYPE_NEWS = "国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;境外媒体;自媒体号";
     public static final String TYPE_TF = "FaceBook;Twitter";
     /**
      * 时间：2019-11-21
@@ -558,7 +558,7 @@ public class Const {
     /**
      * 数据源 - 自媒体
      */
-    public static final String GROUPNAME_ZIMEITI = "自媒体";
+    public static final String GROUPNAME_ZIMEITI = "自媒体号";
 
     /**
      * 数据源 - 国内论坛
