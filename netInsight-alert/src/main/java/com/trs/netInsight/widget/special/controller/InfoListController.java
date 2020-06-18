@@ -24,8 +24,10 @@ import com.trs.netInsight.util.*;
 import com.trs.netInsight.util.alert.AlertUtil;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.report.entity.Favourites;
@@ -96,6 +98,7 @@ public class InfoListController {
 
 	@Autowired
 	private ICommonListService commonListService;
+
 
 	/**
 	 * 是否走独立预警服务
@@ -968,9 +971,8 @@ public class InfoListController {
 	@FormatResult
 	@RequestMapping(value = "/getRealTimeInfo", method = RequestMethod.GET)
 	public Object getRealTimeInfo(@ApiParam("文章sid") @RequestParam("sid") String sid){
-    	return RedisUtil.getString(sid+" _present_data_info");
+    	return RedisUtil.getString(sid+"_present_data_info");
 	}
-
 	/**
 	 * 信息列表页单条的详情
 	 *
