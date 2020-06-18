@@ -8,7 +8,6 @@ public enum IndexTabChapter {
     DATATRENDANALYSIS(ReportConst.DATATRENDANALYSIS, ReportConst.CHART),
     DATASOURCEANALYSIS(ReportConst.DATASOURCEANALYSIS, ReportConst.CHART),
     EMOTIONANALYSIS(ReportConst.EMOTIONANALYSIS, ReportConst.CHART),
-    MOODSTATISTICS(ReportConst.MOODSTATISTICS, ReportConst.CHART),
 
     //活跃账号
     ACTIVEACCOUNT(ReportConst.ACTIVEACCOUNT,ReportConst.CHART),

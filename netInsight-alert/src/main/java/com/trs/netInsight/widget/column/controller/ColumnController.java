@@ -364,7 +364,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "excludeWordIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "xyTrsl", value = "XY轴检索表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开)", dataType = "String", paramType = "query", required = false),
@@ -387,7 +387,7 @@ public class ColumnController {
 						   @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
 						   @RequestParam(value = "keyWord", required = false) String keyWord,
 						   @RequestParam(value = "excludeWords", required = false) String excludeWords,
-						   @RequestParam(value = "excludeWordIndex", required = false) String excludeWordIndex,
+						   @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
 						   @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
 						   @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
 						   @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -493,7 +493,7 @@ public class ColumnController {
 		IndexTab indexTab = new IndexTab(name, trsl, keyWord, excludeWords, keyWordIndex, xyTrsl, type,
 				groupName, Integer.parseInt(sequence), timeRange, isSimilar,irSimflag, weight,irSimflagAll);
 		indexTab.setExcludeWeb(excludeWeb);
-		indexTab.setExcludeWordIndex(excludeWordIndex);
+		indexTab.setExcludeWordIndex(excludeWordsIndex);
 		indexTab.setContrast(contrast);
 		indexTab.setTabWidth(tabWidth);
 		indexTab.setSpecialType(specialType);
@@ -585,7 +585,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "excludeWordIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "xyTrsl", value = "XY轴检索表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开,默认为新闻)", dataType = "String", paramType = "query", required = false),
@@ -610,7 +610,7 @@ public class ColumnController {
 							  @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
 							  @RequestParam(value = "keyWord", required = false) String keyWord,
 							  @RequestParam(value = "excludeWords", required = false) String excludeWords,
-							  @RequestParam(value = "excludeWordIndex", required = false) String excludeWordIndex,
+							  @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
 							  @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
 							  @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
 							  @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -712,7 +712,7 @@ public class ColumnController {
 			indexTab.setTrsl(trsl);
 			indexTab.setKeyWord(keyWord);
 			indexTab.setExcludeWords(excludeWords);
-			indexTab.setExcludeWordIndex(excludeWordIndex);
+			indexTab.setExcludeWordIndex(excludeWordsIndex);
 			indexTab.setKeyWordIndex(keyWordIndex);
 			indexTab.setXyTrsl(xyTrsl);
 			indexTab.setGroupName(groupName);
@@ -954,8 +954,8 @@ public class ColumnController {
 			@ApiImplicitParam(name = "wordIndex", value = "关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "read", value = "阅读标记", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "excludeWeb", value = "排除网站  替换栏目条件", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "excludeWord", value = "排除关键词  替换栏目条件", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "excludeWordIndex", value = "排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "excludeWords", value = "排除关键词  替换栏目条件", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "updateWordForm", value = "修改词距标记 替换栏目条件", dataType = "Boolean", paramType = "query"),
 			@ApiImplicitParam(name = "wordFromNum", value = "词距间隔字符 替换栏目条件", dataType = "Integer", paramType = "query"),
 			@ApiImplicitParam(name = "wordFromSort", value = "词距是否排序  替换栏目条件", dataType = "Boolean", paramType = "query"),
@@ -979,8 +979,8 @@ public class ColumnController {
 							  @RequestParam(value = "wordIndex", required = false) String wordIndex,
 							  @RequestParam(value = "read", required = false) String read,
 							  @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-							  @RequestParam(value = "excludeWord", required = false) String excludeWord,
-							  @RequestParam(value = "excludeWordIndex", defaultValue = "1", required = false) String excludeWordIndex,
+							  @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							  @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
 							  @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
 							  @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
 							  @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
@@ -1051,8 +1051,8 @@ public class ColumnController {
 			}
 			indexTab.setExcludeWeb(excludeWeb);
 			//排除关键词
-			indexTab.setExcludeWordIndex(excludeWordIndex);
-			indexTab.setExcludeWords(excludeWord);
+			indexTab.setExcludeWordIndex(excludeWordsIndex);
+			indexTab.setExcludeWords(excludeWords);
 
 			//修改词距 选择修改词距时，才能修改词距
 			if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >= 0) {
@@ -1190,8 +1190,6 @@ public class ColumnController {
 			@ApiParam("图的页面类型") @RequestParam(value = "chartPage", required = false) String chartPage,
 			@ApiParam("来源") @RequestParam(value = "source", defaultValue = "ALL") String source,
 			@ApiParam("分类占比和单一媒体时 用于取得xy轴对应的表达式") @RequestParam(value = "key", required = false) String key,
-			/*@ApiParam("地域名（点地图进去）") @RequestParam(value = "area", defaultValue = "ALL") String area,
-			@ApiParam("词云点击进去") @RequestParam(value = "irKeyword", defaultValue = "ALL") String irKeyword,*/
 			@ApiParam("折线图 数据时间") @RequestParam(value = "dateTime", required = false) String dateTime,
 			@ApiParam("通用：keywords；人物：people；地域：location；机构：agency，当前点击的词的性质，不是当前图的性质") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
 			@ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false) String mapContrast,
@@ -1210,8 +1208,8 @@ public class ColumnController {
 			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
 			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
 			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
-			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
+			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
 			@ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
 			@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
 			@ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
@@ -1289,8 +1287,8 @@ public class ColumnController {
 			}
 			indexTab.setExcludeWeb(excludeWeb);
 			//排除关键词
-			indexTab.setExcludeWordIndex(excludeWordIndex);
-			indexTab.setExcludeWords(excludeWord);
+			indexTab.setExcludeWordIndex(excludeWordsIndex);
+			indexTab.setExcludeWords(excludeWords);
 
 			//修改词距 选择修改词距时，才能修改词距
 			if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >= 0) {
@@ -1342,8 +1340,8 @@ public class ColumnController {
 			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
 			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
 			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
-			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
+			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
 			@ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
 			@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
 			@ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
@@ -1392,8 +1390,8 @@ public class ColumnController {
 		}
 		indexTab.setExcludeWeb(excludeWeb);
 		//排除关键词
-		indexTab.setExcludeWordIndex(excludeWordIndex);
-		indexTab.setExcludeWords(excludeWord);
+		indexTab.setExcludeWordIndex(excludeWordsIndex);
+		indexTab.setExcludeWords(excludeWords);
 
 		//修改词距 选择修改词距时，才能修改词距
 		if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >= 0) {
@@ -1433,8 +1431,8 @@ public class ColumnController {
 			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
 			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
 			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
-			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
+			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
 			@ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
 			@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
 			@ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
@@ -1478,8 +1476,8 @@ public class ColumnController {
 		}
 		indexTab.setExcludeWeb(excludeWeb);
 		//排除关键词
-		indexTab.setExcludeWordIndex(excludeWordIndex);
-		indexTab.setExcludeWords(excludeWord);
+		indexTab.setExcludeWordIndex(excludeWordsIndex);
+		indexTab.setExcludeWords(excludeWords);
 
 		//修改词距 选择修改词距时，才能修改词距
 		if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(indexTab.getTrsl()) && wordFromNum >= 0) {

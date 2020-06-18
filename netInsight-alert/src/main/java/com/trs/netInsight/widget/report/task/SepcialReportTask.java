@@ -166,7 +166,7 @@ public class SepcialReportTask implements Runnable {
                         overviewRR.setImg_data(ReportUtil.getOverviewOfData(JSON.toJSONString(overviewOfDataResult)));
                         reportData.setOverviewOfdata(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(overviewRR))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.SINGLERESOURCE, OVERVIEWOFDATAkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.SINGLERESOURCE, OVERVIEWOFDATAkey);
                         log.error(OVERVIEWOFDATA, e);
                     }
                     reportDataNewRepository.saveOverviewOfdata(reportData.getOverviewOfdata(), reportData.getId());
@@ -188,7 +188,7 @@ public class SepcialReportTask implements Runnable {
                         situationAccess.setId(UUID.randomUUID().toString().replace("-", ""));
                         reportData.setSituationAccessment(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(situationAccess))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.CHART, SITUATIONACCESSMENTkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.CHART, SITUATIONACCESSMENTkey);
                         log.error(SITUATIONACCESSMENTkey, e);
                     }
                     reportDataNewRepository.saveSituationAccessment(reportData.getSituationAccessment(), reportData.getId());
@@ -215,7 +215,7 @@ public class SepcialReportTask implements Runnable {
 
                         reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.CHART, DATATRENDANALYSISkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.CHART, DATATRENDANALYSISkey);
                         log.error(DATATRENDANALYSIS, e);
                     }
                     reportDataNewRepository.saveDataTrendAnalysis(reportData.getDataTrendAnalysis(), reportData.getId());
@@ -242,7 +242,7 @@ public class SepcialReportTask implements Runnable {
                         dataSourceRR.setId(UUID.randomUUID().toString().replace("-", ""));
                         reportData.setDataSourceAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataSourceRR))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.CHART, DATASOURCEANALYSISkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.CHART, DATASOURCEANALYSISkey);
                         log.error(DATASOURCEANALYSIS, e);
                     }
                     reportDataNewRepository.saveDataSourceAnalysis(reportData.getDataSourceAnalysis(), reportData.getId());
@@ -276,7 +276,7 @@ public class SepcialReportTask implements Runnable {
 
                         reportData.setOpinionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.CHART, OPINIONANALYSISkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.CHART, OPINIONANALYSISkey);
                         log.error(OPININOANALYSIS, e);
                     }
                     reportDataNewRepository.saveOpinionAnalysis(reportData.getOpinionAnalysis(), reportData.getId());
@@ -300,7 +300,7 @@ public class SepcialReportTask implements Runnable {
                         emotionRR.setId(UUID.randomUUID().toString().replace("-", ""));
                         reportData.setEmotionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(emotionRR))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.CHART, EMOTIONANALYSISkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.CHART, EMOTIONANALYSISkey);
                         log.error(EMOTIONANALYSIS, e);
                     }
                     reportDataNewRepository.saveEmotionAnalysis(reportData.getEmotionAnalysis(), reportData.getId());
@@ -321,7 +321,7 @@ public class SepcialReportTask implements Runnable {
                         moodRR.setId(UUID.randomUUID().toString().replace("-", ""));
                         reportData.setMoodStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(moodRR))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.CHART, MOODSTATISTICSkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.CHART, MOODSTATISTICSkey);
                         log.error(MOODSTATISTICS, e);
                     }
                     reportDataNewRepository.saveMoodStatistics(reportData.getMoodStatistics(), reportData.getId());
@@ -374,7 +374,7 @@ public class SepcialReportTask implements Runnable {
                         wordCloudRR.setId(UUID.randomUUID().toString().replace("-", ""));
                         reportData.setWordCloudStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(wordCloudRR))));
                     }catch (Exception e){
-                        setEmptyData(reportData,ReportConst.CHART,WORDCLOUDSTATISTICSkey);
+                        ReportUtil.setEmptyData(reportData,ReportConst.CHART,WORDCLOUDSTATISTICSkey);
                         log.error(WORDCLOUDSTATISTICS,e);
                     }
                     reportDataNewRepository.saveWordCloudStatistics(reportData.getWordCloudStatistics(), reportData.getId());
@@ -413,7 +413,7 @@ public class SepcialReportTask implements Runnable {
                         areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
                         reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.CHART, AREAkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.CHART, AREAkey);
                         log.error(AREA, e);
                     }
                     reportDataNewRepository.saveArea(reportData.getArea(), reportData.getId());
@@ -430,9 +430,9 @@ public class SepcialReportTask implements Runnable {
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, NEWSHOTTOP10, (endMillis - startMillis)));
 
-                        reportData.setNewsHotTopics(ReportUtil.replaceHtml(JSON.toJSONString(top10list2RR(JSON.toJSONString(result), NEWSHOTTOP10))));
+                        reportData.setNewsHotTopics(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), NEWSHOTTOP10))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.LISTRESOURCES, NEWSHOTTOP10key);
+                        ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, NEWSHOTTOP10key);
                         log.error(NEWSHOTTOP10, e);
                     }
                     reportDataNewRepository.saveNewsHotTopics(reportData.getNewsHotTopics(), reportData.getId());
@@ -448,12 +448,12 @@ public class SepcialReportTask implements Runnable {
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEIBOHOTTOP10, (endMillis - startMillis)));
 
-                        reportData.setWeiboHotTopics(ReportUtil.replaceHtml(JSON.toJSONString(top10list2RR(JSON.toJSONString(result), WEIBOHOTTOP10))));
+                        reportData.setWeiboTop10(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WEIBOHOTTOP10))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.LISTRESOURCES, WEIBOHOTTOP10key);
+                        ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEIBOHOTTOP10key);
                         log.error(WEIBOHOTTOP10, e);
                     }
-                    reportDataNewRepository.saveWeiboHotTopics(reportData.getWeiboHotTopics(), reportData.getId());
+                    reportDataNewRepository.saveWeiboTop10(reportData.getWeiboTop10(), reportData.getId());
                     break;
                 case WECHATHOTTOP10key://（专题报 改造 20191121）
                     //列表，微博热点TOP10
@@ -465,9 +465,9 @@ public class SepcialReportTask implements Runnable {
                                 specialProject, rangeTime,8);
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WECHATHOTTOP10, (endMillis - startMillis)));
-                        reportData.setWechatHotTop10(ReportUtil.replaceHtml(JSON.toJSONString(top10list2RR(JSON.toJSONString(result), WECHATHOTTOP10))));
+                        reportData.setWechatHotTop10(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WECHATHOTTOP10))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.LISTRESOURCES, WECHATHOTTOP10key);
+                        ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WECHATHOTTOP10key);
                         log.error(WECHATHOTTOP10, e);
                     }
                     reportDataNewRepository.saveWechatHotTop10(reportData.getWechatHotTop10(), reportData.getId());
@@ -482,9 +482,9 @@ public class SepcialReportTask implements Runnable {
                                 specialProject, rangeTime,8);
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEMEDIA, (endMillis - startMillis)));
-                        reportData.setWeMediaHot(ReportUtil.replaceHtml(JSON.toJSONString(top10list2RR(JSON.toJSONString(result), WEMEDIA))));
+                        reportData.setWeMediaHot(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WEMEDIA))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.LISTRESOURCES, WEMEDIAkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEMEDIAkey);
                         log.error(WEMEDIA, e);
                     }
                     reportDataNewRepository.saveWeMediaHot(reportData.getWeMediaHot(), reportData.getId());
@@ -531,9 +531,9 @@ public class SepcialReportTask implements Runnable {
                         Collections.sort(listChuan, sort);
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, NEWSEVENTCONTEXT, (endMillis - startMillis)));
-                        reportData.setNewsEventContext(ReportUtil.replaceHtml(JSON.toJSONString(top10list2RR(JSON.toJSONString(listChuan), NEWSEVENTCONTEXT))));
+                        reportData.setNewsEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listChuan), NEWSEVENTCONTEXT))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.LISTRESOURCES, NEWSEVENTCONTEXTkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, NEWSEVENTCONTEXTkey);
                         log.error(NEWSEVENTCONTEXT, e);
                     }
                     reportDataNewRepository.saveNewsEventContex(reportData.getNewsEventContext(), reportData.getId());
@@ -560,9 +560,9 @@ public class SepcialReportTask implements Runnable {
                         }
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEIBOEVENTCONTEXT, (endMillis - startMillis)));
-                        reportData.setWeiboEventContext(ReportUtil.replaceHtml(JSON.toJSONString(top10list2RR(JSON.toJSONString(ftsQueryWeiBo), WEIBOEVENTCONTEXT))));
+                        reportData.setWeiboEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(ftsQueryWeiBo), WEIBOEVENTCONTEXT))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.LISTRESOURCES, WEIBOEVENTCONTEXTkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEIBOEVENTCONTEXTkey);
                         log.error(WEIBOEVENTCONTEXT, e);
                     }
                     reportDataNewRepository.saveWeiboEventContex(reportData.getWeiboEventContext(), reportData.getId());
@@ -609,9 +609,9 @@ public class SepcialReportTask implements Runnable {
 
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WECHATEVENTCONTEXT, (endMillis - startMillis)));
-                        reportData.setWechatEventContext(ReportUtil.replaceHtml(JSON.toJSONString(top10list2RR(JSON.toJSONString(listweixin), WECHATEVENTCONTEXT))));
+                        reportData.setWechatEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listweixin), WECHATEVENTCONTEXT))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.LISTRESOURCES, WECHATEVENTCONTEXTkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WECHATEVENTCONTEXTkey);
                         log.error(WECHATEVENTCONTEXT, e);
                     }
                     reportDataNewRepository.saveWechatEventContex(reportData.getWechatEventContext(), reportData.getId());
@@ -659,9 +659,9 @@ public class SepcialReportTask implements Runnable {
                         Collections.sort(listzimeiti, sort3);
                         endMillis = System.currentTimeMillis();
                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEMEDIAEVENTCONTEXT, (endMillis - startMillis)));
-                        reportData.setWemediaEventContext(ReportUtil.replaceHtml(JSON.toJSONString(top10list2RR(JSON.toJSONString(listzimeiti), WEMEDIAEVENTCONTEXT))));
+                        reportData.setWemediaEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listzimeiti), WEMEDIAEVENTCONTEXT))));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.LISTRESOURCES, WEMEDIAEVENTCONTEXTkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEMEDIAEVENTCONTEXTkey);
                         log.error(WEMEDIAEVENTCONTEXT, e);
                     }
                     reportDataNewRepository.saveWemediaEventContex(reportData.getWemediaEventContext(), reportData.getId());
@@ -686,7 +686,7 @@ public class SepcialReportTask implements Runnable {
                         accountRR.setId(UUID.randomUUID().toString().replace("-", ""));
                         reportData.setActiveAccount(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(accountRR)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")));
                     } catch (Exception e) {
-                        setEmptyData(reportData, ReportConst.CHART, ACTIVEACCOUNTkey);
+                        ReportUtil.setEmptyData(reportData, ReportConst.CHART, ACTIVEACCOUNTkey);
                         log.error(ACTIVEACCOUNT, e);
                     }
                     reportDataNewRepository.saveActiveAccount(reportData.getActiveAccount(), reportData.getId());
@@ -701,33 +701,6 @@ public class SepcialReportTask implements Runnable {
 
         reportData.setDoneFlag(1);
         reportDataNewRepository.saveDoneFlag(1, reportData.getId());
-    }
-
-    /***
-     * 意思是该模块的数据已经被计算过，但没计算出数据来
-     * 如果不做处理直接是null的话，你不能知道该章节是没计算还是计算出异常了
-     * @param reportData
-     * @param chapterType
-     * @param chapterDetail
-     */
-    private void setEmptyData(ReportDataNew reportData, String chapterType, String chapterDetail) {
-        if (ReportConst.SINGLERESOURCE.equals(chapterType) && OVERVIEWOFDATAkey.equals(chapterDetail)) {
-            ReportResource overviewRR = new ReportResource();
-            overviewRR.setImgComment("暂无数据！");
-            overviewRR.setImg_data("暂无数据！");
-            reportData.setOverviewOfdata(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(overviewRR))));
-        } else {
-            ReportResource emptyResource = new ReportResource();
-            ArrayList<ReportResource> resources = new ArrayList<>();
-            resources.add(emptyResource);
-            String data = JSONArray.toJSONString(resources);
-            try {
-                reportData.getClass().getDeclaredMethod(CHAPTERS2METHODSETNEW.get(chapterDetail), String.class).invoke(reportData, data);
-            } catch (Exception e) {
-                e.printStackTrace();
-                log.error("存储");
-            }
-        }
     }
 
     private void groupResult2MapList(GroupResult groupResult, List<Map<String, Object>> mapList, String groupName) throws Exception {
@@ -840,94 +813,6 @@ public class SepcialReportTask implements Runnable {
         return indexTab;
     }
 
-    /**
-     * 将TOP10类型的列表json数据转换为List<ReportResource>并且给位置信息赋值
-     *
-     * @author shao.guangze
-     */
-    private List<ReportResource> top10list2RR(String jsonData, String chapter) {
-        if (StringUtils.isEmpty(jsonData)) {
-            return null;
-        }
-        jsonData = StringUtil.removeFourChar(jsonData);
-        List<Map<String, String>> lists = JSONObject.parseObject(jsonData, new TypeReference<List<Map<String, String>>>() {
-        });
-        List<ReportResource> listResult = new ArrayList<>();
-        int position = 0;
-        for (Map<String, String> map : lists) {
-            ReportResource reportResource = new ReportResource();
-            reportResource.setMd5Tag(map.get("md5Tag"));
-            if (StringUtil.isNotEmpty(map.get("urlTime")) && (new Long(map.get("urlTime")) > 345398400000L)) {
-                reportResource.setUrlDate(new Date(new Long(map.get("urlTime"))));
-            } else {
-                reportResource.setUrlDate(timeAgo2urlDate(map.get("timeAgo")));
-            }
-            //位置信息赋值
-            if ("新闻网站TOP10".equals(chapter) || "微博TOP10".equals(chapter) || "微信TOP10".equals(chapter)
-                    || "新闻热点话题".equals(chapter) || "微博热点话题".equals(chapter) || "新闻热点".equals(chapter)
-                    || "微博热点".equals(chapter) || "微信热点".equals(chapter) || "自媒体号热点".equals(chapter)
-                    || "新闻网站事件脉络".equals(chapter) || "微博事件脉络".equals(chapter) || "微信事件脉络".equals(chapter)
-                    || "自媒体号事件脉络".equals(chapter)) {
-                reportResource.setDocPosition(++position);
-            }
-            //专题报 改造  20191121
-            if ("新闻热点".equals(chapter) || "微博热点".equals(chapter) || "微信热点".equals(chapter)
-                    || "自媒体号热点".equals(chapter) || "新闻网站事件脉络".equals(chapter) || "微博事件脉络".equals(chapter)
-                    || "微信事件脉络".equals(chapter) || "自媒体号事件脉络".equals(chapter)) {
-                reportResource.setSimCount(map.get("simCount")!=null?map.get("simCount"):map.get("simNum"));
-                reportResource.setSimNum(map.get("simNum"));
-            }
-            reportResource.setTimeAgo(map.get("timeAgo"));
-            reportResource.setTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
-            reportResource.setUrlTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
-            reportResource.setUrlTitle(map.get("urlTitle"));
-            reportResource.setSiteName(map.get("siteName"));
-            reportResource.setSrcName(map.get("siteName"));
-            reportResource.setUrlName(map.get("urlName"));
-            reportResource.setTitle(map.get("title"));
-            reportResource.setAbstracts(map.get("abstracts"));
-            reportResource.setContent(StringUtil.isEmpty(map.get("content")) ? map.get("title") : map.get("content"));
-            reportResource.setSid(map.get("sid"));
-            reportResource.setGroupName(map.get("groupName"));
-            reportResource.setReportType("专报");
-            reportResource.setChapter(chapter);
-            reportResource.setId(UUID.randomUUID().toString().replace("-", ""));
-            //重新截取微博title
-            if (chapter.contains("微博")) {
-                String content = ReportUtil.replaceHtml(map.get("content"));
-                String subStr = "";
-                if (content == null)
-                    content = ReportUtil.replaceHtml(map.get("title"));
-                if (content.length() > 160) {
-                    subStr = content.substring(0, 160);
-                } else {
-                    subStr = content.substring(0, content.length());
-                }
-                reportResource.setTitle(subStr);
-            }
-            listResult.add(reportResource);
-        }
-        return listResult;
-    }
-
-    private Date timeAgo2urlDate(String timeAgo) {
-        Calendar cal = Calendar.getInstance();
-        if (StringUtils.isNotEmpty(timeAgo) && timeAgo.contains("分钟")) {
-            cal.add(Calendar.MINUTE, new Integer("-" + timeAgo.replace("分钟前", "")));
-        } else if (StringUtils.isNotEmpty(timeAgo) && timeAgo.contains("小时")) {
-            cal.add(Calendar.HOUR_OF_DAY, new Integer("-" + timeAgo.replace("小时前", "")));
-        } else if (StringUtils.isNotEmpty(timeAgo) && timeAgo.contains("天")) {
-            cal.add(Calendar.DAY_OF_MONTH, new Integer("-" + timeAgo.replace("天前", "")));
-        } else if (StringUtils.isNotEmpty(timeAgo) && timeAgo.contains(".")) {
-            try {
-                return new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").parse(timeAgo);
-            } catch (Exception e) {
-                return cal.getTime();
-            }
-        }
-        // Date -> 时间戳
-        return cal.getTime();
-    }
 
     /**
      * 根据类型生成对应表达式

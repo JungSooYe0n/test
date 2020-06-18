@@ -2353,12 +2353,13 @@ public class DateUtil {
 		LocalDateTime end_Time = LocalDateTime.parse(endTime, dtf);
 		LocalDateTime mid_Time1 = start_Time.plusHours(24);
 		LocalDateTime mid_Time2 = start_Time.plusHours(48);
+		//折线图改为 不管是通栏还是半栏，只要是48小时内，就默认按小时展示
 		if (mid_Time1.isAfter(end_Time)) {//在时间范围内返回true//小于24小时  按小时展示且不分组
 			return 0;
 		} else if (mid_Time2.isAfter(end_Time) && flag) {//小于48且是通栏  需要分组
 			return 1;
 		} else if (mid_Time2.isAfter(end_Time) && !flag) {//小于48且是半栏
-			return 2;
+			return 1;
 		} else {//大于48  按天
 			return 3;
 		}

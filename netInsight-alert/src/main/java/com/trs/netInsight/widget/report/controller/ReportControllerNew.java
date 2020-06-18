@@ -533,6 +533,23 @@ public class ReportControllerNew {
 		return result;
 	}
 
+	/**
+	 * 供页面轮询查看专报数据。此时用户并没有选择某个模板(分组)
+	 * @author shao.guangze
+	 * @param reportId
+	 * @return
+	 * @throws ParseException
+	 */
+	@ApiOperation("供页面轮询查看专报数据。此时用户并没有选择某个模板")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true)})
+	@RequestMapping(value = "/indexTabPreview", method = RequestMethod.GET)
+	@FormatResult
+	public Object findIndexTabReportData(@RequestParam(value = "reportId",required = false)String reportId) throws ParseException{
+		List<Object> result = sepcialReportService.findIndexTabData(reportId);
+		return result;
+	}
+
 
 	/**
 	 *
