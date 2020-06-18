@@ -85,15 +85,15 @@ public class CommonListColumn extends AbstractColumn {
 				map.put("md5", vo.getMd5Tag());
 				String title= vo.getTitle();
 				if(StringUtil.isNotEmpty(title)){
-					title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
+					title = StringUtil.replacePartOfHtml(StringUtil.cutContentByFont(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
 				}
 				map.put("title", title);
 				String content = "";
 				if (StringUtil.isNotEmpty(vo.getContent())) {
-					content = StringUtil.cutContentPro(StringUtil.replaceImg(vo.getContent()), Const.CONTENT_LENGTH);
+					content = StringUtil.cutContentByFont(StringUtil.replaceImg(vo.getContent()), Const.CONTENT_LENGTH);
 				}
 				if (StringUtil.isNotEmpty(vo.getAbstracts())) {
-					vo.setAbstracts(StringUtil.cutContentPro(StringUtil.replaceImg(vo.getAbstracts()), Const.CONTENT_LENGTH));
+					vo.setAbstracts(StringUtil.cutContentByFont(StringUtil.replaceImg(vo.getAbstracts()), Const.CONTENT_LENGTH));
 				}
 				if("1".equals(super.config.getIndexTab().getKeyWordIndex())){
 					//摘要
