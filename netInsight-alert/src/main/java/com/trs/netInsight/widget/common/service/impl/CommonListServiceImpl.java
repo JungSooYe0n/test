@@ -90,11 +90,11 @@ public class CommonListServiceImpl implements ICommonListService {
                 if (StringUtil.isNotEmpty(document.getContent())) {
                     content = StringUtil.replaceImg(document.getContent());
                     document.setExportContent(content);
-                    document.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
-                    document.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
+                    document.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
+                    document.setStatusContent(StringUtil.cutContentByFont(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
                 }
                 if (StringUtil.isNotEmpty(document.getAbstracts())) {
-                    document.setAbstracts(StringUtil.cutContentPro(StringUtil.replaceImg(document.getAbstracts()), Const.CONTENT_LENGTH));
+                    document.setAbstracts(StringUtil.cutContentByFont(StringUtil.replaceImg(document.getAbstracts()), Const.CONTENT_LENGTH));
                 }
                 if (StringUtil.isNotEmpty(document.getTitle())) {
                     document.setTitle(StringUtil.replaceAnnotation(document.getTitle()).replace("&amp;nbsp;", ""));

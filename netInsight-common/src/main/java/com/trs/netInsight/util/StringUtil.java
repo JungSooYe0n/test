@@ -40,6 +40,8 @@ public final class StringUtil {
 	public static final String video2 = "(?=&lt;AUDIO&nbsp;SRC=).+?(?=&quot;&gt;)";
 	public static final String videoSuffix1 = "&lt;/video&gt;";
 	public static final String videoSuffix2 = "</video>";
+	public static final String aHref1 = "(?=&lt;a).+?(?=&quot;&gt;)";
+	public static final String aHref2 = "(?=<a).+?(?=&quot;>)";
 	public static final String gt = "&gt;";
 	public static final String rn = "\r\n";
 	public static final String annotation1 = "(?=&lt;!--).+?(?=--&gt;)";
@@ -260,6 +262,8 @@ public final class StringUtil {
 		content = content.replaceAll(video2,"");
 		content = content.replaceAll(videoSuffix1,"");
 		content = content.replaceAll(videoSuffix2,"");
+		content = content.replaceAll(aHref1,"");
+		content = content.replaceAll(aHref2,"");
 
 		//去掉多余的注释标签
 		content = content.replaceAll(annotation1,"");
@@ -687,6 +691,115 @@ public final class StringUtil {
 			content = content.substring(0, size);
 			return content + "...";
 		}
+	}
+
+	/*
+	 * @Description: 截取正文 - 在命中第一个font标签的情况下，截取100个字符
+	 */
+	public static String cutContentByFont(String content, int size) {
+		if(content.length()<=size){
+			return content;
+		}
+		if (content.length() > size && content.contains(font1)) {
+			//需要截取文本  注意 截取的文本必须保证是一对font标签
+			int avgSize = size/2;
+			// 找到第一个font标签开始位置
+			int startPosition = content.indexOf(font1);
+			//找到第一个font标签结束位置
+			int endPosition = content.indexOf(font2)+7;
+			//第一个标红字体的长度 - 算上标签
+			int redWord = endPosition-startPosition;
+			int countLength = content.length();
+			String contentNew = content;
+			if(redWord > size){ //标红比截取长,直接截取标红+。。。
+				contentNew= contentNew.substring(startPosition,endPosition);
+				return contentNew+"...";
+			}else{
+				if(countLength == endPosition){
+					// 标红标签比截取长度短，且文本总长大于截取长度，只有一个标签，且结尾在文本结尾
+					contentNew= contentNew.substring(endPosition-size,endPosition);
+					return contentNew+"...";
+				}else{
+					int startCut = 0;
+					int endCut = size;
+					int  fontAvg = (startPosition+ endPosition) /2;
+					//1、开头标签在中点前，结尾标签在要截取的总长前，从头按要截取的总长截取
+					if(startPosition < avgSize){
+						if( endPosition >size){ //结尾标签在要截取的总长后，需要重新计算截取长度
+							//截取 以标红为中心截取
+							startCut = fontAvg-avgSize;
+							endCut = fontAvg+avgSize;
+						}
+					}else if(startPosition >=avgSize && startPosition > countLength-size){ //3、开头标签在中点后，且整体都在文本结尾处
+						endCut = countLength;
+						startCut = countLength-size;
+
+					}else{//2、第一组font标签整个都在后半段中且截取只需要判断开头结尾标签，在中间即可
+						startCut = fontAvg-avgSize;
+						endCut = fontAvg+avgSize;
+					}
+					contentNew= contentNew.substring(startCut,endCut);
+					/*
+					需要判断截取的内容是否截取到的font标签中间
+					 1、截取到了第一个font中间
+					<font color=red>  之间
+					也是找到结尾标签 可能不存在标签了，则保持原来的
+					-- 截取到的标签成组，需要判断剩下的字符串 里面的第一个标签是结尾还是开头，
+					2、在一对中间，正好是分割了
+					<font color=red> </font>  之间如果是这样直接 找到后边那个，截取
+					截取到的部分 标签不成组
+					3、结尾标签中间
+					</font>
+					找到结尾标签。 截取到的部分 标签不成组
+					 */
+
+					int startFont = getNumForString(contentNew,font1);
+					int endFont = getNumForString(contentNew,font2);
+					String contentOther = content.substring(endCut,countLength);
+					if(startFont == endFont){
+						// 找到剩余字符串第一个font标签开始位置
+						int startOther = contentOther.indexOf(font1);
+						//找到剩余字符串第一个font标签结束位置
+						int endOther = contentOther.indexOf(font2)+7;
+						if(startOther > endOther || (startOther == -1 && endOther != -1)){
+							endCut = endCut + endOther;
+						}
+					}else{
+						//这是相对 截取到的文本算的
+						int lastFont1 = contentNew.lastIndexOf(font1);
+						//找到被截断的标红串
+						String cutStr = contentNew.substring(lastFont1,contentNew.length());
+						contentOther = cutStr+contentOther;
+						int startOther = contentOther.indexOf(font1);
+						//找到剩余字符串第一个font标签结束位置
+						int endOther = contentOther.indexOf(font2)+7;
+						endCut = startCut + lastFont1 +(endOther-startOther);//这个需要计算，存在标红是不同字符的情况
+					}
+					if(endCut > countLength){
+						endCut = countLength;
+					}
+					contentNew= content.substring(startCut,endCut);
+					if(contentNew.equals(content)){
+						return contentNew;
+					}else{
+						return contentNew + "...";
+					}
+				}
+			}
+		}else{
+			content = content.substring(0, size);
+			return content + "...";
+		}
+	}
+
+	private static int getNumForString(String str,String pattern){
+		int i = 0;
+		Pattern p = Pattern.compile(pattern);
+		Matcher m = p.matcher(str);
+		while (m.find()) {
+			i++;
+		}
+		return i;
 	}
 
 	/***
