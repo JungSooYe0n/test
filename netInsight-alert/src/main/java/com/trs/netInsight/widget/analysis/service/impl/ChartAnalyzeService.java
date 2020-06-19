@@ -29,6 +29,7 @@ import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.*;
 import com.trs.netInsight.widget.analysis.enums.ChartType;
+import com.trs.netInsight.widget.analysis.enums.SpecialChartType;
 import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
@@ -3040,6 +3041,11 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
     @Override
 	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange, SpecialParam specParam) {
+		return null;
+	}
+
+	@Override
+	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType) throws IOException {
 		return null;
 	}
 

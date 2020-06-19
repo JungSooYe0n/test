@@ -24,12 +24,14 @@ import com.trs.netInsight.support.fts.model.result.GroupWordInfo;
 import com.trs.netInsight.support.fts.model.result.GroupWordResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.support.report.excel.DataRow;
 import com.trs.netInsight.support.report.excel.ExcelData;
 import com.trs.netInsight.support.report.excel.ExcelFactory;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.*;
 import com.trs.netInsight.widget.analysis.enums.ChartType;
+import com.trs.netInsight.widget.analysis.enums.SpecialChartType;
 import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
@@ -39,6 +41,7 @@ import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
+import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.spread.entity.GraphMap;
 import com.trs.netInsight.widget.spread.entity.SinaUser;
@@ -1193,7 +1196,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					}
 					if ("HOUR".equals(String.valueOf(dateType))) {
 						dateList = DateUtil.get24Hours();
-						//同日常监测 最后一个小时不看
+						//同专题分析 最后一个小时不看
 						dateList.remove(dateList.size() - 1);
 					}*/
 					dateList = DateUtil.getStartToEndOfHour(arrays[0], arrays[1]);
@@ -1700,7 +1703,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					}
 					if ("HOUR".equals(String.valueOf(dateType))) {
 						dateList = DateUtil.get24Hours();
-						//同日常监测 最后一个小时不看
+						//同专题分析 最后一个小时不看
 						dateList.remove(dateList.size() - 1);
 					}*/
 					dateList = DateUtil.getStartToEndOfHour(arrays[0], arrays[1]);
@@ -4941,6 +4944,150 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
+	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType) throws IOException {
+		ExcelData content = new ExcelData();
+		if (specialChartType != null) {
+			if (StringUtil.isNotEmpty(data)) {
+				if (SpecialChartType.CHART_LINE.equals(specialChartType)) {
+					JSONObject object = JSONObject.parseObject(data);
+					exportChartLine(object, content);
+				}else{
+					JSONArray array = JSONObject.parseArray(data);
+					if (SpecialChartType.WORD_CLOUD.equals(specialChartType)) {
+						exportWordCloud(array, content);
+					} else if (SpecialChartType.MAP.equals(specialChartType)) {
+						exportMap(array, content);
+					} else if (SpecialChartType.CHART_BAR.equals(specialChartType) || SpecialChartType.CHART_PIE.equals(specialChartType)) {
+						exportData(array, content,ExcelConst.HEAD_PIE_BAR);
+					}else if (SpecialChartType.CHART_PIE_EMOTION.equals(specialChartType)) {
+						exportData(array, content,ExcelConst.EMOTION_DATA);
+					}  else if (SpecialChartType.CHART_BAR_CROSS.equals(specialChartType)) {
+						exportDataBarCross(array, content);
+						return ExcelFactory.getInstance().exportOfManySheet(content);
+					}
+				}
+			}
+		}
+		return ExcelFactory.getInstance().export(content);
+	}
+	/**
+	 * 专题分析饼图和柱状图数据的导出
+	 */
+	private void exportData(JSONArray array,ExcelData content,String[] head ) throws IOException {
+
+		content.setHead(head);  // { "媒体来源", "数值"}
+		for (Object object : array) {
+			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
+
+			String groupNameValue = parseObject.get("name").toString();
+			String pageShowGroupName = CommonListChartUtil.formatPageShowGroupName(groupNameValue);
+			if(StringUtil.isNotEmpty(pageShowGroupName)){
+				groupNameValue =  pageShowGroupName;
+			}
+			String numValue = parseObject.get("value").toString();
+			content.addRow(groupNameValue, numValue);
+		}
+	}
+
+	private void exportDataBarCross(JSONArray array,ExcelData content) throws IOException {
+		for(Object object : array){
+			JSONObject jsonObject = JSONObject.parseObject(String.valueOf(object));
+			String keyName = jsonObject.getString("name");
+			JSONArray infoArr = jsonObject.getJSONArray("info");
+			content.putHeadMap(keyName, Arrays.asList(ExcelConst.HEAD_PIE_BAR));
+			if(infoArr != null && infoArr.size() >0 ){
+				for(Object info : infoArr){
+					JSONObject infoObject = JSONObject.parseObject(String.valueOf(info));
+					String name = infoObject.getString("name");
+					if(StringUtil.isNotEmpty(name)){
+						String value = infoObject.getString("value");
+						List<DataRow> rowList = new ArrayList<>();
+						rowList.add(new DataRow(name));
+						rowList.add(new DataRow(value));
+						content.putSheet(keyName, rowList);
+					}
+				}
+			}else{
+				content.putSheet(keyName, new ArrayList<DataRow>());
+			}
+		}
+	}
+
+	private void exportChartLine(JSONObject jsonObject,ExcelData content) throws IOException {
+
+		JSONObject single = jsonObject.getJSONObject("single");
+
+		JSONArray groupNameArr = single.getJSONArray("legendData");
+		JSONArray timeArr = single.getJSONArray("lineXdata");
+		JSONArray countArr = single.getJSONArray("lineYdata");
+
+		List<String> headList = new ArrayList<>();
+		headList.add("");
+		for (Object group : groupNameArr) {
+			headList.add(String.valueOf(group));
+		}
+		String[] header = new String[headList.size()];
+		header = headList.toArray(header);
+		content.setHead(header);
+		List<String[]> arrayList = new ArrayList<>();
+
+		for(int i = 0;i<timeArr.size();i++){
+			String[] rowData = new String[headList.size()];
+			rowData[0] =  String.valueOf(timeArr.get(i));
+			int j = 1;
+			for(Object count : countArr){
+				JSONArray oneCount = JSONObject.parseArray(String.valueOf(count));
+				rowData[j] = String.valueOf(oneCount.get(i));
+				j++;
+			}
+			arrayList.add(rowData);
+		}
+		for (String[] strings : arrayList) {
+			content.addRow(strings);
+		}
+	}
+
+	/**
+	 * 词云数据的导出
+	 */
+	private void exportWordCloud(JSONArray array,ExcelData content) throws IOException {
+		content.setHead(ExcelConst.HEAD_WORDCLOUD); // {"词语", "所属分组", "信息数量"}
+		for (Object object : array) {
+			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
+
+			String word = parseObject.get("name").toString();
+			String count = parseObject.get("value").toString();
+			String entityType = parseObject.get("entityType").toString();
+			String group = "";
+			if ("people".equals(entityType)){
+				group = "人物";
+			}else if("location".equals(entityType)){
+				group = "地域";
+			}else if( "agency".equals(entityType)){
+				group = "机构";
+			}
+			content.addRow(word, group, count);
+		}
+	}
+
+	/**
+	 * 地域图数据的导出
+	 */
+	private void exportMap(JSONArray array,ExcelData content) throws IOException {
+		content.setHead(ExcelConst.HEAD_MAP); // { "地域", "信息数量"};
+		array.sort(Comparator.comparing(obj -> {
+			JSONObject parseObject = JSONObject.parseObject(String.valueOf(obj));
+			Long value = parseObject.getLongValue("value");
+			return value;
+		}).reversed());
+		for (Object object : array) {
+			JSONObject parseObject = JSONObject.parseObject(String.valueOf(object));
+			String areaName = parseObject.get("name").toString();
+			String areaCount = parseObject.get("value").toString();
+			content.addRow(areaName, areaCount);
+		}
+	}
+	@Override
 	public ByteArrayOutputStream exportBarOrPieData(String dataType,JSONArray array) throws IOException {
 		ExcelData content = new ExcelData();
 		if ("情感分析".equals(dataType)){
@@ -5127,13 +5274,20 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					vo.setAbstracts(StringUtil.cutContentByFont(StringUtil.replaceImg(vo.getAbstracts()), Const.CONTENT_LENGTH));
 				}
 				//摘要
-				map.put("abstracts", vo.getAbstracts());
+//				map.put("abstracts", vo.getAbstracts());
 
 				map.put("nreserved1", null);
 				map.put("hkey", null);
 				if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
 					map.put("nreserved1", vo.getNreserved1());
 					map.put("hkey", vo.getHkey());
+				}
+				if(SearchScope.TITLE_CONTENT.equals(specialProject.getSearchScope())){
+					//摘要
+					map.put("abstracts", vo.getContent());
+				}else{
+					//摘要
+					map.put("abstracts", vo.getAbstracts());
 				}
 				map.put("urlName", vo.getUrlName());
 				//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
