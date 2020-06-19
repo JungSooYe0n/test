@@ -166,6 +166,8 @@ public class ReportConst {
         item0.put("mapContrast","contrastGroup");
         item0.put("entityType","keywords");
         item0.put("chapterType","SingleResource");
+        //当前模块的数据可以来自 统计分析中的哪一种图
+        item0.put("StatisticalChartInfo","CHART_PIE");
         chapterInfoForIndexTab.put("数据统计概述",item0);
 
         HashMap<String,String> item1 = new HashMap<>();
@@ -175,6 +177,8 @@ public class ReportConst {
         item1.put("showType","day;hour");
         item1.put("entityType","keywords");
         item1.put("chapterType","chart");
+        //当前模块的数据可以来自 统计分析中的哪一种图
+        item1.put("StatisticalChartInfo","CHART_LINE");
         chapterInfoForIndexTab.put("各舆论场趋势分析",item1);
 
         HashMap<String,String> item2 = new HashMap<>();
@@ -183,6 +187,8 @@ public class ReportConst {
         item2.put("mapContrast","contrastGroup");
         item2.put("entityType","keywords");
         item2.put("chapterType","chart");
+        //当前模块的数据可以来自 统计分析中的哪一种图
+        item2.put("StatisticalChartInfo","CHART_PIE");
         chapterInfoForIndexTab.put("媒体来源占比",item2);
 
         HashMap<String,String> item3 = new HashMap<>();
@@ -191,6 +197,8 @@ public class ReportConst {
         item3.put("mapContrast","contrastEmotion");
         item3.put("entityType","keywords");
         item3.put("chapterType","chart");
+        //当前模块的数据可以来自 统计分析中的哪一种图
+        item3.put("StatisticalChartInfo","CHART_PIE_EMOTION");
         chapterInfoForIndexTab.put("正负面占比",item3);
 
         HashMap<String,String> item4 = new HashMap<>();
@@ -199,6 +207,8 @@ public class ReportConst {
         item4.put("mapContrast","contrastSite");
         item4.put("entityType","keywords");
         item4.put("chapterType","chart");
+        //当前模块的数据可以来自 统计分析中的哪一种图
+        item4.put("StatisticalChartInfo","CHART_BAR_CROSS");
         chapterInfoForIndexTab.put("活跃帐号",item4);
 
         HashMap<String,String> item5 = new HashMap<>();
@@ -207,6 +217,8 @@ public class ReportConst {
         item5.put("mapContrast","contrastTopic");
         item5.put("entityType","keywords");
         item5.put("chapterType","chart");
+        //当前模块的数据可以来自 统计分析中的哪一种图
+        item5.put("StatisticalChartInfo","HOT_TOPIC_SORT");
         chapterInfoForIndexTab.put("微博热点话题排行",item5);
 
         HashMap<String,String> item6 = new HashMap<>();
@@ -215,6 +227,8 @@ public class ReportConst {
         item6.put("mapContrast","hitArticle");
         item6.put("entityType","keywords;people;location;agency");
         item6.put("chapterType","chart");
+        //当前模块的数据可以来自 统计分析中的哪一种图
+        item6.put("StatisticalChartInfo","WORD_CLOUD");
         chapterInfoForIndexTab.put("词云统计",item6);
 
         HashMap<String,String> item7 = new HashMap<>();
@@ -224,7 +238,11 @@ public class ReportConst {
         item7.put("keyStr","catalogArea;mediaArea");
         item7.put("entityType","keywords");
         item7.put("chapterType","chart");
+        //当前模块的数据可以来自 统计分析中的哪一种图
+        item7.put("StatisticalChartInfo","MAP");
         chapterInfoForIndexTab.put("地域统计",item7);
+        // 上面为日常监测的模板
+
         ROMAN2CHINESE = new HashMap<>();
         ROMAN2CHINESE.put(1, "一");
         ROMAN2CHINESE.put(2, "二");

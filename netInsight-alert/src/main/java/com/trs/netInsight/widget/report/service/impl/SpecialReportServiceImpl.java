@@ -122,7 +122,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         return resultList;
     }
 
-    public List<Object> calculateIndexTabReportData(ReportNew report, ArrayList<HashMap<String,Object>> statistics,String timeRange) throws Exception {
+    public List<Object> calculateIndexTabReportData(ReportNew report, IndexTabMapper mapper) throws Exception {
 
         ReportDataNew reportData = new ReportDataNew();
         reportData.setDoneFlag(0);
@@ -130,10 +130,10 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         report.setReportDataId(reportData.getId());
         //保存 report ，保存 report_data。用户进入专报预览页时，并未选择模板， 但是仍要保存数据。
         report.setTemplateId("无");	//后期废弃该字段
-        report.setStatisticsTime(ReportUtil.statisticsTimeHandle(timeRange));
+        report.setStatisticsTime(ReportUtil.statisticsTimeHandle(mapper.getIndexTab().getTimeRange()));
         reportNewRepository.save(report);
         //单起1个线程计算数据
-        fixedThreadPool.execute(new IndexTabReportTask(statistics,reportData,reportDataNewRepository));
+        fixedThreadPool.execute(new IndexTabReportTask(mapper,reportData,reportDataNewRepository));
 
         List<Object> resultList = new ArrayList<>();
         resultList.add(report);		//报告头
@@ -686,12 +686,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         if (ObjectUtil.isEmpty(mapper)) {
             throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
         }
-        String timeRange = mapper.getIndexTab().getTimeRange();
-
-        Object result = columnChartService.getColumnChart(indexTabMapperId);
-        Map<String,Object> statisticMap = (HashMap<String,Object>)result;
-        ArrayList<HashMap<String,Object>> statistics =  (ArrayList<HashMap<String,Object>>)statisticMap.get("statisticalChart");
-        this.calculateIndexTabReportData(report,statistics,timeRange);
+        this.calculateIndexTabReportData(report,mapper);
     }
 
     @Override
