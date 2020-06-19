@@ -482,6 +482,7 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 		try{
 			List<IndexTabMapper> list = tabMapperRepository.findAll();
 			if(list != null && list.size() >0){
+				int n = 0;
 				for(IndexTabMapper indexTabMapper : list){
 					IndexPage indexPage = indexTabMapper.getIndexPage();
 					IndexTab indexTab = indexTabMapper.getIndexTab();
@@ -490,6 +491,9 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 					indexTabMapper.setIndexTab(indexTab);
 					tabMapperRepository.save(indexTabMapper);
 					indexTabRepository.save(indexTab);
+					n++;
+					System.out.println("当前执行为第"+n + "个，名字为："+indexTab.getName());
+
 				}
 				tabMapperRepository.flush();
 				indexTabRepository.flush();

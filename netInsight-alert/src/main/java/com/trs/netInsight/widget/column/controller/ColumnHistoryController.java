@@ -36,6 +36,7 @@ public class ColumnHistoryController {
     @GetMapping(value = "/updateHistortIndexPage")
     @ApiOperation("修改日常监测分组栏目的历史数据")
     public Object updateHistortIndexPage() {
+        System.out.println("修改分组------------");
         Object result = indexPageService.updateHistoryIndexPage();
         return result;
     }
@@ -47,6 +48,7 @@ public class ColumnHistoryController {
     @GetMapping(value = "/updateHistortIndexTab")
     @ApiOperation("修改日常监测数据栏目的数据")
     public Object updateHistortIndexTab() {
+        System.out.println("修改栏目------------");
         Object result = indexTabMapperService.updateHistortIndexTab();
         return result;
     }
@@ -71,6 +73,7 @@ public class ColumnHistoryController {
     @GetMapping(value = "/updateHistortColumnType")
     @ApiOperation("修改日常监测数据栏目的数据 - 添加字段 - 判断是专家模式还是普通模式，需要修改历史数据")
     public Object updateHistortColumnType() {
+        System.out.println("修改类型------------");
         Object result =columnChartService.addColumnType();
         return result;
     }

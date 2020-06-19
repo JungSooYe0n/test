@@ -238,6 +238,7 @@ public class IndexTabServiceImpl implements IIndexTabService {
 			 */
 			List<IndexTab> list = indexTabRepository.findAll();
 			if (list != null && list.size() > 0) {
+				int n = 0;
 				for (IndexTab indexTab : list) {
 					String source = indexTab.getGroupName();
 					String[] columnType = indexTab.getType(true);
@@ -342,6 +343,8 @@ public class IndexTabServiceImpl implements IIndexTabService {
 
 					indexTab.setType(typeNew);
 					indexTabRepository.save(indexTab);
+					n++;
+					System.out.println("当前执行为第"+n + "个，名字为："+indexTab.getName());
 				}
 				indexTabRepository.flush();
 			}

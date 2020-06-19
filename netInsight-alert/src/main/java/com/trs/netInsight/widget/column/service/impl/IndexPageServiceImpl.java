@@ -473,6 +473,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 	public Object updateHistoryIndexPage(){
 		try {
 			List<IndexPage> list = indexPageRepository.findAll();
+			int n =0;
 			if(list != null && list.size() > 0){
 				for(IndexPage indexPage : list){
 					if(StringUtil.isEmpty(indexPage.getName())){
@@ -515,6 +516,8 @@ public class IndexPageServiceImpl implements IIndexPageService {
 					indexPage.setParentId(null);
 					indexPage.setChildrenPage(null);
 					indexPageRepository.save(indexPage);
+					n++;
+					System.out.println("当前执行为第"+n + "个，名字为："+indexPage.getName());
 
 				}
 				indexPageRepository.flush();
