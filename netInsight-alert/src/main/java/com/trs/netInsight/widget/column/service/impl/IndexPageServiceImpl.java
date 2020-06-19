@@ -470,6 +470,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 
 
 	@Override
+    @Transactional
 	public Object updateHistoryIndexPage(){
 		try {
 			List<IndexPage> list = indexPageRepository.findAll();
@@ -510,7 +511,6 @@ public class IndexPageServiceImpl implements IIndexPageService {
 						tabMapperRepository.save(nohideList);
 						// 排序之后 存标示为已排序
 						indexPage.setOrderBefore("after");
-						indexPageRepository.save(indexPage);
 					}
 					//修改原来的indepage  ，原来有parent_id，都是虚假的，没用，直接全部删掉
 					indexPage.setParentId(null);
