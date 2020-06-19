@@ -46,7 +46,7 @@ import static com.trs.netInsight.widget.report.constant.ReportConst.CHAPTERS2MET
 @Slf4j
 public class IndexTabReportTask implements Runnable {
 
-    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(30);
 
     private IndexTabMapper mapper = null;
 
