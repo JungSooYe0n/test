@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.analysis.enums;
 
+import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.config.constant.Const;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,9 +35,50 @@ public enum SpecialChartType {
 
     HOTWORDEXPLORE	 ("hotWordExplore", 		"热词探索", 			Const.HYBASE_NI_INDEX),
 
-    USERVIEWS	  ("userViews", 		"网友情绪", 				   Const.HYBASE_NI_INDEX);
+    USERVIEWS	  ("userViews", 		"网友情绪", 				   Const.HYBASE_NI_INDEX),
 
   //  TOPICEVOEXPLOR("topicEvoExplor", 	"话题演变探索", 			    Const.HYBASE_NI_INDEX);
+
+    /**
+     * 列表栏目
+     */
+    LIST_NO_SIM(ColumnConst.LIST_NO_SIM, "列表栏目","ALL"),
+    /**
+     * 热点栏目
+     */
+    HOT_LIST(ColumnConst.LIST_SIM, "热点栏目","ALL"),
+    /**
+     * 词云栏目
+     */
+    WORD_CLOUD(ColumnConst.CHART_WORD_CLOUD, "词云图","ALL"),
+    /**
+     * 地域热力图
+     */
+    MAP(ColumnConst.CHART_MAP, "地域热力图","ALL"),
+    /**
+     * 柱状图
+     */
+    CHART_BAR(ColumnConst.CHART_BAR, "柱状图","ALL"),
+    /**
+     * 柱状图  横向柱状图，主要为展示效果不同，则
+     */
+    CHART_BAR_CROSS(ColumnConst.CHART_BAR_CROSS, "活跃账号图","ALL"),
+
+    /**
+     * 折线图
+     */
+    CHART_LINE(ColumnConst.CHART_LINE, "折线图","ALL"),
+
+    /**
+     * 饼状图
+     */
+    CHART_PIE(ColumnConst.CHART_PIE, "饼状图","ALL"),
+
+    /**
+     * 饼状图
+     */
+    CHART_PIE_EMOTION(ColumnConst.CHART_PIE_EMOTION, "情感分析饼状图","ALL");
+
 
     private String typeCode;
 

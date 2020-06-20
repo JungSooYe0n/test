@@ -24,10 +24,20 @@ import com.trs.netInsight.util.*;
 import com.trs.netInsight.util.alert.AlertUtil;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.microblog.constant.MicroblogConst;
+import com.trs.netInsight.widget.microblog.entity.SingleMicroblogData;
+import com.trs.netInsight.widget.microblog.repository.SingleMicroblogDataRepository;
+import com.trs.netInsight.widget.microblog.service.ISingleMicroblogDataService;
+import com.trs.netInsight.widget.microblog.service.ISingleMicroblogService;
+import com.trs.netInsight.widget.microblog.task.CoreForwardWeiboTask;
+import com.trs.netInsight.widget.microblog.task.HotReviewsTask;
+import com.trs.netInsight.widget.microblog.task.HotReviewsWeiboTask;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
@@ -96,7 +106,8 @@ public class InfoListController {
 
 	@Autowired
 	private ICommonListService commonListService;
-
+	@Autowired
+	private SingleMicroblogDataRepository singleMicroblogDataRepository;
 	/**
 	 * 是否走独立预警服务
 	 */
@@ -119,6 +130,10 @@ public class InfoListController {
 	 * 线程池跑任务
 	 */
 	private static ExecutorService realInfoThreadPool = Executors.newFixedThreadPool(10);
+	/**
+	 * 线程池跑任务
+	 */
+	private static ExecutorService weiboDetailThreadPool = Executors.newFixedThreadPool(10);
 
 
 	// @Autowired
@@ -907,6 +922,19 @@ public class InfoListController {
 
             if (Const.GROUPNAME_WEIBO.equals(groupName)){
 				realInfoThreadPool.execute(()->infoListService.getRealTimeInfoOfStatus(ftsDocument.getUrlName(),ftsDocument.getSid()));
+				String urlName = ftsDocument.getUrlName();
+				if (StringUtil.isNotEmpty(urlName)){
+					urlName = urlName.replace("https","http");
+					if (urlName.indexOf("?") != -1){
+						//有问号
+						urlName = urlName.split("\\?")[0];
+					}
+					String random = UUID.randomUUID().toString().replace("-", "");
+					String currentUrl = urlName+random;
+					weiboDetailThreadPool.execute(new HotReviewsWeiboTask(urlName,currentUrl,user,random));
+					weiboDetailThreadPool.execute(new CoreForwardWeiboTask(urlName,currentUrl,user,random));
+				}
+
 				StatusUser statusUser = queryStatusUser(ftsDocument.getScreenName(), ftsDocument.getUid());
 				if (ObjectUtil.isNotEmpty(statusUser)) {
 					ftsDocument.setFollowersCount(statusUser.getFollowersCount());
@@ -968,9 +996,44 @@ public class InfoListController {
 	@FormatResult
 	@RequestMapping(value = "/getRealTimeInfo", method = RequestMethod.GET)
 	public Object getRealTimeInfo(@ApiParam("文章sid") @RequestParam("sid") String sid){
-    	return RedisUtil.getString(sid+" _present_data_info");
+    	return RedisUtil.getString(sid+"_present_data_info");
 	}
-
+	@ApiOperation("获取热评信息")
+	@FormatResult
+	@RequestMapping(value = "/getHotReviews", method = RequestMethod.GET)
+	public Object getHotReviews(@ApiParam("urlName") @RequestParam("urlName") String urlName) throws TRSException {
+		long start = new Date().getTime();
+		log.info(urlName);
+		urlName = urlName.replace("https","http");
+		if (urlName.indexOf("?") != -1){
+			//有问号
+			urlName = urlName.split("\\?")[0];
+		}
+		List<SingleMicroblogData> singleMicroblogData = null;
+			singleMicroblogData = singleMicroblogDataRepository.findByOriginalUrlAndName(urlName, MicroblogConst.HOTREVIEWS);
+		if (ObjectUtil.isEmpty(singleMicroblogData)){
+			return null;
+		}
+		return singleMicroblogData.get(0).getData();
+	}
+	@ApiOperation("获取核心转发")
+	@FormatResult
+	@RequestMapping(value = "/getCoreForward", method = RequestMethod.GET)
+	public Object getCoreForward(@ApiParam("urlName") @RequestParam("urlName") String urlName) throws TRSException {
+		long start = new Date().getTime();
+		log.info(urlName);
+		urlName = urlName.replace("https","http");
+		if (urlName.indexOf("?") != -1){
+			//有问号
+			urlName = urlName.split("\\?")[0];
+		}
+		List<SingleMicroblogData> singleMicroblogData = null;
+		singleMicroblogData = singleMicroblogDataRepository.findByOriginalUrlAndName(urlName, MicroblogConst.COREFORWARD);
+		if (ObjectUtil.isEmpty(singleMicroblogData)){
+			return null;
+		}
+		return singleMicroblogData.get(0).getData();
+	}
 	/**
 	 * 信息列表页单条的详情
 	 *
@@ -1533,6 +1596,29 @@ public class InfoListController {
 		GroupResult groupInfos = hybase8SearchService.categoryQuery(builder, false, false, true, FtsFieldConst.FIELD_GROUPNAME, "detail",split);
 		//	System.err.println("count："+pagedList.getTotalItemCount());
 		return groupInfos;
+	}
+	/**
+	 * 微博评论人信息
+	 * @param ftsDocumentReviews
+	 * @throws TRSException
+	 */
+	private void queryStatusUser(FtsDocumentReviews ftsDocumentReviews) throws TRSException{
+		QueryBuilder queryStatusUser = new QueryBuilder();
+		queryStatusUser.filterField(FtsFieldConst.FIELD_SCREEN_NAME,"\""+ftsDocumentReviews.getAuthors()+"\"",Operator.Equal);
+		queryStatusUser.setDatabase(Const.SINAUSERS);
+		//查询微博用户信息
+		List<StatusUser> statusUsers = hybase8SearchService.ftsQuery(queryStatusUser, StatusUser.class, false, false,false,null);
+//        if (ObjectUtil.isEmpty(statusUsers)){
+//            QueryBuilder queryStatusUser1 = new QueryBuilder();
+//            queryStatusUser1.filterField(FtsFieldConst.FIELD_UID,"\""+spreadObject.getUid()+"\"",Operator.Equal);
+//            queryStatusUser1.setDatabase(Const.SINAUSERS);
+//            //查询微博用户信息
+//            statusUsers = hybase8SearchService.ftsQuery(queryStatusUser1, StatusUser.class, false, false);
+//        }
+		if (ObjectUtil.isNotEmpty(statusUsers)){
+			//放入该条微博对应的 发布人信息
+			ftsDocumentReviews.setStatusUser(statusUsers.get(0));
+		}
 	}
 	/**
 	 * 当前文章对应的用户信息

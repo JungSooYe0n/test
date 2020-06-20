@@ -34,6 +34,7 @@ public interface SingleMicroblogDataRepository extends MongoRepository<SingleMic
     public List<SingleMicroblogData> findBySubGroupIdAndNameAndState(String subGroupId, String name, String state, Sort sort);
 
     public List<SingleMicroblogData> findByUserId(String userId);
+    public List<SingleMicroblogData> findByOriginalUrlAndName(String originalUrl, String name);
 
 }
 

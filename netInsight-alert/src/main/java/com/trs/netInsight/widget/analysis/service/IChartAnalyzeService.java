@@ -26,6 +26,7 @@ import com.trs.netInsight.widget.analysis.entity.SpecialParam;
 import com.trs.netInsight.widget.analysis.entity.SpreadNewsEntity;
 import com.trs.netInsight.widget.analysis.entity.TippingPoint;
 import com.trs.netInsight.widget.analysis.entity.ViewEntity;
+import com.trs.netInsight.widget.analysis.enums.SpecialChartType;
 import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.spread.entity.SinaUser;
@@ -508,6 +509,16 @@ public interface IChartAnalyzeService {
 	HashMap<String, Object> getUserViewsData(SpecialProject specialProject, String timeRange, String industry, String area, SpecialParam specParam) throws Exception;
 
 	ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange, SpecialParam specParam) throws Exception;
+
+
+	/**
+	 * 专题分析图表数据导出
+	 * @param data
+	 * @param specialChartType
+	 * @return
+	 * @throws IOException
+	 */
+	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType) throws IOException;
 	/**
 	 * 专题分析饼图和柱状图数据导出
 	 * @param dataType

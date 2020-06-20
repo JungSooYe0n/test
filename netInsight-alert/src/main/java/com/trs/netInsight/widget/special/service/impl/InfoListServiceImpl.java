@@ -27,7 +27,9 @@ import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.enums.Store;
 import com.trs.netInsight.widget.alert.service.IAlertService;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.analysis.entity.ClassInfo;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.Favourites;
@@ -83,6 +85,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	@Autowired
 	private ICommonListService commonListService;
+	@Autowired
+	protected ICommonChartService commonChartService;
 
 	/**
 	 * 是否走独立预警服务
@@ -6587,6 +6591,14 @@ public class InfoListServiceImpl implements IInfoListService {
 			InfoListResult infoListResult = commonListService.queryPageList(channelBuilder,false,true,false,Const.GROUPNAME_WEIBO,null,UserUtils.getUser(),false);
 			PagedList<FtsDocumentCommonVO> content3 = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 			List<FtsDocumentCommonVO> everyArticle = content3.getPageItems();
+			QueryBuilder queryBuilder = new QueryBuilder();
+			queryBuilder.filterField(FtsFieldConst.FIELD_UID, everyArticle.get(0).getUid(), Operator.Equal);
+
+			queryBuilder.page(0, 5);
+			List<Map<String, Object>> resultMap = new ArrayList<>();
+			ChartResultField chartResultField = new ChartResultField("name","value");
+			String contrastField = FtsFieldConst.FIELD_TAG;
+			map.put("simTopic",commonChartService.getBarColumnData(queryBuilder,false,false,false,Const.GROUPNAME_WEIBO,null,contrastField,null,chartResultField));
 			map.put("simCount", 5);
 			map.put("simuList", everyArticle);
 		} else if (Const.MEDIA_TYPE_TF.contains(source)) {//海外的没出方案

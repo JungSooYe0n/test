@@ -32,6 +32,7 @@ import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.*;
 import com.trs.netInsight.widget.analysis.enums.ChartType;
+import com.trs.netInsight.widget.analysis.enums.SpecialChartType;
 import com.trs.netInsight.widget.analysis.enums.Top5Tab;
 import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
@@ -41,6 +42,7 @@ import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
+import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
 import com.trs.netInsight.widget.special.entity.repository.SpecialSubjectRepository;
 import com.trs.netInsight.widget.spread.entity.SinaUser;
@@ -3339,7 +3341,29 @@ public class SpecialChartAnalyzeController {
 			log.info("调用接口用了" + timeApi + "ms");
 		}
 	}
+	@ApiOperation("专题分析事件态势图表数据导出接口")
+	@PostMapping("/exportChartData")
+	public void exportChartData(HttpServletResponse response,
+						   @ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType",required = true) String chartType,
+						   @ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
+		try {
+			SpecialChartType specialChartType = chooseType(chartType);
+			ServletOutputStream outputStream = response.getOutputStream();
+			specialChartAnalyzeService.exportChartData(data,specialChartType).writeTo(outputStream);
 
+		} catch (Exception e) {
+			log.error("导出excel出错！", e);
+		}
+
+	}
+	public  SpecialChartType chooseType(String typeCode) {
+		for (SpecialChartType specialType : SpecialChartType.values()) {
+			if (specialType.getTypeCode().equals(typeCode)) {
+				return specialType;
+			}
+		}
+		return null;
+	}
 	@ApiOperation("饼图和柱状图数据导出接口")
 	@PostMapping("/exportBarOrPieData")
 	public void exportData(HttpServletResponse response,

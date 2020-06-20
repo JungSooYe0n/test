@@ -207,6 +207,9 @@ public final class StringUtil {
 		pat = Pattern.compile(font2);
 		mat = pat.matcher(title);
 		title = mat.replaceAll("");
+		pat = Pattern.compile(quot);
+		mat = pat.matcher(title);
+		title = mat.replaceAll("");
 		return title;
 	}
 
