@@ -34,6 +34,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.NonUniqueResultException;
@@ -58,6 +59,7 @@ import static com.trs.netInsight.widget.report.constant.ReportConst.*;
  * @version
  */
 @Service
+@Transactional
 public class SpecialReportServiceImpl implements ISpecialReportService {
     @Autowired
     private TemplateNewRepository templateNewRepository;
@@ -113,7 +115,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         //保存 report ，保存 report_data。用户进入专报预览页时，并未选择模板， 但是仍要保存数据。
         report.setTemplateId("无");	//后期废弃该字段
         report.setStatisticsTime(ReportUtil.statisticsTimeHandle(timeRange));
-        reportNewRepository.save(report);
+        reportNewRepository.saveAndFlush(report);
         //单起1个线程计算数据
         fixedThreadPool.execute(new SepcialReportTask(server, weight, keyWords, excludeWords, keyWordsIndex, excludeWebs, simflag, timeRange, trsl, searchType, reportData,UserUtils.getUser().getId(),specialProject));
 
@@ -131,7 +133,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         //保存 report ，保存 report_data。用户进入专报预览页时，并未选择模板， 但是仍要保存数据。
         report.setTemplateId("无");	//后期废弃该字段
         report.setStatisticsTime(ReportUtil.statisticsTimeHandle(mapper.getIndexTab().getTimeRange()));
-        reportNewRepository.save(report);
+        reportNewRepository.saveAndFlush(report);
         //单起1个线程计算数据
         fixedThreadPool.execute(new IndexTabReportTask(mapper,reportData,reportDataNewRepository));
 
@@ -601,7 +603,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     }
 
     @Override
-    public void jumptoSpecialReport(String specialId) throws Exception {
+    public List<Object> jumptoSpecialReport(String specialId) throws Exception {
         SpecialProject specialProject = specialProjectRepository.findOne(specialId);
         //按照原来生成专题报告的流程走
         //一次性，所以报告分组用1个页面查不到的就可以
@@ -661,11 +663,12 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         //设置默认分组
         List<SpecialReportGroup> groups = this.findAllGroup();
         report.setGroupName(groups.get(0).getGroupName());
-        this.calculateSpecialReportData(specialProject.isServer(), report,specialProject.getAnyKeywords(),specialProject.getExcludeWords(),keywordsIndex,"" ,simFlaf ,timeRange ,trsl,searchType, weight,specialProject);
+        List<Object> list = this.calculateSpecialReportData(specialProject.isServer(), report,specialProject.getAnyKeywords(),specialProject.getExcludeWords(),keywordsIndex,"" ,simFlaf ,timeRange ,trsl,searchType, weight,specialProject);
+        return list;
     }
 
     @Override
-    public void jumptoIndexTabReport(String indexTabMapperId) throws Exception {
+    public List<Object> jumptoIndexTabReport(String indexTabMapperId) throws Exception {
         User user = UserUtils.getUser();
         IndexTabMapper mapper = indexTabMapperRepository.findOne(indexTabMapperId);
         ReportNew report = new ReportNew.Builder().withReportName(mapper.getIndexTab().getName())
@@ -686,7 +689,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
         if (ObjectUtil.isEmpty(mapper)) {
             throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
         }
-        this.calculateIndexTabReportData(report,mapper);
+        return this.calculateIndexTabReportData(report,mapper);
     }
 
     @Override

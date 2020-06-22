@@ -103,13 +103,13 @@ public interface ISpecialReportService {
      * 从专题分析跳转到专题报告
      * @param specialId
      */
-    void jumptoSpecialReport(String specialId) throws Exception;
+    List<Object> jumptoSpecialReport(String specialId) throws Exception;
 
     /***
      * 从日常监测跳转到专题报告
      * @param indexTabMapperId
      */
-    void jumptoIndexTabReport(String indexTabMapperId) throws Exception;
+    List<Object> jumptoIndexTabReport(String indexTabMapperId) throws Exception;
 
     /***
      * 删除专报分组，一并删除该分组下的报告

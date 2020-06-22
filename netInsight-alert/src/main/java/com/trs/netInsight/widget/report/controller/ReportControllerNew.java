@@ -666,8 +666,8 @@ public class ReportControllerNew {
 	@RequestMapping(value = "/specialReportCal", method = RequestMethod.POST)
 	@FormatResult
 	public Object special(String specialId) throws Exception {
-		sepcialReportService.jumptoSpecialReport(specialId);
-		return Const.SUCCESS;
+		List<Object> list = sepcialReportService.jumptoSpecialReport(specialId);
+		return list.get(0);
 	}
 
 	/**
@@ -679,8 +679,8 @@ public class ReportControllerNew {
 	@RequestMapping(value = "/indexTabReportCal", method = RequestMethod.POST)
 	@FormatResult
 	public Object indexTabReportCal(String id) throws Exception {
-		sepcialReportService.jumptoIndexTabReport(id);
-		return Const.SUCCESS;
+		List<Object> list =sepcialReportService.jumptoIndexTabReport(id);
+		return list.get(0);
 	}
 
 	/**
