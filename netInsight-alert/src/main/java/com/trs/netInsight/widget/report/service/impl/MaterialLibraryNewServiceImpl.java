@@ -18,6 +18,7 @@ import com.trs.netInsight.util.SourceUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.util.favourites.FavouritesUtil;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.MaterialLibraryNew;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
@@ -1257,7 +1258,16 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
         list = favouritesRepository.findAll(criteria,pageable);
 
         if (ObjectUtil.isNotEmpty(list)) {
+            List<Object> resultList = new ArrayList<>();
             list.forEach(item -> {
+                Map<String, Object> map = new HashMap<>();
+
+                String oneGroup = CommonListChartUtil.formatPageShowGroupName(item.getGroupName());
+                map.put("id", item.getSid());
+                map.put("groupName", oneGroup);
+                map.put("time", item.getUrlTime());
+                map.put("md5", item.getMdsTag());
+
                 if (item.getGroupName().equals("Twitter") || item.getGroupName().equals("Facebook") || item.getGroupName().equals("国内微信")){
                     item.setScreenName(item.getAuthors());
                 }
@@ -1266,14 +1276,62 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     item.setAuthor(item.getAuthors());
                 }
                 if(StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null) item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
-                item.setUrlTitle(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getUrlTitle())),Const.CONTENT_LENGTH));
-                item.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getStatusContent())),Const.CONTENT_LENGTH));
-                item.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getContent())),Const.CONTENT_LENGTH));
-                item.setTitle(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getTitle())),Const.CONTENT_LENGTH));
-            });
-        }
+                item.setUrlTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getUrlTitle())),Const.CONTENT_LENGTH));
+                item.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getContent())),Const.CONTENT_LENGTH));
+                item.setTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getTitle())),Const.CONTENT_LENGTH));
 
-        return new InfoListResult<>(list.getContent(), (int)list.getTotalElements(), list.getTotalPages());
+                String title= item.getTitle();
+                map.put("title", title);
+                if(StringUtil.isNotEmpty(title)){
+                    title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+                }
+                map.put("copyTitle", title); //前端复制功能需要用到
+                //摘要
+                map.put("abstracts", item.getContent());
+
+                map.put("nreserved1", null);
+                if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
+                    map.put("nreserved1", item.getNreserved1());
+                }
+                map.put("urlName", item.getUrlName());
+                map.put("favourite", item.isFavourite());
+                String content = item.getContent();
+                if(StringUtil.isNotEmpty(content)){
+                    content = ReportUtil.calcuHit("",content,true);
+                }
+                map.put("siteName", item.getSiteName());
+                map.put("author", item.getAuthors());
+                map.put("srcName", item.getSrcName());
+                //微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
+                if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
+                    map.put("title", item.getContent());
+                    map.put("abstracts", item.getContent());
+                    map.put("copyTitle", content); //前端复制功能需要用到
+
+                    map.put("author", item.getScreenName());
+                    map.put("srcName", null);//素材库没有存微博的原发
+                } else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
+                    map.put("title", item.getContent());
+                    map.put("abstracts", item.getContent());
+                    map.put("copyTitle", content); //前端复制功能需要用到
+                    map.put("author", item.getAuthors());
+                    map.put("srcName", null);//素材库没有存tf的原发
+                } else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
+                    map.put("title", item.getContent());
+                    map.put("abstracts", item.getContent());
+                    map.put("author", item.getAuthors());
+                    map.put("srcName", item.getSrcName());
+                    map.put("copyTitle", content); //前端复制功能需要用到
+                }
+                map.put("img", null);
+                //前端页面显示需要，与后端无关
+                map.put("isImg", false);
+                map.put("simNum", 0);
+                resultList.add(map);
+            });
+            return new InfoListResult<>(resultList, (int)list.getTotalElements(), list.getTotalPages());
+        }
+        return null;
     }
 
     public String subString(String str){
