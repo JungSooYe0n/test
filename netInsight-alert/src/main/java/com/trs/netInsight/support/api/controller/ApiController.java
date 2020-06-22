@@ -423,7 +423,7 @@ public class ApiController {
         if (pageSize > maxPageSize){
             pageSize = maxPageSize;
         }
-        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"","","","",false,0,false,"","","","","","","","");
+        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"","","","","",false,0,false,"","","","","","","","");
     }
 
     /**

@@ -303,8 +303,12 @@ public class ColumnConfig {
 		Date endToDate = DateUtil.stringToDate(timeArray[1], "yyyyMMddHHmmss");
 		queryBuilder.setStartTime(startToDate);
 		queryBuilder.setEndTime(endToDate);
+		// 监测网站
+		if (this.indexTab.getMonitorSite() != null && this.indexTab.getMonitorSite().split("[;|；]").length > 0) {
+			this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,this.indexTab.getMonitorSite().replaceAll("[;|；]"," OR ") , Operator.Equal);
+		}
 		// 排除网站
-		if (this.indexTab.getExcludeWeb() != null && this.indexTab.getExcludeWeb().split(";").length > 0) {
+		if (this.indexTab.getExcludeWeb() != null && this.indexTab.getExcludeWeb().split("[;|；]").length > 0) {
 			addExcloudSite();
 		}
 		// 情感值

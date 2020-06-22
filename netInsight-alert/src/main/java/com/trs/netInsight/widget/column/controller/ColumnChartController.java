@@ -219,6 +219,7 @@ public class ColumnChartController {
             @ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "xyTrsl", value = "XY轴检索表达式", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开", dataType = "String", paramType = "query", required = false),
@@ -244,6 +245,7 @@ public class ColumnChartController {
                                  @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
                                  @RequestParam(value = "timeRange", required = false) String timeRange,
                                  @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+                                 @RequestParam(value = "monitorSite", required = false) String monitorSite,
                                  @RequestParam(value = "weight", required = false) boolean weight,
                                  @RequestParam(value = "simflag", required = false) String simflag,
                                  @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
@@ -343,7 +345,7 @@ public class ColumnChartController {
                 groupName = Const.PAGE_SHOW_WEIXIN;
             }
             groupName = CommonListChartUtil.changeGroupName(groupName);
-            CustomChart customChart = new CustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, timeRange, false, keyWord, excludeWords,excludeWordsIndex,
+            CustomChart customChart = new CustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, monitorSite,timeRange, false, keyWord, excludeWords,excludeWordsIndex,
                     keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, tabId, sequence, specialType,mediaLevel, mediaIndustry, contentIndustry,
                     filterInfo, contentArea, mediaArea);
             customChart = columnChartService.saveCustomChart(customChart);
@@ -392,6 +394,7 @@ public class ColumnChartController {
             @ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "xyTrsl", value = "XY轴检索表达式", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开,默认为新闻)", dataType = "String", paramType = "query", required = false),
@@ -417,6 +420,7 @@ public class ColumnChartController {
                                     @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
                                     @RequestParam(value = "timeRange", required = false) String timeRange,
                                     @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+                                    @RequestParam(value = "monitorSite", required = false) String monitorSite,
                                     @RequestParam(value = "weight", required = false) boolean weight,
                                     @RequestParam(value = "simflag", required = false) String simflag,
                                     @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
@@ -509,6 +513,7 @@ public class ColumnChartController {
             customChart.setType(type);
             customChart.setContrast(contrast);
             customChart.setExcludeWeb(excludeWeb);
+            customChart.setMonitorSite(monitorSite);
             customChart.setTimeRange(timeRange);
             customChart.setKeyWord(keyWord);
             customChart.setExcludeWords(excludeWords);

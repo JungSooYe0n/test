@@ -111,7 +111,7 @@ public interface ISpecialService {
 	 */
 	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
 			String anyKeywords, String excludeWords, String trsl,SearchScope scope, Date startTime, Date endTime,
-			String source,String timerange,boolean similar,boolean weight,boolean irSimflag,boolean server,boolean irSimflagAll,String excludeWeb,String mediaLevel,
+			String source,String timerange,boolean similar,boolean weight,boolean irSimflag,boolean server,boolean irSimflagAll,String excludeWeb,String monitorSite,String mediaLevel,
 										 String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea)
 			throws Exception;
 

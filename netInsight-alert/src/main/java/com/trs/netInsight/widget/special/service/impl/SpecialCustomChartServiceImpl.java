@@ -82,6 +82,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("weight", chart.isWeight());
                 chartMap.put("excludeWords", chart.getExcludeWords());
                 chartMap.put("excludeWeb", chart.getExcludeWeb());
+                chartMap.put("monitorSite", chart.getMonitorSite());
                 //排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
                 if (chart.isSimilar()) {
                     chartMap.put("simflag", "netRemove");
@@ -216,6 +217,10 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             }
         } else {
             commonBuilder.filterByTRSL(customChart.getTrsl());
+        }
+        String monitorSite = customChart.getMonitorSite();
+        if (StringUtil.isNotEmpty(monitorSite) && monitorSite.trim().split(";|；").length > 0) {
+            commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME,monitorSite.replaceAll("[;|；]"," OR ") , Operator.Equal);
         }
         String excludeWeb = customChart.getExcludeWeb();
         if (StringUtil.isNotEmpty(excludeWeb) && excludeWeb.trim().split(";|；").length > 0) {
