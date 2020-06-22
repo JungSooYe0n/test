@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import com.trs.netInsight.widget.user.repository.RoleRepository;
@@ -81,9 +82,11 @@ public class MyShiroRealm extends AuthorizingRealm {
 		if (list != null && list.size()>0){
 			user = list.get(0);
 			String orgId = user.getOrganizationId();
-			Organization organization = organizationRepository.findOne(orgId);
-			if (organization != null){
-				user.setOrganizationName(organization.getOrganizationName());
+			if(StringUtil.isNotEmpty(orgId)){
+				Organization organization = organizationRepository.findOne(orgId);
+				if (organization != null){
+					user.setOrganizationName(organization.getOrganizationName());
+				}
 			}
 		}
 		if (user == null) {

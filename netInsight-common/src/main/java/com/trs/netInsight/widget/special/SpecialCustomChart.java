@@ -55,6 +55,9 @@ public class SpecialCustomChart extends BaseEntity{
     @Column(name = "excludeWeb")
     private String excludeWeb;// 排除网站
 
+    @Column(name = "monitor_site")
+    private String monitorSite;// 监测网站
+
     @Column(name = "time_range")
     private String timeRange;// 发布时间范围
 
@@ -162,7 +165,7 @@ public class SpecialCustomChart extends BaseEntity{
     @Column(name = "top_sequence")
     private Integer topSequence;
 
-    public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, String keyWord, String excludeWords,
+    public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, String keyWord, String excludeWords,
                        String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType) {
         this.name = name;
         this.trsl = trsl;
@@ -170,6 +173,7 @@ public class SpecialCustomChart extends BaseEntity{
         this.type = type;
         this.contrast = contrast;
         this.excludeWeb = excludeWeb;
+        this.monitorSite = monitorSite;
         this.timeRange = timeRange;
         this.keyWord = keyWord;
         this.excludeWords = excludeWords;
@@ -184,10 +188,10 @@ public class SpecialCustomChart extends BaseEntity{
         this.parentId = parentId;
         this.specialType = specialType;
     }
-    public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, String keyWord, String excludeWords,
+    public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String monitorSite,String timeRange, String keyWord, String excludeWords,
                               String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,
                               String filterInfo, String contentArea,String mediaArea) {
-        this(name, trsl, xyTrsl, type, contrast, excludeWeb, timeRange, keyWord, excludeWords, keyWordIndex, groupName, similar, irSimflag, irSimflagAll, weight, tabWidth, parentId, sequence, specialType);
+        this(name, trsl, xyTrsl, type, contrast, excludeWeb,monitorSite,timeRange, keyWord, excludeWords, keyWordIndex, groupName, similar, irSimflag, irSimflagAll, weight, tabWidth, parentId, sequence, specialType);
         this.mediaLevel = mediaLevel;
         this.mediaIndustry = mediaIndustry;
         this.contentIndustry = contentIndustry;

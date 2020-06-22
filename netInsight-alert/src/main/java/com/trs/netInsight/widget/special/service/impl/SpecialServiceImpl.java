@@ -186,7 +186,7 @@ public class SpecialServiceImpl implements ISpecialService {
 	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
 			String anyKeywords, String excludeWords, String trsl,
 			SearchScope scope, Date startTime, Date endTime, String source, String timerange, boolean similar,
-			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String mediaLevel,
+			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String monitorSite,String mediaLevel,
 										String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea) throws Exception {
 		SpecialProject specialProject = specialProjectRepository.findOne(specialId);
 		// 修改专项
@@ -209,6 +209,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setServer(server);
 		specialProject.setIrSimflagAll(irSimflagAll);
 		specialProject.setExcludeWeb(excludeWeb);
+		specialProject.setMonitorSite(monitorSite);
 		specialProject.setMediaLevel(mediaLevel);
 		specialProject.setMediaIndustry(mediaIndustry);
 		specialProject.setContentIndustry(contentIndustry);
@@ -594,6 +595,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("weight", tab.isWeight());
 					map.put("excludeWords", tab.getExcludeWords());
 					map.put("excludeWeb", tab.getExcludeWeb());
+					map.put("monitorSite", tab.getMonitorSite());
 					map.put("subjectId",tab.getGroupId());
 					map.put("specialType",tab.getSpecialType());
 					//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove

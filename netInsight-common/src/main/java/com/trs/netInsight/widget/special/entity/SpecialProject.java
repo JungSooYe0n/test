@@ -110,6 +110,9 @@ public class SpecialProject extends BaseEntity {
 	@Column(name = "excludeWeb", columnDefinition = "TEXT")
 	private String excludeWeb;
 
+	@Column(name = "monitor_site", columnDefinition = "TEXT")
+	private String monitorSite;// 监测网站
+
 	/**
 	 * 完整检索表达式
 	 */
@@ -537,6 +540,10 @@ public class SpecialProject extends BaseEntity {
 			}
 			QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeywords, keywordIndex, this.weight);
 			queryBuilder.filterByTRSL(builder.asTRSL());
+			//监测网站
+			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
+			}
 			//拼凑排除词
 			for (String field : this.searchScope.getField()) {
 				StringBuilder childBuilder = new StringBuilder();

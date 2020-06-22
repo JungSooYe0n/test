@@ -193,6 +193,7 @@ public class InfoListController {
 						   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
 						   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
 						   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+						   @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 						   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
 						   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
 						   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
@@ -255,6 +256,7 @@ public class InfoListController {
 				}
 
 			}
+			specialProject.setMonitorSite(monitorSite);
 			specialProject.setExcludeWeb(excludeWeb);
 			//排除关键词
 			specialProject.setExcludeWordIndex(excludeWordIndex);

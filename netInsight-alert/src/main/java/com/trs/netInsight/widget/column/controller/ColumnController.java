@@ -363,6 +363,8 @@ public class ColumnController {
 			@ApiImplicitParam(name = "contrast", value = "分类对比类型", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
@@ -392,6 +394,7 @@ public class ColumnController {
 						   @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
 						   @RequestParam(value = "timeRange", required = false) String timeRange,
 						   @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+						   @RequestParam(value = "monitorSite", required = false) String monitorSite,
 						   @RequestParam(value = "weight", required = false) boolean weight,
 						   @RequestParam(value = "simflag", required = false) String simflag,
 						   @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
@@ -493,6 +496,7 @@ public class ColumnController {
 		IndexTab indexTab = new IndexTab(name, trsl, keyWord, excludeWords, keyWordIndex, xyTrsl, type,
 				groupName, Integer.parseInt(sequence), timeRange, isSimilar,irSimflag, weight,irSimflagAll);
 		indexTab.setExcludeWeb(excludeWeb);
+		indexTab.setMonitorSite(monitorSite);
 		indexTab.setExcludeWordIndex(excludeWordsIndex);
 		indexTab.setContrast(contrast);
 		indexTab.setTabWidth(tabWidth);
@@ -584,6 +588,8 @@ public class ColumnController {
 			@ApiImplicitParam(name = "contrast", value = "分类对比类型", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
@@ -615,6 +621,7 @@ public class ColumnController {
 							  @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
 							  @RequestParam(value = "timeRange", required = false) String timeRange,
 							  @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							  @RequestParam(value = "monitorSite", required = false) String monitorSite,
 							  @RequestParam(value = "weight", required = false) boolean weight,
 							  @RequestParam(value = "simflag", required = false) String simflag,
 							  @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
@@ -718,6 +725,7 @@ public class ColumnController {
 			indexTab.setGroupName(groupName);
 			indexTab.setTimeRange(timeRange);
 			indexTab.setExcludeWeb(excludeWeb);
+			indexTab.setMonitorSite(monitorSite);
 			indexTab.setSimilar(isSimilar);
 			indexTab.setIrSimflag(irSimflag);
 			indexTab.setTabWidth(tabWidth);
@@ -954,6 +962,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "wordIndex", value = "关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "read", value = "阅读标记", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "excludeWeb", value = "排除网站  替换栏目条件", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "monitorSite", value = "监测网站  替换栏目条件", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "excludeWords", value = "排除关键词  替换栏目条件", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "updateWordForm", value = "修改词距标记 替换栏目条件", dataType = "Boolean", paramType = "query"),
@@ -979,6 +988,7 @@ public class ColumnController {
 							  @RequestParam(value = "wordIndex", required = false) String wordIndex,
 							  @RequestParam(value = "read", required = false) String read,
 							  @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							  @RequestParam(value = "monitorSite", required = false) String monitorSite,
 							  @RequestParam(value = "excludeWords", required = false) String excludeWords,
 							  @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
 							  @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
@@ -1049,6 +1059,7 @@ public class ColumnController {
 			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
 				indexTab.setKeyWordIndex(wordIndex);
 			}
+			indexTab.setMonitorSite(monitorSite);
 			indexTab.setExcludeWeb(excludeWeb);
 			//排除关键词
 			indexTab.setExcludeWordIndex(excludeWordsIndex);
@@ -1207,6 +1218,7 @@ public class ColumnController {
 			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
 			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
 			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+			@ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
 			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
@@ -1285,6 +1297,7 @@ public class ColumnController {
 			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
 				indexTab.setKeyWordIndex(wordIndex);
 			}
+			indexTab.setMonitorSite(monitorSite);
 			indexTab.setExcludeWeb(excludeWeb);
 			//排除关键词
 			indexTab.setExcludeWordIndex(excludeWordsIndex);
@@ -1339,6 +1352,7 @@ public class ColumnController {
 			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
 			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
 			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+			@ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
 			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
@@ -1388,6 +1402,7 @@ public class ColumnController {
 		if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
 			indexTab.setKeyWordIndex(wordIndex);
 		}
+		indexTab.setMonitorSite(monitorSite);
 		indexTab.setExcludeWeb(excludeWeb);
 		//排除关键词
 		indexTab.setExcludeWordIndex(excludeWordsIndex);
@@ -1430,6 +1445,7 @@ public class ColumnController {
 			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
 			@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
 			@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+			@ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 			@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 			@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
 			@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
@@ -1474,6 +1490,7 @@ public class ColumnController {
 		if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
 			indexTab.setKeyWordIndex(wordIndex);
 		}
+		indexTab.setMonitorSite(monitorSite);
 		indexTab.setExcludeWeb(excludeWeb);
 		//排除关键词
 		indexTab.setExcludeWordIndex(excludeWordsIndex);

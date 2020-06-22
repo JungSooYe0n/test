@@ -109,6 +109,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneCcInfo.put("excludeWords", oneCc.getExcludeWords());
                 oneCcInfo.put("excludeWordsIndex", oneCc.getExcludeWordIndex());
                 oneCcInfo.put("excludeWeb", oneCc.getExcludeWeb());
+                oneCcInfo.put("monitorSite", oneCc.getMonitorSite());
                 //排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
                 if (oneCc.isSimilar()) {
                     oneCcInfo.put("simflag", "netRemove");

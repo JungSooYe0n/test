@@ -56,6 +56,9 @@ public class CustomChart extends BaseEntity {
     @Column(name = "excludeWeb")
     private String excludeWeb;// 排除网站
 
+    @Column(name = "monitor_site")
+    private String monitorSite;// 监测网站
+
     @Column(name = "time_range")
     private String timeRange;// 发布时间范围
 
@@ -181,14 +184,14 @@ public class CustomChart extends BaseEntity {
 
 
     public IndexTab indexTab() {
-        IndexTab indexTab = new IndexTab(this.name, this.trsl, this.xyTrsl, this.type, this.contrast, this.excludeWeb, this.timeRange,
+        IndexTab indexTab = new IndexTab(this.name, this.trsl, this.xyTrsl, this.type, this.contrast, this.excludeWeb, this.monitorSite,this.timeRange,
                 this.hide, this.keyWord, this.excludeWords, this.excludeWordIndex, this.keyWordIndex, this.groupName, this.similar, this.irSimflag, this.irSimflagAll,
                 this.weight, this.tabWidth, this.sequence, this.specialType, this.mediaLevel, this.mediaIndustry, this.contentIndustry, this.filterInfo, this.contentArea, this.mediaArea);
         return indexTab;
     }
 
 
-    public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, Boolean hide, String keyWord, String excludeWords,String excludeWordIndex,
+    public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, Boolean hide, String keyWord, String excludeWords,String excludeWordIndex,
                        String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType) {
         this.name = name;
         this.trsl = trsl;
@@ -196,6 +199,7 @@ public class CustomChart extends BaseEntity {
         this.type = type;
         this.contrast = contrast;
         this.excludeWeb = excludeWeb;
+        this.monitorSite= monitorSite;
         this.timeRange = timeRange;
         this.hide = hide;
         this.keyWord = keyWord;
@@ -212,11 +216,11 @@ public class CustomChart extends BaseEntity {
         this.parentId = parentId;
         this.specialType = specialType;
     }
-    public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, Boolean hide, String keyWord,
+    public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, Boolean hide, String keyWord,
                        String excludeWords,String excludeWordIndex, String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll,
                        Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,
                        String filterInfo, String contentArea,String mediaArea) {
-        this(name, trsl, xyTrsl, type, contrast, excludeWeb, timeRange, hide, keyWord, excludeWords, excludeWordIndex, keyWordIndex, groupName, similar, irSimflag, irSimflagAll, weight, tabWidth, parentId, sequence, specialType);
+        this(name, trsl, xyTrsl, type, contrast, excludeWeb,monitorSite, timeRange, hide, keyWord, excludeWords, excludeWordIndex, keyWordIndex, groupName, similar, irSimflag, irSimflagAll, weight, tabWidth, parentId, sequence, specialType);
         this.mediaLevel = mediaLevel;
         this.mediaIndustry = mediaIndustry;
         this.contentIndustry = contentIndustry;

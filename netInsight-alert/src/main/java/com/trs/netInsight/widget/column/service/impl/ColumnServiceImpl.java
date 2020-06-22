@@ -315,6 +315,7 @@ public class ColumnServiceImpl implements IColumnService {
 					map.put("excludeWords", tab.getExcludeWords());
 					map.put("excludeWordsIndex", tab.getExcludeWordIndex());
 					map.put("excludeWeb", tab.getExcludeWeb());
+					map.put("monitorSite", tab.getMonitorSite());
 					//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
 					if (tab.isSimilar()) {
 						map.put("simflag", "netRemove");

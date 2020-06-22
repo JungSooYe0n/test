@@ -66,6 +66,9 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	@Column(name = "excludeWeb")
 	private String excludeWeb;// 排除网站
 
+	@Column(name = "monitor_site")
+	private String monitorSite;// 监测网站
+
 	/**
 	 * 栏目分组id
 	 */
@@ -281,7 +284,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.irSimflagAll = irSimflagAll;
 	}
 
-	public IndexTab(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String timeRange, boolean hide, String keyWord,
+	public IndexTab(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, boolean hide, String keyWord,
                     String excludeWords, String excludeWordIndex,String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
                     int tabWidth, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
 					String contentArea,String mediaArea) {
@@ -291,6 +294,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.type = type;
 		this.contrast = contrast;
 		this.excludeWeb = excludeWeb;
+		this.monitorSite= monitorSite;
 		this.timeRange = timeRange;
 		this.hide = hide;
 		this.keyWord = keyWord;
@@ -337,7 +341,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 * @Return : IndexTab
 	 */
 	public IndexTab tabCopy(){
-		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb, parentId,typeId, sequence,
+		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb,monitorSite, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
 				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,tabWidth,oneName,notSids,
 				mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
