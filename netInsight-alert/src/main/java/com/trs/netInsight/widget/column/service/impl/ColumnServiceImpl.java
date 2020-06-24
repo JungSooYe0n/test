@@ -391,7 +391,7 @@ public class ColumnServiceImpl implements IColumnService {
 				}else {
 					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
 				}
-				predicate.add(cb.equal(root.get("typeId"),typeId));
+				//predicate.add(cb.equal(root.get("typeId"),typeId));
 				List<Predicate> predicateParent = new ArrayList<>();
 				predicateParent.add(cb.isNull(root.get("parentId")));
 				predicateParent.add(cb.equal(root.get("parentId"),""));
@@ -411,7 +411,7 @@ public class ColumnServiceImpl implements IColumnService {
 				}else {
 					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
 				}
-				predicate.add(cb.equal(root.get("typeId"),typeId));
+				//predicate.add(cb.equal(root.get("typeId"),typeId));
 				predicate.add(cb.isNull(root.get("indexPage")));
 				Predicate[] pre = new Predicate[predicate.size()];
 				return query.where(predicate.toArray(pre)).getRestriction();

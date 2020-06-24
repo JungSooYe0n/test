@@ -514,6 +514,10 @@ public class IndexPageServiceImpl implements IIndexPageService {
 					}
 					//修改原来的indepage  ，原来有parent_id，都是虚假的，没用，直接全部删掉
 					indexPage.setParentId(null);
+					if(StringUtil.isNotEmpty(indexPage.getTypeId())){
+						indexPage.setParentId(indexPage.getTypeId());
+						indexPage.setTypeId("");
+					}
 					indexPage.setChildrenPage(null);
 					indexPageRepository.save(indexPage);
 					n++;

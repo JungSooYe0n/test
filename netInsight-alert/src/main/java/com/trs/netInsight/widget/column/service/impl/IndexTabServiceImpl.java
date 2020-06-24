@@ -21,6 +21,8 @@ import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.user.entity.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,111 +242,118 @@ public class IndexTabServiceImpl implements IIndexTabService {
 			if (list != null && list.size() > 0) {
 				int n = 0;
 				for (IndexTab indexTab : list) {
-					String source = indexTab.getGroupName();
-					String[] columnType = indexTab.getType(true);
-					String typeCode = "";
-					if (columnType.length > 1 || columnType[0].equals(ColumnConst.LIST_STATUS_COMMON) || columnType[0].equals(ColumnConst.LIST_WECHAT_COMMON)
-							|| columnType[0].equals(ColumnConst.LIST_TWITTER) || columnType[0].equals(ColumnConst.LIST_FaceBook)) {
-						typeCode = ColumnConst.LIST_NO_SIM;
-					} else {
-						typeCode = columnType[0];
-					}
+					try {
+						String source = indexTab.getGroupName();
+						String[] columnType = indexTab.getType(true);
+						String typeCode = "";
+						if (columnType.length > 1 || columnType[0].equals(ColumnConst.LIST_STATUS_COMMON) || columnType[0].equals(ColumnConst.LIST_WECHAT_COMMON)
+								|| columnType[0].equals(ColumnConst.LIST_TWITTER) || columnType[0].equals(ColumnConst.LIST_FaceBook)) {
+							typeCode = ColumnConst.LIST_NO_SIM;
+						} else {
+							typeCode = columnType[0];
+						}
 
-					if (ColumnConst.LIST_NO_SIM.equals(typeCode)) {
-						List<String> arr = new ArrayList<>();
-						String[] tradition = indexTab.getTradition().split(";");
-						if (tradition.length > 0) {
-							for (String tra : tradition) {
-								arr.add(Const.SOURCE_GROUPNAME_CONTRAST.get(tra));
+						if (ColumnConst.LIST_NO_SIM.equals(typeCode)) {
+							List<String> arr = new ArrayList<>();
+							if(StringUtil.isNotEmpty(indexTab.getTradition())){
+								arr.addAll(CommonListChartUtil.formatGroupName(indexTab.getTradition()));
+							}else{
+								arr.addAll(CommonListChartUtil.formatGroupName(source));
+							}
+							if (columnType.length > 0) {
+								for (String oneType : columnType) {
+									if (ColumnConst.LIST_STATUS_COMMON.equals(oneType)) {
+										if (!arr.contains(Const.GROUPNAME_WEIBO)) {
+											arr.add(Const.GROUPNAME_WEIBO);
+										}
+									}
+									if (ColumnConst.LIST_WECHAT_COMMON.equals(oneType)) {
+										if (!arr.contains(Const.GROUPNAME_WEIXIN)) {
+											arr.add(Const.GROUPNAME_WEIXIN);
+										}
+									}
+									if (ColumnConst.LIST_TWITTER.equals(oneType)) {
+										if (!arr.contains(Const.GROUPNAME_TWITTER)) {
+											arr.add(Const.GROUPNAME_TWITTER);
+										}
+									}
+									if (ColumnConst.LIST_FaceBook.equals(oneType)) {
+										if (!arr.contains(Const.GROUPNAME_FACEBOOK)) {
+											arr.add(Const.GROUPNAME_FACEBOOK);
+										}
+									}
+								}
+							}
+							source = StringUtils.join(arr, ";");
+						} else if (ColumnConst.LIST_SIM.equals(typeCode)) {//热点列表
+							source = StringUtils.join(indexTab.getTradition(), ";");
+						} else {// 其他为图表时
+							/**
+							 * 柱状图+饼状图+折线图 ：
+							 * 		来源对比：groupName
+							 * 		站点对比：tradition
+							 * 		微信公众号对比：tradition(微信)
+							 * 		专家模式：groupName
+							 * 词云图+地图 :
+							 * 		groupName
+							 */
+							source = indexTab.getGroupName();
+
+							if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {
+								//站点对比
+								source = StringUtil.join(indexTab.getTradition().split(";"), ";");
+							} else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
+								//微信公众号对比
+								source = Const.GROUPNAME_WEIXIN;
+							}
+							if (StringUtil.isNotEmpty(indexTab.getXyTrsl())) {
+								if (StringUtil.isEmpty(source)) {
+									source = "ALL";
+								}
 							}
 						}
-						if (columnType.length > 0) {
-							for (String oneType : columnType) {
-								if (ColumnConst.LIST_STATUS_COMMON.equals(oneType)) {
-									if (!arr.contains(Const.GROUPNAME_WEIBO)) {
-										arr.add(Const.GROUPNAME_WEIBO);
-									}
-								}
-								if (ColumnConst.LIST_WECHAT_COMMON.equals(oneType)) {
-									if (!arr.contains(Const.GROUPNAME_WEIXIN)) {
-										arr.add(Const.GROUPNAME_WEIXIN);
-									}
-								}
-								if (ColumnConst.LIST_TWITTER.equals(oneType)) {
-									if (!arr.contains(Const.GROUPNAME_TWITTER)) {
-										arr.add(Const.GROUPNAME_TWITTER);
-									}
-								}
-								if (ColumnConst.LIST_FaceBook.equals(oneType)) {
-									if (!arr.contains(Const.GROUPNAME_FACEBOOK)) {
-										arr.add(Const.GROUPNAME_FACEBOOK);
-									}
-								}
+						List<String> sourceList = formatGroupName(source);
+						indexTab.setGroupName(StringUtils.join(sourceList, ";"));
+						indexTab.setTradition(indexTab.getGroupName());
+
+						if (StringUtil.isEmpty(indexTab.getTrsl())) {
+							if (StringUtil.isNotEmpty(indexTab.getStatusTrsl())) {
+								indexTab.setTrsl(indexTab.getStatusTrsl());
+							} else if (StringUtil.isNotEmpty(indexTab.getWeChatTrsl())) {
+								indexTab.setTrsl(indexTab.getWeChatTrsl());
 							}
 						}
-						source = StringUtils.join(arr, ";");
-					} else if (ColumnConst.LIST_SIM.equals(typeCode)) {//热点列表
-						source = StringUtils.join(indexTab.getTradition(), ";");
-					} else {// 其他为图表时
-						/**
-						 * 柱状图+饼状图+折线图 ：
-						 * 		来源对比：groupName
-						 * 		站点对比：tradition
-						 * 		微信公众号对比：tradition(微信)
-						 * 		专家模式：groupName
-						 * 词云图+地图 :
-						 * 		groupName
-						 */
-						source = indexTab.getGroupName();
 
-						if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {
-							//站点对比
-							source = StringUtil.join(indexTab.getTradition().split(";"), ";");
-						} else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
-							//微信公众号对比
-							source = Const.GROUPNAME_WEIXIN;
+						//pieChart brokenLineChart barGraphChart wordCloudChart mapChart timeListInfo md5ListInfo
+						String type = StringUtil.join(indexTab.getType(true), ";");
+						String typeNew = "";
+						if (type.contains("pie")) {
+							typeNew = "pieChart";
+						} else if (type.contains("Line")) {
+							typeNew = "brokenLineChart";
+						} else if (type.contains("bar")) {
+							typeNew = "barGraphChart";
+						} else if (type.contains("wordCloud")) {
+							typeNew = "wordCloudChart";
+						} else if (type.contains("map")) {
+							typeNew = "mapChart";
+						} else if (type.contains("md5")) {
+							typeNew = "md5ListInfo";
+						} else {
+							typeNew = "timeListInfo";
 						}
-						if (StringUtil.isNotEmpty(indexTab.getXyTrsl())) {
-							if (StringUtil.isEmpty(source)) {
-								source = "ALL";
-							}
+						if (StringUtil.isNotEmpty(indexTab.getTrsl())) {
+							indexTab.setSpecialType(SpecialType.SPECIAL);
+						} else {
+							indexTab.setSpecialType(SpecialType.COMMON);
 						}
+						indexTab.setType(typeNew);
+						indexTabRepository.save(indexTab);
+						n++;
+						System.out.println("当前执行为第" + n + "个，名字为：" + indexTab.getName());
+					}catch(Exception e){
+						System.out.println("第" + n + "个错误了，名字为：" + indexTab.getName()+",id:"+indexTab.getId());
 					}
-					List<String> sourceList = formatGroupName(source);
-					indexTab.setGroupName(StringUtils.join(sourceList,";"));
-					indexTab.setTradition(indexTab.getGroupName());
-
-					if(StringUtil.isEmpty(indexTab.getTrsl())){
-						if(StringUtil.isNotEmpty(indexTab.getStatusTrsl())){
-							indexTab.setTrsl(indexTab.getStatusTrsl());
-						}else if(StringUtil.isNotEmpty(indexTab.getWeChatTrsl())){
-							indexTab.setTrsl(indexTab.getWeChatTrsl());
-						}
-					}
-
-					//pieChart brokenLineChart barGraphChart wordCloudChart mapChart timeListInfo md5ListInfo
-					String type = StringUtil.join(indexTab.getType(true),";");
-					String typeNew = "";
-					if(type.contains("pie")){
-						typeNew = "pieChart";
-					}else if(type.contains("Line")){
-						typeNew = "brokenLineChart";
-					}else if(type.contains("bar")){
-						typeNew = "barGraphChart";
-					}else if(type.contains("wordCloud")){
-						typeNew = "wordCloudChart";
-					}else if(type.contains("map")){
-						typeNew = "mapChart";
-					}else if(type.contains("md5")){
-						typeNew = "md5ListInfo";
-					}else{
-						typeNew = "timeListInfo";
-					}
-
-					indexTab.setType(typeNew);
-					indexTabRepository.save(indexTab);
-					n++;
-					System.out.println("当前执行为第"+n + "个，名字为："+indexTab.getName());
 				}
 				indexTabRepository.flush();
 			}

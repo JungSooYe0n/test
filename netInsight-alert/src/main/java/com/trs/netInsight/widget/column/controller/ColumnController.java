@@ -61,6 +61,7 @@ import javax.mail.search.SearchException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,12 +120,17 @@ public class ColumnController {
 		// 通过sequence排序
 		List<NavigationConfig> navigationList = navigationService.findByUserIdOrSubGroupIdAndSort(userId, "sequence");
 		if (CollectionsUtil.isNotEmpty(navigationList)) {
+			List<NavigationConfig> result = new ArrayList<>();
 			for (NavigationConfig navigationConfig : navigationList) {
 				if (navigationConfig.getType() == NavigationEnum.share) { // 如果为共享池，则计算共享数量
 					long total = indexTabMapperService.computeShareByOrg();
 					navigationConfig.setShareNumber(total);
 				}
+				if(navigationConfig.getType() != NavigationEnum.definedself){
+					result.add(navigationConfig);
+				}
 			}
+			return result;
 		}
 		return navigationList;
 	}

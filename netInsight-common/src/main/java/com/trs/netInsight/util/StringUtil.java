@@ -716,12 +716,17 @@ public final class StringUtil {
 			String contentNew = content;
 			if(redWord > size){ //标红比截取长,直接截取标红+。。。
 				contentNew= contentNew.substring(startPosition,endPosition);
+				if(startPosition ==0){
+					contentNew = "..."+contentNew;
+				}
 				return contentNew+"...";
 			}else{
+				//如果标签在开头或者结尾，就直接按字数截取，如果在中间部分，则需要找到靠前的一个句号或分号，从那个开始按字数截取
 				if(countLength == endPosition){
 					// 标红标签比截取长度短，且文本总长大于截取长度，只有一个标签，且结尾在文本结尾
-					contentNew= contentNew.substring(endPosition-size,endPosition);
-					return contentNew+"...";
+					int endCut = endPosition-size;
+					contentNew= contentNew.substring(endCut,endPosition);
+					return "..."+contentNew+"...";
 				}else{
 					int startCut = 0;
 					int endCut = size;
@@ -733,13 +738,68 @@ public final class StringUtil {
 							startCut = fontAvg-avgSize;
 							endCut = fontAvg+avgSize;
 						}
+						String frontContent = content.substring(startCut,startPosition);
+						int symbolIndex = frontContent.lastIndexOf("。");
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.lastIndexOf("；");
+						}
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.lastIndexOf("\n");
+						}
+						if(symbolIndex != -1){
+							if(symbolIndex +endCut+1 <= countLength){
+								startCut = symbolIndex +startCut+1;
+								endCut = symbolIndex +endCut+1;
+							}else{
+								//当前从句号开始截取会超出文本长度
+								// 如果标签后的内容大于 一半截取长度
+								if(endPosition + avgSize < countLength){
+									startCut = symbolIndex +startCut+1;
+									endCut = countLength;
+								}
+							}
+						}
 					}else if(startPosition >=avgSize && startPosition > countLength-size){ //3、开头标签在中点后，且整体都在文本结尾处
 						endCut = countLength;
 						startCut = countLength-size;
+						String frontContent = content.substring(startCut,endCut);
+						int symbolIndex = frontContent.indexOf("。");
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.indexOf("；");
+						}
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.indexOf("\n");
+						}
+						if(symbolIndex != -1){
+							if(symbolIndex + startCut+1 <startPosition && symbolIndex+1 <avgSize){
+								startCut = symbolIndex + startCut+1;
+							}
+						}
 
 					}else{//2、第一组font标签整个都在后半段中且截取只需要判断开头结尾标签，在中间即可
 						startCut = fontAvg-avgSize;
 						endCut = fontAvg+avgSize;
+						String frontContent = content.substring(startCut,startPosition);
+						int symbolIndex = frontContent.lastIndexOf("。");
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.lastIndexOf("；");
+						}
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.lastIndexOf("\n");
+						}
+						if(symbolIndex != -1){
+							if(symbolIndex +endCut+1 <= countLength){
+								startCut = symbolIndex +startCut+1;
+								endCut = symbolIndex +endCut+1;
+							}else{
+								//当前从句号开始截取会超出文本长度
+								// 如果标签后的内容大于 一半截取长度
+								if(endPosition + avgSize < countLength){
+									startCut = symbolIndex +startCut+1;
+									endCut = countLength;
+								}
+							}
+						}
 					}
 					contentNew= contentNew.substring(startCut,endCut);
 					/*
@@ -782,11 +842,13 @@ public final class StringUtil {
 						endCut = countLength;
 					}
 					contentNew= content.substring(startCut,endCut);
-					if(contentNew.equals(content)){
-						return contentNew;
-					}else{
-						return contentNew + "...";
+					if(startCut != 0){
+						contentNew = "..." + contentNew;
 					}
+					if(endCut != countLength){
+						contentNew =  contentNew + "...";
+					}
+					return contentNew ;
 				}
 			}
 		}else{
