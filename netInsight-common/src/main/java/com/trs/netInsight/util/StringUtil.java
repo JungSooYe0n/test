@@ -703,9 +703,11 @@ public final class StringUtil {
 		if(content.length()<=size){
 			return content;
 		}
+		// 截取规则改变，想让标红的字靠前显示，所以如果在前，直接从开头截取，如果太靠近结尾，从结尾开始截取
+		// 如果在中间，则从开始标签前30个字开始截取，如果这30个字内有句号分号或换行，则从这三种符号开始截取
 		if (content.length() > size && content.contains(font1)) {
 			//需要截取文本  注意 截取的文本必须保证是一对font标签
-			int avgSize = size/2;
+			int beforeSize = size > 100 ? 30: size/5; //暂时这么写，保证第一个标签在前面
 			// 找到第一个font标签开始位置
 			int startPosition = content.indexOf(font1);
 			//找到第一个font标签结束位置
@@ -732,72 +734,34 @@ public final class StringUtil {
 					int endCut = size;
 					int  fontAvg = (startPosition+ endPosition) /2;
 					//1、开头标签在中点前，结尾标签在要截取的总长前，从头按要截取的总长截取
-					if(startPosition < avgSize){
+					if(startPosition <= beforeSize){
 						if( endPosition >size){ //结尾标签在要截取的总长后，需要重新计算截取长度
 							//截取 以标红为中心截取
-							startCut = fontAvg-avgSize;
-							endCut = fontAvg+avgSize;
+							startCut = 0;
+							endCut = endPosition;
 						}
-						String frontContent = content.substring(startCut,startPosition);
-						int symbolIndex = frontContent.lastIndexOf("。");
-						if(symbolIndex == -1){
-							symbolIndex = frontContent.lastIndexOf("；");
-						}
-						if(symbolIndex == -1){
-							symbolIndex = frontContent.lastIndexOf("\n");
-						}
-						if(symbolIndex != -1){
-							if(symbolIndex +endCut+1 <= countLength){
-								startCut = symbolIndex +startCut+1;
-								endCut = symbolIndex +endCut+1;
-							}else{
-								//当前从句号开始截取会超出文本长度
-								// 如果标签后的内容大于 一半截取长度
-								if(endPosition + avgSize < countLength){
-									startCut = symbolIndex +startCut+1;
-									endCut = countLength;
-								}
-							}
-						}
-					}else if(startPosition >=avgSize && startPosition > countLength-size){ //3、开头标签在中点后，且整体都在文本结尾处
+					}else if(startPosition >=beforeSize && startPosition >= countLength-size){ //3、开头标签在中点后，且整体都在文本结尾处
 						endCut = countLength;
 						startCut = countLength-size;
-						String frontContent = content.substring(startCut,endCut);
-						int symbolIndex = frontContent.indexOf("。");
-						if(symbolIndex == -1){
-							symbolIndex = frontContent.indexOf("；");
-						}
-						if(symbolIndex == -1){
-							symbolIndex = frontContent.indexOf("\n");
-						}
-						if(symbolIndex != -1){
-							if(symbolIndex + startCut+1 <startPosition && symbolIndex+1 <avgSize){
-								startCut = symbolIndex + startCut+1;
-							}
-						}
-
 					}else{//2、第一组font标签整个都在后半段中且截取只需要判断开头结尾标签，在中间即可
-						startCut = fontAvg-avgSize;
-						endCut = fontAvg+avgSize;
+						startCut = startPosition-beforeSize;
+						endCut = startCut+size;
 						String frontContent = content.substring(startCut,startPosition);
-						int symbolIndex = frontContent.lastIndexOf("。");
+						int symbolIndex = frontContent.lastIndexOf("\n");
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.lastIndexOf("。");
+						}
 						if(symbolIndex == -1){
 							symbolIndex = frontContent.lastIndexOf("；");
 						}
-						if(symbolIndex == -1){
-							symbolIndex = frontContent.lastIndexOf("\n");
-						}
 						if(symbolIndex != -1){
-							if(symbolIndex +endCut+1 <= countLength){
-								startCut = symbolIndex +startCut+1;
+							startCut = symbolIndex +startCut+1;
+							if(symbolIndex +endCut+1 < countLength){
+
 								endCut = symbolIndex +endCut+1;
 							}else{
 								//当前从句号开始截取会超出文本长度
-								// 如果标签后的内容大于 一半截取长度
-								if(endPosition + avgSize < countLength){
-									startCut = symbolIndex +startCut+1;
-									endCut = countLength;
-								}
+								endCut = countLength;
 							}
 						}
 					}
