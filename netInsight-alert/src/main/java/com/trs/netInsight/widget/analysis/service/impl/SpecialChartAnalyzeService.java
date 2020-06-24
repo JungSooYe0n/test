@@ -5267,8 +5267,10 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					map.put("isEmotion",null);
 				}
 				String content = "";
+				String noImgContent = "";
 				if (StringUtil.isNotEmpty(vo.getContent())) {
-					content = StringUtil.cutContentByFont(StringUtil.replaceImg(vo.getContent()), Const.CONTENT_LENGTH);
+					noImgContent = StringUtil.replaceImg(vo.getContent());
+					content = StringUtil.cutContentByFont(noImgContent, Const.CONTENT_LENGTH);
 				}
 				if (StringUtil.isNotEmpty(vo.getAbstracts())) {
 					vo.setAbstracts(StringUtil.cutContentByFont(StringUtil.replaceImg(vo.getAbstracts()), Const.CONTENT_LENGTH));
@@ -5284,7 +5286,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				}
 				if(SearchScope.TITLE_CONTENT.equals(specialProject.getSearchScope())){
 					//摘要
-					map.put("abstracts", vo.getContent());
+					map.put("abstracts", noImgContent);
 				}else{
 					//摘要
 					map.put("abstracts", vo.getAbstracts());

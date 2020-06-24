@@ -94,7 +94,7 @@ public class ShiroConfiguration {
 		// 登录成功后要跳转的链接
 		shiroFilterFactoryBean.setSuccessUrl("/index");
 		// 未授权界面;
-		shiroFilterFactoryBean.setUnauthorizedUrl("/forbidden");
+		shiroFilterFactoryBean.setUnauthorizedUrl("/user/forbidden");
 
 		// 自定义拦截器
 		Map<String, Filter> filtersMap = new LinkedHashMap<String, Filter>();
@@ -275,7 +275,7 @@ public class ShiroConfiguration {
 		simulatedLoginFilter.setUserRepository(userRepository);
 //		simulatedLoginFilter.setOrganizationService(organizationService);
 //		simulatedLoginFilter.setUserService(userService);
-		simulatedLoginFilter.setUrl("/forbidden");
+		simulatedLoginFilter.setUrl("/user/forbidden");
 		return simulatedLoginFilter;
 	}
 
@@ -345,7 +345,7 @@ public class ShiroConfiguration {
 		// 未授权
 		filterChainDefinitionMap.put("/kickout", "anon");
 		// 没有权限
-		filterChainDefinitionMap.put("/forbidden", "anon");
+		filterChainDefinitionMap.put("/user/forbidden", "anon");
 		// form表单登录
 		filterChainDefinitionMap.put("/doLogin", "anon");
 		// 获取模拟登录的token

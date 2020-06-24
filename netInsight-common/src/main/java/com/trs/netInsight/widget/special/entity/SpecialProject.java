@@ -587,9 +587,11 @@ public class SpecialProject extends BaseEntity {
 						valueArrList.add(v);
 					}
 				}
-				sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
-				queryBuilder = new QueryBuilder();
-				queryBuilder.filterByTRSL(sb.toString());
+				if(valueArrList.size() >0){
+					sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+					queryBuilder = new QueryBuilder();
+					queryBuilder.filterByTRSL(sb.toString());
+				}
 			}
 			break;
 		case SPECIAL:
@@ -1078,6 +1080,9 @@ public class SpecialProject extends BaseEntity {
 			String[] valueArr = value.split(";");
 			List<String> valueArrList = new ArrayList<>();
 			for(String v : valueArr){
+				if("其他".equals(v)){
+					valueArrList.add("\"\"");
+				}
 				if(allValue.contains(v)){
 					valueArrList.add(v);
 				}
@@ -1096,6 +1101,9 @@ public class SpecialProject extends BaseEntity {
 			String[] areaArr = areas.split(";");
 			List<String> areaList = new ArrayList<>();
 			for(String area : areaArr){
+				if("其他".equals(area)){
+					areaList.add("\"\"");
+				}
 				if(areaMap.containsKey(area)){
 					areaList.add(areaMap.get(area));
 				}

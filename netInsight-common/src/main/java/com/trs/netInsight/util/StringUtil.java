@@ -703,9 +703,11 @@ public final class StringUtil {
 		if(content.length()<=size){
 			return content;
 		}
+		// 截取规则改变，想让标红的字靠前显示，所以如果在前，直接从开头截取，如果太靠近结尾，从结尾开始截取
+		// 如果在中间，则从开始标签前30个字开始截取，如果这30个字内有句号分号或换行，则从这三种符号开始截取
 		if (content.length() > size && content.contains(font1)) {
 			//需要截取文本  注意 截取的文本必须保证是一对font标签
-			int avgSize = size/2;
+			int beforeSize = size > 100 ? 30: size/5; //暂时这么写，保证第一个标签在前面
 			// 找到第一个font标签开始位置
 			int startPosition = content.indexOf(font1);
 			//找到第一个font标签结束位置
@@ -716,30 +718,52 @@ public final class StringUtil {
 			String contentNew = content;
 			if(redWord > size){ //标红比截取长,直接截取标红+。。。
 				contentNew= contentNew.substring(startPosition,endPosition);
+				if(startPosition ==0){
+					contentNew = "..."+contentNew;
+				}
 				return contentNew+"...";
 			}else{
+				//如果标签在开头或者结尾，就直接按字数截取，如果在中间部分，则需要找到靠前的一个句号或分号，从那个开始按字数截取
 				if(countLength == endPosition){
 					// 标红标签比截取长度短，且文本总长大于截取长度，只有一个标签，且结尾在文本结尾
-					contentNew= contentNew.substring(endPosition-size,endPosition);
-					return contentNew+"...";
+					int endCut = endPosition-size;
+					contentNew= contentNew.substring(endCut,endPosition);
+					return "..."+contentNew+"...";
 				}else{
 					int startCut = 0;
 					int endCut = size;
 					int  fontAvg = (startPosition+ endPosition) /2;
 					//1、开头标签在中点前，结尾标签在要截取的总长前，从头按要截取的总长截取
-					if(startPosition < avgSize){
+					if(startPosition <= beforeSize){
 						if( endPosition >size){ //结尾标签在要截取的总长后，需要重新计算截取长度
 							//截取 以标红为中心截取
-							startCut = fontAvg-avgSize;
-							endCut = fontAvg+avgSize;
+							startCut = 0;
+							endCut = endPosition;
 						}
-					}else if(startPosition >=avgSize && startPosition > countLength-size){ //3、开头标签在中点后，且整体都在文本结尾处
+					}else if(startPosition >=beforeSize && startPosition >= countLength-size){ //3、开头标签在中点后，且整体都在文本结尾处
 						endCut = countLength;
 						startCut = countLength-size;
-
 					}else{//2、第一组font标签整个都在后半段中且截取只需要判断开头结尾标签，在中间即可
-						startCut = fontAvg-avgSize;
-						endCut = fontAvg+avgSize;
+						startCut = startPosition-beforeSize;
+						endCut = startCut+size;
+						String frontContent = content.substring(startCut,startPosition);
+						int symbolIndex = frontContent.lastIndexOf("\n");
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.lastIndexOf("。");
+						}
+						if(symbolIndex == -1){
+							symbolIndex = frontContent.lastIndexOf("；");
+						}
+						if(symbolIndex != -1){
+							startCut = symbolIndex +startCut+1;
+							if(symbolIndex +endCut+1 < countLength){
+
+								endCut = symbolIndex +endCut+1;
+							}else{
+								//当前从句号开始截取会超出文本长度
+								endCut = countLength;
+							}
+						}
 					}
 					contentNew= contentNew.substring(startCut,endCut);
 					/*
@@ -782,11 +806,13 @@ public final class StringUtil {
 						endCut = countLength;
 					}
 					contentNew= content.substring(startCut,endCut);
-					if(contentNew.equals(content)){
-						return contentNew;
-					}else{
-						return contentNew + "...";
+					if(startCut != 0){
+						contentNew = "..." + contentNew;
 					}
+					if(endCut != countLength){
+						contentNew =  contentNew + "...";
+					}
+					return contentNew ;
 				}
 			}
 		}else{

@@ -97,6 +97,12 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("timeRange", chart.getTimeRange());
                 chartMap.put("trsl", chart.getTrsl());
                 chartMap.put("xyTrsl", chart.getXyTrsl());
+                chartMap.put("mediaLevel", chart.getMediaLevel());
+                chartMap.put("mediaIndustry", chart.getMediaIndustry());
+                chartMap.put("contentIndustry", chart.getContentIndustry());
+                chartMap.put("filterInfo", chart.getFilterInfo());
+                chartMap.put("contentArea", chart.getContentArea());
+                chartMap.put("mediaArea", chart.getMediaArea());
                 result.add(chartMap);
             }
         }
@@ -218,10 +224,12 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         } else {
             commonBuilder.filterByTRSL(customChart.getTrsl());
         }
+        //监测网站
         String monitorSite = customChart.getMonitorSite();
         if (StringUtil.isNotEmpty(monitorSite) && monitorSite.trim().split(";|；").length > 0) {
             commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME,monitorSite.replaceAll("[;|；]"," OR ") , Operator.Equal);
         }
+        //排除网站
         String excludeWeb = customChart.getExcludeWeb();
         if (StringUtil.isNotEmpty(excludeWeb) && excludeWeb.trim().split(";|；").length > 0) {
             String[] excludeWebArr = excludeWeb.trim().split(";|；");
@@ -251,6 +259,49 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         Date endToDate = DateUtil.stringToDate(timeArray[1], "yyyyMMddHHmmss");
         commonBuilder.setStartTime(startToDate);
         commonBuilder.setEndTime(endToDate);
+        //媒体等级
+        String mediaLevel = customChart.getMediaLevel();
+        if(StringUtil.isNotEmpty(mediaLevel)){
+            addFieldFilter(commonBuilder,FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
+        }
+        //媒体行业
+        String mediaIndustry = customChart.getMediaIndustry();
+        if(StringUtil.isNotEmpty(mediaIndustry )){
+            addFieldFilter(commonBuilder,FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
+        }
+        //内容行业
+        String contentIndustry = customChart.getContentIndustry();
+        if(StringUtil.isNotEmpty(contentIndustry )){
+            addFieldFilter(commonBuilder,FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
+        }
+        //内容地域
+        String contentArea = customChart.getContentArea();
+        if(StringUtil.isNotEmpty(contentArea )){
+            addAreaFilter(commonBuilder,FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
+        }
+        //媒体地域
+        String mediaArea = customChart.getMediaArea();
+        if(StringUtil.isNotEmpty(mediaArea )){
+            addAreaFilter(commonBuilder,FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
+        }
+        //信息过滤
+        String filterInfo = customChart.getFilterInfo();
+        if(StringUtil.isNotEmpty(filterInfo )){
+            String trsl = commonBuilder.asTRSL();
+            StringBuilder sb = new StringBuilder(trsl);
+            String[] valueArr = filterInfo.split(";");
+            List<String> valueArrList = new ArrayList<>();
+            for(String v : valueArr){
+                if(Const.FILTER_INFO.contains(v)){
+                    valueArrList.add(v);
+                }
+            }
+            if(valueArrList.size()>0){
+                sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+                commonBuilder = new QueryBuilder();
+                commonBuilder.filterByTRSL(sb.toString());
+            }
+        }
         Object result = null;
         IndexTabType indexTabType = ColumnFactory.chooseType(customChart.getType());
         if (IndexTabType.LIST_NO_SIM.equals(indexTabType) || IndexTabType.HOT_LIST.equals(indexTabType)) {
@@ -267,6 +318,43 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         return result;
     }
 
+    private void addFieldFilter( QueryBuilder queryBuilder,String field,String value,List<String> allValue){
+        if(StringUtil.isNotEmpty(value)){
+            String[] valueArr = value.split(";");
+            List<String> valueArrList = new ArrayList<>();
+            for(String v : valueArr){
+                if("其他".equals(v)){
+                    valueArrList.add("\"\"");
+                }
+                if(allValue.contains(v)){
+                    valueArrList.add(v);
+                }
+            }
+            queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+        }
+    }
+
+    private void addAreaFilter( QueryBuilder queryBuilder,String field,String areas){
+        Map<String,String> areaMap = null;
+        if(FtsFieldConst.FIELD_MEDIA_AREA.equals(field)){
+            areaMap = Const.MEDIA_PROVINCE_NAME;
+        }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field)){
+            areaMap = Const.CONTTENT_PROVINCE_NAME;
+        }
+        if(StringUtil.isNotEmpty(areas) && areaMap!= null){
+            String[] areaArr = areas.split(";");
+            List<String> areaList = new ArrayList<>();
+            for(String area : areaArr){
+                if("其他".equals(area)){
+                    areaList.add("\"\"");
+                }
+                if(areaMap.containsKey(area)){
+                    areaList.add(areaMap.get(area));
+                }
+            }
+            queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+        }
+    }
 
     private Object getBarPieData(SpecialCustomChart customChart, QueryBuilder queryBuilder) throws TRSSearchException {
         Object result = null;
