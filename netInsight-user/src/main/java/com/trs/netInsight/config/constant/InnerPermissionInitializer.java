@@ -135,7 +135,7 @@ public class InnerPermissionInitializer {
 			permissionsAdd.add(addPermission("添加二级分类", "/special/addzhuan/**", PermissionType.SPECIAL,
 					"special:addzhuan", null, false, "0", addRole));
 			// 添加专题
-			permissionsAdd.add(addPermission("添加专题", "/special/add/**", PermissionType.SPECIAL, "special:add", null,
+			permissionsAdd.add(addPermission("添加专题", "/special/addProject/**", PermissionType.SPECIAL, "special:add", null,
 					false, "0", addRole));
 			// 添加预警
 			permissionsAdd.add(
