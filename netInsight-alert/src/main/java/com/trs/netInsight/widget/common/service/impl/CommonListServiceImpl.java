@@ -19,6 +19,7 @@ import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.model.result.IDocument;
 import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
 import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.support.hybaseRedis.HybaseRead;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.RedisUtil;
@@ -523,8 +524,10 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSException
      */
     @Override
+    @HybaseRead
     public <T extends IQueryBuilder> Object queryListGroupNameStattotal(T builder, boolean sim,
                                                                         boolean irSimflag, boolean irSimflagAll, String groupName, String type, ChartResultField resultField) throws TRSException {
+
         //列表统计只会出现一组数据源，所以只写一个数据源即可
         QueryBuilder queryBuilder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(builder, groupName, 0);
         if (builder == null) {
@@ -798,6 +801,7 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSSearchException
      */
     @Override
+    @HybaseRead
     public <T extends IQueryBuilder> Long ftsCount(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String type, String groupName) throws TRSException {
         QueryBuilder queryBuilder = null;
         if (StringUtil.isNotEmpty(groupName)) {
@@ -825,6 +829,7 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSSearchException
      */
     @Override
+    @HybaseRead
     public <T extends IQueryBuilder> Long ftsCount(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String type) throws TRSSearchException {
         long count = 0L;
         try {

@@ -17,6 +17,7 @@ import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.hybaseRedis.HybaseRead;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
