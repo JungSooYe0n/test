@@ -2,6 +2,7 @@ package com.trs.netInsight.widget.column.controller;
 
 import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.repository.IndexPageRepository;
 import com.trs.netInsight.widget.column.service.IColumnChartService;
@@ -12,10 +13,16 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -56,15 +63,18 @@ public class ColumnHistoryController {
     @FormatResult
     @GetMapping(value = "/updateHistortIndexPageTypeId")
     @ApiOperation("修改日常监测导航栏数据")
-    public Object updateHistortIndexPageTypeId() {
+    public Object updateHistortIndexPageTypeId() throws Exception{
         System.out.println("修改栏目------------");
         List<IndexPage> list = indexPageRepository.findAll();
         if (list != null && list.size() > 0) {
             for (IndexPage indexPage : list) {
-                if (StringUtil.isNotEmpty(indexPage.getTypeId())) {
-                    indexPage.setParentId(indexPage.getTypeId());
-                    indexPage.setTypeId("");
-                    indexPageRepository.saveAndFlush(indexPage);
+                if (StringUtil.isNotEmpty(indexPage.getTypeId()) && StringUtil.isEmpty(indexPage.getParentId())) {
+                    IndexPage parent = indexPageRepository.findOne(indexPage.getTypeId());
+                    if(parent != null ){
+                        indexPage.setParentId(parent.getId());
+                        indexPage.setTypeId("");
+                        indexPageRepository.saveAndFlush(indexPage);
+                    }
                 }
             }
         }
