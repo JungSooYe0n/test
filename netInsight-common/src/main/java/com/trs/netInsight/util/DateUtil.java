@@ -73,7 +73,7 @@ public class DateUtil {
 	/**
 	 * 将毫秒数转化为可读的时间字符串,如1天，1小时，1分<br>
 	 * 的区别是不会显示多个单位,更符合阅读习惯,如1天1小时显示为25小时,1小时3分显示为63分
-	 * 
+	 *
 	 * @param millis
 	 *            毫秒数
 	 * @return 时间字符串
@@ -137,11 +137,11 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 根据天数获得时间范围，最近几天，形如：1970.01.01 - 2014.10.01
 	 *
 	 * <strong>注意：最近7天是6天前到今天</strong>
-	 * 
+	 *
 	 * @param day
 	 *            最近几天
 	 * @return String
@@ -175,9 +175,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获取当前日期
-	 * 
+	 *
 	 * @param format
 	 *            格式
 	 * @return String
@@ -188,9 +188,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获取与指定日期间隔指定天数的日期
-	 * 
+	 *
 	 * @param date
 	 *            时间
 	 * @param format
@@ -216,9 +216,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获取与指定日期间隔指定天数的日期
-	 * 
+	 *
 	 * @param date
 	 *            时间
 	 * @param format
@@ -249,9 +249,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获取与指定日期间隔指定天数的日期
-	 * 
+	 *
 	 * @param date
 	 *            时间
 	 * @param relativeDay
@@ -272,7 +272,7 @@ public class DateUtil {
 
 	/**
 	 * 获取和当天相隔指定天数的Date对象. 大于0表示之后, 小于0表之前.
-	 * 
+	 *
 	 * @param relativeDay
 	 *            相隔指定天数
 	 * @return Date对象
@@ -284,7 +284,7 @@ public class DateUtil {
 
 	/**
 	 * 获取和指定cal对象相隔指定天数的cal对象. 大于0表示之后, 小于0表之前.
-	 * 
+	 *
 	 * @param cal
 	 *            指定cal对象
 	 * @param relativeDay
@@ -297,9 +297,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获取与指定日期间隔指定月份的日期
-	 * 
+	 *
 	 * @param date
 	 *            指定时间
 	 * @param format
@@ -322,9 +322,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 取得最近一月时间范围
-	 * 
+	 *
 	 * @return String
 	 * @since zhangchengbing @ 2012-3-8
 	 */
@@ -337,9 +337,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * trs日期格式转换(yyyy.MM.dd HH:mm:ss转为yyyy.MM.dd)
-	 * 
+	 *
 	 * @param dateTime
 	 *            转换日期
 	 * @return 转换后日期
@@ -362,9 +362,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获取某年某月的最后一天
-	 * 
+	 *
 	 * @param year
 	 *            年
 	 * @param month
@@ -391,9 +391,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 是否是闰年
-	 * 
+	 *
 	 * @param year
 	 *            年份
 	 * @return true or false
@@ -405,7 +405,7 @@ public class DateUtil {
 
 	/**
 	 * 将格式的日期字符串转换为当天0时的毫秒时间
-	 * 
+	 *
 	 * @param date
 	 *            日期字符串
 	 * @return 当天0时的毫秒时间
@@ -422,7 +422,7 @@ public class DateUtil {
 
 	/**
 	 * 格式化时间
-	 * 
+	 *
 	 * @param date
 	 *            日期字符串
 	 * @param pattern
@@ -487,9 +487,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 解析新浪微博的时间
-	 * 
+	 *
 	 * @param text
 	 *            新浪微博时间
 	 * @return long
@@ -523,9 +523,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 解析新浪微博的时间
-	 * 
+	 *
 	 * @param text
 	 *            包含时间的字符串
 	 * @param pattern
@@ -591,7 +591,7 @@ public class DateUtil {
 
 	/**
 	 * 完成日期串到日期对象的转换. <BR>
-	 * 
+	 *
 	 * @param dateString
 	 *            日期字符串
 	 * @param dateFormat
@@ -614,7 +614,7 @@ public class DateUtil {
 	 * 从Date对象得到Calendar对象. <BR>
 	 * JDK提供了Calendar.getTime()方法, 可从Calendar对象得到Date对象,
 	 * 但没有提供从Date对象得到Calendar对象的方法.
-	 * 
+	 *
 	 * @param date
 	 *            给定的Date对象
 	 * @return 得到的Calendar对象. 如果date参数为null, 则得到表示当前时间的Calendar对象.
@@ -629,7 +629,7 @@ public class DateUtil {
 
 	/**
 	 * 是否为yyyy.MM.dd HH格式
-	 * 
+	 *
 	 * @param date
 	 *            日期
 	 * @return 是否为小时格式
@@ -644,7 +644,7 @@ public class DateUtil {
 
 	/**
 	 * 获得本周一的日期
-	 * 
+	 *
 	 * @return 本周一日期
 	 * @since zhanghu @ 2013-3-7
 	 */
@@ -659,7 +659,7 @@ public class DateUtil {
 
 	/**
 	 * 获得当前日期与本周日相差的天数
-	 * 
+	 *
 	 * @return 相差天数
 	 * @since zhanghu @ 2013-3-7
 	 */
@@ -691,9 +691,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获取24小时字符串
-	 * 
+	 *
 	 * @return 24小时字符串列表
 	 * @since zhanghu @ 2013-4-7
 	 */
@@ -711,7 +711,7 @@ public class DateUtil {
 
 	/**
 	 * 获取指定日期所有小时字符串,例如：2011.02.22 00-2011.02.23 00
-	 * 
+	 *
 	 * @param date
 	 *            日期
 	 * @return 小时列表
@@ -734,7 +734,7 @@ public class DateUtil {
 
 	/**
 	 * 获取指定日期所有小时字符串,例如：2011.02.22 00-2011.02.23 00
-	 * 
+	 *
 	 * @param date
 	 *            日期
 	 * @param endHour
@@ -759,7 +759,7 @@ public class DateUtil {
 
 	/**
 	 * 校验字符串日期格式
-	 * 
+	 *
 	 * @param str
 	 * @return
 	 */
@@ -778,7 +778,7 @@ public class DateUtil {
 
 	/**
 	 * 获取日期小时
-	 * 
+	 *
 	 * @param date
 	 *            日期
 	 * @param format
@@ -798,9 +798,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获得两个日期字符串之间的所有日期字符串对象
-	 * 
+	 *
 	 * @param beginDate
 	 *            开始时间
 	 * @param endDate
@@ -841,7 +841,7 @@ public class DateUtil {
 
 	/**
 	 * 获得与当前时间的相隔时间
-	 * 
+	 *
 	 * @param datetime
 	 *            时间
 	 * @return 相隔时间
@@ -923,7 +923,7 @@ public class DateUtil {
 
 	/**
 	 * 当天的开始时间
-	 * 
+	 *
 	 * @return
 	 */
 	public static long startOfTodDay() {
@@ -938,7 +938,7 @@ public class DateUtil {
 
 	/**
 	 * 当天的结束时间
-	 * 
+	 *
 	 * @return
 	 */
 	public static long endOfTodDay() {
@@ -953,7 +953,7 @@ public class DateUtil {
 
 	/**
 	 * 本月第一天
-	 * 
+	 *
 	 * @return
 	 */
 	public static String startOfMonth() {
@@ -977,7 +977,7 @@ public class DateUtil {
 
 	/**
 	 * 本周第一天
-	 * 
+	 *
 	 * @return
 	 */
 	public static String startOfWeek() {
@@ -991,7 +991,7 @@ public class DateUtil {
 
 	/**
 	 * 本周最后一天
-	 * 
+	 *
 	 * @return
 	 */
 	public static String endOfWeek() {
@@ -1004,9 +1004,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 秒数转为日期字符串格式
-	 * 
+	 *
 	 * @param dateMillis
 	 *            秒数
 	 * @param pattern
@@ -1020,9 +1020,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 秒数转为小时(保留小数点2位)
-	 * 
+	 *
 	 * @param millis
 	 *            秒数
 	 * @return 小时
@@ -1066,7 +1066,7 @@ public class DateUtil {
 
 	/**
 	 * 根据年月获取当月的开始日期
-	 * 
+	 *
 	 * @param year
 	 * @param month
 	 * @return
@@ -1082,7 +1082,7 @@ public class DateUtil {
 
 	/**
 	 * 根据年月获取当月的结束日期
-	 * 
+	 *
 	 * @param year
 	 * @param month
 	 * @return
@@ -1096,9 +1096,9 @@ public class DateUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * 获得两个日期字符串之间的所有日期 + 小时字符串字符串对象
-	 * 
+	 *
 	 * @param beginDate
 	 *            开始时间
 	 * @param endDate
@@ -1145,9 +1145,9 @@ public class DateUtil {
 
 	/**
 	 * 获取当前时间内的所有时间 小时 例如 2017.01.01 01 2017.01.01 02
-	 * 
+	 *
 	 * @author songbinbin 2017年5月3日
-	 * 
+	 *
 	 * @return list
 	 */
 	public static List<String> getCurrentDateHours() {
@@ -1196,7 +1196,7 @@ public class DateUtil {
 
 	/**
 	 * 获取24小时内时间格式
-	 * 
+	 *
 	 * @author songbinbin 2017年5月3日15:48:11
 	 */
 	public static List<String> get24Hours() {
@@ -1231,7 +1231,7 @@ public class DateUtil {
 
 	/**
 	 * 获取指定日期后所有小时字符串,
-	 * 
+	 *
 	 * @param date
 	 *            日期
 	 * @param endHour
@@ -1313,7 +1313,7 @@ public class DateUtil {
 		}
 		*/
 		time=time.replace("至今", formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
-		
+
 		Pattern pattern1 = Pattern.compile("[0-9]*[hdwmy]");
 		Pattern pattern2 = Pattern
 				.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2};\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
@@ -1432,7 +1432,7 @@ public class DateUtil {
 
 	/**
 	 * 获取两个时间直接的所有月份
-	 * 
+	 *
 	 * @param minDate
 	 *            小
 	 * @param maxDate
@@ -1463,10 +1463,10 @@ public class DateUtil {
 		Date d = new java.util.Date(now);
 		return d;
 	}
-	
+
 	/**
 	 * 获取指点日期范围内所有日期,包含起止日期
-	 * 
+	 *
 	 * @since changjiang @ 2018年5月4日
 	 * @param begin
 	 * 			起始日期
@@ -1481,28 +1481,28 @@ public class DateUtil {
 		process(begin, end, smf, days);
 		return days;
 	}
-	
+
 	private static void process(String date1, String date2, SimpleDateFormat format,List<String> days){
         if(date1.equals(date2)){
         	days.add(date1);
             return;
         }
- 
+
         String tmp;
         if(date1.compareTo(date2) > 0){  //确保 date1的日期不晚于date2
             tmp = date1; date1 = date2; date2 = tmp;
         }
- 
+
         tmp = format.format(str2Date(date1,format).getTime() + 3600*24*1000);
- 
+
         days.add(date1);
-        while(tmp.compareTo(date2) < 0){                   
-        	days.add(tmp);   
+        while(tmp.compareTo(date2) < 0){
+        	days.add(tmp);
             tmp = format.format(str2Date(tmp,format).getTime() + 3600*24*1000);
         }
         days.add(date2);
     }
- 
+
 	private static Date str2Date(String str, SimpleDateFormat format) {
 		if (str == null)
 			return null;
@@ -1593,6 +1593,36 @@ public class DateUtil {
 		SimpleDateFormat formatter = new SimpleDateFormat(yyyyMMdd3);
 		System.out.println(formatter.format(date));
 		return formatter.format(date);
+	}
+
+	//获得两个时间相差分钟
+	public static long getDateTimeMin(String startTime,String endTime,String c){
+		SimpleDateFormat sd = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		long nd = 1000*24*60*60;//一天的毫秒数
+		long nh = 1000*60*60;//一小时的毫秒数
+		long nm = 1000*60;//一分钟的毫秒数
+		long ns = 1000;//一秒钟的毫秒数
+		long diff = 0;
+		try {
+			diff = sd.parse(endTime).getTime() - sd.parse(startTime).getTime();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		long days = diff/nd;//计算差多少天
+		long hours = diff%nd/nh;//计算差多少小时
+		long mins = diff%nd%nh/nm;//计算差多少分钟
+		long secs = diff%nd%nh%nm/ns;//计算差多少秒//输出结果
+		long time = 0l;
+		if(c.equals("day"))
+			time = days;
+		else if(c.equals("hour"))
+			time = days*24+hours;
+		else if(c.equals("min"))
+			time = days*24*60 + hours*60 + mins;
+		else
+			time= mins*60+secs;
+
+		return time;
 	}
 
 	/**

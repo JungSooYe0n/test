@@ -46,6 +46,7 @@ public class RedisUtil {
 	public static final String SUFFIX_KEY = "server";
 
 	private static RedisTemplate<String, User> redisTemplate;
+	private static RedisTemplate<String, Object> objTemplate;
 	private static StringRedisTemplate stringRedisTemplate;
 	private static RedisTemplate<String, List<FtsDocumentChaos>> redisForStream;
 	private static RedisTemplate<String,List<Map<String, Object>>> listRedis;
@@ -58,6 +59,7 @@ public class RedisUtil {
 	static {
 		try {
 			redisTemplate = (RedisTemplate<String, User>) SpringUtil.getBean("redisTemplate");
+			objTemplate = (RedisTemplate<String, Object>) SpringUtil.getBean("redisTemplate");
 			redisForStream = (RedisTemplate<String, List<FtsDocumentChaos>>) SpringUtil.getBean("redisTemplate");
 			listRedis = (RedisTemplate<String, List<Map<String, Object>>>) SpringUtil.getBean("redisTemplate");
 			listRedisForObject = (RedisTemplate<String, List<Object>>) SpringUtil.getBean("redisTemplate");
@@ -146,6 +148,37 @@ public class RedisUtil {
 		}
 		ValueOperations<String, Subject> opsForValue = weixinLogin.opsForValue();
 		return opsForValue.get(key);
+	}
+	/**
+	 * 海贝查询信息
+	 * @param key
+	 * @param obj
+	 * @return
+	 */
+	public static boolean setObject(String key,Object obj){
+		if (StringUtils.isBlank(key)) {
+			return false;
+		}
+		ValueOperations<String, Object> opsForValue = objTemplate.opsForValue();
+		opsForValue.set(key, obj);
+		weixinLogin.expire(key, 24, TimeUnit.HOURS);//key过期
+		return true;
+	}
+	/**
+	 * 登录信息从redis取出
+	 * @param key ticket+WEIXIN_LOGIN_REIDS
+	 * @return
+	 */
+	public static Object getObject(String key){
+		if (StringUtils.isBlank(key)) {
+			return null;
+		}
+		try {
+			ValueOperations<String, Object> opsForValue = objTemplate.opsForValue();
+			return opsForValue.get(key);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 	/**
 	 * 把List<Map<String, Object>>存到redis

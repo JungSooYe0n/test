@@ -22,4 +22,15 @@ public class ChartResultField {
         this.countField = countField;
     }
 
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(contrastField);
+        sb.append(";");
+        sb.append(countField);
+        sb.append(";");
+        sb.append(lineXField);
+        sb.append(";");
+        return sb.toString();
+    }
+
 }
