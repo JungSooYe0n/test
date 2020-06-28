@@ -700,6 +700,15 @@ public final class StringUtil {
 	 * @Description: 截取正文 - 在命中第一个font标签的情况下，截取100个字符
 	 */
 	public static String cutContentByFont(String content, int size) {
+		//先去掉首尾的空格和换行
+		while(content.indexOf(" ") ==0 || content.indexOf("\n") ==0){
+			content = content.trim();
+			if(content.indexOf("\n") == 0){
+				content = content.substring(1,content.length());
+			}
+		}
+
+
 		if(content.length()<=size){
 			return content;
 		}
@@ -804,6 +813,9 @@ public final class StringUtil {
 					}
 					if(endCut > countLength){
 						endCut = countLength;
+					}
+					if(startCut <=5){
+						startCut = 0;
 					}
 					contentNew= content.substring(startCut,endCut);
 					if(startCut != 0){
