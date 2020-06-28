@@ -58,10 +58,10 @@ public class SimulatedLoginFilter extends AccessControlFilter {
 				// 放行
 				Map<String, Object> map = JwtUtil.parseJwtToken(token);
 				String mapIp = String.valueOf(map.get("ip"));
-				if (!StringUtils.equals(ip, mapIp)) {
-					WebUtils.issueRedirect(servletRequest, servletResponse, url);
-					return false;
-				}
+//				if (!StringUtils.equals(ip, mapIp)) {
+//					WebUtils.issueRedirect(servletRequest, servletResponse, url);
+//					return false;
+//				}
 				String loginId = String.valueOf(map.get("loginId"));
 				//需要模拟登录的机构id
 				String organizationId = String.valueOf(map.get("organizationId"));
@@ -100,7 +100,7 @@ public class SimulatedLoginFilter extends AccessControlFilter {
 				}
 				
 				// 判断这个用户是不是这个机构的
-				String orgId = user1.getOrganizationId();
+				String orgId = userRepository.findOne(userId).getOrganizationId();
 				if (!StringUtils.equals(orgId,organizationId)) {
 					WebUtils.issueRedirect(servletRequest, servletResponse, url);
 					return false;
