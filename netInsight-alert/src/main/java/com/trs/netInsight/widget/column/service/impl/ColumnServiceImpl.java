@@ -61,6 +61,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Sort.Order;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -380,7 +382,9 @@ public class ColumnServiceImpl implements IColumnService {
 	}
 
 	public Map<String,Object> getOneLevelColumnForMap(String typeId,User loginUser){
-		Sort sort = new Sort(Sort.Direction.ASC,"sequence");
+		List<Order> orders=new ArrayList< Order>();
+		orders.add( new Order(Sort.Direction.ASC, "sequence"));
+		orders.add( new Order(Sort.Direction.ASC, "createdTime"));
 		Specification<IndexPage> criteria_page = new Specification<IndexPage>(){
 
 			@Override
@@ -423,8 +427,8 @@ public class ColumnServiceImpl implements IColumnService {
 		List<IndexPage> oneIndexPage = null;
 		List<IndexTabMapper> oneIndexTab = null;
 
-		oneIndexPage = indexPageRepository.findAll(criteria_page,sort);
-		oneIndexTab = tabMapperRepository.findAll(criteria_tab_mapper,sort);
+		oneIndexPage = indexPageRepository.findAll(criteria_page,new Sort(orders));
+		oneIndexTab = tabMapperRepository.findAll(criteria_tab_mapper,new Sort(orders));
 		if(oneIndexPage != null && oneIndexPage.size() >0){
 			result.put("page",oneIndexPage);
 		}

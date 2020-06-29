@@ -41,7 +41,7 @@ public class IndexPage extends BaseEntity {
 	@JsonIgnore
 	@OneToMany(cascade={CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.EAGER)
 	@JoinColumn(name = "parent_id")
-	@OrderBy("sequence asc")
+	@OrderBy("sequence asc,createdTime asc")
 	private List<IndexPage> childrenPage = new ArrayList<>();
 
 	@Column(name = "parent_id")
@@ -107,7 +107,7 @@ public class IndexPage extends BaseEntity {
 	 */
 	@JsonIgnore
 	@OneToMany(mappedBy = "indexPage", cascade = CascadeType.DETACH)
-	@OrderBy("sequence asc")
+	@OrderBy("sequence asc,createdTime asc")
 	private List<IndexTabMapper> indexTabMappers = new ArrayList<>();
 
 	/**

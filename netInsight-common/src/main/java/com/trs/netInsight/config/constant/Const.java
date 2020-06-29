@@ -1298,11 +1298,11 @@ public class Const {
     /**
      * 媒体行业
      */
-    public static final List<String> MEDIA_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品");
+    public static final List<String> MEDIA_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品","其他");
     /**
      * 内容行业
      */
-    public static final List<String> CONTENT_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品");
+    public static final List<String> CONTENT_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品","其他");
     /**
      * 信息过滤
      */
