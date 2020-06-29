@@ -1599,6 +1599,7 @@ public class ColumnServiceImpl implements IColumnService {
 						}
 						infoListResult.setContent(resultContent);
 					}
+					list = infoListResult;
 				}
 				return list;
 			} catch (Exception e) {

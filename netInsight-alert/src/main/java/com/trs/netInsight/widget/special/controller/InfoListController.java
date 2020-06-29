@@ -392,36 +392,33 @@ public class InfoListController {
 		//全都返回给前端  前端自己模糊匹配
 		return searchRecordService.findByUserId(userId);
 	}
+
 	@FormatResult
-	@RequestMapping(value = "/searchStattotal", method = RequestMethod.GET)
+	@RequestMapping(value = "/searchStattotal", method = RequestMethod.POST)
 	public Object searchStattotal(
-							   @RequestParam(value = "source", defaultValue = "ALL") String source,
-							   @RequestParam(value = "time", required = false, defaultValue = "7d") String time,
-							   @RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
-							   @RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
-							   @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
-							   @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary,
-							   @RequestParam(value = "area", defaultValue = "ALL", required = false) String area,
-							   //@RequestParam(value = "industry", defaultValue = "ALL", required = false) String industry,
-							   @RequestParam(value = "notKeyWords", required = false) String notKeyWords,
-							   @RequestParam(value = "fromWebSite", required = false) String fromWebSite,
-							   @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-							   @RequestParam(value = "keyWordIndex", defaultValue = "positioCon", required = false) String keyWordIndex,
-							   @RequestParam(value = "simflag", required = false) String simflag,
-							   @RequestParam(value = "keywords", required = false) String keywords,
-							   @RequestParam(value = "weight", defaultValue = "false", required = false) boolean weight,
-							   @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
-							   @RequestParam(value = "newsInformation", required = false) String newsInformation,
-							   @RequestParam(value = "reprintPortal", required = false) String reprintPortal,
-							   @RequestParam(value = "siteType", required = false) String siteType,
-							   @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
-							   @RequestParam(value = "isExport", required = false) boolean isExport
+			@ApiParam("时间设置") @RequestParam(value = "time", required = false, defaultValue = "7d") String time,
+			@ApiParam("排重选择") @RequestParam(value = "simflag", required = false) String simflag,
+			@ApiParam("关键词位置") @RequestParam(value = "keyWordIndex", defaultValue = "positioCon", required = false) String keyWordIndex,
+			@ApiParam("排序规则 - 是时间排序，还是优先标题命中") @RequestParam(value = "weight", defaultValue = "false", required = false) boolean weight,
+			@ApiParam("排序") @RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
+			@ApiParam("媒体类型") @RequestParam(value = "source", defaultValue = "ALL") String source,
+			@ApiParam("关键词组") @RequestParam(value = "keywords", required = false) String keywords,
+			@ApiParam("排除关键词") @RequestParam(value = "notKeyWords", required = false) String notKeyWords,
+			@ApiParam("情绪选择") @RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
+			@ApiParam("来源网站") @RequestParam(value = "fromWebSite", required = false) String fromWebSite,
+			@ApiParam("排除网站") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+			@ApiParam("新闻信息资质") @RequestParam(value = "newsInformation", required = false) String newsInformation,
+			@ApiParam("可供转载网站") @RequestParam(value = "reprintPortal", required = false) String reprintPortal,
+			@ApiParam("门户类型") @RequestParam(value = "portalType", required = false) String portalType,
+			@ApiParam("网站类型") @RequestParam(value = "siteType", required = false) String siteType,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary
 	) throws TRSException {
 		log.warn("图表分析统计表格stattotal接口开始调用");
-		long start = new Date().getTime();
 		try {
-			if(source.contains("境外媒体")){
-				source = source.replaceAll("境外媒体","国外新闻");
+			if(StringUtil.isEmpty(keywords)){
+				return null;
 			}
 			// 默认不排重
 			boolean isSimilar = false;
@@ -431,19 +428,35 @@ public class InfoListController {
 				isSimilar = true;
 			} else if ("urlRemove".equals(simflag)) {
 				irSimflag = true;
-			}else if ("sourceRemove".equals(simflag)){
+			} else if ("sourceRemove".equals(simflag)) {
 				irSimflagAll = true;
 			}
-
-			List<ClassInfo> total = infoListService.searchstattotal(isSimilar, irSimflag,irSimflagAll, 0, 20, source, time, area,
-					mediaIndustry, emotion, sort, invitationCard, forwardPrimary,keywords, notKeyWords, keyWordIndex, weight,
-					fuzzyValue,fromWebSite,excludeWeb,newsInformation,reprintPortal,siteType,isExport,"advance");
-			Map<String, Object> putValue = MapUtil.putValue(new String[] { "总量" }, total);
-			return putValue;
+			if(StringUtil.isNotEmpty(portalType) && !"ALL".equals(portalType)){
+				if(StringUtil.isNotEmpty(reprintPortal)&& !"ALL".equals(reprintPortal)){
+					if(reprintPortal.endsWith(";")){
+						reprintPortal = reprintPortal + portalType;
+					}else{
+						reprintPortal = reprintPortal +";"+ portalType;
+					}
+				}else{
+					reprintPortal = portalType;
+				}
+			}
+			if("positioCon".equals(keyWordIndex)){
+				keyWordIndex = "1";
+			}else if("positionKey".equals(keyWordIndex)){
+				keyWordIndex= "0";
+			}
+			keywords = keywords.replaceAll("\\s+", ",");
+			Object total = infoListService.searchstattotal(isSimilar, irSimflag, irSimflagAll, 0, 20, source, time,
+					mediaIndustry, emotion, sort, invitationCard, forwardPrimary, keywords, notKeyWords, keyWordIndex, weight,
+					fromWebSite, excludeWeb, newsInformation, reprintPortal, siteType, "advance");
+			return total;
 		} catch (Exception e) {
 			throw new OperationException("统计表格错误,message: " + e, e);
 		}
 	}
+
 	//@EnableRedis
 	@FormatResult
 	@Log(systemLogOperation = SystemLogOperation.SEARCH_LIST, systemLogType = SystemLogType.SEARCH, systemLogOperationPosition = "高级搜索")
@@ -451,52 +464,58 @@ public class InfoListController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "pageNo", value = "页码", dataType = "int", paramType = "query", required = false),
 			@ApiImplicitParam(name = "pageSize", value = "步长", dataType = "int", paramType = "query", required = false),
-			@ApiImplicitParam(name = "source", value = "来源", dataType = "String", paramType = "query", required = false),
+
 			@ApiImplicitParam(name = "time", value = "时间", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "area", value = "内容地域", dataType = "String", paramType = "query", required = false),
-			//@ApiImplicitParam(name = "industry", value = "行业类型", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "notKeyWords", value = "排除词", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排,跨数据源排", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "weight", value = "标题权重-排序规则", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "sort", value = "排序", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "source", value = "媒体类型", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "keywords", value = "关键词组", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "notKeyWords", value = "排除关键词", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "emotion", value = "情绪选择", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "fromWebSite", value = "来源网站", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排,跨数据源排", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "keywords", value = "关键词", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
-			@ApiImplicitParam(name = "fuzzyValueScope", value = "结果中搜索de范围", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "fuzzyValue", value = "结果中搜索", dataType = "String", paramType = "query", required = false) ,
 			@ApiImplicitParam(name = "newsInformation", value = "新闻信息资质", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "reprintPortal", value = "可供转载网站/门户类型", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "reprintPortal", value = "可供转载网站", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "portalType", value = "可供转载网站", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "siteType", value = "网站类型", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query", required = false)})
-	@RequestMapping(value = "/searchList", method = RequestMethod.GET)
+			@ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "fuzzyValueScope", value = "结果中搜索de范围", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "fuzzyValue", value = "结果中搜索", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "invitationCard", value = "论坛主贴 0 /回帖 1 所有=主贴+回帖+转帖", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "invitationCard1", value = "二级筛选 论坛主贴 0 /回帖 1 所有=主贴+回帖+转帖", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "forwardPrimary", value = "微博 原发 primary / 转发 forward", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "forwardPrimary1", value = "二级筛选 微博 原发 primary / 转发 forward", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "checkedSource", value = "当前列表页对应的的媒体类型", dataType = "String", paramType = "query", required = false)})
+	@RequestMapping(value = "/searchList", method = RequestMethod.POST)
 	public Object searchList(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-			@RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-			@RequestParam(value = "source", defaultValue = "ALL") String source,
-			@RequestParam(value = "checkedSource", defaultValue = "ALL") String checkedSource,
-			@RequestParam(value = "time", required = false, defaultValue = "7d") String time,
-			@RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
-			@RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
-			@ApiParam("论坛主贴 0 /回帖 1 所有=主贴+回帖+转帖(嘿嘿)") @RequestParam(value = "invitationCard", required = false) String invitationCard,
-			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary,
-			@ApiParam("二级筛选论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard1", required = false) String invitationCard1,
-			@ApiParam("二级筛选微博 原发 primary / 转发 forward ") @RequestParam(value = "forwardPrimary1", required = false) String forwardPrimary1,
-			@RequestParam(value = "area", defaultValue = "ALL", required = false) String area,
-			//@RequestParam(value = "industry", defaultValue = "ALL", required = false) String industry,
-			@RequestParam(value = "notKeyWords", required = false) String notKeyWords,
-			@RequestParam(value = "fromWebSite", required = false) String fromWebSite,
-			@RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-			@RequestParam(value = "keyWordIndex", defaultValue = "positioCon", required = false) String keyWordIndex,
-			@RequestParam(value = "simflag", required = false) String simflag,
-			@RequestParam(value = "keywords", required = false) String keywords,
-			@RequestParam(value = "weight", defaultValue = "false", required = false) boolean weight,
-			@RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
-			@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
-			@RequestParam(value = "newsInformation", required = false) String newsInformation,
-			@RequestParam(value = "reprintPortal", required = false) String reprintPortal,
-			@RequestParam(value = "siteType", required = false) String siteType,
-			@RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
-							 @RequestParam(value = "isExport", required = false) boolean isExport
-							 ) throws TRSException {
+							 @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+
+							 @RequestParam(value = "time", required = false, defaultValue = "7d") String time,
+							 @RequestParam(value = "simflag", required = false) String simflag,
+							 @RequestParam(value = "keyWordIndex", defaultValue = "positioCon", required = false) String keyWordIndex,
+							 @RequestParam(value = "weight", defaultValue = "false", required = false) boolean weight,
+							 @RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
+							 @RequestParam(value = "source", defaultValue = "ALL") String source,
+							 @RequestParam(value = "keywords", required = false) String keywords,
+							 @RequestParam(value = "notKeyWords", required = false) String notKeyWords,
+							 @RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
+							 @RequestParam(value = "fromWebSite", required = false) String fromWebSite,
+							 @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							 @RequestParam(value = "newsInformation", required = false) String newsInformation,
+							 @RequestParam(value = "reprintPortal", required = false) String reprintPortal,
+							 @RequestParam(value = "portalType", required = false) String portalType,
+							 @RequestParam(value = "siteType", required = false) String siteType,
+							 @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							 @RequestParam(value = "invitationCard", required = false) String invitationCard,
+							 @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary,
+							 @RequestParam(value = "invitationCard1", required = false) String invitationCard1,
+							 @RequestParam(value = "forwardPrimary1", required = false) String forwardPrimary1,
+							 @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
+							 @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
+							 @RequestParam(value = "checkedSource", defaultValue = "ALL") String checkedSource
+	) throws TRSException {
 		log.warn("专项检测信息列表  开始调用接口");
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
@@ -512,28 +531,37 @@ public class InfoListController {
 			}else if ("sourceRemove".equals(simflag)){
 				irSimflagAll = true;
 			}
-			String searchPage = "advancedSearch";
 			String searchType = "precise";
-			if (Const.MEDIA_TYPE_WEIXIN.contains(source) && !(source.contains(";") || source.contains("；"))) {
-				return infoListService.weChatForSearchList(isSimilar, irSimflag,irSimflagAll, pageNo, pageSize, source, checkedSource,time, area,
-						mediaIndustry, emotion, sort, keywords, notKeyWords, keyWordIndex, weight, fuzzyValue,fuzzyValueScope,fromWebSite,excludeWeb,"advance",searchPage,searchType);
-			} else if (Const.MEDIA_TYPE_WEIBO.contains(source) && !(source.contains(";") || source.contains("；"))) {
-				return infoListService.statusForSearchList(isSimilar, irSimflag,irSimflagAll, pageNo, pageSize, source,checkedSource, time, area,
-						mediaIndustry, emotion, sort, keywords, notKeyWords, keyWordIndex, forwardPrimary,forwardPrimary1, weight,
-						fuzzyValue,fuzzyValueScope,fromWebSite,excludeWeb,"advance",searchPage,searchType);
-			} else if (Const.MEDIA_TYPE_FINAL_NEWS.contains(source) && !(source.contains(";") || source.contains("；"))) {
-				return infoListService.documentForSearchList(isSimilar, irSimflag,irSimflagAll, pageNo, pageSize, source, checkedSource,time, area,
-						mediaIndustry, emotion, sort, invitationCard,invitationCard1, keywords, notKeyWords, keyWordIndex, weight,
-						fuzzyValue,fuzzyValueScope,fromWebSite,excludeWeb,newsInformation,reprintPortal,siteType,"advance",searchPage,searchType);
-			}else if (Const.MEDIA_TYPE_TF.contains(source) && !(source.contains(";") || source.contains("；"))) {
-				return infoListService.documentTFForSearchList(isSimilar, irSimflag,irSimflagAll, pageNo, pageSize, source, checkedSource,time, area,
-						mediaIndustry, emotion, sort,  keywords, notKeyWords, keyWordIndex, weight,
-						fuzzyValue,fuzzyValueScope,fromWebSite,excludeWeb,newsInformation,reprintPortal,siteType,"advance",searchPage,searchType);
-			}else {
-				return infoListService.documentCommonVOForSearchList(isSimilar, irSimflag,irSimflagAll, pageNo, pageSize, source, time, area,
-						mediaIndustry, emotion, sort, invitationCard,invitationCard1,forwardPrimary,forwardPrimary1, keywords, notKeyWords, keyWordIndex, weight,
-						fuzzyValue,fuzzyValueScope,fromWebSite,excludeWeb,newsInformation,reprintPortal,siteType,isExport,"advance",UserUtils.getUser().getId()+"AdvancedSearch",searchPage,searchType);
+
+			keywords = keywords.replaceAll("\\s+", ",");
+			//判断当前选择数据源和该次搜索选择的全部数据源是否是包含关系，不包含则无法查询
+			if(!"ALL".equals(source) && !"ALL".equals(checkedSource)){
+				List<String> sourceList = Arrays.asList(source.split(";"));
+				if(!sourceList.contains(checkedSource)){
+					return null;
+				}
 			}
+			if(StringUtil.isNotEmpty(portalType) && !"ALL".equals(portalType)){
+				if(StringUtil.isNotEmpty(reprintPortal)&& !"ALL".equals(reprintPortal)){
+					if(reprintPortal.endsWith(";")){
+						reprintPortal = reprintPortal + portalType;
+					}else{
+						reprintPortal = reprintPortal +";"+ portalType;
+					}
+				}else{
+					reprintPortal = portalType;
+				}
+			}
+			source = checkedSource;
+			if("positioCon".equals(keyWordIndex)){
+				keyWordIndex = "1";
+			}else if("positionKey".equals(keyWordIndex)){
+				keyWordIndex= "0";
+			}
+			return infoListService.advancedSearchList(isSimilar, irSimflag,irSimflagAll, pageNo, pageSize, source, time,
+						mediaIndustry, emotion, sort, invitationCard,invitationCard1,forwardPrimary,forwardPrimary1, keywords, notKeyWords, keyWordIndex, weight,
+						fuzzyValue,fuzzyValueScope,fromWebSite,excludeWeb,newsInformation,reprintPortal,siteType,"advance",UserUtils.getUser().getId()+"AdvancedSearch",searchType);
+
 			//return null;
 		} catch (Exception e) {
 			throw new OperationException("查询出错：" + e, e);
