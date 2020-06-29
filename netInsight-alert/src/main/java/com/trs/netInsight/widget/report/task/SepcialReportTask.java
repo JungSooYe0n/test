@@ -323,7 +323,7 @@ public class SepcialReportTask implements Runnable {
                                 log.info(String.format(SPECILAREPORTLOG, MOODSTATISTICS));
                                 startMillis = System.currentTimeMillis();
                                 try {
-                                    Object list = specialChartAnalyzeService.getMoodStatistics(specialProject, rangeTime, null);
+                                    Object list = specialChartAnalyzeService.getMoodStatistics(specialProject, rangeTime);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, MOODSTATISTICS, (endMillis - startMillis)));
 

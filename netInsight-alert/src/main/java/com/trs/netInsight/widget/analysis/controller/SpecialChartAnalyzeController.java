@@ -2359,8 +2359,7 @@ public class SpecialChartAnalyzeController {
 		log.info(loginpool.toString());
 		try {
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
-			SpecialParam specParam = getSpecParam(specialProject);
-			return specialChartAnalyzeService.getMoodStatistics(specialProject, timeRange,specParam);
+			return specialChartAnalyzeService.getMoodStatistics(specialProject, timeRange);
 		} catch (Exception e) {
 			throw new OperationException("查询出错：" + e);
 		} finally {
@@ -3050,7 +3049,7 @@ public class SpecialChartAnalyzeController {
 		String secondName = "";
 		String thirdName = "";
 		if (null != specialProject){
-			if (null != specialProject.getGroupName()){
+			if (null != specialProject.getGroupId()){
 				SpecialSubject specialSubject = this.specialSubjectRepository.findOne(specialProject.getGroupId());
 				if (null != specialSubject){
 					int flag = specialSubject.getFlag();

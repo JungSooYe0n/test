@@ -508,7 +508,7 @@ public interface IChartAnalyzeService {
 													  boolean irSimflag,boolean irSimflagAll,boolean isApi,String groupName) throws TRSSearchException;
 	HashMap<String, Object> getUserViewsData(SpecialProject specialProject, String timeRange, String industry, String area, SpecialParam specParam) throws Exception;
 
-	ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange, SpecialParam specParam) throws Exception;
+	ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange) throws Exception;
 
 
 	/**

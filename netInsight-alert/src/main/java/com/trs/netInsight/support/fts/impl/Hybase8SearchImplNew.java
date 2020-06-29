@@ -87,7 +87,6 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         if(!filter.contains(FtsFieldConst.FIELD_URLTIME) || filter.indexOf(FtsFieldConst.FIELD_URLTIME) != 0){
             return false;
         }
-        log.info(filter);
         return true;
     }
 

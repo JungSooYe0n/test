@@ -4807,7 +4807,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange, SpecialParam specParam) throws OperationException, ParseException {
+	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange) throws OperationException, ParseException {
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
 			if (StringUtils.isBlank(timeRange)) {
@@ -4823,36 +4823,10 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
 		boolean sim = specialProject.isSimilar();
 		String groupName = specialProject.getSource();
-//		//来源处理
-//		if (!"ALL".equals(groupName)){
-//			String[] split = groupName.split(";");
-//			List<String> choices = Arrays.asList(split);
-//			List<String> whole = Arrays.asList(Const.TYPE_NEWS.split(";"));
-//			//取交集
-//			List<String> result = whole.stream().filter(item -> choices.contains(item)).collect(toList());
-//			if (ObjectUtil.isEmpty(result)){
-//				//未选中传统类来源
-//				return null;
-//			}
-//			split = result.toArray(new String[result.size()]);
-//			groupName = StringUtil.join(split,";");
-//		}else {
-//			groupName = Const.TYPE_NEWS;
-//		}
-
-//		searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace("境外媒体","国外新闻").split(";"),Operator.Equal);
 		ArrayList<HashMap<String, Object>> resultData = new ArrayList<>();
 		try {
-//			searchBuilder.filterByTRSL(" (IR_EMOTION:(\"怒\" OR \"恶\" OR \"惧\" OR \"喜\" OR \"哀\"))");
-//			searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
-
-//			String posCatTrsl = searchBuilder.asTRSL();
-//			GroupResult posResult = hybase8SearchService.categoryQuery(specialProject.isServer(), posCatTrsl, sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),
-//					FtsFieldConst.FIELD_EMOTION, 5, "special",Const.HYBASE_NI_INDEX);
 			searchBuilder.setPageSize(5);
 			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION,"special",CommonListChartUtil.changeGroupName(groupName));
-
-//			userViewResultEcapsulation(resultData, posResult);
 			for(GroupInfo groupInfo : posResult) {
 				HashMap<String, Object> result = new HashMap<>();
 				result.put("name", groupInfo.getFieldValue());
