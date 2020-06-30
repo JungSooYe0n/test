@@ -18,6 +18,7 @@ import com.trs.netInsight.util.SourceUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.util.favourites.FavouritesUtil;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.MaterialLibraryNew;
@@ -28,6 +29,7 @@ import com.trs.netInsight.widget.report.service.IReportService;
 import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +38,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -53,6 +56,7 @@ import static com.trs.netInsight.widget.report.constant.ReportConst.SEMICOLON;
  * @desc  舆情报告 极简模式  素材库分组服务层接口实现类
  */
 @Service
+@Slf4j
 public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService {
     @Autowired
     private MaterialLibraryNewRepository materialLibraryNewRepository;
@@ -65,6 +69,8 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
 
     @Autowired
     private IReportService reportService;
+    @Autowired
+    private ICommonListService commonListService;
 
     /**
      * 是否走独立预警服务
@@ -126,14 +132,11 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
     }
 
     @Override
+    @Transactional
     public String saveMaterialResource(String sids, User user, String md5, String urlTime, String groupName, String libraryId, String name) throws OperationException {
         String[] sidArry = null;
         if (StringUtils.isNotEmpty(sids)) {
             sidArry = sids.split(SEMICOLON);
-        }
-        String[] md5Arry = null;
-        if (StringUtils.isNotEmpty(md5)) {
-            md5Arry = md5.split(SEMICOLON);
         }
         String[] groupNameArray = null;
         if (StringUtils.isNotEmpty(groupName)) {
@@ -200,88 +203,132 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             QueryBuilder builderWeiXin = DateUtil.timeBuilder(urlTime);
             List<String> sid_weixin = new ArrayList<>();
             List<String> sid_other = new ArrayList<>();
+            List<String> groupName_other = new ArrayList<>();
             for (int i = 0; i < sidArry.length; i++) {
                 if (sidExist.contains(sidArry[i])) {
                     continue;
                 } else {
-                    if (groupNameArray[i].equals("微信") || groupNameArray[i].equals("国内微信")) {
+                    if (Const.MEDIA_TYPE_WEIXIN.contains(groupNameArray[i])) {
                         sid_weixin.add(sidArry[i]);
                     } else {
                         sid_other.add(sidArry[i]);
+                        if(!groupName_other.contains(groupNameArray[i])){
+                            groupName_other.add(groupNameArray[i]);
+                        }
                     }
                 }
             }
-
             List<FtsDocumentCommonVO> result = new ArrayList<>();
             if (sid_other.size() > 0) {
                 builder.filterField(FtsFieldConst.FIELD_SID, StringUtils.join(sid_other, " OR "), Operator.Equal);
-                builder.setDatabase(Const.MIX_DATABASE);
                 builder.page(0, sid_other.size() *2 );
-                System.err.println("历史数据表达式："+builder.asTRSL());
-                //log.info("选中导出查询数据表达式 - 全部：" + builder.asTRSL());
-                PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchService.ftsPageList(builder, FtsDocumentCommonVO.class, false, false, false, null);
-                if(pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0){
-                    result.addAll(pagedList.getPageItems());
+                String searchGroupName = StringUtils.join(groupName_other,";");
+                log.info("选中导出查询数据表达式 - 全部：" + builder.asTRSL());
+                InfoListResult infoListResult = commonListService.queryPageList(builder, false, false, false, searchGroupName, null, user, false);
+                if (infoListResult.getContent() != null) {
+                    PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+                    if(  pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0){
+                        result.addAll(pagedList.getPageItems());
+                    }
                 }
             }
             if (sid_weixin.size() > 0) {
                 String weixinids = StringUtils.join(sid_weixin, " OR ");
                 builderWeiXin.filterField(FtsFieldConst.FIELD_HKEY, weixinids, Operator.Equal);
-                builderWeiXin.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内微信", Operator.Equal);
-                builderWeiXin.setDatabase(Const.WECHAT);
+                builderWeiXin.filterField(FtsFieldConst.FIELD_GROUPNAME, Const.GROUPNAME_WEIXIN, Operator.Equal);
                 builderWeiXin.page(0, sid_weixin.size() * 2);
-                System.err.println("历史数据表达式："+builderWeiXin.asTRSL());
-                //log.info("选中导出查询数据表达式 - 微信：" + builderWeiXin.asTRSL());
-                PagedList<FtsDocumentCommonVO> pagedListWeiXin = hybase8SearchService.ftsPageList(builderWeiXin, FtsDocumentCommonVO.class, false, false, false, null);
-                if(pagedListWeiXin.getPageItems() != null && pagedListWeiXin.getPageItems().size() > 0){
-                    result.addAll(pagedListWeiXin.getPageItems());
+                log.info("选中导出查询数据表达式 - 微信：" + builderWeiXin.asTRSL());
+                InfoListResult infoListResult = commonListService.queryPageList(builderWeiXin, false, false, false, Const.GROUPNAME_WEIXIN, null, user, false);
+                if (infoListResult.getContent() != null) {
+                    PagedList<FtsDocumentCommonVO> pagedListWeiXin = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+                    if(  pagedListWeiXin.getPageItems() != null && pagedListWeiXin.getPageItems().size() > 0){
+                        result.addAll(pagedListWeiXin.getPageItems());
+                    }
                 }
             }
 
             if (ObjectUtil.isNotEmpty(result) && result.size() > 0) {
+
                 SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
-                String screenName = null;
                 for (FtsDocumentCommonVO fav : result) {
-                    fav.setFavourite(true);
+                    newAdd = new Favourites(fav.getSid(),user.getId(),user.getSubGroupId());
+                    //查到的数据已经是处理过后的 - 对摘要、正文、sid
+                    String oneGroupName = CommonListChartUtil.changeGroupName(fav.getGroupName());
+                    newAdd.setGroupName(oneGroupName);
                     // 去掉img标签
                     String content = fav.getContent();
                     if (StringUtil.isNotEmpty(content)) {
-                        content = StringUtil.replaceImg(content);
-                        content = StringUtil.filterEmoji(content);
+                        content = StringUtil.filterEmoji(StringUtil.replaceImg(content));
                     }
-                    fav.setContent(content);
+                    newAdd.setContent(content);
+                    newAdd.setStatusContent(content);
+                    String title = fav.getTitle();
+                    if (StringUtil.isNotEmpty(title)) {
+                        title = StringUtil.filterEmoji(StringUtil.replaceImg(title));
+                    }
+                    newAdd.setTitle(title);
+                    newAdd.setUrlTitle(title);
+                    String abstracts = fav.getAbstracts();
+                    if (StringUtil.isNotEmpty(abstracts)) {
+                        abstracts = StringUtil.filterEmoji(StringUtil.replaceImg(abstracts));
+                    }
+                    newAdd.setAbstracts(abstracts);
+                    String fullContent = fav.getExportContent();
+                    if (StringUtil.isNotEmpty(fullContent)) {
+                        fullContent = StringUtil.filterEmoji(StringUtil.replaceImg(fullContent));
+                    }
+                    newAdd.setFullContent(fullContent);
+                    newAdd.setHkey(null);
+                    if (Const.GROUPNAME_LUNTAN.equals(oneGroupName)){
+                        newAdd.setHkey(fav.getHkey());
+                    }
+                    newAdd.setMdsTag(fav.getMd5Tag());
+                    newAdd.setUrlName(fav.getUrlName());
+                    newAdd.setUrlTime(fav.getUrlTime());
+                    newAdd.setUrltime(sdf.format(fav.getUrlTime()));
+                    newAdd.setUrlDate(fav.getUrlDate());
+                    newAdd.setSiteName(fav.getSiteName());
+                    newAdd.setNreserved1(fav.getNreserved1());
+                    newAdd.setRetweetedMid(fav.getRetweetedMid());
+                    newAdd.setCommtCount(fav.getCommtCount());
+                    newAdd.setRttCount(fav.getRttCount());
+                    newAdd.setCreatedAt(fav.getCreatedAt());
+                    newAdd.setAppraise(StringUtil.isEmpty(fav.getAppraise()) ? "中性":fav.getAppraise());
+                    newAdd.setKeywords(fav.getKeywords());
+                    newAdd.setChannel(fav.getChannel());
 
-                    if (fav.getGroupName().equals("Twitter") || fav.getGroupName().equals("Facebook") || fav.getGroupName().equals("国内微信")) {
+                    String authors = fav.getAuthors();
+                    newAdd.setAbstracts(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+                    String screenName = fav.getScreenName();
+                    String srcName = fav.getSrcName();
+
+                    if (Const.GROUPNAME_WEIBO.equals(oneGroupName)) {
+                        newAdd.setTitle(content);
+                        newAdd.setUrlTitle(content);
+                        srcName = fav.getRetweetedScreenName();
+                        newAdd.setAbstracts(content);
+                    }else if (Const.GROUPNAME_FACEBOOK.equals(oneGroupName) || Const.GROUPNAME_TWITTER.equals(oneGroupName)) {
+                        newAdd.setTitle(content);
+                        newAdd.setUrlTitle(content);
                         screenName = fav.getAuthors();
-                    }else{
-                        screenName = fav.getScreenName();
+                        srcName = fav.getRetweetedScreenName();
+                        newAdd.setAbstracts(content);
+                    }else if(Const.GROUPNAME_DUANSHIPIN.equals(oneGroupName) || Const.GROUPNAME_CHANGSHIPIN.equals(oneGroupName)){
+                        newAdd.setTitle(content);
+                        newAdd.setUrlTitle(content);
+                        newAdd.setAbstracts(content);
                     }
-                    screenName = StringUtil.replaceImg(screenName);
-                    screenName = StringUtil.filterEmoji(screenName);
-                    String sid = fav.getSid();
-                    if(Const.GROUPNAME_WEIBO.equals(fav.getGroupName())){
-                        sid = fav.getMid();
-                    }else if(Const.GROUPNAME_WEIXIN.equals(fav.getGroupName())){
-                        sid = fav.getHkey();
-                    }
-                    newAdd = new Favourites(sid, user.getId(), user.getSubGroupId(), fav.getGroupName(), fav.getUrlTime(),
-                            sdf.format(fav.getUrlTime()), fav.getUrlName(), fav.getMd5Tag(), fav.getAuthors(),
-                            StringUtil.cutContentPro(StringUtil.replaceImg(subString(fav.getTitle())), Const.CONTENT_LENGTH),
-                            StringUtil.cutContentPro(StringUtil.replaceImg(subString(fav.getContent())), Const.CONTENT_LENGTH),
-                            screenName, fav.getUrlDate(), fav.getSiteName(), fav.getSrcName(),
-                            StringUtil.cutContentPro(StringUtil.replaceImg(subString(fav.getAbstracts())), Const.CONTENT_LENGTH), fav.getRetweetedMid(),
-                            fav.getNreserved1(), fav.getCommtCount(), fav.getRttCount(), false, fav.getCreatedAt(),
-                            subString(fav.getStatusContent()), StringUtil.cutContentPro(StringUtil.replaceImg(subString(fav.getUrlTitle())), Const.CONTENT_LENGTH));
+                    screenName =  StringUtil.filterEmoji(StringUtil.replaceImg(screenName));
+                    newAdd.setScreenName(screenName);
+                    srcName =  StringUtil.filterEmoji(StringUtil.replaceImg(srcName));
+                    newAdd.setSrcName(srcName);
                     newAdd.setLibraryId(newLibraryId);
                     favouritesList.add(newAdd);
                 }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
         if (favouritesList.size() > 0) {
             favouritesRepository.save(favouritesList);
         }
@@ -1265,16 +1312,9 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                 String oneGroup = CommonListChartUtil.formatPageShowGroupName(item.getGroupName());
                 map.put("id", item.getSid());
                 map.put("groupName", oneGroup);
-                map.put("time", item.getUrlTime());
+                map.put("urltime", item.getUrlTime());
                 map.put("md5", item.getMdsTag());
 
-                if (item.getGroupName().equals("Twitter") || item.getGroupName().equals("Facebook") || item.getGroupName().equals("国内微信")){
-                    item.setScreenName(item.getAuthors());
-                }
-                if (item.getGroupName().equals("微博")){
-                    item.setAbstracts(item.getTitle());
-                    item.setAuthor(item.getAuthors());
-                }
                 if(StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null) item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
                 item.setUrlTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getUrlTitle())),Const.CONTENT_LENGTH));
                 item.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getContent())),Const.CONTENT_LENGTH));
@@ -1288,42 +1328,52 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                 map.put("copyTitle", title); //前端复制功能需要用到
                 //摘要
                 map.put("abstracts", item.getContent());
-
+                if(item.getKeywords() != null && item.getKeywords().size() >3){
+                    map.put("keyWordes", item.getKeywords().subList(0,3));
+                }else{
+                    map.put("keyWordes", item.getKeywords());
+                }
+                String voEmotion =  item.getAppraise();
+                if(StringUtil.isNotEmpty(voEmotion)){
+                    map.put("emotion",voEmotion);
+                }else{
+                    map.put("emotion","中性");
+                    map.put("isEmotion",null);
+                }
                 map.put("nreserved1", null);
-                if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
+                map.put("hkey", item.getHkey());
+                if (Const.PAGE_SHOW_LUNTAN.equals(oneGroup)) {
                     map.put("nreserved1", item.getNreserved1());
                 }
                 map.put("urlName", item.getUrlName());
                 map.put("favourite", item.isFavourite());
-                String content = item.getContent();
-                if(StringUtil.isNotEmpty(content)){
-                    content = ReportUtil.calcuHit("",content,true);
+                String fullContent = item.getFullContent();
+                if(StringUtil.isNotEmpty(fullContent)){
+                    fullContent = ReportUtil.calcuHit("",fullContent,true);
                 }
                 map.put("siteName", item.getSiteName());
                 map.put("author", item.getAuthors());
                 map.put("srcName", item.getSrcName());
                 //微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
-                if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
+                if (Const.PAGE_SHOW_WEIBO.equals(oneGroup)) {
                     map.put("title", item.getContent());
                     map.put("abstracts", item.getContent());
-                    map.put("copyTitle", content); //前端复制功能需要用到
+                    map.put("copyTitle", fullContent); //前端复制功能需要用到
 
                     map.put("author", item.getScreenName());
-                    map.put("srcName", null);//素材库没有存微博的原发
-                } else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
+                } else if (Const.PAGE_SHOW_FACEBOOK.equals(oneGroup) || Const.PAGE_SHOW_TWITTER.equals(oneGroup)) {
                     map.put("title", item.getContent());
                     map.put("abstracts", item.getContent());
-                    map.put("copyTitle", content); //前端复制功能需要用到
+                    map.put("copyTitle", fullContent); //前端复制功能需要用到
                     map.put("author", item.getAuthors());
-                    map.put("srcName", null);//素材库没有存tf的原发
-                } else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
+                } else if(Const.PAGE_SHOW_DUANSHIPIN.equals(oneGroup) || Const.PAGE_SHOW_CHANGSHIPIN.equals(oneGroup)){
                     map.put("title", item.getContent());
                     map.put("abstracts", item.getContent());
                     map.put("author", item.getAuthors());
-                    map.put("srcName", item.getSrcName());
-                    map.put("copyTitle", content); //前端复制功能需要用到
+                    map.put("copyTitle", fullContent); //前端复制功能需要用到
                 }
                 map.put("img", null);
+                map.put("channel", item.getChannel());
                 //前端页面显示需要，与后端无关
                 map.put("isImg", false);
                 map.put("simNum", 0);
