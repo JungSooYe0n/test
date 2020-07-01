@@ -235,7 +235,6 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             if (sid_weixin.size() > 0) {
                 String weixinids = StringUtils.join(sid_weixin, " OR ");
                 builderWeiXin.filterField(FtsFieldConst.FIELD_HKEY, weixinids, Operator.Equal);
-                builderWeiXin.filterField(FtsFieldConst.FIELD_GROUPNAME, Const.GROUPNAME_WEIXIN, Operator.Equal);
                 builderWeiXin.page(0, sid_weixin.size() * 2);
                 log.info("选中导出查询数据表达式 - 微信：" + builderWeiXin.asTRSL());
                 InfoListResult infoListResult = commonListService.queryPageList(builderWeiXin, false, false, false, Const.GROUPNAME_WEIXIN, null, user, false);

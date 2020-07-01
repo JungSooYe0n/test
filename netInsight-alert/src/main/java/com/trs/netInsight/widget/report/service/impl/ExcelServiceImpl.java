@@ -28,6 +28,8 @@ import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.service.IAlertService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.microblog.service.ISingleMicroblogService;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.enums.ExportListType;
@@ -77,6 +79,8 @@ public class ExcelServiceImpl implements IExcelService {
 
 	@Autowired
 	private IInfoListService infoListService;
+	@Autowired
+	private ICommonListService commonListService;
 
     @Value("${http.client}")
 	private boolean httpClient;
@@ -1252,39 +1256,44 @@ public class ExcelServiceImpl implements IExcelService {
 			builderWeiXin.filterByTRSL(queryBuilder.asTRSL());
 			builder.filterByTRSL(queryBuilder.asTRSL());
 		}
+		groupNames = CommonListChartUtil.changeGroupName(groupNames);
 		String[] groupNameArray = groupNames.split(";");
 		String[] idArray = ids.split(";");
 		List<String> idList = new ArrayList<>();
 		List<String> weixinList = new ArrayList<>();
+		List<String> groupName_other = new ArrayList<>();
 		for(int i = 0 ;i < idArray.length;i++){
 			String groupName = groupNameArray[i];
-			if(Const.EXPORT_WEIXIN_SOURCE.contains(groupName)){
+			if(Const.MEDIA_TYPE_WEIXIN.contains(groupName)){
 				weixinList.add(idArray[i]);
 			}else{
 				idList.add(idArray[i]);
+				if(!groupName_other.contains(groupNameArray[i])){
+					groupName_other.add(groupNameArray[i]);
+				}
 			}
 		}
 		List<FtsDocumentCommonVO> result = new ArrayList<>();
-		if(idList.size()>0) {
+		if (idList.size() > 0) {
 			builder.filterField(FtsFieldConst.FIELD_SID, StringUtils.join(idList, " OR "), Operator.Equal);
-			builder.setDatabase(Const.MIX_DATABASE);
-			builder.page(0,idList.size() *2);
+			builder.page(0, idList.size() * 2);
+			String searchGroupName = StringUtils.join(groupName_other, ";");
 			log.info("选中导出查询数据表达式 - 全部：" + builder.asTRSL());
-			PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchService.ftsPageList(builder, FtsDocumentCommonVO.class, false, false, false, null);
-			if(pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0){
+			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListNoFormat(builder, false, false, false, null, searchGroupName);
+
+			if (pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
 				result.addAll(pagedList.getPageItems());
 			}
+
 		}
-		if(weixinList.size()>0){
+		if (weixinList.size() > 0) {
 			String weixinids = StringUtils.join(weixinList, " OR ");
 			builderWeiXin.filterField(FtsFieldConst.FIELD_HKEY, weixinids, Operator.Equal);
-			builderWeiXin.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内微信", Operator.Equal);
-			builderWeiXin.setDatabase(Const.WECHAT);
-			builderWeiXin.page(0,weixinList.size()*2);
+			builderWeiXin.page(0, weixinList.size() * 2);
 			log.info("选中导出查询数据表达式 - 微信：" + builderWeiXin.asTRSL());
-			PagedList<FtsDocumentCommonVO> pagedListWeiXin = hybase8SearchService.ftsPageList(builderWeiXin,FtsDocumentCommonVO.class,false,false,false,null);
-			if(pagedListWeiXin.getPageItems() != null && pagedListWeiXin.getPageItems().size() > 0){
-				result.addAll(pagedListWeiXin.getPageItems());
+			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListNoFormat(builderWeiXin, false, false, false, null, Const.GROUPNAME_WEIXIN);
+			if (pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+				result.addAll(pagedList.getPageItems());
 			}
 		}
 		String key = UUID.randomUUID().toString();
@@ -1299,17 +1308,14 @@ public class ExcelServiceImpl implements IExcelService {
 		if(trslk.contains(FtsFieldConst.WEIGHT)){
 			weight = true;
 		}
-
 		String type = null;
 		if(ExportListType.ALERT.equals(exportListType)){
 			type = "alert";
 		}
-
+		String groupNames = StringUtils.join(source,";");
 		QueryCommonBuilder queryBuilder = new QueryCommonBuilder();
 		queryBuilder.page(0,num);
 		queryBuilder.filterByTRSL(trslk);
-		queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,StringUtils.join(source," OR "),Operator.Equal);
-		queryBuilder = setDatabase(queryBuilder,source);
 
 		List<FtsDocumentCommonVO> result = new ArrayList<>();
 
@@ -1326,25 +1332,11 @@ public class ExcelServiceImpl implements IExcelService {
 				break;
 			case "hot":
 
-				QueryBuilder hotBuilder = new QueryBuilder();
-				hotBuilder.filterByTRSL(queryBuilder.asTRSL());
-				hotBuilder.page(queryBuilder.getPageNo(),queryBuilder.getPageSize());
-				String database = StringUtil.join(queryBuilder.getDatabase(),";");
-				if (ObjectUtil.isNotEmpty(database)){
-					hotBuilder.setDatabase(database);
-				}
-				QueryBuilder hotCountBuilder = new QueryBuilder();
-				hotCountBuilder.filterByTRSL(queryBuilder.asTRSL());
-				hotCountBuilder.page(queryBuilder.getPageNo(),queryBuilder.getPageSize());
-				if (ObjectUtil.isNotEmpty(database)){
-					hotCountBuilder.setDatabase(database);
-				}
-				log.info("导出前N条数据查询数据表达式 - 全部  按照热度值：" + hotBuilder.asTRSL());
-				PagedList<FtsDocumentCommonVO> content = getHotList(hotBuilder, hotCountBuilder, UserUtils.getUser(),type);
+				log.info("导出前N条数据查询数据表达式 - 全部  按照热度值：" + queryBuilder.asTRSL());
+				PagedList<FtsDocumentCommonVO> content = commonListService.queryPageListForHotNoFormat(queryBuilder,null,groupNames);
 				if(content.getPageItems() != null && content.getPageItems().size() > 0){
 					result.addAll(content.getPageItems());
 				}
-
 			default:
 				if (ExportListType.SIM.equals(exportListType) || ExportListType.CHART2LIST.equals(exportListType)) {
 					queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
@@ -1363,7 +1355,7 @@ public class ExcelServiceImpl implements IExcelService {
 		}
 		if(!"hot".equals(sort)){
 			log.info("导出前N条数据查询数据表达式 - 全部：" + queryBuilder.asTRSL());
-			PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchService.pageListCommon(queryBuilder,false,false,false,type);
+			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(queryBuilder, type, groupNames);
 			if(pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0){
 				result.addAll(pagedList.getPageItems());
 			}

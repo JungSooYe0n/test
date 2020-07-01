@@ -756,51 +756,63 @@ public class Const {
     /**
      * sheet名 - 国内新闻
      */
-    public static final String SHEET_XINWEN = "新闻";
+    public static final String SHEET_XINWEN = Const.PAGE_SHOW_XINWEN;
 
     /**
      * sheet名 - 微博
      */
-    public static final String SHEET_WEIBO = "微博";
+    public static final String SHEET_WEIBO =  Const.PAGE_SHOW_WEIBO;
 
     /**
      * sheet名 - 国内微信
      */
-    public static final String SHEET_WEIXIN = "微信";
+    public static final String SHEET_WEIXIN =  Const.PAGE_SHOW_WEIXIN;
 
     /**
      * sheet名 - 国内论坛
      */
-    public static final String SHEET_LUNTAN = "论坛";
+    public static final String SHEET_LUNTAN =  Const.PAGE_SHOW_LUNTAN;
 
     /**
      * sheet名 - 国内博客
      */
-    public static final String SHEET_BOKE = "博客";
+    public static final String SHEET_BOKE =  Const.PAGE_SHOW_BOKE;
 
     /**
      * sheet名 - 国内新闻_电子报
      */
-    public static final String SHEET_DIANZIBAO = "电子报";
+    public static final String SHEET_DIANZIBAO =  Const.PAGE_SHOW_DIANZIBAO;
 
     /**
      * sheet名 - 国内新闻_手机客户端
      */
-    public static final String SHEET_KEHUDUAN = "客户端";
+    public static final String SHEET_KEHUDUAN = Const.PAGE_SHOW_KEHUDUAN;
     /**
      * sheet名 - 国外新闻
      */
-    public static final String SHEET_GUOWAIXINWEN = "境外网站";
+    public static final String SHEET_GUOWAIXINWEN =  Const.PAGE_SHOW_GUOWAIXINWEN;
 
     /**
      * sheet名 - Facebook
      */
-    public static final String SHEET_FACEBOOK = "Facebook";
+    public static final String SHEET_FACEBOOK =  Const.PAGE_SHOW_FACEBOOK;
 
     /**
      * sheet名 - Twitter
      */
-    public static final String SHEET_TWITTER = "Twitter";
+    public static final String SHEET_TWITTER =  Const.PAGE_SHOW_TWITTER;
+    /**
+     * sheet名 - 自媒体号
+     */
+    public static final String SHEET_ZIMEITI =  Const.PAGE_SHOW_ZIMEITI;
+    /**
+     * sheet名 - 短视频
+     */
+    public static final String SHEET_DUANSHIPIN =  Const.PAGE_SHOW_DUANSHIPIN;
+    /**
+     * sheet名 - 视频
+     */
+    public static final String SHEET_CHANGSHIPIN =  Const.PAGE_SHOW_CHANGSHIPIN;
 
     /**
      * 数据来源  数据的groupName与要导出的excel  的sheet的关系  --->部分groupName对应多个sheet原因是因为数据采集可能出现变动，例如Facebook
@@ -815,7 +827,6 @@ public class Const {
             put(GROUPNAME_XINWEN, SHEET_XINWEN);
             put(GROUPNAME_WEIBO, SHEET_WEIBO);
             put(GROUPNAME_WEIXIN, SHEET_WEIXIN);
-            put("微信", SHEET_WEIXIN);
             put(GROUPNAME_KEHUDUAN, SHEET_KEHUDUAN);
             put(GROUPNAME_LUNTAN, SHEET_LUNTAN);
             put(GROUPNAME_BOKE, SHEET_BOKE);
