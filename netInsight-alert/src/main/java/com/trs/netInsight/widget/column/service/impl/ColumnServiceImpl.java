@@ -344,10 +344,10 @@ public class ColumnServiceImpl implements IColumnService {
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
-						if(!mapper.isHide() && !parentHide){
+						//if(!mapper.isHide() && !parentHide){
 							map.put("active", true);
 							isGetOne.set(0,true);
-						}
+						//}
 					}
 
 				} else if (obj instanceof IndexPage) {
@@ -361,7 +361,7 @@ public class ColumnServiceImpl implements IColumnService {
 					map.put("active", false);
 					List<Object> childColumn = page.getColumnList();
 					List<Object> child = new ArrayList<>();
-					//如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值
+					/*//如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值
 					//如果父级没被隐藏，当前级被隐藏，则用当前级的隐藏值
 					//如果父级没隐藏，当前级没隐藏，用没隐藏，父级则可
 					if(!parentHide){
@@ -369,9 +369,9 @@ public class ColumnServiceImpl implements IColumnService {
 							parentHide = true;
 						}
 					}
-					//如果分组被隐藏了，前端不会显示，所以这里不查询了
+					//如果分组被隐藏了，前端不会显示，所以这里不查询了*/
 					if (childColumn != null && childColumn.size() > 0) {
-						child = this.formatResultColumn(childColumn,level+1,isGetOne,parentHide);
+						child = this.formatResultColumn(childColumn,level+1,isGetOne,false);
 					}
 					map.put("children", child);
 				}
@@ -392,6 +392,7 @@ public class ColumnServiceImpl implements IColumnService {
 				List<Predicate> predicate = new ArrayList<>();
 				if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
 					predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+					predicate.add(cb.isNull(root.get("subGroupId")));
 				}else {
 					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
 				}
@@ -412,6 +413,7 @@ public class ColumnServiceImpl implements IColumnService {
 				List<Predicate> predicate = new ArrayList<>();
 				if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
 					predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+					predicate.add(cb.isNull(root.get("subGroupId")));
 				}else {
 					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
 				}

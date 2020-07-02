@@ -281,6 +281,12 @@ public class SimplerReportServiceImpl implements ISimplerReportService {
                result.add(previewData);//报告各章节
                result.add(orderList);
             }else if ("material".equals(reportType)){
+                if(templateNew == null){
+                    templateNew = addDefaultMaterial();
+                    templateNewRepository.save(templateNew);
+                    report.setTemplateId(templateNew.getId());
+                    reportNewRepository.save(report);
+                }
                 List<TElementNew> elementList = JSONArray.parseArray(templateNew.getTemplateList(), TElementNew.class);
                 List<ReportResource> reportResources = reportResourceRepository.findByReportIdAndResourceStatus(report.getId(), 0);
                 for (TElementNew tElementNew : elementList) {
@@ -377,7 +383,7 @@ public String reBuildReport(String reportId,String jsonImgElemets,String reportI
 
     /**
      *  查询 极简模式 特定条件下 报告列表
-     * @param userId
+     * @param user
      * @param reportType
      * @return
      */
