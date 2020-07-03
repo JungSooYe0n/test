@@ -53,6 +53,8 @@ public class HybaseReadAround {
     public Object before(ProceedingJoinPoint point, HybaseRead hybaseRead) throws Throwable {
         Object result = null;
         try {
+            MethodSignature methodSign = (MethodSignature)point.getSignature();
+            Class returnClazz = methodSign.getReturnType();
             // 获取参数列表及参数值
             Object[] paramValues = point.getArgs();
             //参数必须注意,否则可能缓存无效
@@ -61,6 +63,9 @@ public class HybaseReadAround {
             String redisKey = "hybaseRedis_"+redisKeyHash;
             String redisKeyAddTime = "hybaseRedisAddTime_"+redisKeyHash;
             Object rt = RedisUtil.getObject(redisKey);
+            if(returnClazz == java.lang.Long.class ){
+                rt = Long.parseLong(rt.toString());
+            }
             String addTime = RedisUtil.getString(redisKeyAddTime);
             //key存放redis中的时间(分)
             long alreadyAddMin = 1000;

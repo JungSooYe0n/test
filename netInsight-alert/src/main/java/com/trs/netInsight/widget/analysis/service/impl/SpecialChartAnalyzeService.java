@@ -5602,7 +5602,7 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 //		searchBuilder.setDatabase(join);
 
 //		long ftsCount = hybase8SearchService.ftsCount(searchBuilder, sim, irSimflag,irSimflagAll,"special" );
-		long ftsCount = 0;
+		Object ftsCount = 0L;
 		try {
 			ftsCount = commonListService.ftsCount(searchBuilder,sim,irSimflag,irSimflagAll,"special");
 		} catch (TRSException e) {

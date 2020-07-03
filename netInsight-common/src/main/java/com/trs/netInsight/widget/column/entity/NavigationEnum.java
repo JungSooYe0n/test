@@ -52,6 +52,10 @@ public enum NavigationEnum {
 	/**
 	 * 应用广场
 	 */
-	square;
+	square,
+	/**
+	 * 数据订阅
+	 */
+	datasubscription;
 
 }

@@ -77,7 +77,7 @@ public class SepcialReportTask implements Runnable {
 
     private IDistrictInfoService districtInfoService = (IDistrictInfoService) ObjectContainer.getBean(IDistrictInfoService.class);
 
-    private ICommonListService commonListService = (ICommonListService) ObjectContainer.getBean(CommonListServiceImpl.class);
+    private ICommonListService commonListService = (ICommonListService) ObjectContainer.getBean(ICommonListService.class);
 
     private ICommonChartService commonChartService = (ICommonChartService) ObjectContainer.getBean(CommonChartServiceImpl.class);
 
@@ -514,7 +514,6 @@ public class SepcialReportTask implements Runnable {
                                     queryFts.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
                                     queryFts.setPageSize(10);
                                     queryFts.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-                                    queryFts.setServer(specialProject.isServer());
                                     GroupResult categoryChuan = commonListService.categoryQuery(queryFts, isSimilar, irSimflag, irSimflagAll, FtsFieldConst.FIELD_MD5TAG, "special", Const.TYPE_NEWS);
                                     List<GroupInfo> groupList = categoryChuan.getGroupList();
                                     if (groupList != null && groupList.size() > 0) {
@@ -560,7 +559,6 @@ public class SepcialReportTask implements Runnable {
                                     //找十个转发数量最多的原发 按时间排序
                                     statBuilder.filterField(FtsFieldConst.FIELD_CREATED_AT, timeArray, Operator.Between);
                                     statBuilder.setPageSize(10);
-                                    statBuilder.setServer(specialProject.isServer());
                                     PagedList<FtsDocumentCommonVO> content = commonListService.queryPageListForHotNoFormat(statBuilder, "special", Const.GROUPNAME_WEIBO);
                                     List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
                                     SortListAll sortListWeiBo = new SortListAll();
@@ -594,7 +592,6 @@ public class SepcialReportTask implements Runnable {
                                     queryFts2.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
                                     queryFts2.setPageSize(10);
                                     queryFts2.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-                                    queryFts2.setServer(specialProject.isServer());
                                     GroupResult categoryweixin = commonListService.categoryQuery(queryFts2, isSimilar, irSimflag, irSimflagAll, FtsFieldConst.FIELD_MD5TAG, "special", Const.GROUPNAME_WEIXIN);
                                     List<GroupInfo> groupListweixin = categoryweixin.getGroupList();
                                     if (groupListweixin != null && groupListweixin.size() > 0) {
@@ -643,7 +640,6 @@ public class SepcialReportTask implements Runnable {
                                     queryFts3.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
                                     queryFts3.setPageSize(10);
                                     queryFts3.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-                                    queryFts3.setServer(specialProject.isServer());
                                     GroupResult category = commonListService.categoryQuery(queryFts3, isSimilar, irSimflag, irSimflagAll, FtsFieldConst.FIELD_MD5TAG, "special", Const.GROUPNAME_ZIMEITI);
                                     List<GroupInfo> groupListzi = category.getGroupList();
                                     if (groupListzi != null && groupListzi.size() > 0) {

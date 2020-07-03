@@ -55,6 +55,7 @@ import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.annotation.Obsolete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -333,12 +334,36 @@ public class ColumnServiceImpl implements IColumnService {
 					map.put("trsl", tab.getTrsl());
 					map.put("xyTrsl", tab.getXyTrsl());
 
-					map.put("mediaLevel", tab.getMediaLevel());
-					map.put("mediaIndustry", tab.getMediaIndustry());
-					map.put("contentIndustry", tab.getContentIndustry());
-					map.put("filterInfo", tab.getFilterInfo());
-					map.put("contentArea", tab.getContentArea());
-					map.put("mediaArea", tab.getMediaArea());
+					if(StringUtil.isNotEmpty(tab.getMediaLevel())){
+						map.put("mediaLevel", tab.getMediaLevel());
+					}else{
+						map.put("mediaLevel", StringUtils.join(Const.MEDIA_LEVEL,";"));
+					}
+					if(StringUtil.isNotEmpty(tab.getMediaIndustry())){
+						map.put("mediaIndustry", tab.getMediaIndustry());
+					}else{
+						map.put("mediaIndustry", StringUtils.join(Const.MEDIA_INDUSTRY,";"));
+					}
+					if(StringUtil.isNotEmpty(tab.getContentIndustry())){
+						map.put("contentIndustry", tab.getContentIndustry());
+					}else{
+						map.put("contentIndustry", StringUtils.join(Const.CONTENT_INDUSTRY,";"));
+					}
+					if(StringUtil.isNotEmpty(tab.getFilterInfo())){
+						map.put("filterInfo", tab.getFilterInfo());
+					}else{
+						map.put("filterInfo", StringUtils.join(Const.FILTER_INFO,";")+";其他");
+					}
+					if(StringUtil.isNotEmpty(tab.getContentArea())){
+						map.put("contentArea", tab.getContentArea());
+					}else{
+						map.put("contentArea", StringUtils.join(Const.AREA_LIST,";"));
+					}
+					if(StringUtil.isNotEmpty(tab.getMediaArea())){
+						map.put("mediaArea", tab.getMediaArea());
+					}else{
+						map.put("mediaArea", StringUtils.join(Const.AREA_LIST,";"));
+					}
 
 					map.put("active", false);
 

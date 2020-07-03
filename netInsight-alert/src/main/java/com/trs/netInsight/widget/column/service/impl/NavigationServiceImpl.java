@@ -74,6 +74,8 @@ public class NavigationServiceImpl implements INavigationService {
 
 			NavigationConfig config9 = new NavigationConfig(NavigationEnum.monitoring, "数据监测", 9, false, false, false);
 			NavigationConfig config10 = new NavigationConfig(NavigationEnum.setup, "系统设置", 10, false, false, false);
+
+			NavigationConfig config11 = new NavigationConfig(NavigationEnum.datasubscription, "数据订阅", 11, false, false, false);
 			// 要保存的
 			List<NavigationConfig> navigationListData = new ArrayList<>();
 			navigationListData.add(config1);
@@ -83,6 +85,7 @@ public class NavigationServiceImpl implements INavigationService {
 			//TODO 需要删除
 			navigationListData.add(config5); navigationListData.add(config6); navigationListData.add(config7); navigationListData.add(config8);
 			navigationListData.add(config9); navigationListData.add(config10);
+			navigationListData.add(config11);
 			if (navigationList == null || navigationList.size() == 0) {
 				// 为空 就添加原来的那些
 				return navigationRepository.save(navigationListData);
@@ -134,6 +137,7 @@ public class NavigationServiceImpl implements INavigationService {
 			//运维账号不需要共享监测
 			//NavigationConfig config7 = new NavigationConfig(NavigationEnum.share, "共享监测", 7, false, false, false);
 			NavigationConfig config8 = new NavigationConfig(NavigationEnum.square, "应用中心", 8, false, false, false);
+			NavigationConfig config11 = new NavigationConfig(NavigationEnum.datasubscription, "数据订阅", 11, false, false, false);
 			List<NavigationConfig> navigationListData = new ArrayList<>();
 			navigationListData.add(config1);
 			navigationListData.add(config2);
@@ -143,6 +147,7 @@ public class NavigationServiceImpl implements INavigationService {
 			navigationListData.add(config6);
 			//navigationListData.add(config7);
 			navigationListData.add(config8);
+			navigationListData.add(config11);
 			if (navigationList == null || navigationList.size() == 0) {
 
 				return navigationRepository.save(navigationListData);
