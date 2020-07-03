@@ -1308,6 +1308,26 @@ public class Const {
      */
     public static final List<String> FILTER_INFO = Arrays.asList("明星娱乐","影视剧场","婚恋交友","股票推荐","游戏广告","赌博彩票","涉黄信息","母婴广告","招生招聘",
             "采购招标","转发抽奖");
+    public static final List<String> GATHER_TYPE_NEWS = Arrays.asList(
+            Const.PAGE_SHOW_XINWEN,
+            Const.PAGE_SHOW_LUNTAN,
+            Const.PAGE_SHOW_BOKE,
+            Const.PAGE_SHOW_DIANZIBAO);
+    public static final List<String> GATHER_MEDIA = Arrays.asList(
+            Const.PAGE_SHOW_CHANGSHIPIN,
+            Const.PAGE_SHOW_DUANSHIPIN);
+    public static final List<String> GATHER_ZIMEITI = Arrays.asList(
+            Const.PAGE_SHOW_ZIMEITI);
+    /**
+     * 媒体类型:FaceBook and twitter
+     */
+    public static final List<String> GATHER_TYPE_TWITTER = Arrays.asList("Twitter", "twitter");
+    public static final List<String> GATHER_TYPE_FACEBOOK = Arrays.asList("FaceBook", "Facebook", "facebook");
+    public static final List<String> GATHER_YUAN = Arrays.asList("元搜索");
+    public static final String GATHER_NO_AUDIT = "未审核";
+    public static final String GATHER_AUDITED = "已审核";
+    public static final String GATHER_AUDITING = "审核中";
+
 }
 
 /**
