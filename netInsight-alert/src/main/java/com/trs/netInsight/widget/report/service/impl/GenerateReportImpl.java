@@ -648,6 +648,9 @@ public class GenerateReportImpl implements IGenerateReport {
 					case SITUATIONACCESSMENT:
 						height = 3550000;
 						break;
+                    case PROPAFATIONANALYSIS:
+                        height = 4670000;
+                        break;
 					default:break;
 				}
 				textLine.addPicture(byteArrayInputStream, Document.PICTURE_TYPE_PNG, "1.png", width, height);
