@@ -710,15 +710,15 @@ public class GatherController {
                 if (jsonObject.getBoolean("success")) {
                     String msg = jsonObject.getString("msg");
                     String[] msgs = msg.split("!");
+                    if (msg.contains("需求上传成功")) {
+                        gatherRepository.save(gatherPointList);
+                    }
                     for (String str : msgs) {
                         if (str.contains("失败")) {
                             return msg;
                         }
                     }
-                    if (msg.contains("需求上传成功")) {
-                        gatherRepository.save(gatherPointList);
-                        return Const.SUCCESS;
-                    }
+
 
 
                 } else {
