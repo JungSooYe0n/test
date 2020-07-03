@@ -616,8 +616,38 @@ public class GenerateReportImpl implements IGenerateReport {
 				if (imgComments != null){
 					decode = base64.decode(chapterContent.get(j).get("img_data"));
 				}
+				//动态设置
 				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decode);
-				textLine.addPicture(byteArrayInputStream, Document.PICTURE_TYPE_PNG, "1.png", 5600000, 3000000);
+				int width = 5600000;
+				int height = 3000000;
+				switch (title){
+					case DATATRENDANALYSIS:
+						height = 3200000;
+						break;
+					case DATASOURCEANALYSIS:
+						height = 3800000;
+						break;
+					case EMOTIONANALYSIS:
+						height = 3800000;
+						break;
+					case AREA:
+						height = 2800000;
+						break;
+					case ACTIVEACCOUNT:
+						height = 4400000;
+						break;
+					case WEIBOHOTTOPICS:
+						height = 4400000;
+						break;
+					case OPININOANALYSIS:
+						height = 2800000;
+						break;
+					case SITUATIONACCESSMENT:
+						height = 3550000;
+						break;
+					default:break;
+				}
+				textLine.addPicture(byteArrayInputStream, Document.PICTURE_TYPE_PNG, "1.png", width, height);
 				XWPFParagraph commentParagraph = xwpfDocument.createParagraph();
 				commentParagraph.setAlignment(ParagraphAlignment.LEFT);
 				commentParagraph.setIndentationFirstLine(600);
