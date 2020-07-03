@@ -282,10 +282,8 @@ public class SimplerReportServiceImpl implements ISimplerReportService {
                result.add(orderList);
             }else if ("material".equals(reportType)){
                 if(templateNew == null){
-                    templateNew = addDefaultMaterial();
-                    templateNewRepository.save(templateNew);
-                    report.setTemplateId(templateNew.getId());
-                    reportNewRepository.save(report);
+                    List<TemplateNew> templateNewList = (List<TemplateNew>)getTemplateNew(reportType);
+                    templateNew = templateNewList.get(0);
                 }
                 List<TElementNew> elementList = JSONArray.parseArray(templateNew.getTemplateList(), TElementNew.class);
                 List<ReportResource> reportResources = reportResourceRepository.findByReportIdAndResourceStatus(report.getId(), 0);
