@@ -630,6 +630,9 @@ public class GenerateReportImpl implements IGenerateReport {
 					case EMOTIONANALYSIS:
 						height = 3800000;
 						break;
+					case MOODSTATISTICS:
+						height = 3800000;
+						break;
 					case AREA:
 						height = 2800000;
 						break;
