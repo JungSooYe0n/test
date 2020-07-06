@@ -859,6 +859,9 @@ public class Const {
             put(SHEET_GUOWAIXINWEN, GROUPNAME_GUOWAIXINWEN);
             put(SHEET_TWITTER, GROUPNAME_TWITTER);
             put(SHEET_FACEBOOK, GROUPNAME_FACEBOOK);
+            put(SHEET_ZIMEITI, GROUPNAME_ZIMEITI);
+            put(SHEET_DUANSHIPIN, GROUPNAME_DUANSHIPIN);
+            put(SHEET_CHANGSHIPIN, GROUPNAME_CHANGSHIPIN);
         }
     };
 
@@ -1091,6 +1094,78 @@ public class Const {
             put("命中句", "hit");
         }
     };
+    /**
+     * 数据来源 - 自媒体
+     */
+    public static final Map<String, String> EXPORT_FIRLD_ZIMEITI = new HashMap<String, String>() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        {
+            put("序号", "序号");
+            put("标题", "title");
+            put("媒体名称", "siteName");
+            put("发布时间", "urlTime");
+            put("链接", "urlName");
+            put("频道", "channel");
+            put("原发网站", "srcName");
+            put("作者", "authors");
+            put("摘要", "abstracts");
+            put("正文", "exportContent");
+            put("命中词", "hitWord");
+            put("命中句", "hit");
+        }
+    };
+    /**
+     * 数据来源 - 短视频
+     */
+    public static final Map<String, String> EXPORT_FIRLD_DUANSHIPIN = new HashMap<String, String>() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        {
+            put("序号", "序号");
+            put("标题", "title");
+            put("媒体名称", "siteName");
+            put("发布时间", "urlTime");
+            put("链接", "urlName");
+            put("频道", "channel");
+            put("原发网站", "srcName");
+            put("作者", "authors");
+            put("摘要", "abstracts");
+            put("正文", "exportContent");
+            put("命中词", "hitWord");
+            put("命中句", "hit");
+        }
+    };
+    /**
+     * 数据来源 - 视频
+     */
+    public static final Map<String, String> EXPORT_FIRLD_CHANGSHIPIN = new HashMap<String, String>() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        {
+            put("序号", "序号");
+            put("标题", "title");
+            put("媒体名称", "siteName");
+            put("发布时间", "urlTime");
+            put("链接", "urlName");
+            put("频道", "channel");
+            put("原发网站", "srcName");
+            put("作者", "authors");
+            put("摘要", "abstracts");
+            put("正文", "exportContent");
+            put("命中词", "hitWord");
+            put("命中句", "hit");
+        }
+    };
 
     /**
      * 数据源-字段对应   -- >与前端传值一一对应，若修改，则需要告知前端
@@ -1112,6 +1187,9 @@ public class Const {
             put(SHEET_GUOWAIXINWEN, EXPORT_FIRLD_GUOWEIXINWEN);
             put(SHEET_TWITTER, EXPORT_FIRLD_TWITTER);
             put(SHEET_FACEBOOK, EXPORT_FIRLD_FACEBOOK);
+            put(SHEET_ZIMEITI, EXPORT_FIRLD_ZIMEITI);
+            put(SHEET_CHANGSHIPIN, EXPORT_FIRLD_CHANGSHIPIN);
+            put(SHEET_DUANSHIPIN, EXPORT_FIRLD_DUANSHIPIN);
         }
     };
     /**
