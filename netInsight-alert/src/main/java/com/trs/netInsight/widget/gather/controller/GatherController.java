@@ -705,7 +705,7 @@ public class GatherController {
             if (isAdopt) {
                 JSONArray js = JSONArray.fromObject(hashMaps);
                 log.error(js.toString());
-                String sendPost = HttpUtil.sendPost(uploadpoint, js.toString());
+                String sendPost = HttpUtil.sendPost(uploadpoint, "data="+js.toString());
                 JSONObject jsonObject = JSONObject.parseObject(sendPost);
                 if (jsonObject.getBoolean("success")) {
                     String msg = jsonObject.getString("msg");
@@ -718,8 +718,6 @@ public class GatherController {
                             return msg;
                         }
                     }
-
-
 
                 } else {
                     throw new OperationException(jsonObject.getString("msg"));
@@ -1326,9 +1324,10 @@ public class GatherController {
     @RequestMapping(value = "/getGatherInfo", method = RequestMethod.GET)
     public Object getGatherInfo(@ApiParam("采集点id") @RequestParam(value = "gatherId", required = true) String[] gatherId,
                                 HttpServletRequest request) throws TRSException {
-        String param = "{" + "\"ids\":" + "\"" + gatherId + "\"" + "}";
-        JSONObject jsonObject = JSONObject.parseObject(param);
-        String sendPost = HttpUtil.sendPost(gatherInfo, jsonObject);
+        if (ObjectUtil.isEmpty(gatherId)){
+            throw new OperationException("請輸入id");
+        }
+        String sendPost = HttpUtil.sendPost(gatherInfo, "ids="+gatherId[0]);
         return sendPost;
     }
 }
