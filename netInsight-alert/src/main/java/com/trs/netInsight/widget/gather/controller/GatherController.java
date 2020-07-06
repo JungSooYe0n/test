@@ -958,6 +958,14 @@ public class GatherController {
                                    HttpServletRequest request) throws TRSException {
         try {
             List<List<HashMap<String, String>>> list = ExcelUtil.readExcelWithTitleFile(FileUtil.multipartFileToFile(file));
+            int num = 0;
+            for (List<HashMap<String, String>> maplist: list) {
+                num += maplist.size();
+            }
+            if (num > 200){
+                throw new TRSException("当前任务采集点数量已超过限制");
+            }
+
             List<GatherPoint> gatherPointList = new ArrayList<>();
 
             User user = UserUtils.getUser();

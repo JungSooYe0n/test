@@ -224,7 +224,6 @@ public class HttpUtil {
 				json = postMethod.getResponseBodyAsString();
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			postMethod.releaseConnection();
