@@ -123,7 +123,7 @@ public class GatherController {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
             boolean isAdmin = false;
-            if (UserUtils.ROLE_PLATFORM_ADMIN_LIST.contains(user.getCheckRole())) {
+            if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 isAdmin = true;
                 if (StringUtil.isEmpty(organizationName))
                     throw new OperationException("机构名称不能为空");
@@ -500,7 +500,7 @@ public class GatherController {
             public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 List<Predicate> predicate = new ArrayList<>();
 
-                if (UserUtils.ROLE_PLATFORM_ADMIN_LIST.contains(user.getCheckRole())) {
+                if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                     List<Predicate> predicateOrg = new ArrayList<>();
                     predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
                     if (isGoAdopt) {
