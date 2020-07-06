@@ -218,7 +218,7 @@ public class GatherController {
                 public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
                     List<Predicate> predicates = new ArrayList<>();
-                    if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())) {
+                    if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(loginUser.getCheckRole())) {
                         predicates.add(cb.equal(root.get("userId"), loginUser.getId()));
                     } else {
                         predicates.add(cb.equal(root.get("subGroupId"), loginUser.getSubGroupId()));
@@ -295,7 +295,7 @@ public class GatherController {
                 public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
                     List<Predicate> predicates = new ArrayList<>();
-                    if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())) {
+                    if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(loginUser.getCheckRole())) {
                         List<Predicate> predicateOrg = new ArrayList<>();
                         predicateOrg.add(cb.equal(root.get("userId"), loginUser.getId()));
                         if (isGoAdopt) {
@@ -565,7 +565,7 @@ public class GatherController {
         try {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
-            if (!UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+            if (!UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 throw new OperationException("您没有权限进行该操作");
             }
 
@@ -740,7 +740,7 @@ public class GatherController {
         try {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
-            if (!UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+            if (!UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 throw new OperationException("您没有权限进行该操作");
             }
             //原生sql
@@ -792,7 +792,7 @@ public class GatherController {
                 public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
                     List<Predicate> predicates = new ArrayList<>();
-                    if (UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+                    if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                         List<Predicate> predicateOrg = new ArrayList<>();
                         predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
                         Set<Organization> organizations = user.getOrganizations();
@@ -846,7 +846,7 @@ public class GatherController {
                 public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
                     List<Predicate> predicates = new ArrayList<>();
-                    if (UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+                    if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                         List<Predicate> predicateOrg = new ArrayList<>();
                         predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
                         Set<Organization> organizations = user.getOrganizations();
@@ -896,7 +896,7 @@ public class GatherController {
             User user = UserUtils.getUser();
             List<String> organizationNames = new ArrayList<>();
             //原生sql
-            if (UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+            if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 Set<Organization> organizations = user.getOrganizations();
                 for (Organization or : organizations) {
                     organizationNames.add(or.getOrganizationName());
@@ -924,7 +924,7 @@ public class GatherController {
 
             User user = UserUtils.getUser();
             boolean isAdmin = false;
-            if (UserUtils.ROLE_PLATFORM_ADMIN_LIST.contains(user.getCheckRole())) {
+            if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 isAdmin = true;
                 if (StringUtil.isEmpty(organizationName))
                     throw new OperationException("机构名称不能为空");
@@ -1092,6 +1092,15 @@ public class GatherController {
                     } else {
                         for (int i = 0; i < list.size(); i++) {
                             if (i == 0 || i == 2 || i == 6 || i == 9) {
+                                if (i == 0){
+                                    dataType = "新闻网站";
+                                }else if (i == 2){
+                                    dataType = "电子报";
+                                }else if (i == 6){
+dataType = "论坛";
+                                }else if (i == 9){
+dataType = "博客";
+                                }
                                 //新闻
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*");
@@ -1111,6 +1120,7 @@ public class GatherController {
                                 }
                             } else if (i == 1) {
                                 //新闻App
+                                dataType = "新闻App";
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*\n" +
                                             "【站点名后增加“客户端”字样】");
@@ -1127,6 +1137,11 @@ public class GatherController {
                                     gatherPointList.add(gatherPoint);
                                 }
                             } else if (i == 7 || i == 8) {
+                                if (i == 7){
+                                    dataType = "短视频";
+                                }else {
+                                    dataType = "视频";
+                                }
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*");
                                     String accountName = hashMap.get("账号名称*");
@@ -1144,6 +1159,7 @@ public class GatherController {
                                     gatherPointList.add(gatherPoint);
                                 }
                             } else if (i == 5) {
+                                    dataType = "自媒体号";
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*");
                                     String accountName = hashMap.get("账号*");
