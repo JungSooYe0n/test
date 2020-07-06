@@ -97,12 +97,12 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("timeRange", chart.getTimeRange());
                 chartMap.put("trsl", chart.getTrsl());
                 chartMap.put("xyTrsl", chart.getXyTrsl());
-                chartMap.put("mediaLevel", chart.getMediaLevel());
-                chartMap.put("mediaIndustry", chart.getMediaIndustry());
-                chartMap.put("contentIndustry", chart.getContentIndustry());
-                chartMap.put("filterInfo", chart.getFilterInfo());
-                chartMap.put("contentArea", chart.getContentArea());
-                chartMap.put("mediaArea", chart.getMediaArea());
+                chartMap.put("mediaLevel", chart.getMediaLevel().replaceAll("其他","其它"));
+                chartMap.put("mediaIndustry", chart.getMediaIndustry().replaceAll("其他","其它"));
+                chartMap.put("contentIndustry", chart.getContentIndustry().replaceAll("其他","其它"));
+                chartMap.put("filterInfo", chart.getFilterInfo().replaceAll("其他","其它"));
+                chartMap.put("contentArea", chart.getContentArea().replaceAll("其他","其它"));
+                chartMap.put("mediaArea", chart.getMediaArea().replaceAll("其他","其它"));
                 result.add(chartMap);
             }
         }
@@ -320,6 +320,9 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
 
     private void addFieldFilter( QueryBuilder queryBuilder,String field,String value,List<String> allValue){
         if(StringUtil.isNotEmpty(value)){
+            if(value.contains("其它")){
+                value = value.replaceAll("其它","其他");
+            }
             String[] valueArr = value.split(";");
             List<String> valueArrList = new ArrayList<>();
             for(String v : valueArr){
@@ -342,6 +345,9 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             areaMap = Const.CONTTENT_PROVINCE_NAME;
         }
         if(StringUtil.isNotEmpty(areas) && areaMap!= null){
+            if(areas.contains("其它")){
+                areas = areas.replaceAll("其它","其他");
+            }
             String[] areaArr = areas.split(";");
             List<String> areaList = new ArrayList<>();
             for(String area : areaArr){
