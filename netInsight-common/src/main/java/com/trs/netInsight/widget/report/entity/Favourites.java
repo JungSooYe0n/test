@@ -1,17 +1,21 @@
 package com.trs.netInsight.widget.report.entity;
 
+import com.trs.netInsight.support.fts.annotation.FtsField;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 收藏表
@@ -43,6 +47,12 @@ public class Favourites extends BaseEntity {
 	private String sid;
 
 	/**
+	 * 论坛回帖hkey
+	 */
+	@Column(name = "hkey")
+	private String hkey;
+
+	/**
 	 * 文章内容md5值
 	 */
 	@Column(name = "mds_tag")
@@ -57,7 +67,7 @@ public class Favourites extends BaseEntity {
 	/**
 	 * 链接
 	 */
-	@Column(name = "url_name")
+	@Column(name = "url_name", columnDefinition="TEXT")
 	private String urlName;
 	/**
 	 * 作者
@@ -71,13 +81,18 @@ public class Favourites extends BaseEntity {
 	/**
 	 * 标题
 	 */
-	@Column(name = "title")
+	@Column(name = "title", columnDefinition="TEXT")
 	private String title;
 	/**
 	 * 正文
 	 */
-	@Column(name = "content")
+	@Column(name = "content", columnDefinition="TEXT")
 	private String content;
+	/**
+	 * 全部的正文（去掉标签和特殊符号的）
+	 */
+	@Column(name = "full_content", columnDefinition="TEXT")
+	private String fullContent;
 	/**
 	 * 微博用户昵称
 	 */
@@ -109,14 +124,14 @@ public class Favourites extends BaseEntity {
 	@Column(name = "site_name")
 	private String siteName;
 	/**
-	 * 原发媒体
+	 * 原发媒体 - 传统媒体或微信时为原发媒体srcname，如果是微博和TF则是原发人的昵称
 	 */
 	@Column(name = "src_name")
 	private String srcName;
 	/**
 	 * 摘要
 	 */
-	@Column(name = "abstracts")
+	@Column(name = "abstracts", columnDefinition="TEXT")
 	private String abstracts;
 	/**
 	 * 区分论坛 主贴/回帖
@@ -156,13 +171,43 @@ public class Favourites extends BaseEntity {
 	/**
 	 * 微博正文
 	 */
-	@Column(name = "status_content")
+	@Column(name = "status_content", columnDefinition="TEXT")
 	private String statusContent;
 	/**
 	 * 文章标题
 	 */
-	@Column(name = "url_title")
+	@Column(name = "url_title", columnDefinition="TEXT")
 	private String urlTitle;
+
+	/**
+	 * 正负面
+	 */
+	@Column(name = "appraise")
+	private String appraise;
+
+	/**
+	 * 关键词
+	 */
+	@Column(name = "keywords")
+	private String keywords;
+	public void setKeywords(List<String> list){
+		if(list!= null && list.size() >0){
+			keywords = StringUtils.join(list,";");
+		}
+	}
+	public List<String> getKeywords(){
+		if(StringUtil.isNotEmpty(keywords)){
+			return Arrays.asList(keywords.split(";"));
+		}else{
+			return null;
+		}
+	}
+
+	/**
+	 * 频道
+	 */
+	@Column(name = "channel")
+	private String channel;
 
 	/**
 	 * material 素材库
@@ -174,11 +219,13 @@ public class Favourites extends BaseEntity {
 	/**
 	 * 来源 查库用
 	 */
+	@Column(name = "group_name")
 	private String groupName;
 	
 	/**
 	 * 查询列表时拼builder
 	 */
+	@Column(name = "urltime")
 	private String urltime;
 
 	public String getUrltime() {
@@ -223,6 +270,18 @@ public class Favourites extends BaseEntity {
 		this.urlTitle = StringUtil.filterEmoji(StringUtil.replaceImg(urlTitle));
 
 
+		super.setUserId(userId);
+		super.setSubGroupId(subGroupId);
+	}
+	/**
+	 * 构造方法
+	 *
+	 * @param sid
+	 * @param userId
+	 */
+	public Favourites(String sid,String userId,String subGroupId) {
+		this.favouritesId = GUIDGenerator.generate(Favourites.class);
+		this.sid = sid;
 		super.setUserId(userId);
 		super.setSubGroupId(subGroupId);
 	}

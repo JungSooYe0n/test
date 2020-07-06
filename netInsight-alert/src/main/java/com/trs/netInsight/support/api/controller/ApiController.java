@@ -766,8 +766,9 @@ public class ApiController {
         if (pageSize > maxPageSize){
             pageSize = maxPageSize;
         }
-        return infoListController.searchList(pageNo,pageSize,groupName,"ALL",time,emotion,sort,invitationCard,forwarPrimary,null,null,"ALL",null,null,null
-        ,"positioCon",simflag,keywords,false,null,null,"ALL","ALL","ALL","ALL",false);
+        return infoListController.searchList(pageNo,pageSize,time,simflag,"positioCon",false,sort,"ALL",keywords,
+                null,emotion,null,null,"ALL",null,null,"ALL","ALL",invitationCard,
+                forwarPrimary,null,null,"","",groupName);
     }
 
     /**

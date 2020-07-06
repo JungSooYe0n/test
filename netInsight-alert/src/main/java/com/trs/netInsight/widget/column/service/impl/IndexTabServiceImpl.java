@@ -342,7 +342,7 @@ public class IndexTabServiceImpl implements IIndexTabService {
 						} else {
 							typeNew = "timeListInfo";
 						}
-						if (StringUtil.isNotEmpty(indexTab.getTrsl())) {
+						if (StringUtil.isNotEmpty(indexTab.getTrsl()) || StringUtil.isNotEmpty(indexTab.getXyTrsl())) {
 							indexTab.setSpecialType(SpecialType.SPECIAL);
 						} else {
 							indexTab.setSpecialType(SpecialType.COMMON);

@@ -903,11 +903,7 @@ public class ExportController {
 	@PostMapping("/exportExcelData")
 	@ApiOperation("把前一个接口的数据从redis中导出到excel中")
 	public void exportExcelData(HttpServletResponse response,
-								@ApiParam("要生成文件的名字") @RequestBody ExportParam exportParam
-								/*@ApiParam("返回的key") @RequestParam(value = "key") String key,
-								@ApiParam("要生成文件的名字") @RequestParam(value = "name") String name,
-                                @ApiParam("导出数据的数据源") @RequestParam(value = "groupName", required = false) String groupName,
-                                @ApiParam("不同数据源的导出头") @RequestParam(value = "heads", required = false) String heads*/) throws TRSException {
+								@ApiParam("要生成文件的数据信息") @RequestBody ExportParam exportParam) throws TRSException {
 		String name = exportParam.getName();
 		String key = exportParam.getKey();
 		List<ExportField> exportField = exportParam.getExportField();
@@ -983,7 +979,6 @@ public class ExportController {
 				}
 			}
 			childMap = new HashMap<>();
-			//childMap.put(headKey, headArray);
 			childMap.put(englishHeadKey, englishHeadArray);
 			childMap.put(hitWordKey, isHitWord);
 			childMap.put(hitKey, isHit);
@@ -1012,6 +1007,13 @@ public class ExportController {
 							Boolean isHit = (Boolean) childMap.get(hitKey);
 							Boolean isStatusUser = (Boolean) childMap.get(followersCountKey);
 							Boolean isVreserved = (Boolean) childMap.get(vreservedKey);
+
+							if(StringUtil.isNotEmpty(vo.getAbstracts())){
+								vo.setAbstracts(StringUtil.replaceImg(vo.getAbstracts()));
+							}
+							if(StringUtil.isNotEmpty(vo.getExportContent())){
+								vo.setExportContent(StringUtil.replaceImg(vo.getExportContent()));
+							}
 							vo.setHit(ReportUtil.calcuHit(vo.getTitle(), vo.getExportContent(), isHit));
 							vo.setHitWord(ReportUtil.calcuRedWord(isHitWord, vo.getTitle(), vo.getExportContent()));
 							if (isStatusUser) {

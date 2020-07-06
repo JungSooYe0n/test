@@ -3040,7 +3040,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
     }
 
     @Override
-	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange, SpecialParam specParam) {
+	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange) {
 		return null;
 	}
 

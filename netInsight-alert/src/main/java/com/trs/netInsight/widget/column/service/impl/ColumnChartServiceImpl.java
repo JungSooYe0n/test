@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.column.service.impl;
 
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.column.entity.CustomChart;
@@ -16,6 +17,7 @@ import com.trs.netInsight.widget.column.service.IColumnService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.docx4j.wml.P;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -125,12 +127,36 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 oneCcInfo.put("trsl", oneCc.getTrsl());
                 oneCcInfo.put("xyTrsl", oneCc.getXyTrsl());
 
-                oneCcInfo.put("mediaLevel", oneCc.getMediaLevel());
-                oneCcInfo.put("mediaIndustry", oneCc.getMediaIndustry());
-                oneCcInfo.put("contentIndustry", oneCc.getContentIndustry());
-                oneCcInfo.put("filterInfo", oneCc.getFilterInfo());
-                oneCcInfo.put("contentArea", oneCc.getContentArea());
-                oneCcInfo.put("mediaArea", oneCc.getMediaArea());
+                if(StringUtil.isNotEmpty(oneCc.getMediaLevel())){
+                    oneCcInfo.put("mediaLevel", oneCc.getMediaLevel());
+                }else{
+                    oneCcInfo.put("mediaLevel", StringUtils.join(Const.MEDIA_LEVEL,";"));
+                }
+                if(StringUtil.isNotEmpty(oneCc.getMediaIndustry())){
+                    oneCcInfo.put("mediaIndustry", oneCc.getMediaIndustry());
+                }else{
+                    oneCcInfo.put("mediaIndustry", StringUtils.join(Const.MEDIA_INDUSTRY,";"));
+                }
+                if(StringUtil.isNotEmpty(oneCc.getContentIndustry())){
+                    oneCcInfo.put("contentIndustry", oneCc.getContentIndustry());
+                }else{
+                    oneCcInfo.put("contentIndustry", StringUtils.join(Const.CONTENT_INDUSTRY,";"));
+                }
+                if(StringUtil.isNotEmpty(oneCc.getFilterInfo())){
+                    oneCcInfo.put("filterInfo", oneCc.getFilterInfo());
+                }else{
+                    oneCcInfo.put("filterInfo", StringUtils.join(Const.FILTER_INFO,";")+";其他");
+                }
+                if(StringUtil.isNotEmpty(oneCc.getContentArea())){
+                    oneCcInfo.put("contentArea", oneCc.getContentArea());
+                }else{
+                    oneCcInfo.put("contentArea", StringUtils.join(Const.AREA_LIST,";"));
+                }
+                if(StringUtil.isNotEmpty(oneCc.getMediaArea())){
+                    oneCcInfo.put("mediaArea", oneCc.getMediaArea());
+                }else{
+                    oneCcInfo.put("mediaArea", StringUtils.join(Const.AREA_LIST,";"));
+                }
                 addTypeSeq(oneCcInfo,oneCc.getType());
                 ccList.add(oneCcInfo);
             }

@@ -536,7 +536,7 @@ public class ColumnConfig {
 			String[] valueArr = value.split(";");
 			List<String> valueArrList = new ArrayList<>();
 			for(String v : valueArr){
-				if("其他".equals(v)){
+				if("其他".equals(v) || "中性".equals(v)){
 					valueArrList.add("\"\"");
 				}
 				if(allValue.contains(v)){

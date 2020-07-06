@@ -756,51 +756,63 @@ public class Const {
     /**
      * sheet名 - 国内新闻
      */
-    public static final String SHEET_XINWEN = "新闻";
+    public static final String SHEET_XINWEN = Const.PAGE_SHOW_XINWEN;
 
     /**
      * sheet名 - 微博
      */
-    public static final String SHEET_WEIBO = "微博";
+    public static final String SHEET_WEIBO =  Const.PAGE_SHOW_WEIBO;
 
     /**
      * sheet名 - 国内微信
      */
-    public static final String SHEET_WEIXIN = "微信";
+    public static final String SHEET_WEIXIN =  Const.PAGE_SHOW_WEIXIN;
 
     /**
      * sheet名 - 国内论坛
      */
-    public static final String SHEET_LUNTAN = "论坛";
+    public static final String SHEET_LUNTAN =  Const.PAGE_SHOW_LUNTAN;
 
     /**
      * sheet名 - 国内博客
      */
-    public static final String SHEET_BOKE = "博客";
+    public static final String SHEET_BOKE =  Const.PAGE_SHOW_BOKE;
 
     /**
      * sheet名 - 国内新闻_电子报
      */
-    public static final String SHEET_DIANZIBAO = "电子报";
+    public static final String SHEET_DIANZIBAO =  Const.PAGE_SHOW_DIANZIBAO;
 
     /**
      * sheet名 - 国内新闻_手机客户端
      */
-    public static final String SHEET_KEHUDUAN = "客户端";
+    public static final String SHEET_KEHUDUAN = Const.PAGE_SHOW_KEHUDUAN;
     /**
      * sheet名 - 国外新闻
      */
-    public static final String SHEET_GUOWAIXINWEN = "境外网站";
+    public static final String SHEET_GUOWAIXINWEN =  Const.PAGE_SHOW_GUOWAIXINWEN;
 
     /**
      * sheet名 - Facebook
      */
-    public static final String SHEET_FACEBOOK = "Facebook";
+    public static final String SHEET_FACEBOOK =  Const.PAGE_SHOW_FACEBOOK;
 
     /**
      * sheet名 - Twitter
      */
-    public static final String SHEET_TWITTER = "Twitter";
+    public static final String SHEET_TWITTER =  Const.PAGE_SHOW_TWITTER;
+    /**
+     * sheet名 - 自媒体号
+     */
+    public static final String SHEET_ZIMEITI =  Const.PAGE_SHOW_ZIMEITI;
+    /**
+     * sheet名 - 短视频
+     */
+    public static final String SHEET_DUANSHIPIN =  Const.PAGE_SHOW_DUANSHIPIN;
+    /**
+     * sheet名 - 视频
+     */
+    public static final String SHEET_CHANGSHIPIN =  Const.PAGE_SHOW_CHANGSHIPIN;
 
     /**
      * 数据来源  数据的groupName与要导出的excel  的sheet的关系  --->部分groupName对应多个sheet原因是因为数据采集可能出现变动，例如Facebook
@@ -815,7 +827,6 @@ public class Const {
             put(GROUPNAME_XINWEN, SHEET_XINWEN);
             put(GROUPNAME_WEIBO, SHEET_WEIBO);
             put(GROUPNAME_WEIXIN, SHEET_WEIXIN);
-            put("微信", SHEET_WEIXIN);
             put(GROUPNAME_KEHUDUAN, SHEET_KEHUDUAN);
             put(GROUPNAME_LUNTAN, SHEET_LUNTAN);
             put(GROUPNAME_BOKE, SHEET_BOKE);
@@ -848,6 +859,9 @@ public class Const {
             put(SHEET_GUOWAIXINWEN, GROUPNAME_GUOWAIXINWEN);
             put(SHEET_TWITTER, GROUPNAME_TWITTER);
             put(SHEET_FACEBOOK, GROUPNAME_FACEBOOK);
+            put(SHEET_ZIMEITI, GROUPNAME_ZIMEITI);
+            put(SHEET_DUANSHIPIN, GROUPNAME_DUANSHIPIN);
+            put(SHEET_CHANGSHIPIN, GROUPNAME_CHANGSHIPIN);
         }
     };
 
@@ -1080,6 +1094,78 @@ public class Const {
             put("命中句", "hit");
         }
     };
+    /**
+     * 数据来源 - 自媒体
+     */
+    public static final Map<String, String> EXPORT_FIRLD_ZIMEITI = new HashMap<String, String>() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        {
+            put("序号", "序号");
+            put("标题", "title");
+            put("媒体名称", "siteName");
+            put("发布时间", "urlTime");
+            put("链接", "urlName");
+            put("频道", "channel");
+            put("原发网站", "srcName");
+            put("作者", "authors");
+            put("摘要", "abstracts");
+            put("正文", "exportContent");
+            put("命中词", "hitWord");
+            put("命中句", "hit");
+        }
+    };
+    /**
+     * 数据来源 - 短视频
+     */
+    public static final Map<String, String> EXPORT_FIRLD_DUANSHIPIN = new HashMap<String, String>() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        {
+            put("序号", "序号");
+            put("标题", "title");
+            put("媒体名称", "siteName");
+            put("发布时间", "urlTime");
+            put("链接", "urlName");
+            put("频道", "channel");
+            put("原发网站", "srcName");
+            put("作者", "authors");
+            put("摘要", "abstracts");
+            put("正文", "exportContent");
+            put("命中词", "hitWord");
+            put("命中句", "hit");
+        }
+    };
+    /**
+     * 数据来源 - 视频
+     */
+    public static final Map<String, String> EXPORT_FIRLD_CHANGSHIPIN = new HashMap<String, String>() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        {
+            put("序号", "序号");
+            put("标题", "title");
+            put("媒体名称", "siteName");
+            put("发布时间", "urlTime");
+            put("链接", "urlName");
+            put("频道", "channel");
+            put("原发网站", "srcName");
+            put("作者", "authors");
+            put("摘要", "abstracts");
+            put("正文", "exportContent");
+            put("命中词", "hitWord");
+            put("命中句", "hit");
+        }
+    };
 
     /**
      * 数据源-字段对应   -- >与前端传值一一对应，若修改，则需要告知前端
@@ -1101,6 +1187,9 @@ public class Const {
             put(SHEET_GUOWAIXINWEN, EXPORT_FIRLD_GUOWEIXINWEN);
             put(SHEET_TWITTER, EXPORT_FIRLD_TWITTER);
             put(SHEET_FACEBOOK, EXPORT_FIRLD_FACEBOOK);
+            put(SHEET_ZIMEITI, EXPORT_FIRLD_ZIMEITI);
+            put(SHEET_CHANGSHIPIN, EXPORT_FIRLD_CHANGSHIPIN);
+            put(SHEET_DUANSHIPIN, EXPORT_FIRLD_DUANSHIPIN);
         }
     };
     /**
@@ -1298,16 +1387,39 @@ public class Const {
     /**
      * 媒体行业
      */
-    public static final List<String> MEDIA_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品");
+    public static final List<String> MEDIA_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品","其他");
     /**
      * 内容行业
      */
-    public static final List<String> CONTENT_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品");
+    public static final List<String> CONTENT_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品","其他");
+    public static final List<String> AREA_LIST = Arrays.asList( "北京", "天津", "上海", "重庆", "河北", "山西", "辽宁", "吉林", "黑龙江", "江苏", "浙江", "安徽", "福建", "江西", "山东",
+            "河南", "湖北", "湖南", "广东", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "台湾", "内蒙古", "广西", "西藏", "宁夏", "新疆", "香港", "澳门","其他");
+
     /**
      * 信息过滤
      */
     public static final List<String> FILTER_INFO = Arrays.asList("明星娱乐","影视剧场","婚恋交友","股票推荐","游戏广告","赌博彩票","涉黄信息","母婴广告","招生招聘",
             "采购招标","转发抽奖");
+    public static final List<String> GATHER_TYPE_NEWS = Arrays.asList(
+            Const.PAGE_SHOW_XINWEN,
+            Const.PAGE_SHOW_LUNTAN,
+            Const.PAGE_SHOW_BOKE,
+            Const.PAGE_SHOW_DIANZIBAO);
+    public static final List<String> GATHER_MEDIA = Arrays.asList(
+            Const.PAGE_SHOW_CHANGSHIPIN,
+            Const.PAGE_SHOW_DUANSHIPIN);
+    public static final List<String> GATHER_ZIMEITI = Arrays.asList(
+            Const.PAGE_SHOW_ZIMEITI);
+    /**
+     * 媒体类型:FaceBook and twitter
+     */
+    public static final List<String> GATHER_TYPE_TWITTER = Arrays.asList("Twitter", "twitter");
+    public static final List<String> GATHER_TYPE_FACEBOOK = Arrays.asList("FaceBook", "Facebook", "facebook");
+    public static final List<String> GATHER_YUAN = Arrays.asList("元搜索");
+    public static final String GATHER_NO_AUDIT = "未审核";
+    public static final String GATHER_AUDITED = "已审核";
+    public static final String GATHER_AUDITING = "审核中";
+
 }
 
 /**

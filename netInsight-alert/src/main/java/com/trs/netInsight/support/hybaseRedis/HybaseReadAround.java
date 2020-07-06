@@ -53,6 +53,8 @@ public class HybaseReadAround {
     public Object before(ProceedingJoinPoint point, HybaseRead hybaseRead) throws Throwable {
         Object result = null;
         try {
+            MethodSignature methodSign = (MethodSignature)point.getSignature();
+            Class returnClazz = methodSign.getReturnType();
             // 获取参数列表及参数值
             Object[] paramValues = point.getArgs();
             //参数必须注意,否则可能缓存无效
@@ -68,8 +70,14 @@ public class HybaseReadAround {
 //          // redis有数据并且小于10分钟直接去redis数据
             if(rt != null && alreadyAddMin<1){
                 log.info("从redis获取该信息----------");
+                if(returnClazz == java.lang.Long.class ){
+                    rt = Long.parseLong(rt.toString());
+                }
                 return rt;
             }else if(rt != null){ //redis存在数据,10s获取不到海贝数据,则使用redis中数据
+                if(returnClazz == java.lang.Long.class ){
+                    rt = Long.parseLong(rt.toString());
+                }
                 CallableThread callableThread = new CallableThread(point,paramValues);
                 Future<Object> future = executor.submit(callableThread);
                 Object resultHybase = null;
