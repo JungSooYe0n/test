@@ -63,10 +63,10 @@ public class HybaseReadAround {
             Object rt = RedisUtil.getObject(redisKey);
             String addTime = RedisUtil.getString(redisKeyAddTime);
             //key存放redis中的时间(分)
-            long alreadyAddMin = 1000;
+            long alreadyAddMin = 1000l;
             if(addTime != null) alreadyAddMin = DateUtil.getDateTimeMin(addTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"),"min");
 //          // redis有数据并且小于10分钟直接去redis数据
-            if(rt != null && alreadyAddMin<11){
+            if(rt != null && alreadyAddMin<1){
                 log.info("从redis获取该信息----------");
                 return rt;
             }else if(rt != null){ //redis存在数据,10s获取不到海贝数据,则使用redis中数据
@@ -80,6 +80,7 @@ public class HybaseReadAround {
                     RedisUtil.setString(redisKeyAddTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
                 } catch (TimeoutException e) { //请求超时或者异常出错 使用缓存数据
                     e.printStackTrace();
+                    log.error("请求时间大于10s,继续走缓存");
                     resultHybase = rt;
                 }  catch (Exception e) {
                     e.printStackTrace();
