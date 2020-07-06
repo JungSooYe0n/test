@@ -63,9 +63,6 @@ public class HybaseReadAround {
             String redisKey = "hybaseRedis_"+redisKeyHash;
             String redisKeyAddTime = "hybaseRedisAddTime_"+redisKeyHash;
             Object rt = RedisUtil.getObject(redisKey);
-            if(returnClazz == java.lang.Long.class ){
-                rt = Long.parseLong(rt.toString());
-            }
             String addTime = RedisUtil.getString(redisKeyAddTime);
             //key存放redis中的时间(分)
             long alreadyAddMin = 1000;
@@ -73,8 +70,14 @@ public class HybaseReadAround {
 //          // redis有数据并且小于10分钟直接去redis数据
             if(rt != null && alreadyAddMin<11){
                 log.info("从redis获取该信息----------");
+                if(returnClazz == java.lang.Long.class ){
+                    rt = Long.parseLong(rt.toString());
+                }
                 return rt;
             }else if(rt != null){ //redis存在数据,10s获取不到海贝数据,则使用redis中数据
+                if(returnClazz == java.lang.Long.class ){
+                    rt = Long.parseLong(rt.toString());
+                }
                 CallableThread callableThread = new CallableThread(point,paramValues);
                 Future<Object> future = executor.submit(callableThread);
                 Object resultHybase = null;

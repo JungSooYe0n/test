@@ -1256,14 +1256,13 @@ public class ExcelServiceImpl implements IExcelService {
 			builderWeiXin.filterByTRSL(queryBuilder.asTRSL());
 			builder.filterByTRSL(queryBuilder.asTRSL());
 		}
-		groupNames = CommonListChartUtil.changeGroupName(groupNames);
 		String[] groupNameArray = groupNames.split(";");
 		String[] idArray = ids.split(";");
 		List<String> idList = new ArrayList<>();
 		List<String> weixinList = new ArrayList<>();
 		List<String> groupName_other = new ArrayList<>();
 		for(int i = 0 ;i < idArray.length;i++){
-			String groupName = groupNameArray[i];
+			String groupName = Const.SOURCE_GROUPNAME_CONTRAST.get(groupNameArray[i]);
 			if(Const.MEDIA_TYPE_WEIXIN.contains(groupName)){
 				weixinList.add(idArray[i]);
 			}else{
