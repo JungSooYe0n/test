@@ -7025,6 +7025,9 @@ public class InfoListServiceImpl implements IInfoListService {
 
 	private void addFieldFilter(String field,String value,List<String> allValue,QueryBuilder queryBuilder){
 		if(StringUtil.isNotEmpty(value)){
+			if(value.contains("其它")){
+				value = value.replaceAll("其它","其他");
+			}
 			String[] valueArr = value.split(";");
 			List<String> valueArrList = new ArrayList<>();
 			for(String v : valueArr){

@@ -373,6 +373,10 @@ public class ReportConst {
         CHAPTERS2METHODSETNEW.put(WORDCLOUDSTATISTICSkey, "setWordCloudStatistics");
         CHAPTERS2METHODSETNEW.put(WEMEDIAkey, "setWeMediaHot");
         CHAPTERS2METHODSETNEW.put(ACTIVEACCOUNTkey, "setActiveAccount");
+        CHAPTERS2METHODSETNEW.put(WEIBOEVENTCONTEXTkey, "setWeiboEventContext");
+        CHAPTERS2METHODSETNEW.put(WEMEDIAEVENTCONTEXTkey, "setWemediaEventContext");
+        CHAPTERS2METHODSETNEW.put(WECHATEVENTCONTEXTkey, "setWechatEventContext");
+        CHAPTERS2METHODSETNEW.put(NEWSEVENTCONTEXTkey, "setNewsEventContext");
 
         CHAPTERS2METHODSETNEW.put("WECHATHOTTOP10", "setWechatHotTop10");
         //配合历史数据 （专题报  改造 20191121）

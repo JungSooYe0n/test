@@ -335,34 +335,34 @@ public class ColumnServiceImpl implements IColumnService {
 					map.put("xyTrsl", tab.getXyTrsl());
 
 					if(StringUtil.isNotEmpty(tab.getMediaLevel())){
-						map.put("mediaLevel", tab.getMediaLevel());
+						map.put("mediaLevel", tab.getMediaLevel().replaceAll("其他","其它"));
 					}else{
-						map.put("mediaLevel", StringUtils.join(Const.MEDIA_LEVEL,";"));
+						map.put("mediaLevel", StringUtils.join(Const.MEDIA_LEVEL,";").replaceAll("其他","其它"));
 					}
 					if(StringUtil.isNotEmpty(tab.getMediaIndustry())){
-						map.put("mediaIndustry", tab.getMediaIndustry());
+						map.put("mediaIndustry", tab.getMediaIndustry().replaceAll("其他","其它"));
 					}else{
-						map.put("mediaIndustry", StringUtils.join(Const.MEDIA_INDUSTRY,";"));
+						map.put("mediaIndustry", StringUtils.join(Const.MEDIA_INDUSTRY,";").replaceAll("其他","其它"));
 					}
 					if(StringUtil.isNotEmpty(tab.getContentIndustry())){
-						map.put("contentIndustry", tab.getContentIndustry());
+						map.put("contentIndustry", tab.getContentIndustry().replaceAll("其他","其它"));
 					}else{
-						map.put("contentIndustry", StringUtils.join(Const.CONTENT_INDUSTRY,";"));
+						map.put("contentIndustry", StringUtils.join(Const.CONTENT_INDUSTRY,";").replaceAll("其他","其它"));
 					}
 					if(StringUtil.isNotEmpty(tab.getFilterInfo())){
-						map.put("filterInfo", tab.getFilterInfo());
+						map.put("filterInfo", tab.getFilterInfo().replaceAll("其他","其它"));
 					}else{
-						map.put("filterInfo", StringUtils.join(Const.FILTER_INFO,";")+";其他");
+						map.put("filterInfo", StringUtils.join(Const.FILTER_INFO,";")+";其它");
 					}
 					if(StringUtil.isNotEmpty(tab.getContentArea())){
-						map.put("contentArea", tab.getContentArea());
+						map.put("contentArea", tab.getContentArea().replaceAll("其他","其它"));
 					}else{
-						map.put("contentArea", StringUtils.join(Const.AREA_LIST,";"));
+						map.put("contentArea", StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它"));
 					}
 					if(StringUtil.isNotEmpty(tab.getMediaArea())){
-						map.put("mediaArea", tab.getMediaArea());
+						map.put("mediaArea", tab.getMediaArea().replaceAll("其他","其它"));
 					}else{
-						map.put("mediaArea", StringUtils.join(Const.AREA_LIST,";"));
+						map.put("mediaArea", StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它"));
 					}
 
 					map.put("active", false);

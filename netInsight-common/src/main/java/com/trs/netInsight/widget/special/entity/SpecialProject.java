@@ -1077,6 +1077,9 @@ public class SpecialProject extends BaseEntity {
 	}
 	private void addFieldFilter(QueryBuilder queryBuilder,String field,String value,List<String> allValue){
 		if(StringUtil.isNotEmpty(value)){
+			if(value.contains("其它")){
+				value = value.replaceAll("其它","其他");
+			}
 			String[] valueArr = value.split(";");
 			List<String> valueArrList = new ArrayList<>();
 			for(String v : valueArr){
@@ -1098,6 +1101,9 @@ public class SpecialProject extends BaseEntity {
 			areaMap = Const.CONTTENT_PROVINCE_NAME;
 		}
 		if(StringUtil.isNotEmpty(areas) && areaMap!= null){
+			if(areas.contains("其它")){
+				areas = areas.replaceAll("其它","其他");
+			}
 			String[] areaArr = areas.split(";");
 			List<String> areaList = new ArrayList<>();
 			for(String area : areaArr){

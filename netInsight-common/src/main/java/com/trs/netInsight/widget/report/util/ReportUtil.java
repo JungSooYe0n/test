@@ -1062,7 +1062,7 @@ public class ReportUtil {
 				reportData.getClass().getDeclaredMethod(CHAPTERS2METHODSETNEW.get(chapterDetail), String.class).invoke(reportData, data);
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error("存储");
+				log.error("存储 --" + chapterDetail);
 			}
 		}
 	}
