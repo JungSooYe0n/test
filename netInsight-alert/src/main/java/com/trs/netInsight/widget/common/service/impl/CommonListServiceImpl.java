@@ -571,7 +571,7 @@ public class CommonListServiceImpl implements ICommonListService {
     private void calculateSimNum(String database, String pageId, final List<FtsDocumentCommonVO> documentList,
                                  String trslk, String type, Boolean isCalculateSitename) {
         try {
-            log.info("相似文章数计算：" + "async:" + pageId + "开始");
+            //log.info("相似文章数计算：" + "async:" + pageId + "开始");
             //热度排序按站内排重查询 - 热度为按相似文章数计算，相似文章数代表热度值
             Boolean sim = false;
             Boolean irSimflag = true;
@@ -627,7 +627,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 asyncInfo.setGroupName(document.getGroupName());
                 asyncInfoList.add(asyncInfo);
             }
-            log.info("相似文章数计算：" + "async:" + pageId + "完成，数据为：" + asyncList.size());
+            //log.info("相似文章数计算：" + "async:" + pageId + "完成，数据为：" + asyncList.size());
             TimingCachePool.put("async:" + pageId, asyncList);
             RedisFactory.setValueToRedis("async:" + pageId, asyncList);
             //现在只针对普通搜索页面做了相似文章发文网站的检索
@@ -653,7 +653,7 @@ public class CommonListServiceImpl implements ICommonListService {
         //五大商业媒体 ：IR_INDUSTRY    =1 时
         //网信办白名单 ： IR_WXB_LIST =0
         try {
-            log.info("相似文章的发文网站计算：" + "asySiteName:" + pageId + "开始");
+            //log.info("相似文章的发文网站计算：" + "asySiteName:" + pageId + "开始");
             String trsl = RedisUtil.getString(trslk);
             if (StringUtil.isNotEmpty(trsl)) {
                 trsl = TrslUtil.removeSimflag(trsl);
@@ -779,7 +779,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 }
                 resultList.add(asySiteNameDocument);
             }
-            log.info("相似文章的发文网站计算：" + "asySiteName:" + pageId + "完成，数据为：" + resultList.size());
+            //log.info("相似文章的发文网站计算：" + "asySiteName:" + pageId + "完成，数据为：" + resultList.size());
             TimingCachePool.put("asySiteName:" + pageId, resultList);
             RedisFactory.setValueToRedis("asySiteName:" + pageId, resultList);
         } catch (Exception e) {

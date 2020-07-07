@@ -314,7 +314,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         String db = addHybaseInsert(databases);
         // 判断是否排重
         trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, resultClass);
-        log.warn(trsl);
+        //log.warn(trsl);
         TRSConnection connection = null;
         try {
             long startConnect = new Date().getTime();
@@ -394,7 +394,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         if (pageSize > 10000) {
             return pageListCommonForExport(query, isSimilar, irSimflag, irSimflagAll, type);
         }
-        log.info(trsl);
+        //log.info(trsl);
         TRSConnection connection = null;
         try {
             String startConnect = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
@@ -414,7 +414,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if (recordNum == 0) {
                 recordNum = 20;
             }
-            log.error(trsl);
+            //log.error(trsl);
             long timeStart = new Date().getTime();
             if(!verifyFilterTime(searchParams)){
                 return null;
@@ -459,7 +459,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         long pageNo = query.getPageNo();
         int pageSize = query.getPageSize();
 
-        log.info(trsl);
+        //log.info(trsl);
         TRSConnection connection = null;
         try {
             String startConnect = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
@@ -479,7 +479,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                 recordNum = 20;
             }
 
-            log.error(trsl);
+            //log.error(trsl);
             long timeStart = new Date().getTime();
             if(!verifyFilterTime(searchParams)){
                 return null;
@@ -566,7 +566,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             String databases = query.getDatabase();
             String db = addHybaseInsert(databases);
             String similarTrsl = commonMonthd(query.asTRSL(), isSimilar, irSimflag, irSimflagAll, true, query.getDatabase());
-            log.warn(similarTrsl);
+            //log.warn(similarTrsl);
             long startConnect = new Date().getTime();
             TRSConnection client = HybaseFactory.getClient();
             long endConnect = new Date().getTime();
@@ -1446,8 +1446,8 @@ public class Hybase8SearchImplNew implements FullTextSearch {
     private String addHybaseInsert(String indices) {
         User user = UserUtils.getUser();
 
-        log.debug("------>" + StringUtil.isNotEmpty(indices));
-        log.debug("------>" + !indices.contains(Const.SINAUSERS));
+        //log.debug("------>" + StringUtil.isNotEmpty(indices));
+        //log.debug("------>" + !indices.contains(Const.SINAUSERS));
         if (StringUtil.isNotEmpty(indices) && !indices.contains(Const.SINAUSERS))
             indices = indices + ";" + Const.INSERT;
         String ownerId = user.getId();
@@ -1605,9 +1605,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             loginpool.setLogList(logList);
         }
         RedisUtil.setLog(id, loginpool);
-        log.warn(trsl);
-        log.warn("连接hybase  耗时" + connectTime + "ms");
-        log.warn("原生查询hybase方法   耗时" + time + "ms");
+        //log.warn(trsl);
+        //log.warn("连接hybase  耗时" + connectTime + "ms");
+        //log.warn("原生查询hybase方法   耗时" + time + "ms");
     }
 
     /**
@@ -1638,9 +1638,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             loginpool.setLogList(logList);
         }
         RedisUtil.setLog(id, loginpool);
-        log.warn(trsl);
-        log.warn("连接hybase  耗时" + connectTime + "ms");
-        log.warn("分类统计hybase方法   耗时" + time + "ms");
+        //log.warn(trsl);
+        //log.warn("连接hybase  耗时" + connectTime + "ms");
+        //log.warn("分类统计hybase方法   耗时" + time + "ms");
     }
 
     /**
@@ -1672,9 +1672,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             loginpool.setLogList(logList);
         }
         RedisUtil.setLog(id, loginpool);
-        log.warn(trsl);
-        log.warn("hybase计数   耗时" + time + "ms");
-        HybaseFactory.setQueryTime(time);
+        //log.warn(trsl);
+        //log.warn("hybase计数   耗时" + time + "ms");
+        //HybaseFactory.setQueryTime(time);
     }
 
 }

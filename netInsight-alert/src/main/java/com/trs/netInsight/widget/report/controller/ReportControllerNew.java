@@ -18,12 +18,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
@@ -351,14 +346,9 @@ public class ReportControllerNew {
 	/**
 	 * 创建专报(分组）
 	 * @author shao.guangze
-	 * @param reportId
-	 * @param templateId
-	 * @param reportIntro
-	 * @param jsonImgElements
 	 * @return
 	 * @throws Exception
 	 */
-	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE_SPECIAL, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@ApiOperation("生成报告, 专报")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true),
@@ -373,7 +363,17 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "preparationAuthors", value = "编辑作者", dataType = "String", paramType = "query", required = true)})
 	@RequestMapping(value = "/createSpecial", method = RequestMethod.POST)
 	@FormatResult
-	public Object createReport(String reportId, String templateId, String reportIntro, String jsonImgElements, String statisticsTime,String reportName, String thisIssue, String totalIssue, String preparationUnits, String preparationAuthors) throws Exception{
+	public Object createReport(
+			@RequestParam(value = "reportId", required = false) String reportId,
+			@RequestParam(value = "templateId", required = false) String templateId,
+			@RequestParam(value = "reportIntro", required = false) String reportIntro,
+			@RequestParam(value = "jsonImgElements", required = false) String jsonImgElements,
+			@RequestParam(value = "statisticsTime", required = false) String statisticsTime,
+			@RequestParam(value = "reportName", required = false) String reportName,
+			@RequestParam(value = "thisIssue", required = false) String thisIssue,
+			@RequestParam(value = "totalIssue", required = false) String totalIssue,
+			@RequestParam(value = "preparationUnits", required = false) String preparationUnits,
+			@RequestParam(value = "preparationAuthors", required = false) String preparationAuthors, javax.servlet.http.HttpServletRequest request) throws Exception {
 		return sepcialReportService.createSepcial(reportId, templateId, jsonImgElements, reportIntro, statisticsTime, reportName, thisIssue, totalIssue, preparationUnits, preparationAuthors);
 	}
 	
