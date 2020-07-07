@@ -408,12 +408,13 @@ public class ReportConst {
         CHAPTERS2METHODNEW.put(SITUATIONACCESSMENTkey, "getSituationAccessment");
         CHAPTERS2METHODNEW.put(OPINIONANALYSISkey, "getOpinionAnalysis");
         CHAPTERS2METHODNEW.put(MOODSTATISTICSkey, "getMoodStatistics");
-        CHAPTERS2METHODNEW.put(WEMEDIAkey, "getweMediaHot");
+        CHAPTERS2METHODNEW.put(WEMEDIAkey, "getWeMediaHot");
         CHAPTERS2METHODNEW.put(WEIBOEVENTCONTEXTkey, "getWeiboEventContext");
         CHAPTERS2METHODNEW.put(WECHATEVENTCONTEXTkey, "getWechatEventContext");
         CHAPTERS2METHODNEW.put(WEMEDIAEVENTCONTEXTkey, "getWemediaEventContext");
         CHAPTERS2METHODNEW.put(NEWSEVENTCONTEXTkey, "getNewsEventContext");
         CHAPTERS2METHODNEW.put(ACTIVEACCOUNTkey, "getActiveAccount");
+        CHAPTERS2METHODNEW.put(WORDCLOUDSTATISTICSkey, "getWordCloudStatistics");
 
     }
 

@@ -720,6 +720,7 @@ public class ReportUtil {
 							.getDeclaredMethod(CHAPTERS2METHODNEW.get(e.getChapterDetail())).invoke(reportData);
 					jsonData = jsonObject == null ? null : jsonObject.toString();
 				} catch (Exception e1) {
+					log.info(e.getChapterDetail());
 					e1.printStackTrace();
 				}
 				TElementNew tElement = new TElementNew(e.getChapterName(), 1, e.getChapterPosition());
