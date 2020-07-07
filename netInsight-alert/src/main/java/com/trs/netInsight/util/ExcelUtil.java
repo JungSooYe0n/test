@@ -129,6 +129,7 @@ public class ExcelUtil<T> {
                         }
                     } else {//其他行是数据行
                         HashMap<String, String> rowMap = new HashMap<String, String>();//对应一个数据行
+                        boolean isgo = true;
                         for (int k = 0; k < titles.size(); k++) {
                             Cell cell = row.getCell(k);
                             String key = titles.get(k);
@@ -136,9 +137,12 @@ public class ExcelUtil<T> {
                             if (cell != null) {
                                 value = cell.toString();
                             }
+                            if (StringUtil.isEmpty(value) && k < (titles.size() - 1)){
+                                isgo = false;
+                            }
                             rowMap.put(key, value);
                         }
-                        sheetList.add(rowMap);
+                        if (isgo) sheetList.add(rowMap);
                     }
                 }
                 result.add(sheetList);

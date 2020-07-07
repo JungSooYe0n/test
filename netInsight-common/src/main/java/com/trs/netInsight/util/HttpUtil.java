@@ -15,6 +15,8 @@ import java.util.Map.Entry;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.utils.Base64Util;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -32,6 +34,8 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.client.RestTemplate;
 import sun.misc.BASE64Encoder;
 
 import javax.imageio.ImageIO;
@@ -150,6 +154,7 @@ public class HttpUtil {
 	 *            请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
 	 * @return 所代表远程资源的响应结果
 	 */
+	@RequestMapping
 	public static String sendPost(String url, String param) {
 		PrintWriter out = null;
 		BufferedReader in = null;
@@ -163,11 +168,13 @@ public class HttpUtil {
 			conn.setRequestProperty("accept", "*/*");
 			conn.setRequestProperty("connection", "Keep-Alive");
 			conn.setRequestProperty("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+//			conn.setRequestProperty("Content-type", "application/json;charset=UTF-8");
 			// 发送POST请求必须设置如下两行
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			// 获取URLConnection对象对应的输出流
-			out = new PrintWriter(conn.getOutputStream());
+//			out = new PrintWriter(conn.getOutputStream());
+			out = new PrintWriter(new OutputStreamWriter(conn.getOutputStream(), "utf-8"));
 			// 发送请求参数
 			log.error("发送请求参数");
 			out.print(param);
@@ -200,7 +207,29 @@ public class HttpUtil {
 		log.error("请求完成");
 		return result;
 	}
-
+	//OA关联ETL通用接口
+	public static String oaRelateEtl(String url, Map<String, String> contents) {
+//		HttpClient client = new HttpClient();
+		org.apache.commons.httpclient.HttpClient client = new org.apache.commons.httpclient.HttpClient();
+		PostMethod postMethod = new PostMethod(url);
+		for(String key:contents.keySet()) {
+			if (contents.containsKey(key)) {
+				postMethod.setParameter(key, contents.get(key));
+			}
+		}
+		client.getParams().setParameter(HttpMethodParams.HTTP_CONTENT_CHARSET, "utf-8");
+		String json = "{}";
+		try {
+			if (client.executeMethod(postMethod) == 200) {
+				json = postMethod.getResponseBodyAsString();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			postMethod.releaseConnection();
+		}
+		return json;
+	}
 	public static String doGet(String url, String charset) {
 		log.error("进入 doget方法 :" + url);
 		if (null == charset) {

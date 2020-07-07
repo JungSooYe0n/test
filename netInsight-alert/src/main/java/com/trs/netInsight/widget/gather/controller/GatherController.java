@@ -20,6 +20,8 @@ import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
+import org.apache.commons.httpclient.params.HostParams;
+import org.apache.commons.httpclient.params.HttpParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -121,7 +123,7 @@ public class GatherController {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
             boolean isAdmin = false;
-            if (UserUtils.ROLE_PLATFORM_ADMIN_LIST.contains(user.getCheckRole())) {
+            if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 isAdmin = true;
                 if (StringUtil.isEmpty(organizationName))
                     throw new OperationException("机构名称不能为空");
@@ -130,6 +132,9 @@ public class GatherController {
             for (int i = 0; i < dataType.length; i++) {
                 if (Const.GATHER_TYPE_NEWS.contains(dataType[i])) {
                     //新闻
+                    if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(channelName[i]) || StringUtil.isEmpty(urlName[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], channelName[i], urlName[i], "", "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(siteName[i] + "-" + channelName[i]);
@@ -138,6 +143,9 @@ public class GatherController {
                     gatherPointList.add(gatherPoint);
                 } else if (Const.PAGE_SHOW_KEHUDUAN.equals(dataType[i])) {
                     //新闻App
+                    if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(channelName[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], channelName[i], "", "", "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(siteName[i] + "-" + channelName[i]);
@@ -145,6 +153,9 @@ public class GatherController {
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
                     gatherPointList.add(gatherPoint);
                 } else if (Const.GATHER_MEDIA.contains(dataType[i])) {
+                    if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(accountId[i]) || StringUtil.isEmpty(urlName[i]) || StringUtil.isEmpty(accountName[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], "", urlName[i], accountName[i], accountId[i], new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(siteName[i] + "-" + accountName[i]);
@@ -152,6 +163,9 @@ public class GatherController {
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
                     gatherPointList.add(gatherPoint);
                 } else if (Const.GATHER_ZIMEITI.contains(dataType[i])) {
+                    if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(accountName[i]) || StringUtil.isEmpty(urlName[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], "", urlName[i], accountName[i], "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(siteName[i] + "-" + accountName[i]);
@@ -159,6 +173,9 @@ public class GatherController {
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
                     gatherPointList.add(gatherPoint);
                 } else if (Const.PAGE_SHOW_WEIBO.contains(dataType[i])) {
+                    if (StringUtil.isEmpty(accountName[i]) || StringUtil.isEmpty(urlName[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, "", "", urlName[i], accountName[i], "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(accountName[i]);
@@ -166,6 +183,9 @@ public class GatherController {
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
                     gatherPointList.add(gatherPoint);
                 } else if (Const.PAGE_SHOW_WEIXIN.contains(dataType[i])) {
+                    if (StringUtil.isEmpty(accountId[i]) || StringUtil.isEmpty(accountName[i]) || StringUtil.isEmpty(urlName[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, "", "", urlName[i], accountName[i], accountId[i], new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(accountName[i] + "-" + accountId[i]);
@@ -173,6 +193,9 @@ public class GatherController {
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
                     gatherPointList.add(gatherPoint);
                 } else if (Const.GATHER_TYPE_TWITTER.contains(dataType[i])) {
+                    if(StringUtil.isEmpty(accountName[i]) || StringUtil.isEmpty(urlName[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, "", "", urlName[i], accountName[i], "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(accountName[i]);
@@ -180,6 +203,9 @@ public class GatherController {
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
                     gatherPointList.add(gatherPoint);
                 } else if ("元搜索".equals(dataType[i])) {
+                    if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(keyWord[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], "", "", "", "", new Date(), keyWord[i], level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(keyWord[i] + "-" + siteName[i]);
@@ -187,6 +213,9 @@ public class GatherController {
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
                     gatherPointList.add(gatherPoint);
                 } else {
+                    if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(channelName[i]) || StringUtil.isEmpty(urlName[i])) {
+                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                    }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], channelName[i], urlName[i], "", "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
                     gatherPoint.setGatherPointName(siteName[i]);
@@ -218,7 +247,7 @@ public class GatherController {
                 public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
                     List<Predicate> predicates = new ArrayList<>();
-                    if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())) {
+                    if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(loginUser.getCheckRole())) {
                         predicates.add(cb.equal(root.get("userId"), loginUser.getId()));
                     } else {
                         predicates.add(cb.equal(root.get("subGroupId"), loginUser.getSubGroupId()));
@@ -295,7 +324,7 @@ public class GatherController {
                 public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
                     List<Predicate> predicates = new ArrayList<>();
-                    if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())) {
+                    if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(loginUser.getCheckRole())) {
                         List<Predicate> predicateOrg = new ArrayList<>();
                         predicateOrg.add(cb.equal(root.get("userId"), loginUser.getId()));
                         if (isGoAdopt) {
@@ -471,7 +500,7 @@ public class GatherController {
             public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 List<Predicate> predicate = new ArrayList<>();
 
-                if (UserUtils.ROLE_PLATFORM_ADMIN_LIST.contains(user.getCheckRole())) {
+                if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                     List<Predicate> predicateOrg = new ArrayList<>();
                     predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
                     if (isGoAdopt) {
@@ -565,7 +594,7 @@ public class GatherController {
         try {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
-            if (!UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+            if (!UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 throw new OperationException("您没有权限进行该操作");
             }
 
@@ -705,7 +734,11 @@ public class GatherController {
             if (isAdopt) {
                 JSONArray js = JSONArray.fromObject(hashMaps);
                 log.error(js.toString());
-                String sendPost = HttpUtil.sendPost(uploadpoint, "data="+js.toString());
+//                String sendPost = HttpUtil.sendPost(uploadpoint, "data="+js.toString());
+                Map<String,String> map = new HashMap<>();
+                map.put("data",js.toString());
+//                params.setParameter("data",js.toString());
+                String sendPost = HttpUtil.oaRelateEtl(uploadpoint, map);
                 JSONObject jsonObject = JSONObject.parseObject(sendPost);
                 if (jsonObject.getBoolean("success")) {
                     String msg = jsonObject.getString("msg");
@@ -714,8 +747,13 @@ public class GatherController {
                         gatherRepository.save(gatherPointList);
                     }
                     for (String str : msgs) {
+                        if (str.contains("需求上传成功")) {
+                            return new TRSException(msg,1001);
+                        }
+                    }
+                    for (String str : msgs) {
                         if (str.contains("失败")) {
-                            return msg;
+                            throw new TRSException(msg,1001);
                         }
                     }
 
@@ -740,7 +778,7 @@ public class GatherController {
         try {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
-            if (!UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+            if (!UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 throw new OperationException("您没有权限进行该操作");
             }
             //原生sql
@@ -792,7 +830,7 @@ public class GatherController {
                 public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
                     List<Predicate> predicates = new ArrayList<>();
-                    if (UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+                    if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                         List<Predicate> predicateOrg = new ArrayList<>();
                         predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
                         Set<Organization> organizations = user.getOrganizations();
@@ -846,7 +884,7 @@ public class GatherController {
                 public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
                     List<Predicate> predicates = new ArrayList<>();
-                    if (UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+                    if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                         List<Predicate> predicateOrg = new ArrayList<>();
                         predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
                         Set<Organization> organizations = user.getOrganizations();
@@ -896,7 +934,7 @@ public class GatherController {
             User user = UserUtils.getUser();
             List<String> organizationNames = new ArrayList<>();
             //原生sql
-            if (UserUtils.ROLE_LIST.contains(user.getCheckRole())) {
+            if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 Set<Organization> organizations = user.getOrganizations();
                 for (Organization or : organizations) {
                     organizationNames.add(or.getOrganizationName());
@@ -920,11 +958,19 @@ public class GatherController {
                                    HttpServletRequest request) throws TRSException {
         try {
             List<List<HashMap<String, String>>> list = ExcelUtil.readExcelWithTitleFile(FileUtil.multipartFileToFile(file));
+            int num = 0;
+            for (List<HashMap<String, String>> maplist: list) {
+                num += maplist.size();
+            }
+            if (num > 200){
+                throw new TRSException("当前任务采集点数量已超过限制");
+            }
+
             List<GatherPoint> gatherPointList = new ArrayList<>();
 
             User user = UserUtils.getUser();
             boolean isAdmin = false;
-            if (UserUtils.ROLE_PLATFORM_ADMIN_LIST.contains(user.getCheckRole())) {
+            if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 isAdmin = true;
                 if (StringUtil.isEmpty(organizationName))
                     throw new OperationException("机构名称不能为空");
@@ -938,11 +984,14 @@ public class GatherController {
                             //新闻
                             for (HashMap<String, String> hashMap : list.get(0)) {
                                 String siteName = hashMap.get("站点名*");
-                                String channelName = hashMap.get("频道名称*");
-                                String urlName = hashMap.get("信息列表页链接*");
+                                String channelName = dataType.equals(Const.PAGE_SHOW_DIANZIBAO) ? hashMap.get("频道名*\n" +
+                                        "【固定为电子报】") : hashMap.get("频道名称*");
+//                                String urlName = hashMap.get("信息列表页链接*");
+                                String urlName = dataType.equals(Const.PAGE_SHOW_DIANZIBAO) ? hashMap.get("链接*") : hashMap.get("信息列表页链接*");
                                 String level = hashMap.get("优先级*");
                                 if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(channelName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+//                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException("模板数据不能有空选项");
                                 }
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, channelName, urlName, "", "", new Date(), "", level);
                                 gatherPoint.setStatus(status);
@@ -1092,11 +1141,21 @@ public class GatherController {
                     } else {
                         for (int i = 0; i < list.size(); i++) {
                             if (i == 0 || i == 2 || i == 6 || i == 9) {
+                                if (i == 0){
+                                    dataType = "新闻网站";
+                                }else if (i == 2){
+                                    dataType = Const.PAGE_SHOW_DIANZIBAO;
+                                }else if (i == 6){
+dataType = Const.PAGE_SHOW_LUNTAN;
+                                }else if (i == 9){
+dataType = Const.PAGE_SHOW_BOKE;
+                                }
                                 //新闻
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*");
-                                    String channelName = hashMap.get("频道名称*");
-                                    String urlName = hashMap.get("信息列表页链接*");
+                                    String channelName = i==2 ? hashMap.get("频道名*\n" +
+                                            "【固定为电子报】") : hashMap.get("频道名称*");
+                                    String urlName = i==2 ? hashMap.get("链接*") : hashMap.get("信息列表页链接*");
                                     String level = hashMap.get("优先级*");
                                     if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(channelName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
                                         throw new OperationException(dataType + "解析异常");
@@ -1111,6 +1170,7 @@ public class GatherController {
                                 }
                             } else if (i == 1) {
                                 //新闻App
+                                dataType = "新闻App";
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*\n" +
                                             "【站点名后增加“客户端”字样】");
@@ -1127,6 +1187,11 @@ public class GatherController {
                                     gatherPointList.add(gatherPoint);
                                 }
                             } else if (i == 7 || i == 8) {
+                                if (i == 7){
+                                    dataType = "短视频";
+                                }else {
+                                    dataType = "视频";
+                                }
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*");
                                     String accountName = hashMap.get("账号名称*");
@@ -1144,6 +1209,7 @@ public class GatherController {
                                     gatherPointList.add(gatherPoint);
                                 }
                             } else if (i == 5) {
+                                    dataType = "自媒体号";
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*");
                                     String accountName = hashMap.get("账号*");
@@ -1161,6 +1227,7 @@ public class GatherController {
                                 }
                             } else if (i == 3) {
                                 //微博
+                                dataType = "微博";
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String accountName = hashMap.get("账号名称*");
                                     String urlName = hashMap.get("首页地址*");
@@ -1176,6 +1243,7 @@ public class GatherController {
                                     gatherPointList.add(gatherPoint);
                                 }
                             } else if (i == 4) {
+                                dataType = "微信";
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String accountName = hashMap.get("账号名称*");
                                     String urlName = hashMap.get("文章地址*");
@@ -1193,6 +1261,7 @@ public class GatherController {
                                 }
                             } else if (i == 11) {
                                 //twitter
+                                dataType = Const.PAGE_SHOW_TWITTER;
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String accountName = hashMap.get("用户名称*");
                                     String urlName = hashMap.get("地址*");
@@ -1208,6 +1277,7 @@ public class GatherController {
                                     gatherPointList.add(gatherPoint);
                                 }
                             } else if (i == 10) {
+                                dataType = "元搜索";
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String keyWord = hashMap.get("关键词*");
                                     String siteName = hashMap.get("网站*");
@@ -1223,6 +1293,13 @@ public class GatherController {
                                     gatherPointList.add(gatherPoint);
                                 }
                             } else {
+                                    if (i == 12) {
+                                        dataType = "境外";
+                                    } else if (i == 13) {
+                                        dataType = Const.PAGE_SHOW_FACEBOOK;
+                                    } else if (i == 14) {
+                                        dataType = "其他";
+                                    }
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("关键词1*");
                                     String channelName = hashMap.get("关键词2*");
@@ -1325,9 +1402,12 @@ public class GatherController {
     public Object getGatherInfo(@ApiParam("采集点id") @RequestParam(value = "gatherId", required = true) String[] gatherId,
                                 HttpServletRequest request) throws TRSException {
         if (ObjectUtil.isEmpty(gatherId)){
-            throw new OperationException("請輸入id");
+            throw new OperationException("请输入id");
         }
-        String sendPost = HttpUtil.sendPost(gatherInfo, "ids="+gatherId[0]);
+        Map<String,String> map = new HashMap<>();
+        map.put("ids",gatherId[0]);
+        String sendPost = HttpUtil.oaRelateEtl(uploadpoint, map);
+//        String sendPost = HttpUtil.sendPost(gatherInfo, "ids="+gatherId[0]);
         return sendPost;
     }
 }
