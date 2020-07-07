@@ -249,7 +249,9 @@ public class GatherController {
                     List<Predicate> predicates = new ArrayList<>();
                     if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(loginUser.getCheckRole())) {
                         predicates.add(cb.equal(root.get("userId"), loginUser.getId()));
-                    } else {
+                    } else if (UserUtils.ROLE_ADMIN.equals(loginUser.getCheckRole())){
+                        predicates.add(cb.equal(root.get("userId"), loginUser.getId()));
+                    }else {
                         predicates.add(cb.equal(root.get("subGroupId"), loginUser.getSubGroupId()));
                     }
 //                    predicates.add(cb.isNull(root.get("libraryId")));
@@ -336,7 +338,9 @@ public class GatherController {
                             }
                         }
                         predicates.add(cb.or(predicateOrg.toArray(new Predicate[predicateOrg.size()])));
-                    } else {
+                    } else if (UserUtils.ROLE_ADMIN.equals(loginUser.getCheckRole())){
+                        predicates.add(cb.equal(root.get("userId"), loginUser.getId()));
+                    }else {
                         predicates.add(cb.equal(root.get("subGroupId"), loginUser.getSubGroupId()));
                     }
 //                    predicates.add(cb.isNull(root.get("libraryId")));
@@ -514,7 +518,9 @@ public class GatherController {
                     predicate.add(cb.or(predicateOrg.toArray(new Predicate[predicateOrg.size()])));
                     if (isGoAdopt)
                         predicate.add(cb.or(cb.equal(root.get("status"), "已提交"), cb.equal(root.get("status"), "采集中")));
-                } else {
+                } else if (UserUtils.ROLE_ADMIN.equals(user.getCheckRole())){
+                        predicate.add(cb.equal(root.get("userId"), user.getId()));
+                }else {
                     predicate.add(cb.equal(root.get("subGroupId"), user.getSubGroupId()));
                 }
 
@@ -598,7 +604,7 @@ public class GatherController {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
             if (!UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
-                throw new OperationException("您没有权限进行该操作");
+                throw new TRSException("您没有权限进行该操作");
             }
 
             //原生sql
@@ -626,9 +632,30 @@ public class GatherController {
             List<GatherPoint> findAll = gatherRepository.findAll(criteria);
             List<GatherPointOa> gatherPointOaList = new ArrayList<>();
             List<HashMap<String, Object>> hashMaps = new ArrayList<>();
+            List<GatherPoint> newslist = new ArrayList<>();
+        List<GatherPoint> luntanlist = new ArrayList<>();
+        List<GatherPoint> bokelist = new ArrayList<>();
+        List<GatherPoint> dianzibaolist = new ArrayList<>();
+        List<GatherPoint> applist = new ArrayList<>();
+        List<GatherPoint> medialist = new ArrayList<>();
+        List<GatherPoint> duanmedialist = new ArrayList<>();
+        List<GatherPoint> zimeitilist = new ArrayList<>();
+        List<GatherPoint> weibolist = new ArrayList<>();
+        List<GatherPoint> weixinlist = new ArrayList<>();
+        List<GatherPoint> twitterlist = new ArrayList<>();
+        List<GatherPoint> yuanlist = new ArrayList<>();
+        List<GatherPoint> facebooklist = new ArrayList<>();
+        List<GatherPoint> jingwailist = new ArrayList<>();
+        List<GatherPoint> qitalist = new ArrayList<>();
+
 
             for (GatherPoint gatherPoint : findAll) {
                 if (isAdopt) {
+                    gatherPoint.setStatus("采集中");
+                    gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
+                    gatherPoint.setAuditUserName(user.getUserName());
+                    gatherPoint.setAuditTime(new Date());
+                    gatherPointList.add(gatherPoint);
                     if (Const.GATHER_TYPE_NEWS.contains(gatherPoint.getDataType())) {
                         //新闻
                         GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
@@ -639,6 +666,15 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
+                        if (Const.PAGE_SHOW_XINWEN.equals(gatherPoint.getDataType())){
+                            newslist.add(gatherPoint);
+                        }else if (Const.PAGE_SHOW_LUNTAN.equals(gatherPoint.getDataType())){
+                            luntanlist.add(gatherPoint);
+                        }else if (Const.PAGE_SHOW_BOKE.equals(gatherPoint.getDataType())){
+                            bokelist.add(gatherPoint);
+                        }else if (Const.PAGE_SHOW_DIANZIBAO.equals(gatherPoint.getDataType())){
+                            dianzibaolist.add(gatherPoint);
+                        }
                     } else if (Const.PAGE_SHOW_KEHUDUAN.equals(gatherPoint.getDataType())) {
                         //新闻App
                         GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), "", "", gatherPoint.getLevel(), gatherPoint.getId());
@@ -649,6 +685,7 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
+                        applist.add(gatherPoint);
 
                     } else if (Const.GATHER_MEDIA.contains(gatherPoint.getDataType())) {
                         GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getAccountName(), gatherPoint.getAccountId(), gatherPoint.getUrlName(), gatherPoint.getLevel(), gatherPoint.getId());
@@ -659,6 +696,11 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
+                        if (Const.PAGE_SHOW_CHANGSHIPIN.equals(gatherPoint.getDataType())){
+                            medialist.add(gatherPoint);
+                        }else {
+                            duanmedialist.add(gatherPoint);
+                        }
 
                     } else if (Const.GATHER_ZIMEITI.contains(gatherPoint.getDataType())) {
                         GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
@@ -669,6 +711,8 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
+                        zimeitilist.add(gatherPoint);
+
 
                     } else if (Const.PAGE_SHOW_WEIBO.contains(gatherPoint.getDataType())) {
                         GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", "", gatherPoint.getLevel(), gatherPoint.getId());
@@ -679,6 +723,7 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
+                        weibolist.add(gatherPoint);
 
                     } else if (Const.PAGE_SHOW_WEIXIN.contains(gatherPoint.getDataType())) {
                         GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getAccountId(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
@@ -689,6 +734,7 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
+                        weixinlist.add(gatherPoint);
                     } else if (Const.GATHER_TYPE_TWITTER.contains(gatherPoint.getDataType())) {
                         GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", "", gatherPoint.getLevel(), gatherPoint.getId());
                         gatherPointOaList.add(gatherPointOa);
@@ -698,6 +744,8 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
+                        twitterlist.add(gatherPoint);
+
                     } else if ("元搜索".equals(gatherPoint.getDataType())) {
                         GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getKeyWord(), gatherPoint.getSiteName(), "", "", gatherPoint.getLevel(), gatherPoint.getId());
                         gatherPointOaList.add(gatherPointOa);
@@ -707,13 +755,27 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
-                    } else
-                    //todo 这里逻辑需要梳理
-                    gatherPoint.setStatus("采集中");
-                    gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
-                    gatherPoint.setAuditUserName(user.getUserName());
-                    gatherPoint.setAuditTime(new Date());
-                    gatherPointList.add(gatherPoint);
+                        yuanlist.add(gatherPoint);
+
+                    } else {
+                        //境外 facebook 其他
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
+                        gatherPointOaList.add(gatherPointOa);
+                        HashMap hashMap1 = new HashMap();
+                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
+                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
+                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
+                        hashMap1.put("dateStr", gatherPointOaList);
+                        hashMaps.add(hashMap1);
+                        if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(gatherPoint.getDataType())){
+                            jingwailist.add(gatherPoint);
+                        }else if (Const.PAGE_SHOW_FACEBOOK.equals(gatherPoint.getDataType())){
+                            facebooklist.add(gatherPoint);
+                        }else {
+                            qitalist.add(gatherPoint);
+                        }
+                    }
+
                 } else {
                     gatherPoint.setStatus("草稿");
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
@@ -734,26 +796,55 @@ public class GatherController {
                 String sendPost = HttpUtil.oaRelateEtl(uploadpoint, map);
                 JSONObject jsonObject = JSONObject.parseObject(sendPost);
                 if (jsonObject.getBoolean("success")) {
+                    gatherRepository.save(gatherPointList);
+                    return jsonObject.getString("msg");
+                } else {
                     String msg = jsonObject.getString("msg");
-                    String[] msgs = msg.split("!");
-                    if (msg.contains("需求上传成功")) {
-                        gatherRepository.save(gatherPointList);
-                        return msgs;
-                    }
-//                    for (String str : msgs) {
-//                        if (str.contains("需求上传成功")) {
-////                            return new TRSException(msg,1001);
-//                            return msgs;
-//                        }
-//                    }
-                    for (String str : msgs) {
-                        if (str.contains("失败")) {
-                            throw new TRSException(msg,1002);
+                    String[] msgs = msg.split(";");
+                    for (String str: msgs) {
+                        String dataString = str.substring(0,str.length() - 7);
+                        if (Const.PAGE_SHOW_XINWEN.equals(dataString)){
+                            gatherRepository.save(newslist);
+                        }else if (Const.PAGE_SHOW_LUNTAN.equals(dataString)){
+                            gatherRepository.save(luntanlist);
+                        }else if (Const.PAGE_SHOW_BOKE.equals(dataString)){
+                            gatherRepository.save(bokelist);
+                        }else if (Const.PAGE_SHOW_DIANZIBAO.equals(dataString)){
+                            gatherRepository.save(dianzibaolist);
+                        }else if (Const.PAGE_SHOW_KEHUDUAN.equals(dataString)) {
+                            //新闻App
+                            gatherRepository.save(applist);
+
+                        } else if (Const.GATHER_MEDIA.contains(dataString)) {
+                            if (Const.PAGE_SHOW_CHANGSHIPIN.equals(dataString)){
+                                gatherRepository.save(medialist);
+                            }else {
+                                gatherRepository.save(duanmedialist);
+                            }
+
+                        } else if (Const.GATHER_ZIMEITI.contains(dataString)) {
+                            gatherRepository.save(zimeitilist);
+
+                        } else if (Const.PAGE_SHOW_WEIBO.contains(dataString)) {
+                            gatherRepository.save(weibolist);
+                        } else if (Const.PAGE_SHOW_WEIXIN.contains(dataString)) {
+                            gatherRepository.save(weixinlist);
+                        } else if (Const.GATHER_TYPE_TWITTER.contains(dataString)) {
+                            gatherRepository.save(twitterlist);
+                        } else if ("元搜索".equals(dataString)) {
+                            gatherRepository.save(yuanlist);
+                        } else {
+                            //境外 facebook 其他
+                            if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(dataString)){
+                                gatherRepository.save(jingwailist);
+                            }else if (Const.PAGE_SHOW_FACEBOOK.equals(dataString)){
+                                gatherRepository.save(facebooklist);
+                            }else {
+                                gatherRepository.save(qitalist);
+                            }
                         }
                     }
-
-                } else {
-                    throw new TRSException(jsonObject.getString("msg"));
+                   throw new TRSException(msg,1001);
                 }
             }
         return Const.SUCCESS;
@@ -832,7 +923,9 @@ public class GatherController {
                         }
                         predicates.add(cb.or(predicateOrg.toArray(new Predicate[predicateOrg.size()])));
                         predicates.add(cb.or(cb.equal(root.get("status"), "已提交"), cb.equal(root.get("status"), "采集中")));
-                    } else {
+                    }else if (UserUtils.ROLE_ADMIN.equals(user.getCheckRole())){
+                        predicates.add(cb.equal(root.get("userId"), user.getId()));
+                    }else {
                         predicates.add(cb.equal(root.get("subGroupId"), user.getSubGroupId()));
                     }
                     Predicate[] pre = new Predicate[predicates.size()];
@@ -886,6 +979,8 @@ public class GatherController {
                         }
                         predicates.add(cb.or(predicateOrg.toArray(new Predicate[predicateOrg.size()])));
                         predicates.add(cb.or(cb.equal(root.get("status"), "已提交"), cb.equal(root.get("status"), "采集中")));
+                    }else if (UserUtils.ROLE_ADMIN.equals(user.getCheckRole())){
+                        predicates.add(cb.equal(root.get("userId"), user.getId()));
                     } else {
                         predicates.add(cb.equal(root.get("subGroupId"), user.getSubGroupId()));
                     }
