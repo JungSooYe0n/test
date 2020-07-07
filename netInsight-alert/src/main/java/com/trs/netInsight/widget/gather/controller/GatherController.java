@@ -546,6 +546,10 @@ public class GatherController {
                     predicateKeyWord.add(cb.like(root.get("level"),"%"+fuzzyValue+"%"));
                     predicateKeyWord.add(cb.like(root.get("status"), "%" + fuzzyValue + "%"));
                     predicateKeyWord.add(cb.like(root.get("remarks"), "%" + fuzzyValue + "%"));
+                    if(isGoAdopt){
+                        predicateKeyWord.add(cb.like(root.get("auditStatus"), "%" + fuzzyValue + "%"));
+                        predicateKeyWord.add(cb.like(root.get("organizationName"), "%" + fuzzyValue + "%"));
+                    }
                     predicate.add(cb.or(predicateKeyWord.toArray(new Predicate[predicateKeyWord.size()])));
                 }
 
@@ -589,9 +593,8 @@ public class GatherController {
                                 @ApiParam("是否通过/true/false") @RequestParam(value = "isAdopt", required = true) boolean isAdopt,
                                 @ApiParam("备注/退回时候添加") @RequestParam(value = "remarks", defaultValue = "", required = false) String remarks,
                                 HttpServletRequest request
-    ) throws OperationException {
+    ) throws TRSException {
 
-        try {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
             if (!UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
@@ -704,17 +707,7 @@ public class GatherController {
                         hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
                         hashMap1.put("dateStr", gatherPointOaList);
                         hashMaps.add(hashMap1);
-                    } else {
-                        //境外 facebook 其他
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
-                        gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
-                    }
+                    } else
                     //todo 这里逻辑需要梳理
                     gatherPoint.setStatus("采集中");
                     gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
@@ -745,26 +738,24 @@ public class GatherController {
                     String[] msgs = msg.split("!");
                     if (msg.contains("需求上传成功")) {
                         gatherRepository.save(gatherPointList);
+                        return msgs;
                     }
-                    for (String str : msgs) {
-                        if (str.contains("需求上传成功")) {
-                            return new TRSException(msg,1001);
-                        }
-                    }
+//                    for (String str : msgs) {
+//                        if (str.contains("需求上传成功")) {
+////                            return new TRSException(msg,1001);
+//                            return msgs;
+//                        }
+//                    }
                     for (String str : msgs) {
                         if (str.contains("失败")) {
-                            throw new TRSException(msg,1001);
+                            throw new TRSException(msg,1002);
                         }
                     }
 
                 } else {
-                    throw new OperationException(jsonObject.getString("msg"));
+                    throw new TRSException(jsonObject.getString("msg"));
                 }
             }
-        } catch (Exception e) {
-            log.error("修改采集失败", e);
-            throw new OperationException("修改采集失败,message" + e);
-        }
         return Const.SUCCESS;
     }
 
@@ -1119,7 +1110,15 @@ public class GatherController {
                                 gatherPointList.add(gatherPoint);
                             }
                         } else {
-                            for (HashMap<String, String> hashMap : list.get(0)) {
+                            int p = 0;
+                            if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(dataType)) {
+                                p = 12;
+                            } else if (Const.PAGE_SHOW_FACEBOOK.equals(dataType)) {
+                                p = 13;
+                            } else if ("其它".equals(dataType)) {
+                                p = 14;
+                            }
+                            for (HashMap<String, String> hashMap : list.get(p)) {
                                 String siteName = hashMap.get("关键词1*");
                                 String channelName = hashMap.get("关键词2*");
                                 String urlName = hashMap.get("关键词3*");
@@ -1298,7 +1297,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     } else if (i == 13) {
                                         dataType = Const.PAGE_SHOW_FACEBOOK;
                                     } else if (i == 14) {
-                                        dataType = "其他";
+                                        dataType = "其它";
                                     }
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("关键词1*");
@@ -1345,6 +1344,11 @@ dataType = Const.PAGE_SHOW_BOKE;
             if (Const.GATHER_TYPE_NEWS.contains(dataType)) {
                 //新闻
                 heads = "站点名*;频道名称*;信息列表页链接*;优先级*;备注";
+                if (Const.PAGE_SHOW_DIANZIBAO.equals(dataType)){
+                    ExcelUtil.downExcel(res, dianzibaoFile, dataType);
+                    log.debug("下载成功！");
+                    return Const.SUCCESS;
+                }
                 ExcelUtil.downExcel(res, newsFile, dataType);
                 log.debug("下载成功！");
                 return Const.SUCCESS;
@@ -1404,10 +1408,10 @@ dataType = Const.PAGE_SHOW_BOKE;
         if (ObjectUtil.isEmpty(gatherId)){
             throw new OperationException("请输入id");
         }
-        Map<String,String> map = new HashMap<>();
-        map.put("ids",gatherId[0]);
-        String sendPost = HttpUtil.oaRelateEtl(uploadpoint, map);
-//        String sendPost = HttpUtil.sendPost(gatherInfo, "ids="+gatherId[0]);
+//        Map<String,String> map = new HashMap<>();
+//        map.put("ids","["+gatherId[0]+"]");
+//        String sendPost = HttpUtil.oaRelateEtl(uploadpoint, map);
+        String sendPost = HttpUtil.sendPost(gatherInfo, "ids=["+gatherId[0]+"]");
         return sendPost;
     }
 }

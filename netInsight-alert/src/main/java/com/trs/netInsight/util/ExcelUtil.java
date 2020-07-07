@@ -147,7 +147,9 @@ public class ExcelUtil<T> {
                 }
                 result.add(sheetList);
             }
-
+            if (filepath.isFile()) {  // 为文件时调用删除文件方法
+                filepath.delete();
+            }
             return result;
         } catch (FileNotFoundException e) {
             throw e;
@@ -159,6 +161,25 @@ public class ExcelUtil<T> {
                 is.close();
             }
         }
+    }
+    /**
+     * 删除文件.
+     * @param fileDir  文件路径
+     */
+    public boolean deleteExcel(String fileDir){
+        boolean flag = false;
+        File file = new File(fileDir);
+        // 判断目录或文件是否存在
+        if (!file.exists()) {  // 不存在返回 false
+            return flag;
+        } else {
+            // 判断是否为文件
+            if (file.isFile()) {  // 为文件时调用删除文件方法
+                file.delete();
+                flag = true;
+            }
+        }
+        return flag;
     }
     public static void downExcel( HttpServletResponse res,String newsFile,String name){
         res.setHeader("content-type", "application/octet-stream");
