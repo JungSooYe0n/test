@@ -55,7 +55,7 @@ public class HybaseShardContrller {
     @ApiOperation("获取库列表")
     public Object getDataBase(@ApiParam("节点所属用户或用户分组id") @RequestParam(value = "ownerId", required = false) String ownerId,
                               @ApiParam("节点所属机构id") @RequestParam(value = "organizationId", required = false) String organizationId) throws TRSException {
-        HybaseShard trsHybaseShard;
+        HybaseShard trsHybaseShard = null;
         if (StringUtil.isNotEmpty(ownerId)) {
             //运维
             String valueFromRedis = "";
@@ -71,7 +71,9 @@ public class HybaseShardContrller {
             if (StringUtil.isNotEmpty(valueFromRedis)) {
                 trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
             } else {
-                trsHybaseShard = hybaseShardService.findByOrganizationId(organizationId);
+                if (StringUtil.isNotEmpty(organizationId)){
+                    trsHybaseShard = hybaseShardService.findByOrganizationId(organizationId);
+                }
             }
 
         }
