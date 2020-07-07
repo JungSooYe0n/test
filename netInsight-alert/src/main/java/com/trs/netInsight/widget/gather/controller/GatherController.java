@@ -802,45 +802,47 @@ public class GatherController {
                     String msg = jsonObject.getString("msg");
                     String[] msgs = msg.split(";");
                     for (String str: msgs) {
-                        String dataString = str.substring(0,str.length() - 7);
-                        if (Const.PAGE_SHOW_XINWEN.equals(dataString)){
-                            gatherRepository.save(newslist);
-                        }else if (Const.PAGE_SHOW_LUNTAN.equals(dataString)){
-                            gatherRepository.save(luntanlist);
-                        }else if (Const.PAGE_SHOW_BOKE.equals(dataString)){
-                            gatherRepository.save(bokelist);
-                        }else if (Const.PAGE_SHOW_DIANZIBAO.equals(dataString)){
-                            gatherRepository.save(dianzibaolist);
-                        }else if (Const.PAGE_SHOW_KEHUDUAN.equals(dataString)) {
-                            //新闻App
-                            gatherRepository.save(applist);
+                        if (str.contains("需求上传成功")) {
+                            String dataString = str.substring(0, str.length() - 7);
+                            if (Const.PAGE_SHOW_XINWEN.equals(dataString)) {
+                                gatherRepository.save(newslist);
+                            } else if (Const.PAGE_SHOW_LUNTAN.equals(dataString)) {
+                                gatherRepository.save(luntanlist);
+                            } else if (Const.PAGE_SHOW_BOKE.equals(dataString)) {
+                                gatherRepository.save(bokelist);
+                            } else if (Const.PAGE_SHOW_DIANZIBAO.equals(dataString)) {
+                                gatherRepository.save(dianzibaolist);
+                            } else if (Const.PAGE_SHOW_KEHUDUAN.equals(dataString)) {
+                                //新闻App
+                                gatherRepository.save(applist);
 
-                        } else if (Const.GATHER_MEDIA.contains(dataString)) {
-                            if (Const.PAGE_SHOW_CHANGSHIPIN.equals(dataString)){
-                                gatherRepository.save(medialist);
-                            }else {
-                                gatherRepository.save(duanmedialist);
-                            }
+                            } else if (Const.GATHER_MEDIA.contains(dataString)) {
+                                if (Const.PAGE_SHOW_CHANGSHIPIN.equals(dataString)) {
+                                    gatherRepository.save(medialist);
+                                } else {
+                                    gatherRepository.save(duanmedialist);
+                                }
 
-                        } else if (Const.GATHER_ZIMEITI.contains(dataString)) {
-                            gatherRepository.save(zimeitilist);
+                            } else if (Const.GATHER_ZIMEITI.contains(dataString)) {
+                                gatherRepository.save(zimeitilist);
 
-                        } else if (Const.PAGE_SHOW_WEIBO.contains(dataString)) {
-                            gatherRepository.save(weibolist);
-                        } else if (Const.PAGE_SHOW_WEIXIN.contains(dataString)) {
-                            gatherRepository.save(weixinlist);
-                        } else if (Const.GATHER_TYPE_TWITTER.contains(dataString)) {
-                            gatherRepository.save(twitterlist);
-                        } else if ("元搜索".equals(dataString)) {
-                            gatherRepository.save(yuanlist);
-                        } else {
-                            //境外 facebook 其他
-                            if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(dataString)){
-                                gatherRepository.save(jingwailist);
-                            }else if (Const.PAGE_SHOW_FACEBOOK.equals(dataString)){
-                                gatherRepository.save(facebooklist);
-                            }else {
-                                gatherRepository.save(qitalist);
+                            } else if (Const.PAGE_SHOW_WEIBO.contains(dataString)) {
+                                gatherRepository.save(weibolist);
+                            } else if (Const.PAGE_SHOW_WEIXIN.contains(dataString)) {
+                                gatherRepository.save(weixinlist);
+                            } else if (Const.GATHER_TYPE_TWITTER.contains(dataString)) {
+                                gatherRepository.save(twitterlist);
+                            } else if ("元搜索".equals(dataString)) {
+                                gatherRepository.save(yuanlist);
+                            } else {
+                                //境外 facebook 其他
+                                if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(dataString)) {
+                                    gatherRepository.save(jingwailist);
+                                } else if (Const.PAGE_SHOW_FACEBOOK.equals(dataString)) {
+                                    gatherRepository.save(facebooklist);
+                                } else {
+                                    gatherRepository.save(qitalist);
+                                }
                             }
                         }
                     }
