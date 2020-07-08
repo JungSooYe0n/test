@@ -487,6 +487,24 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
         favouritesRepository.delete(favouritesRepository.findAll(criteria));
         return Const.SUCCESS;
     }
+    //
+    @Override
+    public String delLibraryResourceForIds(String sids) {
+        String[] sidArry = sids.split(SEMICOLON);
+        Criteria<Favourites> criteria = new Criteria<Favourites>();
+        criteria.add(Restrictions.in("sid", Arrays.asList(sidArry)));
+        User loginUser = UserUtils.getUser();
+        if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+            criteria.add(Restrictions.eq("userId",loginUser.getId()));
+        }else {
+            criteria.add(Restrictions.eq("subGroupId",loginUser.getSubGroupId()));
+        }
+        List<Favourites> all = favouritesRepository.findAll(criteria);
+        if(all!= null && all.size()>0){
+            favouritesRepository.delete(all);
+        }
+        return Const.SUCCESS;
+    }
 
 
     /**
