@@ -290,13 +290,13 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             String trsl = commonBuilder.asTRSL();
             StringBuilder sb = new StringBuilder(trsl);
             String[] valueArr = filterInfo.split(";");
-            List<String> valueArrList = new ArrayList<>();
+            Set<String> valueArrList = new HashSet<>();
             for(String v : valueArr){
                 if(Const.FILTER_INFO.contains(v)){
                     valueArrList.add(v);
                 }
             }
-            if(valueArrList.size()>0){
+            if (valueArrList.size() > 0 && valueArrList.size() < Const.FILTER_INFO.size()) {
                 sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
                 commonBuilder = new QueryBuilder();
                 commonBuilder.filterByTRSL(sb.toString());
@@ -324,16 +324,19 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 value = value.replaceAll("其它","其他");
             }
             String[] valueArr = value.split(";");
-            List<String> valueArrList = new ArrayList<>();
+            Set<String> valueArrList = new HashSet<>();
             for(String v : valueArr){
-                if("其他".equals(v)|| "中性".equals(v)){
+                if ("其他".equals(v) || "中性".equals(v)) {
                     valueArrList.add("\"\"");
                 }
-                if(allValue.contains(v)){
+                if (allValue.contains(v)) {
                     valueArrList.add(v);
                 }
             }
-            queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+            //如果list中有其他，则其他为 其他+“”。依然是算两个
+            if (valueArrList.size() > 0 && valueArrList.size() < allValue.size() + 1) {
+                queryBuilder.filterField(field, StringUtils.join(valueArrList, " OR "), Operator.Equal);
+            }
         }
     }
 
@@ -349,7 +352,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 areas = areas.replaceAll("其它","其他");
             }
             String[] areaArr = areas.split(";");
-            List<String> areaList = new ArrayList<>();
+            Set<String> areaList = new HashSet<>();
             for(String area : areaArr){
                 if("其他".equals(area)){
                     areaList.add("\"\"");
@@ -358,7 +361,10 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                     areaList.add(areaMap.get(area));
                 }
             }
-            queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+            //如果list中有其他，则其他为 其他+“”。依然是算两个
+            if (areaList.size() > 0 && areaList.size() < areaMap.size() + 1) {
+                queryBuilder.filterField(field, StringUtils.join(areaList, " OR "), Operator.Equal);
+            }
         }
     }
 

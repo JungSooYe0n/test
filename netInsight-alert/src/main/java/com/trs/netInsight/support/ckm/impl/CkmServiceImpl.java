@@ -78,6 +78,8 @@ public class CkmServiceImpl implements ICkmService {
 	public static final String SADNESS = "悲伤";
 	public static final String AMAZED = "惊讶";
 	public static final String modelPath = "/home/trs/data/trsNetInsight/model/chineseFactored.ser";
+	// "/home/trs/data/trsNetInsight/model/chineseFactored.ser";
+	// "D:/workspace/trs/model/chineseFactored.ser";
 	private static LexicalizedParser lp;
 	private static GrammaticalStructureFactory gsf;
     static

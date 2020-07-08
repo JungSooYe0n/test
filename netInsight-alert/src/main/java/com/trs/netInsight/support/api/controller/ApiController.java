@@ -1,5 +1,6 @@
 package com.trs.netInsight.support.api.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.ColumnConst;
@@ -766,9 +767,16 @@ public class ApiController {
         if (pageSize > maxPageSize){
             pageSize = maxPageSize;
         }
-        return infoListController.searchList(pageNo,pageSize,time,simflag,"positioCon",false,sort,"ALL",keywords,
-                null,emotion,null,null,"ALL",null,null,"ALL","ALL",invitationCard,
-                forwarPrimary,null,null,"","",groupName);
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("keyWords",keywords);
+        jsonObject.put("wordSpace",0);
+        jsonObject.put("wordOrder",false);
+        jsonArray.add(jsonObject);
+        keywords = jsonArray.toJSONString();
+        return infoListController.searchList(pageNo,pageSize,sort,keywords,"precise",time,simflag,"1",false,"","",emotion,
+                0,false,"","","1","ALL","","","",
+                "","","","",invitationCard,forwarPrimary,"","",groupName);
     }
 
     /**
