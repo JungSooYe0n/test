@@ -1,6 +1,7 @@
 
 package com.trs.netInsight.widget.special.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
@@ -5680,38 +5681,66 @@ public class InfoListServiceImpl implements IInfoListService {
 	}
 
 	@Override
-	public Object advancedSearchList(boolean sim, boolean irSimflag,boolean irSimflagAll,int pageNo, int pageSize, String source, String time,
-									 String mediaIndustry, String emotion, String sort, String invitationCard,String invitationCard1, String forwarPrimary, String forwarPrimary1,String keywords,
-									 String notKeyWords,String keyWordIndex,boolean weight,String fuzzyValue,String fuzzyValueScope,String fromWebSite,String excludeWeb,String newsInformation,
-									 String reprintPortal,String siteType,String type,String keyName,String searchType) throws TRSException {
+	public Object advancedSearchList(boolean sim, boolean irSimflag, boolean irSimflagAll, int pageNo, int pageSize, String sort,
+									 String keywords, String searchType, String time, String keyWordIndex, boolean weight, String monitorSite,
+									 String excludeWeb, String emotion, String read, String excludeWords, String excludeWordsIndex, String source,
+									 String mediaLevel, String mediaIndustry, String contentIndustry, String filterInfo, String contentArea, String mediaArea,
+									 String preciseFilter, String invitationCard, String forwardPrimary, String fuzzyValue, String fuzzyValueScope, String type) throws TRSException {
 
 		try {
-			QueryBuilder queryBuilder = WordSpacingUtil.handleKeyWords(keywords, keyWordIndex, weight);
+			QueryBuilder queryBuilder =  new QueryBuilder();
+			JSONArray jsonArray = JSONArray.parseArray(keywords);
+			String searchKey = "";
+			Integer wordFromNum = 0;
+			Boolean wordFromSort = false;
+			if (jsonArray != null && jsonArray.size() == 1) {
+				Object o = jsonArray.get(0);
+				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+				searchKey = jsonObject.getString("keyWords");
+				wordFromNum = jsonObject.getInteger("wordSpace");
+				wordFromSort = jsonObject.getBoolean("wordOrder");
+			}
+			if(StringUtil.isNotEmpty(searchKey)){
+				if("fuzzy".equals(searchType)){
+					//模糊搜索 - 需要判断是否有词组词序
+					if(wordFromNum > 0){
+						//只将词拆分，不做命中限制
+						String filterTrsl = getFuzzyTrslForWordSpace(searchKey,keyWordIndex,weight,searchKey);
+						queryBuilder.filterByTRSL(filterTrsl);
+					}else{
+						//无词距词序时，按照原来写的，拆词后用include 做至少命中几个词
+						String filterTrsl = getFuzzyTrsl(searchKey,keyWordIndex,weight);
+						queryBuilder.filterByTRSL(filterTrsl);
+					}
+				}else{//精准搜索
+					queryBuilder = WordSpacingUtil.handleKeyWords(keywords, keyWordIndex, weight);
+				}
+			}
 			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
-			if (StringUtil.isNotEmpty(notKeyWords)) {
-				if ("0".equals(keyWordIndex)) { //标题
+			if (StringUtil.isNotEmpty(excludeWords)) {
+				if ("0".equals(excludeWordsIndex)) { //标题
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					queryBuilder.filterByTRSL(exbuilder.toString());
-				} else if ("1".equals(keyWordIndex)) {// 标题加正文
+				} else if ("1".equals(excludeWordsIndex)) {// 标题加正文
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					queryBuilder.filterByTRSL(exbuilder.toString());
 					StringBuilder exbuilder2 = new StringBuilder();
 					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					;
 					queryBuilder.filterByTRSL(exbuilder2.toString());
-				} else if ("2".equals(keyWordIndex)) { //标题 +摘要
+				} else if ("2".equals(excludeWordsIndex)) { //标题 +摘要
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					queryBuilder.filterByTRSL(exbuilder.toString());
 					StringBuilder exbuilder2 = new StringBuilder();
 					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
-							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					;
 					queryBuilder.filterByTRSL(exbuilder2.toString());
 				}
@@ -5719,43 +5748,33 @@ public class InfoListServiceImpl implements IInfoListService {
 
 			List<String> searchSourceList = CommonListChartUtil.formatGroupName(source);
 			//只在原转发和主回帖筛选时添加要查询数据源，因为底层方法通过参数中的groupName去添加了对应的数据源和数据库信息
-			if ((searchSourceList.contains(Const.GROUPNAME_LUNTAN) && (StringUtil.isNotEmpty(invitationCard) || StringUtil.isNotEmpty(invitationCard1))) ||
-					(searchSourceList.contains(Const.GROUPNAME_WEIBO) && (StringUtil.isNotEmpty(forwarPrimary) || StringUtil.isNotEmpty(forwarPrimary1)))) {
+			if ((searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) ||
+					(searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwardPrimary) )) {
 				StringBuffer sb = new StringBuffer();
-				if (searchSourceList.contains(Const.GROUPNAME_LUNTAN) && (StringUtil.isNotEmpty(invitationCard) || StringUtil.isNotEmpty(invitationCard1))) {
+				if (searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) {
 					sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
 					if ("0".equals(invitationCard)) {// 主贴
 						sb.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
 					} else if ("1".equals(invitationCard)) {// 回帖
 						sb.append(" AND (").append(FtsFieldConst.FIELD_NRESERVED1).append(":(1)").append(")");
 					}
-					if ("0".equals(invitationCard1)) {// 主贴
-						sb.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
-					} else if ("1".equals(invitationCard1)) {// 回帖
-						sb.append(" AND (").append(FtsFieldConst.FIELD_NRESERVED1).append(":(1)").append(")");
-					}
+
 					sb.append(")");
 					searchSourceList.remove(Const.GROUPNAME_LUNTAN);
 				}
-				if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && (StringUtil.isNotEmpty(forwarPrimary) || StringUtil.isNotEmpty(forwarPrimary1))) {
+				if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwardPrimary) ) {
 					if (sb.length() > 0) {
 						sb.append(" OR ");
 					}
 					sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
-					if ("primary".equals(forwarPrimary)) {
+					if ("primary".equals(forwardPrimary)) {
 						// 原发
 						sb.append(" AND ").append(Const.PRIMARY_WEIBO);
-					} else if ("forward".equals(forwarPrimary)) {
+					} else if ("forward".equals(forwardPrimary)) {
 						//转发
 						sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
 					}
-					if ("primary".equals(forwarPrimary1)) {
-						// 原发
-						sb.append(" AND ").append(Const.PRIMARY_WEIBO);
-					} else if ("forward".equals(forwarPrimary1)) {
-						//转发
-						sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
-					}
+
 					sb.append(")");
 					searchSourceList.remove(Const.GROUPNAME_WEIBO);
 				}
@@ -5807,8 +5826,8 @@ public class InfoListServiceImpl implements IInfoListService {
 				queryBuilder.filterByTRSL(fuzzyBuilder.toString());
 			}
 			//来源网站
-			if (null != fromWebSite && !fromWebSite.isEmpty()) {
-				addFieldValue(fromWebSite, queryBuilder, " OR ", FtsFieldConst.FIELD_SITENAME);
+			if (null != monitorSite && !monitorSite.isEmpty()) {
+				addFieldValue(monitorSite, queryBuilder, " OR ", FtsFieldConst.FIELD_SITENAME);
 			}
 
 			//排除网站
@@ -5827,7 +5846,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 			}
 
-			//新闻信息资质
+			/*//新闻信息资质
 			if (StringUtil.isNotEmpty(newsInformation) && !"ALL".equals(newsInformation)) {
 				addFieldValue(newsInformation, queryBuilder, " OR ", FtsFieldConst.FIELD_WXB_GRADE);
 			}
@@ -5840,15 +5859,53 @@ public class InfoListServiceImpl implements IInfoListService {
 			//新闻可供转载网站/门户类型
 			if (StringUtil.isNotEmpty(reprintPortal) &&!"ALL".equals(reprintPortal)) {
 				addFieldValue(reprintPortal, queryBuilder, " OR ", FtsFieldConst.FIELD_SITE_APTUTIDE);
-			}
-			// 媒体行业
-			if (StringUtil.isNotEmpty(mediaIndustry) &&!"ALL".equals(mediaIndustry)) {
-				addFieldFilter(FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY,queryBuilder);
+			}*/
+			// 情感值
+			if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
+				addFieldFilter(FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE,queryBuilder);
 			}
 
-			if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) { // 情感
-				addFieldFilter(FtsFieldConst.FIELD_APPRAISE, emotion, Const.ARRAY_APPRAISE, queryBuilder);
+			//媒体等级
+			if(StringUtil.isNotEmpty(mediaLevel)&&!"ALL".equals(mediaLevel)){
+				addFieldFilter(FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL,queryBuilder);
 			}
+			//媒体行业
+			if(StringUtil.isNotEmpty(mediaIndustry )&&!"ALL".equals(mediaIndustry)){
+				addFieldFilter(FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY,queryBuilder);
+			}
+			//内容行业
+			if(StringUtil.isNotEmpty(contentIndustry )&&!"ALL".equals(contentIndustry)){
+				addFieldFilter(FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY,queryBuilder);
+			}
+			//内容地域
+			if(StringUtil.isNotEmpty(contentArea )&&!"ALL".equals(contentArea)){
+				addAreaFilter(FtsFieldConst.FIELD_CATALOG_AREA,contentArea,queryBuilder);
+			}
+			//媒体地域
+			if(StringUtil.isNotEmpty(mediaArea )&&!"ALL".equals(mediaArea)){
+				addAreaFilter(FtsFieldConst.FIELD_MEDIA_AREA,mediaArea,queryBuilder);
+			}
+			//信息过滤
+			if(StringUtil.isNotEmpty(filterInfo )){
+				String trsl = queryBuilder.asTRSL();
+				StringBuilder sb = new StringBuilder(trsl);
+				String[] valueArr = filterInfo.split(";");
+				Set<String> valueArrList = new HashSet<>();
+				for(String v : valueArr){
+					if(Const.FILTER_INFO.contains(v)){
+						valueArrList.add(v);
+					}
+				}
+				if (valueArrList.size() > 0 && valueArrList.size() < Const.FILTER_INFO.size()) {
+					sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+					queryBuilder = new QueryBuilder();
+					queryBuilder.filterByTRSL(sb.toString());
+				}
+			}
+			//精准筛选 preciseFilter
+			// 阅读标记 read
+
+
 			User user = UserUtils.getUser();
 
 			queryBuilder.setPageNo(pageNo);
@@ -7029,16 +7086,46 @@ public class InfoListServiceImpl implements IInfoListService {
 				value = value.replaceAll("其它","其他");
 			}
 			String[] valueArr = value.split(";");
-			List<String> valueArrList = new ArrayList<>();
+			Set<String> valueArrList = new HashSet<>();
 			for(String v : valueArr){
-				if("其他".equals(v)|| "中性".equals(v)){
+				if ("其他".equals(v) || "中性".equals(v)) {
 					valueArrList.add("\"\"");
 				}
-				if(allValue.contains(v)){
+				if (allValue.contains(v)) {
 					valueArrList.add(v);
 				}
 			}
-			queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+			//如果list中有其他，则其他为 其他+“”。依然是算两个
+			if(valueArrList.size() >0  &&  valueArrList.size() < allValue.size() +1){
+				queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+			}
+		}
+	}
+	private void addAreaFilter(String field,String areas,QueryBuilder queryBuilder){
+		Map<String,String> areaMap = null;
+		if(FtsFieldConst.FIELD_MEDIA_AREA.equals(field)){
+			areaMap = Const.MEDIA_PROVINCE_NAME;
+		}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field)){
+			areaMap = Const.CONTTENT_PROVINCE_NAME;
+		}
+		if(StringUtil.isNotEmpty(areas) && areaMap!= null){
+			if(areas.contains("其它")){
+				areas = areas.replaceAll("其它","其他");
+			}
+			String[] areaArr = areas.split(";");
+			Set<String> areaList = new HashSet<>();
+			for(String area : areaArr){
+				if ("其他".equals(area)) {
+					areaList.add("\"\"");
+				}
+				if (areaMap.containsKey(area)) {
+					areaList.add(areaMap.get(area));
+				}
+			}
+			//如果list中有其他，则其他为 其他+“”。依然是算两个
+			if(areaList.size() >0  &&  areaList.size() < areaMap.size() +1){
+				queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+			}
 		}
 	}
 
@@ -7121,22 +7208,49 @@ public class InfoListServiceImpl implements IInfoListService {
 	}
 
 	@Override
-	public Object searchstattotal(boolean sim, boolean irSimflag,boolean irSimflagAll, int pageNo, int pageSize, String source, String time,
-										   String mediaIndustry, String emotion, String sort, String invitationCard,String forwardPrimary, String keywords,
-										   String notKeyWords, String keyWordIndex, boolean weight,  String fromWebSite, String excludeWeb,
-										   String newsInformation, String reprintPortal, String siteType,String type) throws TRSException {
+	public Object searchstattotal(boolean sim, boolean irSimflag, boolean irSimflagAll, String source, String searchType,
+								  String keywords, String keyWordIndex, String time, boolean weight, String fromWebSite, String excludeWeb,
+								  String emotion, String read, String notKeyWords, String excludeWordIndex, String mediaLevel,
+								  String mediaIndustry, String contentIndustry, String filterInfo, String contentArea,
+								  String mediaArea, String preciseFilter, String type) throws TRSException {
 		List<Map<String, Object>> cateqoryQuery = null;
 		try {
-
-			QueryBuilder queryBuilder =  WordSpacingUtil.handleKeyWords(keywords, keyWordIndex, weight);
+			QueryBuilder queryBuilder =  new QueryBuilder();
+			JSONArray jsonArray = JSONArray.parseArray(keywords);
+			String searchKey = "";
+			Integer wordFromNum = 0;
+			Boolean wordFromSort = false;
+			if (jsonArray != null && jsonArray.size() == 1) {
+				Object o = jsonArray.get(0);
+				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+				searchKey = jsonObject.getString("keyWords");
+				wordFromNum = jsonObject.getInteger("wordSpace");
+				wordFromSort = jsonObject.getBoolean("wordOrder");
+			}
+			if(StringUtil.isNotEmpty(searchKey)){
+                if("fuzzy".equals(searchType)){
+                    //模糊搜索 - 需要判断是否有词组词序
+                    if(wordFromNum > 0){
+                        //只将词拆分，不做命中限制
+                        String filterTrsl = getFuzzyTrslForWordSpace(searchKey,keyWordIndex,weight,searchKey);
+                        queryBuilder.filterByTRSL(filterTrsl);
+                    }else{
+                        //无词距词序时，按照原来写的，拆词后用include 做至少命中几个词
+                        String filterTrsl = getFuzzyTrsl(searchKey,keyWordIndex,weight);
+                        queryBuilder.filterByTRSL(filterTrsl);
+                    }
+                }else{//精准搜索
+                    queryBuilder = WordSpacingUtil.handleKeyWords(keywords, keyWordIndex, weight);
+                }
+            }
 			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
 			if (StringUtil.isNotEmpty(notKeyWords)) {
-				if ("0".equals(keyWordIndex)) { //标题
+				if ("0".equals(excludeWordIndex)) { //标题
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
 							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					queryBuilder.filterByTRSL(exbuilder.toString());
-				} else if ("1".equals(keyWordIndex)) {// 标题加正文
+				} else if ("1".equals(excludeWordIndex)) {// 标题加正文
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
 							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
@@ -7146,7 +7260,7 @@ public class InfoListServiceImpl implements IInfoListService {
 							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					;
 					queryBuilder.filterByTRSL(exbuilder2.toString());
-				} else if ("2".equals(keyWordIndex)) { //标题 +摘要
+				} else if ("2".equals(excludeWordIndex)) { //标题 +摘要
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
 							.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
@@ -7159,9 +7273,9 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 			}
 
-			List<String> searchSourceList = CommonListChartUtil.formatGroupName(source);
+			//List<String> searchSourceList = CommonListChartUtil.formatGroupName(source);
 
-			//只在原转发和主回帖筛选时添加要查询数据源，因为底层方法通过参数中的groupName去添加了对应的数据源和数据库信息
+			/*//只在原转发和主回帖筛选时添加要查询数据源，因为底层方法通过参数中的groupName去添加了对应的数据源和数据库信息
 			if ((searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) ||
 					(searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwardPrimary))) {
 				StringBuffer sb = new StringBuffer();
@@ -7197,7 +7311,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
 				}
 				queryBuilder.filterByTRSL(sb.toString());
-			}
+			}*/
 			//来源网站
 			if (null != fromWebSite && !fromWebSite.isEmpty()){
 				addFieldValue(fromWebSite,queryBuilder," OR ",FtsFieldConst.FIELD_SITENAME);
@@ -7219,7 +7333,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 			}
 
-			//新闻信息资质
+			/*//新闻信息资质
 			if (StringUtil.isNotEmpty(newsInformation) &&!"ALL".equals(newsInformation)){
 				addFieldValue(newsInformation,queryBuilder," OR ",FtsFieldConst.FIELD_WXB_GRADE);
 			}
@@ -7230,17 +7344,54 @@ public class InfoListServiceImpl implements IInfoListService {
 			//新闻可供转载网站/门户类型
 			if (StringUtil.isNotEmpty(reprintPortal) &&!"ALL".equals(reprintPortal)){
 				addFieldValue(reprintPortal,queryBuilder," OR ",FtsFieldConst.FIELD_SITE_APTUTIDE);
-			}
-			// 媒体行业
-			if (StringUtil.isNotEmpty(mediaIndustry) &&!"ALL".equals(mediaIndustry)) {
-				addFieldFilter(FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY,queryBuilder);
-			}
-			if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) { // 情感
+			}*/
+			// 情感值
+			if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
 				addFieldFilter(FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE,queryBuilder);
 			}
 
-			queryBuilder.setPageNo(pageNo);
-			queryBuilder.setPageSize(pageSize);
+			//媒体等级
+			if(StringUtil.isNotEmpty(mediaLevel)&&!"ALL".equals(mediaLevel)){
+				addFieldFilter(FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL,queryBuilder);
+			}
+			//媒体行业
+			if(StringUtil.isNotEmpty(mediaIndustry )&&!"ALL".equals(mediaIndustry)){
+				addFieldFilter(FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY,queryBuilder);
+			}
+			//内容行业
+			if(StringUtil.isNotEmpty(contentIndustry )&&!"ALL".equals(contentIndustry)){
+				addFieldFilter(FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY,queryBuilder);
+			}
+			//内容地域
+			if(StringUtil.isNotEmpty(contentArea )&&!"ALL".equals(contentArea)){
+				addAreaFilter(FtsFieldConst.FIELD_CATALOG_AREA,contentArea,queryBuilder);
+			}
+			//媒体地域
+			if(StringUtil.isNotEmpty(mediaArea )&&!"ALL".equals(mediaArea)){
+				addAreaFilter(FtsFieldConst.FIELD_MEDIA_AREA,mediaArea,queryBuilder);
+			}
+			//信息过滤
+			if(StringUtil.isNotEmpty(filterInfo )){
+				String trsl = queryBuilder.asTRSL();
+				StringBuilder sb = new StringBuilder(trsl);
+				String[] valueArr = filterInfo.split(";");
+				Set<String> valueArrList = new HashSet<>();
+				for(String v : valueArr){
+					if(Const.FILTER_INFO.contains(v)){
+						valueArrList.add(v);
+					}
+				}
+				if (valueArrList.size() > 0 && valueArrList.size() < Const.FILTER_INFO.size()) {
+					sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+					queryBuilder = new QueryBuilder();
+					queryBuilder.filterByTRSL(sb.toString());
+				}
+			}
+			//精准筛选 preciseFilter
+			// 阅读标记 read
+
+			queryBuilder.setPageNo(0);
+			queryBuilder.setPageSize(20);
 			log.info("searchstattal接口：" + queryBuilder.asTRSL());
 			ChartResultField resultField = new ChartResultField("name", "value");
 			cateqoryQuery = (List<Map<String, Object>>)commonListService.queryListGroupNameStattotal(queryBuilder, sim, irSimflag, irSimflagAll, source, type, resultField);
@@ -7257,6 +7408,67 @@ public class InfoListServiceImpl implements IInfoListService {
 			throw new OperationException("statByClassification error: " + e, e);
 		}
 		return cateqoryQuery;
+	}
+
+    private String getFuzzyTrslForWordSpace(String keywords,String keyWordIndex,boolean weight,String searchKey){
+        QueryBuilder queryBuilder = WordSpacingUtil.handleKeyWords(keywords, keyWordIndex, weight);
+        String mainTrsl = queryBuilder.asTRSL();
+        String trsl = mainTrsl;
+        String splitWord = FuzzySearchUtil.splitKeyWordsForOr(searchKey);
+        if(StringUtil.isNotEmpty(splitWord)){
+            String fuzzyKeywords = "";
+            JSONArray jsonArray = JSONArray.parseArray(keywords);
+            if (jsonArray != null && jsonArray.size() == 1) {
+                Object o = jsonArray.get(0);
+                JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+                jsonObject.put("keyWords", splitWord);
+                jsonArray.set(0, jsonObject);
+                fuzzyKeywords = jsonArray.toJSONString();
+                QueryBuilder fuzzyQueryBuilder = WordSpacingUtil.handleKeyWords(fuzzyKeywords, keyWordIndex, weight);
+                String fuzzyTrsl = fuzzyQueryBuilder.asTRSL();
+
+                StringBuilder filterTrslBuilder = new StringBuilder();
+                filterTrslBuilder.append("((").append(mainTrsl).append(")").append(FtsFieldConst.WEIGHT).append(" OR ");
+                filterTrslBuilder.append("(").append(fuzzyTrsl).append("))");
+                trsl = filterTrslBuilder.toString();
+            }
+        }
+        return trsl;
+    }
+
+	private String getFuzzyTrsl(String keywords,String keyWordIndex,boolean weight){
+		StringBuilder childBuilder = new StringBuilder();
+		// 关键词中搜索
+		if (StringUtil.isNotEmpty(keywords)) {
+			String[] split = keywords.split(",");
+			String splitNode = "";
+			for (int i = 0; i < split.length; i++) {
+				if (StringUtil.isNotEmpty(split[i])) {
+					splitNode += split[i] + ",";
+				}
+			}
+			keywords = splitNode.substring(0, splitNode.length() - 1);
+			// 防止全部关键词结尾为;报错
+			String replaceAnyKey = "";
+			if (keywords.endsWith(";") || keywords.endsWith(",") || keywords.endsWith("；")
+					|| keywords.endsWith("，")) {
+				replaceAnyKey = keywords.substring(0, keywords.length() - 1);
+				childBuilder.append("((\"").append(
+						replaceAnyKey.replaceAll("[,|，]+", "\")  AND  (\"").replaceAll("[;|；]+", "\" OR \""))
+						.append("\"))");
+			} else {
+				childBuilder.append("((\"")
+						.append(keywords.replaceAll("[,|，]+", "\")  AND  (\"").replaceAll("[;|；]+", "\" OR \""))
+						.append("\"))");
+			}
+		}
+
+		Boolean isFuzzySearch = true;
+		if (childBuilder.length() > 0) {
+			String filterTrsl = FuzzySearchUtil.filterFuzzyTrsl(keywords,childBuilder,keywords,keyWordIndex,weight,isFuzzySearch,false);
+			return filterTrsl;
+		}
+		return "";
 	}
 
 	public QueryCommonBuilder getSearchBuilder(String type,String[] timeRange,String ctTrsl,String wxTrsl,String wbTrsl) throws TRSException {

@@ -547,11 +547,6 @@ public interface IInfoListService {
 												String mediaIndustry, String emotion, String sort, String invitationCard,String invitationCard1, String forwarPrimary, String forwarPrimary1,String keywords,
 												String notKeyWords,String keyWordIndex,boolean weight,String fuzzyValue,String fuzzyValueScope,String fromWebSite,String excludeWeb,String newsInformation,
 												String reprintPortal,String siteType,boolean isExport,String type,String keyName,String searchPage,String searchType) throws TRSException;
-	//advancedSearchList
-	public Object advancedSearchList(boolean sim, boolean irSimflag,boolean irSimflagAll,int pageNo, int pageSize, String source, String time,
-												String mediaIndustry, String emotion, String sort, String invitationCard,String invitationCard1, String forwarPrimary, String forwarPrimary1,String keywords,
-												String notKeyWords,String keyWordIndex,boolean weight,String fuzzyValue,String fuzzyValueScope,String fromWebSite,String excludeWeb,String newsInformation,
-												String reprintPortal,String siteType,String type,String keyName,String searchType) throws TRSException;
 
 	/**
 	 * 普通搜索 传统列表
@@ -660,6 +655,17 @@ public interface IInfoListService {
 	 */
 	public List<Object> getOriginalData(String trsl,String statusTrsl,String weChatTrsl,String requestTime,Integer period,
 										boolean isSimilar, boolean irSimflag,boolean irSimflagAll)throws TRSException, TRSSearchException;
-	public Object searchstattotal(boolean sim, boolean irSimflag,boolean irSimflagAll, int pageNo, int pageSize, String source, String time,  String mediaIndustry, String emotion, String sort, String invitationCard,String forwardPrimary, String keywords, String notKeyWords, String keyWordIndex, boolean weight, String fromWebSite, String excludeWeb, String newsInformation, String reprintPortal, String siteType,String type) throws TRSException;
+
+	public Object searchstattotal(boolean sim, boolean irSimflag, boolean irSimflagAll, String source, String searchType,
+								  String keywords, String keyWordIndex, String time, boolean weight, String fromWebSite, String excludeWeb,
+								  String emotion, String read, String notKeyWords, String excludeWordIndex, String mediaLevel,
+								  String mediaIndustry, String contentIndustry, String filterInfo, String contentArea,
+								  String mediaArea, String preciseFilter, String type) throws TRSException;
+
+	public Object advancedSearchList(boolean sim, boolean irSimflag, boolean irSimflagAll, int pageNo, int pageSize, String sort,
+									 String keywords, String searchType, String time, String keyWordIndex, boolean weight, String monitorSite,
+									 String excludeWeb, String emotion, String read, String excludeWords, String excludeWordsIndex, String source,
+									 String mediaLevel, String mediaIndustry, String contentIndustry, String filterInfo, String contentArea, String mediaArea,
+									 String preciseFilter, String invitationCard, String forwardPrimary, String fuzzyValue, String fuzzyValueScope, String type) throws TRSException;
 }
 

@@ -92,10 +92,16 @@ public class FuzzySearchUtil {
         if (StringUtil.isEmpty(keywords)) {
             return null;
         }
+        if ("positioCon".equals(keyWordIndex)) {//标题+正文
+            keyWordIndex = "1";
+        } else if ("positionKey".equals(keyWordIndex)) {//仅标题
+            keyWordIndex = "0";
+        }
+
         QueryBuilder newBuilder = new QueryBuilder();
         newBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, keywordTrsl.toString(), Operator.Equal);
         StringBuilder initTrsl = new StringBuilder();
-        if ("positioCon".equals(keyWordIndex)) {//标题+正文
+        if ("1".equals(keyWordIndex)) {//标题+正文
             if (weight) {
                 initTrsl.append(newBuilder.asTRSL()).append(FtsFieldConst.WEIGHT).append(" OR ")
                         .append(FtsFieldConst.FIELD_CONTENT).append(":(").append(keywordTrsl.toString()).append(")");
@@ -103,7 +109,15 @@ public class FuzzySearchUtil {
                 newBuilder.filterChildField(FtsFieldConst.FIELD_CONTENT, keywordTrsl.toString(), Operator.Equal);
                 initTrsl.append(newBuilder.asTRSL());
             }
-        } else if ("positionKey".equals(keyWordIndex)) {//仅标题
+        }else if ("2".equals(keyWordIndex)) {//标题 + 摘要
+            if (weight) {
+                initTrsl.append(newBuilder.asTRSL()).append(FtsFieldConst.WEIGHT).append(" OR ")
+                        .append(FtsFieldConst.FIELD_ABSTRACTS).append(":(").append(keywordTrsl.toString()).append(")");
+            } else {
+                newBuilder.filterChildField(FtsFieldConst.FIELD_ABSTRACTS, keywordTrsl.toString(), Operator.Equal);
+                initTrsl.append(newBuilder.asTRSL());
+            }
+        } else if ("0".equals(keyWordIndex)) {//仅标题
             initTrsl.append(newBuilder.asTRSL());
         }
         if (!isFuzzySearch) {
@@ -188,8 +202,11 @@ public class FuzzySearchUtil {
                 String title = fuzzyTrsl.toString();
                 String content = "";
                 filterTrsl1.append("(").append(fuzzyTrsl).append(")");
-                if ("positioCon".equals(keyWordIndex)) {//标题+正文
+                if ("1".equals(keyWordIndex)) {//标题+正文
                     content = title.replaceAll(FtsFieldConst.FIELD_TITLE, FtsFieldConst.FIELD_CONTENT);
+                    filterTrsl1.append(" OR ").append("(").append(content).append(")");
+                }else if ("2".equals(keyWordIndex)) {//标题+摘要
+                    content = title.replaceAll(FtsFieldConst.FIELD_TITLE, FtsFieldConst.FIELD_ABSTRACTS);
                     filterTrsl1.append(" OR ").append("(").append(content).append(")");
                 }
                 filterTrsl1.append(")");
@@ -213,10 +230,13 @@ public class FuzzySearchUtil {
                     .append("\"))");
             replaceWord = childBuilder.toString().replaceAll("\"[(]", "(\"").replaceAll("[)]\"", "\")");
 
-            if ("positioCon".equals(keyWordIndex)) {//标题+正文
+            if ("1".equals(keyWordIndex)) {//标题+正文
                 filterTrsl.append("((").append(FtsFieldConst.FIELD_TITLE).append(":").append("(").append(replaceWord).append("))");//拼标题
                 filterTrsl.append(" OR (").append(FtsFieldConst.FIELD_CONTENT).append(":").append("(").append(replaceWord).append(")))");//拼正文
-            } else if ("positionKey".equals(keyWordIndex)) {//仅标题
+            }else if ("2".equals(keyWordIndex)) {//标题+摘要
+                filterTrsl.append("((").append(FtsFieldConst.FIELD_TITLE).append(":").append("(").append(replaceWord).append("))");//拼标题
+                filterTrsl.append(" OR (").append(FtsFieldConst.FIELD_ABSTRACTS).append(":").append("(").append(replaceWord).append(")))");//拼正文
+            } else if ("0".equals(keyWordIndex)) {//仅标题
                 filterTrsl.append("((").append(FtsFieldConst.FIELD_TITLE).append(":").append("(").append(replaceWord).append(")))");
             }
             filterTrsl.append(")");
@@ -569,6 +589,69 @@ public class FuzzySearchUtil {
             return null;
         }
     }
+
+    /**
+     * 分词，传进来的次是，；分割的次，
+     * 这个方法只对词进行分词，不进行表达式拼接，被拆分的词用or拼接
+     *
+     * @param word
+     * @return
+     */
+    public static String splitKeyWordsForOr(String word) {
+        //，AND  ;OR
+        //判断是否有词被分了
+        Boolean isSplit = false;
+        String[] andArr = word.split("[,|，]");
+        List<String> andList = new ArrayList<>();
+        for (String and : andArr) {
+            String[] orArr = and.split(";|；");
+            List<String> orList = new ArrayList<>();
+            for (String or : orArr) {
+                //获取到每个词
+                //如果不可分，直接就是这个词，如果可以分，用；分号间隔
+                List<SegWord> segList = null;
+                try {
+                    segList = ckmService.SegMakeWord(or);
+                } catch (Exception e) {
+                    segList = new ArrayList<>();
+                    e.printStackTrace();
+                }
+                String split = or;
+
+                if (segList.size() > 0) {
+                    if (segList.size() == 1 && !split.equals(segList.get(0))) {
+                        isSplit = true;
+                        orList.add(segList.get(0).getWord());
+                    } else if (segList.size() > 1) {
+                        isSplit = true;
+                        for (SegWord seg : segList) {
+                            orList.add(seg.getWord());
+                        }
+                    }
+                }
+                orList.add(or);
+
+            }
+            if (orList.size() > 0) {
+                String orSplit = StringUtils.join(orList, ";");
+                //一个and词组内部，如调查结果， 调查结果应用或关联
+                andList.add(orSplit);
+            }
+        }
+        //如果有词被分了，才需要模糊查询
+        if (isSplit) {
+            if (andList.size() > 0) {
+                return StringUtils.join(andList, ",");
+            } else {
+                return null;
+            }
+        } else {
+
+            return null;
+        }
+    }
+
+
 
     /**
      * @param isFuzzySearch 是否是模糊查询，还是精准
