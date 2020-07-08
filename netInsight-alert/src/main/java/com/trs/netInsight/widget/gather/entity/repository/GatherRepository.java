@@ -14,6 +14,7 @@ public interface GatherRepository extends PagingAndSortingRepository<GatherPoint
 
     List<GatherPoint> findByUserId(String userId, Pageable pageable);
 
-
+    List<GatherPoint> findByUserId(String userId);
+    List<GatherPoint> findBySubGroupId(String subGroupId);
 
 }

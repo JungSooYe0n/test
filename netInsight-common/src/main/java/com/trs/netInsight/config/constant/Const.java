@@ -1416,6 +1416,7 @@ public class Const {
     public static final List<String> GATHER_TYPE_TWITTER = Arrays.asList("Twitter", "twitter");
     public static final List<String> GATHER_TYPE_FACEBOOK = Arrays.asList("FaceBook", "Facebook", "facebook");
     public static final List<String> GATHER_YUAN = Arrays.asList("元搜索");
+    public static final String GATHER_QITA = "其它";
     public static final String GATHER_NO_AUDIT = "未审核";
     public static final String GATHER_AUDITED = "已审核";
     public static final String GATHER_AUDITING = "审核中";

@@ -101,6 +101,8 @@ public class GatherPoint extends BaseEntity {
     private Date auditTime;
     @Column(name = "organization_name")
     private String organizationName;
+    @Column(name = "is_need_remind")
+    private boolean isNeedRemind = false;
 public GatherPoint(String userId,String dataType,String taskName,String taskId,String siteName,String channelName,String urlName,String accountName,String accountId,Date commitTime,String keyWord,String level){
 //    this.favouritesId = GUIDGenerator.generate(GatherPoint.class);
 
@@ -115,6 +117,7 @@ public GatherPoint(String userId,String dataType,String taskName,String taskId,S
     this.commitTime = commitTime;
     this.keyWord = keyWord;
     this.level = level;
+    this.isNeedRemind = false;//默认不提醒
     super.setUserId(userId);
 }
 public GatherPoint(String userId,String dataType,String siteName,String channelName,String urlName,Date commitTime,String level){

@@ -96,9 +96,9 @@ public class GatherController {
                                  @ApiParam("元搜索关键词") @RequestParam(value = "keyWord", required = false) String[] keyWord,
                                  @ApiParam("优先级") @RequestParam(value = "level", required = true) String[] level,
                                  @ApiParam("状态") @RequestParam(value = "status") String status
-    ) throws OperationException {
+    ) throws TRSException {
         if (StringUtil.isEmpty(taskName)) {
-            throw new OperationException("任务名称不能为空");
+            throw new TRSException("任务名称不能为空");
         }
 
         if (siteName.length > 0 && dataType.length != siteName.length) {
@@ -119,7 +119,6 @@ public class GatherController {
         if (dataType.length != level.length) {
             throw new OperationException("所传dataType和level的个数不相同");
         }
-        try {
             List<GatherPoint> gatherPointList = new ArrayList<>();
             User user = UserUtils.getUser();
             boolean isAdmin = false;
@@ -133,7 +132,7 @@ public class GatherController {
                 if (Const.GATHER_TYPE_NEWS.contains(dataType[i])) {
                     //新闻
                     if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(channelName[i]) || StringUtil.isEmpty(urlName[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], channelName[i], urlName[i], "", "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
@@ -144,7 +143,7 @@ public class GatherController {
                 } else if (Const.PAGE_SHOW_KEHUDUAN.equals(dataType[i])) {
                     //新闻App
                     if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(channelName[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], channelName[i], "", "", "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
@@ -154,7 +153,7 @@ public class GatherController {
                     gatherPointList.add(gatherPoint);
                 } else if (Const.GATHER_MEDIA.contains(dataType[i])) {
                     if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(accountId[i]) || StringUtil.isEmpty(urlName[i]) || StringUtil.isEmpty(accountName[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], "", urlName[i], accountName[i], accountId[i], new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
@@ -164,7 +163,7 @@ public class GatherController {
                     gatherPointList.add(gatherPoint);
                 } else if (Const.GATHER_ZIMEITI.contains(dataType[i])) {
                     if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(accountName[i]) || StringUtil.isEmpty(urlName[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], "", urlName[i], accountName[i], "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
@@ -174,7 +173,7 @@ public class GatherController {
                     gatherPointList.add(gatherPoint);
                 } else if (Const.PAGE_SHOW_WEIBO.contains(dataType[i])) {
                     if (StringUtil.isEmpty(accountName[i]) || StringUtil.isEmpty(urlName[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, "", "", urlName[i], accountName[i], "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
@@ -184,7 +183,7 @@ public class GatherController {
                     gatherPointList.add(gatherPoint);
                 } else if (Const.PAGE_SHOW_WEIXIN.contains(dataType[i])) {
                     if (StringUtil.isEmpty(accountId[i]) || StringUtil.isEmpty(accountName[i]) || StringUtil.isEmpty(urlName[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, "", "", urlName[i], accountName[i], accountId[i], new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
@@ -194,7 +193,7 @@ public class GatherController {
                     gatherPointList.add(gatherPoint);
                 } else if (Const.GATHER_TYPE_TWITTER.contains(dataType[i])) {
                     if(StringUtil.isEmpty(accountName[i]) || StringUtil.isEmpty(urlName[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, "", "", urlName[i], accountName[i], "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
@@ -204,7 +203,7 @@ public class GatherController {
                     gatherPointList.add(gatherPoint);
                 } else if ("元搜索".equals(dataType[i])) {
                     if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(keyWord[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], "", "", "", "", new Date(), keyWord[i], level[i]);
                     gatherPoint.setStatus(status);
@@ -214,7 +213,7 @@ public class GatherController {
                     gatherPointList.add(gatherPoint);
                 } else {
                     if (StringUtil.isEmpty(siteName[i]) || StringUtil.isEmpty(channelName[i]) || StringUtil.isEmpty(urlName[i])) {
-                        throw new OperationException(dataType[i] + ": 必填选项不能为空");
+                        throw new TRSException(dataType[i] + ": 必填选项不能为空",1001);
                     }
                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType[i], taskName, taskId, siteName[i], channelName[i], urlName[i], "", "", new Date(), "", level[i]);
                     gatherPoint.setStatus(status);
@@ -226,10 +225,6 @@ public class GatherController {
 
             }
             gatherRepository.save(gatherPointList);
-        } catch (Exception e) {
-            log.error("增加采集失败", e);
-            throw new OperationException("增加采集失败,message" + e);
-        }
         return Const.SUCCESS;
     }
 
@@ -375,6 +370,7 @@ public class GatherController {
                             gatherPoint.setUrlName(urlName[i]);
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setCommitTime(new Date());
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPoint.setGatherPointName(siteName[i] + "-" + channelName[i]);
                             gatherPointList.add(gatherPoint);
                         } else if (Const.PAGE_SHOW_KEHUDUAN.equals(dataType[i])) {
@@ -385,6 +381,7 @@ public class GatherController {
                             gatherPoint.setGatherPointName(siteName[i] + "-" + channelName[i]);
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setCommitTime(new Date());
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPointList.add(gatherPoint);
                         } else if (Const.GATHER_MEDIA.contains(dataType[i])) {
                             gatherPoint.setTaskName(taskName);
@@ -396,6 +393,7 @@ public class GatherController {
                             gatherPoint.setLevel(level[i]);
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setCommitTime(new Date());
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPointList.add(gatherPoint);
                         } else if (Const.GATHER_ZIMEITI.contains(dataType[i])) {
                             gatherPoint.setTaskName(taskName);
@@ -406,6 +404,7 @@ public class GatherController {
                             gatherPoint.setLevel(level[i]);
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setCommitTime(new Date());
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPointList.add(gatherPoint);
                         } else if (Const.PAGE_SHOW_WEIBO.contains(dataType[i])) {
                             gatherPoint.setTaskName(taskName);
@@ -415,6 +414,7 @@ public class GatherController {
                             gatherPoint.setLevel(level[i]);
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setCommitTime(new Date());
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPointList.add(gatherPoint);
                         } else if (Const.PAGE_SHOW_WEIXIN.contains(dataType[i])) {
                             gatherPoint.setTaskName(taskName);
@@ -425,9 +425,9 @@ public class GatherController {
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setGatherPointName(accountName[i] + "-" + accountId[i]);
                             gatherPoint.setCommitTime(new Date());
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPointList.add(gatherPoint);
                         } else if (Const.GATHER_TYPE_TWITTER.contains(dataType[i])) {
-                            //todo 因为facebook暂定  所以暂时写成和twitter一致
                             gatherPoint.setTaskName(taskName);
                             gatherPoint.setUrlName(urlName[i]);
                             gatherPoint.setAccountName(accountName[i]);
@@ -435,6 +435,7 @@ public class GatherController {
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setGatherPointName(accountName[i]);
                             gatherPoint.setCommitTime(new Date());
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPointList.add(gatherPoint);
                         } else if (Const.GATHER_YUAN.contains(dataType[i])) {
                             gatherPoint.setTaskName(taskName);
@@ -444,6 +445,7 @@ public class GatherController {
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setCommitTime(new Date());
                             gatherPoint.setGatherPointName(keyWord[i] + "-" + siteName[i]);
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPointList.add(gatherPoint);
                         }else {
                             gatherPoint.setTaskName(taskName);
@@ -453,6 +455,7 @@ public class GatherController {
                             gatherPoint.setLevel(level[i]);
                             gatherPoint.setStatus(status[i]);
                             gatherPoint.setCommitTime(new Date());
+                            gatherPoint.setDataType(dataType[i]);
                             gatherPoint.setGatherPointName(siteName[i]);
                             gatherPointList.add(gatherPoint);
 
@@ -568,6 +571,59 @@ public class GatherController {
         return list;
 
     }
+    @ApiOperation("提醒列表接口")
+    @FormatResult
+    @RequestMapping(value = "/remindList", method = RequestMethod.GET)
+    public Object remindList(
+            @ApiParam("页数 从0开始") @RequestParam(value = "pageNo", defaultValue = "0") Integer pageNo,
+            @ApiParam("一页几条") @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize
+    ) throws TRSException {
+//防止前端乱输入
+        pageSize = pageSize >= 1 ? pageSize : 10;
+        User user = UserUtils.getUser();
+        PageRequest pageable;
+            pageable = new PageRequest(pageNo, pageSize, new Sort(Sort.Direction.DESC, "commitTime"));
+
+        Page<GatherPoint> list = null;
+        Specification<GatherPoint> criteria = new Specification<GatherPoint>() {
+            @Override
+            public Predicate toPredicate(Root<GatherPoint> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                List<Predicate> predicate = new ArrayList<>();
+
+                if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
+                    List<Predicate> predicateOrg = new ArrayList<>();
+                    predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
+
+                    predicate.add(cb.or(predicateOrg.toArray(new Predicate[predicateOrg.size()])));
+                        predicate.add(cb.or(cb.equal(root.get("status"), "草稿"), cb.equal(root.get("status"), "采集中")));
+                } else if (UserUtils.ROLE_ADMIN.equals(user.getCheckRole())){
+                    predicate.add(cb.equal(root.get("userId"), user.getId()));
+                }else {
+                    predicate.add(cb.equal(root.get("subGroupId"), user.getSubGroupId()));
+                }
+
+                predicate.add(cb.equal(root.get("isNeedRemind"), true));
+                Predicate[] pre = new Predicate[predicate.size()];
+                return query.where(predicate.toArray(pre)).getRestriction();
+            }
+        };
+
+        list = gatherRepository.findAll(criteria, pageable);
+        List<GatherPoint> gatherPointList = new ArrayList<>();
+        if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
+            gatherPointList = gatherRepository.findByUserId(user.getId());
+        } else if (UserUtils.ROLE_ADMIN.equals(user.getCheckRole())){
+            gatherPointList = gatherRepository.findByUserId(user.getId());
+        }else {
+            gatherPointList = gatherRepository.findBySubGroupId(user.getSubGroupId());
+        }
+        for (GatherPoint gatherPoint: gatherPointList) {
+            gatherPoint.setNeedRemind(false);
+        }
+        gatherRepository.save(gatherPointList);
+        return list;
+
+    }
 
     @ApiOperation("采集点详情接口")
     @FormatResult
@@ -631,8 +687,25 @@ public class GatherController {
 
             List<GatherPoint> findAll = gatherRepository.findAll(criteria);
             List<GatherPointOa> gatherPointOaList = new ArrayList<>();
+
             List<HashMap<String, Object>> hashMaps = new ArrayList<>();
-            List<GatherPoint> newslist = new ArrayList<>();
+        List<GatherPointOa> newsoalist = new ArrayList<>();
+        List<GatherPointOa> luntanoalist = new ArrayList<>();
+        List<GatherPointOa> bokeoalist = new ArrayList<>();
+        List<GatherPointOa> dianzibaooalist = new ArrayList<>();
+        List<GatherPointOa> appoalist = new ArrayList<>();
+        List<GatherPointOa> mediaoalist = new ArrayList<>();
+        List<GatherPointOa> duanmediaoalist = new ArrayList<>();
+        List<GatherPointOa> zimeitioalist = new ArrayList<>();
+        List<GatherPointOa> weibooalist = new ArrayList<>();
+        List<GatherPointOa> weixinoalist = new ArrayList<>();
+        List<GatherPointOa> twitteroalist = new ArrayList<>();
+        List<GatherPointOa> yuanoalist = new ArrayList<>();
+        List<GatherPointOa> facebookoalist = new ArrayList<>();
+        List<GatherPointOa> jingwaioalist = new ArrayList<>();
+        List<GatherPointOa> qitaoalist = new ArrayList<>();
+
+        List<GatherPoint> newslist = new ArrayList<>();
         List<GatherPoint> luntanlist = new ArrayList<>();
         List<GatherPoint> bokelist = new ArrayList<>();
         List<GatherPoint> dianzibaolist = new ArrayList<>();
@@ -654,125 +727,91 @@ public class GatherController {
                     gatherPoint.setStatus("采集中");
                     gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
                     gatherPoint.setAuditUserName(user.getUserName());
+                    gatherPoint.setNeedRemind(true);
                     gatherPoint.setAuditTime(new Date());
                     gatherPointList.add(gatherPoint);
-                    if (Const.GATHER_TYPE_NEWS.contains(gatherPoint.getDataType())) {
-                        //新闻
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
-                        gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
                         if (Const.PAGE_SHOW_XINWEN.equals(gatherPoint.getDataType())){
+                            GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
+                            gatherPointOaList.add(gatherPointOa);
                             newslist.add(gatherPoint);
+                            newsoalist.add(gatherPointOa);
                         }else if (Const.PAGE_SHOW_LUNTAN.equals(gatherPoint.getDataType())){
+                            GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
+                            gatherPointOaList.add(gatherPointOa);
                             luntanlist.add(gatherPoint);
+                            luntanoalist.add(gatherPointOa);
                         }else if (Const.PAGE_SHOW_BOKE.equals(gatherPoint.getDataType())){
+                            GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
+                            gatherPointOaList.add(gatherPointOa);
                             bokelist.add(gatherPoint);
+                            bokeoalist.add(gatherPointOa);
                         }else if (Const.PAGE_SHOW_DIANZIBAO.equals(gatherPoint.getDataType())){
+                            GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
+                            gatherPointOaList.add(gatherPointOa);
                             dianzibaolist.add(gatherPoint);
-                        }
-                    } else if (Const.PAGE_SHOW_KEHUDUAN.equals(gatherPoint.getDataType())) {
+                            dianzibaooalist.add(gatherPointOa);
+                        } else if (Const.PAGE_SHOW_KEHUDUAN.equals(gatherPoint.getDataType())) {
                         //新闻App
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), "", "", gatherPoint.getLevel(), gatherPoint.getId());
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), "", "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                         gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
                         applist.add(gatherPoint);
+                            appoalist.add(gatherPointOa);
 
                     } else if (Const.GATHER_MEDIA.contains(gatherPoint.getDataType())) {
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getAccountName(), gatherPoint.getAccountId(), gatherPoint.getUrlName(), gatherPoint.getLevel(), gatherPoint.getId());
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getAccountName(), gatherPoint.getAccountId(), gatherPoint.getUrlName(), gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                         gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
+
                         if (Const.PAGE_SHOW_CHANGSHIPIN.equals(gatherPoint.getDataType())){
                             medialist.add(gatherPoint);
+                            mediaoalist.add(gatherPointOa);
                         }else {
                             duanmedialist.add(gatherPoint);
+                            duanmediaoalist.add(gatherPointOa);
                         }
 
                     } else if (Const.GATHER_ZIMEITI.contains(gatherPoint.getDataType())) {
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                         gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
                         zimeitilist.add(gatherPoint);
+                            zimeitioalist.add(gatherPointOa);
 
 
                     } else if (Const.PAGE_SHOW_WEIBO.contains(gatherPoint.getDataType())) {
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", "", gatherPoint.getLevel(), gatherPoint.getId());
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                         gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
                         weibolist.add(gatherPoint);
+                            weibooalist.add(gatherPointOa);
 
                     } else if (Const.PAGE_SHOW_WEIXIN.contains(gatherPoint.getDataType())) {
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getAccountId(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getAccountId(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                         gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
+
                         weixinlist.add(gatherPoint);
+                            weixinoalist.add(gatherPointOa);
                     } else if (Const.GATHER_TYPE_TWITTER.contains(gatherPoint.getDataType())) {
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", "", gatherPoint.getLevel(), gatherPoint.getId());
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getAccountName(), gatherPoint.getUrlName(), "", "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                         gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
                         twitterlist.add(gatherPoint);
+                            twitteroalist.add(gatherPointOa);
 
                     } else if ("元搜索".equals(gatherPoint.getDataType())) {
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getKeyWord(), gatherPoint.getSiteName(), "", "", gatherPoint.getLevel(), gatherPoint.getId());
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getKeyWord(), gatherPoint.getSiteName(), "", "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                         gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
                         yuanlist.add(gatherPoint);
-
+                            yuanoalist.add(gatherPointOa);
                     } else {
                         //境外 facebook 其他
-                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId());
+                        GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                         gatherPointOaList.add(gatherPointOa);
-                        HashMap hashMap1 = new HashMap();
-                        hashMap1.put("projectname", gatherPoint.getOrganizationName());
-                        hashMap1.put("creatorName", gatherPoint.getUserAccount());
-                        hashMap1.put("radarType", CommonListChartUtil.changeGroupName(gatherPoint.getDataType()));
-                        hashMap1.put("dateStr", gatherPointOaList);
-                        hashMaps.add(hashMap1);
                         if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(gatherPoint.getDataType())){
                             jingwailist.add(gatherPoint);
+                            jingwaioalist.add(gatherPointOa);
                         }else if (Const.PAGE_SHOW_FACEBOOK.equals(gatherPoint.getDataType())){
                             facebooklist.add(gatherPoint);
+                            facebookoalist.add(gatherPointOa);
                         }else {
                             qitalist.add(gatherPoint);
+                            qitaoalist.add(gatherPointOa);
                         }
                     }
 
@@ -782,11 +821,101 @@ public class GatherController {
                     gatherPoint.setRemarks(remarks);
                     gatherPoint.setAuditUserName(user.getUserName());
                     gatherPoint.setAuditTime(new Date());
+                    gatherPoint.setNeedRemind(true);
                     gatherPointList.add(gatherPoint);
-                    gatherRepository.save(gatherPointList);
                 }
             }
             if (isAdopt) {
+                if (ObjectUtil.isNotEmpty(newsoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_XINWEN));
+                    hashMap.put("dateStr", newsoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(luntanoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_LUNTAN));
+                    hashMap.put("dateStr", luntanoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(bokeoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_BOKE));
+                    hashMap.put("dateStr", bokeoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(dianzibaooalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_DIANZIBAO));
+                    hashMap.put("dateStr", dianzibaooalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(appoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_KEHUDUAN));
+                    hashMap.put("dateStr", appoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(mediaoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_CHANGSHIPIN));
+                    hashMap.put("dateStr", mediaoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(duanmediaoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_DUANSHIPIN));
+                    hashMap.put("dateStr", duanmediaoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(zimeitioalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_ZIMEITI));
+                    hashMap.put("dateStr", zimeitioalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(weibooalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_WEIBO));
+                    hashMap.put("dateStr", weibooalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(weixinoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_WEIXIN));
+                    hashMap.put("dateStr", weixinoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(twitteroalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_TWITTER));
+                    hashMap.put("dateStr", twitteroalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(yuanoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", "元搜索");
+                    hashMap.put("dateStr", yuanoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(jingwaioalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_GUOWAIXINWEN));
+                    hashMap.put("dateStr", jingwaioalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(facebookoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", CommonListChartUtil.changeGroupName(Const.PAGE_SHOW_FACEBOOK));
+                    hashMap.put("dateStr", facebookoalist);
+                    hashMaps.add(hashMap);
+                }
+                if (ObjectUtil.isNotEmpty(qitaoalist)){
+                    HashMap hashMap = new HashMap();
+                    hashMap.put("radarType", Const.GATHER_QITA);
+                    hashMap.put("dateStr", qitaoalist);
+                    hashMaps.add(hashMap);
+                }
                 JSONArray js = JSONArray.fromObject(hashMaps);
                 log.error(js.toString());
 //                String sendPost = HttpUtil.sendPost(uploadpoint, "data="+js.toString());
@@ -804,43 +933,42 @@ public class GatherController {
                     for (String str: msgs) {
                         if (str.contains("需求上传成功")) {
                             String dataString = str.substring(0, str.length() - 7);
-                            if (Const.PAGE_SHOW_XINWEN.equals(dataString)) {
+                            if (Const.PAGE_SHOW_XINWEN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 gatherRepository.save(newslist);
-                            } else if (Const.PAGE_SHOW_LUNTAN.equals(dataString)) {
+                            } else if (Const.PAGE_SHOW_LUNTAN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 gatherRepository.save(luntanlist);
-                            } else if (Const.PAGE_SHOW_BOKE.equals(dataString)) {
+                            } else if (Const.PAGE_SHOW_BOKE.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 gatherRepository.save(bokelist);
-                            } else if (Const.PAGE_SHOW_DIANZIBAO.equals(dataString)) {
+                            } else if (Const.PAGE_SHOW_DIANZIBAO.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 gatherRepository.save(dianzibaolist);
-                            } else if (Const.PAGE_SHOW_KEHUDUAN.equals(dataString)) {
+                            } else if (Const.PAGE_SHOW_KEHUDUAN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 //新闻App
                                 gatherRepository.save(applist);
-
-                            } else if (Const.GATHER_MEDIA.contains(dataString)) {
-                                if (Const.PAGE_SHOW_CHANGSHIPIN.equals(dataString)) {
+                            } else if (Const.GATHER_MEDIA.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
+                                if (Const.PAGE_SHOW_CHANGSHIPIN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                     gatherRepository.save(medialist);
                                 } else {
                                     gatherRepository.save(duanmedialist);
                                 }
 
-                            } else if (Const.GATHER_ZIMEITI.contains(dataString)) {
+                            } else if (Const.GATHER_ZIMEITI.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 gatherRepository.save(zimeitilist);
 
-                            } else if (Const.PAGE_SHOW_WEIBO.contains(dataString)) {
+                            } else if (Const.PAGE_SHOW_WEIBO.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 gatherRepository.save(weibolist);
-                            } else if (Const.PAGE_SHOW_WEIXIN.contains(dataString)) {
+                            } else if (Const.PAGE_SHOW_WEIXIN.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 gatherRepository.save(weixinlist);
-                            } else if (Const.GATHER_TYPE_TWITTER.contains(dataString)) {
+                            } else if (Const.GATHER_TYPE_TWITTER.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                 gatherRepository.save(twitterlist);
                             } else if ("元搜索".equals(dataString)) {
                                 gatherRepository.save(yuanlist);
                             } else {
                                 //境外 facebook 其他
-                                if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(dataString)) {
+                                if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                     gatherRepository.save(jingwailist);
-                                } else if (Const.PAGE_SHOW_FACEBOOK.equals(dataString)) {
+                                } else if (Const.PAGE_SHOW_FACEBOOK.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
                                     gatherRepository.save(facebooklist);
-                                } else {
+                                } else if (Const.GATHER_QITA.equals(dataString)){
                                     gatherRepository.save(qitalist);
                                 }
                             }
@@ -848,6 +976,8 @@ public class GatherController {
                     }
                    throw new TRSException(msg,1001);
                 }
+            }else {
+                gatherRepository.save(gatherPointList);
             }
         return Const.SUCCESS;
     }
@@ -1061,7 +1191,7 @@ public class GatherController {
             if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                 isAdmin = true;
                 if (StringUtil.isEmpty(organizationName))
-                    throw new OperationException("机构名称不能为空");
+                    throw new TRSException("机构名称不能为空");
             }
             String taskId = GUIDGenerator.generate(GatherPoint.class);
             String status = "已提交";
@@ -1096,7 +1226,7 @@ public class GatherController {
                                 String channelName = hashMap.get("频道名*");
                                 String level = hashMap.get("优先级*");
                                 if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(channelName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException(dataType + "解析异常");
                                 }
 
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, channelName, "", "", "", new Date(), "", level);
@@ -1114,7 +1244,7 @@ public class GatherController {
                                 String urlName = hashMap.get("主页链接*");
                                 String level = hashMap.get("优先级*");
                                 if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(accountName) || StringUtil.isEmpty(accountId) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException(dataType + "解析异常");
                                 }
 
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, "", urlName, accountName, accountId, new Date(), "", level);
@@ -1131,7 +1261,7 @@ public class GatherController {
                                 String urlName = hashMap.get("链接*");
                                 String level = hashMap.get("优先级*");
                                 if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(accountName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException(dataType + "解析异常");
                                 }
 
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, "", urlName, accountName, "", new Date(), "", level);
@@ -1147,7 +1277,7 @@ public class GatherController {
                                 String urlName = hashMap.get("首页地址*");
                                 String level = hashMap.get("优先级*");
                                 if (StringUtil.isEmpty(accountName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException(dataType + "解析异常");
                                 }
 
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, "", "", urlName, accountName, "", new Date(), "", level);
@@ -1164,7 +1294,7 @@ public class GatherController {
                                 String level = hashMap.get("优先级*");
                                 String accountId = hashMap.get("微信号*");
                                 if (StringUtil.isEmpty(accountName) || StringUtil.isEmpty(accountId) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException(dataType + "解析异常");
                                 }
 
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, "", "", urlName, accountName, accountId, new Date(), "", level);
@@ -1180,7 +1310,7 @@ public class GatherController {
                                 String urlName = hashMap.get("地址*");
                                 String level = hashMap.get("优先级*");
                                 if (StringUtil.isEmpty(accountName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException(dataType + "解析异常");
                                 }
 
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, "", "", urlName, accountName, "", new Date(), "", level);
@@ -1196,7 +1326,7 @@ public class GatherController {
                                 String siteName = hashMap.get("网站*");
                                 String level = hashMap.get("优先级*");
                                 if (StringUtil.isEmpty(keyWord) || StringUtil.isEmpty(siteName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException(dataType + "解析异常");
                                 }
 
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, "", "", "", "", new Date(), keyWord, level);
@@ -1212,7 +1342,7 @@ public class GatherController {
                                 p = 12;
                             } else if (Const.PAGE_SHOW_FACEBOOK.equals(dataType)) {
                                 p = 13;
-                            } else if ("其它".equals(dataType)) {
+                            } else if (Const.GATHER_QITA.equals(dataType)) {
                                 p = 14;
                             }
                             for (HashMap<String, String> hashMap : list.get(p)) {
@@ -1221,7 +1351,7 @@ public class GatherController {
                                 String urlName = hashMap.get("关键词3*");
                                 String level = hashMap.get("优先级*");
                                 if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(channelName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                    throw new OperationException(dataType + "解析异常");
+                                    throw new TRSException(dataType + "解析异常");
                                 }
 
                                 GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, channelName, urlName, "", "", new Date(), "", level);
@@ -1238,7 +1368,7 @@ public class GatherController {
                         for (int i = 0; i < list.size(); i++) {
                             if (i == 0 || i == 2 || i == 6 || i == 9) {
                                 if (i == 0){
-                                    dataType = "新闻网站";
+                                    dataType = Const.PAGE_SHOW_XINWEN;
                                 }else if (i == 2){
                                     dataType = Const.PAGE_SHOW_DIANZIBAO;
                                 }else if (i == 6){
@@ -1254,7 +1384,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     String urlName = i==2 ? hashMap.get("链接*") : hashMap.get("信息列表页链接*");
                                     String level = hashMap.get("优先级*");
                                     if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(channelName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                        throw new OperationException(dataType + "解析异常");
+                                        throw new TRSException(dataType + "解析异常");
                                     }
 
                                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, channelName, urlName, "", "", new Date(), "", level);
@@ -1273,7 +1403,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     String channelName = hashMap.get("频道名*");
                                     String level = hashMap.get("优先级*");
                                     if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(channelName) || StringUtil.isEmpty(level)) {
-                                        throw new OperationException(dataType + "解析异常");
+                                        throw new TRSException(dataType + "解析异常");
                                     }
                                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, channelName, "", "", "", new Date(), "", level);
                                     gatherPoint.setStatus(status);
@@ -1295,7 +1425,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     String urlName = hashMap.get("主页链接*");
                                     String level = hashMap.get("优先级*");
                                     if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(accountName) || StringUtil.isEmpty(accountId) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                        throw new OperationException(dataType + "解析异常");
+                                        throw new TRSException(dataType + "解析异常");
                                     }
                                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, "", urlName, accountName, accountId, new Date(), "", level);
                                     gatherPoint.setStatus(status);
@@ -1312,7 +1442,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     String urlName = hashMap.get("链接*");
                                     String level = hashMap.get("优先级*");
                                     if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(accountName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                        throw new OperationException(dataType + "解析异常");
+                                        throw new TRSException(dataType + "解析异常");
                                     }
                                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, "", urlName, accountName, "", new Date(), "", level);
                                     gatherPoint.setStatus(status);
@@ -1329,7 +1459,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     String urlName = hashMap.get("首页地址*");
                                     String level = hashMap.get("优先级*");
                                     if (StringUtil.isEmpty(accountName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                        throw new OperationException(dataType + "解析异常");
+                                        throw new TRSException(dataType + "解析异常");
                                     }
                                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, "", "", urlName, accountName, "", new Date(), "", level);
                                     gatherPoint.setStatus(status);
@@ -1346,7 +1476,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     String level = hashMap.get("优先级*");
                                     String accountId = hashMap.get("微信号*");
                                     if (StringUtil.isEmpty(accountName) || StringUtil.isEmpty(accountId) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                        throw new OperationException(dataType + "解析异常");
+                                        throw new TRSException(dataType + "解析异常");
                                     }
                                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, "", "", urlName, accountName, accountId, new Date(), "", level);
                                     gatherPoint.setStatus(status);
@@ -1363,7 +1493,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     String urlName = hashMap.get("地址*");
                                     String level = hashMap.get("优先级*");
                                     if (StringUtil.isEmpty(accountName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                        throw new OperationException(dataType + "解析异常");
+                                        throw new TRSException(dataType + "解析异常");
                                     }
                                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, "", "", urlName, accountName, "", new Date(), "", level);
                                     gatherPoint.setStatus(status);
@@ -1394,7 +1524,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     } else if (i == 13) {
                                         dataType = Const.PAGE_SHOW_FACEBOOK;
                                     } else if (i == 14) {
-                                        dataType = "其它";
+                                        dataType = Const.GATHER_QITA;
                                     }
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("关键词1*");
@@ -1402,7 +1532,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                     String urlName = hashMap.get("关键词3*");
                                     String level = hashMap.get("优先级*");
                                     if (StringUtil.isEmpty(siteName) || StringUtil.isEmpty(channelName) || StringUtil.isEmpty(urlName) || StringUtil.isEmpty(level)) {
-                                        throw new OperationException(dataType + "解析异常");
+                                        throw new TRSException(dataType + "解析异常");
                                     }
                                     GatherPoint gatherPoint = new GatherPoint(user.getId(), dataType, taskName, taskId, siteName, channelName, urlName, "", "", new Date(), "", level);
                                     gatherPoint.setStatus(status);
@@ -1418,7 +1548,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                     gatherRepository.save(gatherPointList);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    throw new OperationException("解析失败" + e);
+                    throw new TRSException("解析失败" + e);
                 }
 //                JSONArray js = JSONArray.fromObject(hashMaps);
 //                String sendPost = HttpUtil.sendPost(uploadpoint, js.toString());
@@ -1426,7 +1556,7 @@ dataType = Const.PAGE_SHOW_BOKE;
 
             return Const.SUCCESS;
         } catch (Exception e) {
-            throw new OperationException("解析失败" + e);
+            throw new TRSException("解析失败" + e);
 //            e.printStackTrace();
         }
     }
