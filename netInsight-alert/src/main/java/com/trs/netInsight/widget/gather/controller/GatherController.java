@@ -724,12 +724,12 @@ public class GatherController {
 
             for (GatherPoint gatherPoint : findAll) {
                 if (isAdopt) {
-                    gatherPoint.setStatus("采集中");
-                    gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
-                    gatherPoint.setAuditUserName(user.getUserName());
-                    gatherPoint.setNeedRemind(true);
-                    gatherPoint.setAuditTime(new Date());
-                    gatherPointList.add(gatherPoint);
+//                    gatherPoint.setStatus("采集中");
+//                    gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
+//                    gatherPoint.setAuditUserName(user.getUserName());
+//                    gatherPoint.setNeedRemind(true);
+//                    gatherPoint.setAuditTime(new Date());
+//                    gatherPointList.add(gatherPoint);
                         if (Const.PAGE_SHOW_XINWEN.equals(gatherPoint.getDataType())){
                             GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                             gatherPointOaList.add(gatherPointOa);
@@ -928,8 +928,38 @@ public class GatherController {
                     gatherRepository.save(gatherPointList);
                     return jsonObject.getString("msg");
                 } else {
+                com.alibaba.fastjson.JSONArray dataIds = jsonObject.getJSONArray("data");
+                    List<GatherPoint> gatherPointList1 = new ArrayList<>();
+                    List<GatherPoint> gatherPointList2 = new ArrayList<>();
+                    for (GatherPoint gatherPoint: gatherPointList) {
+                        int is = 0;
+                        for (int i = 0; i < dataIds.size(); i++) {
+                            if (gatherPoint.getId().equals(dataIds.get(i))){
+                                is = 1;
+                                continue;
+                            }
+                        }
+                        if (is == 1){
+                            gatherPoint.setStatus("采集中");
+                            gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
+                            gatherPoint.setAuditUserName(user.getUserName());
+                            gatherPoint.setNeedRemind(true);
+                            gatherPoint.setAuditTime(new Date());
+                            gatherPointList1.add(gatherPoint);
+                        }else {
+//                            gatherPoint.setStatus("采集中");
+                            gatherPoint.setAuditStatus(Const.GATHER_AUDITING);
+                            gatherPoint.setAuditUserName(user.getUserName());
+                            gatherPoint.setNeedRemind(true);
+                            gatherPoint.setAuditTime(new Date());
+                            gatherPointList2.add(gatherPoint);
+                        }
+                    }
+                    gatherRepository.save(gatherPointList1);
+                    gatherRepository.save(gatherPointList2);
                     String msg = jsonObject.getString("msg");
-                    String[] msgs = msg.split(";");
+                    throw new TRSException(msg,1001);
+                  /*  String[] msgs = msg.split(";");
                     for (String str: msgs) {
                         if (str.contains("需求上传成功")) {
                             String dataString = str.substring(0, str.length() - 7);
@@ -974,7 +1004,7 @@ public class GatherController {
                             }
                         }
                     }
-                   throw new TRSException(msg,1001);
+                   throw new TRSException(msg,1001);*/
                 }
             }else {
                 gatherRepository.save(gatherPointList);
