@@ -43,10 +43,10 @@ import java.util.List;
  * 专题分析自定义图表接口
  */
 @RestController
-@RequestMapping("/special/chart")
+@RequestMapping("/special/customChart")
 @Api(description = "专题分析自定义图表接口")
 @Slf4j
-public class SpecialChartController {
+public class SpecialCustomChartController {
     @Autowired
     private ISpecialCustomChartService specialCustomChartService;
     @Autowired
