@@ -433,15 +433,11 @@ public class InfoListController {
 		try {
 			//高级搜索只有一个关键词组
 			JSONArray jsonArray = JSONArray.parseArray(keywords);
-
+			String searchKey = "";
 			if (jsonArray != null && jsonArray.size() == 1) {
 				Object o = jsonArray.get(0);
 				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
-				String searchKey = jsonObject.getString("keyWords");
-				//只有 关键词、排除网站、监测网站、排除词 这四个都为空时才返回空
-				if(StringUtil.isEmpty(searchKey) && StringUtil.isEmpty(excludeWeb) && StringUtil.isEmpty(excludeWords) && StringUtil.isEmpty(monitorSite)){
-					return null;
-				}
+				searchKey = jsonObject.getString("keyWords");
 				searchKey = searchKey.replaceAll("\\s+", ",");
 				jsonObject.put("keyWords", searchKey);
 				if(wordFromNum == null ){
@@ -454,6 +450,10 @@ public class InfoListController {
 				jsonObject.put("wordOrder", wordFromSort);
 				jsonArray.set(0, jsonObject);
 				keywords = jsonArray.toJSONString();
+			}
+			//只有 关键词、排除网站、监测网站、排除词 这四个都为空时才返回空
+			if(StringUtil.isEmpty(searchKey) && StringUtil.isEmpty(excludeWeb) && StringUtil.isEmpty(excludeWords) && StringUtil.isEmpty(monitorSite)){
+				return null;
 			}
 			// 默认不排重
 			boolean isSimilar = false;
@@ -574,15 +574,12 @@ public class InfoListController {
 
             //高级搜索只有一个关键词组
             JSONArray jsonArray = JSONArray.parseArray(keywords);
-
+			String searchKey = "";
             if (jsonArray != null && jsonArray.size() == 1) {
                 Object o = jsonArray.get(0);
                 JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
-                String searchKey = jsonObject.getString("keyWords");
-                //只有 关键词、排除网站、监测网站、排除词 这四个都为空时才返回空
-                if(StringUtil.isEmpty(searchKey) && StringUtil.isEmpty(excludeWeb) && StringUtil.isEmpty(excludeWords) && StringUtil.isEmpty(monitorSite)){
-                    return null;
-                }
+				searchKey = jsonObject.getString("keyWords");
+
                 searchKey = searchKey.replaceAll("\\s+", ",");
                 jsonObject.put("keyWords", searchKey);
                 if(wordFromNum == null ){
@@ -596,7 +593,10 @@ public class InfoListController {
                 jsonArray.set(0, jsonObject);
                 keywords = jsonArray.toJSONString();
             }
-
+			//只有 关键词、排除网站、监测网站、排除词 这四个都为空时才返回空
+			if(StringUtil.isEmpty(searchKey) && StringUtil.isEmpty(excludeWeb) && StringUtil.isEmpty(excludeWords) && StringUtil.isEmpty(monitorSite)){
+				return null;
+			}
 
 			// 默认不排重
 			boolean isSimilar = false;
