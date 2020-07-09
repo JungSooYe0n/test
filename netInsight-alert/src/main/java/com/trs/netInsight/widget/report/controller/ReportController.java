@@ -111,7 +111,7 @@ public class ReportController {
 			}
 
 			return reportService.getFavouritesByCondition(loginUser, pageNo, pageSize,
-					source, keywords,fuzzyValueScope, invitationCard, forwarPrimary);
+					source, keywords,fuzzyValueScope, invitationCard, forwarPrimary,false);
 			/*
 			历史方法，但是没有筛选功能
 			return reportService.getAllFavourites(loginUser, pageNo, pageSize,
