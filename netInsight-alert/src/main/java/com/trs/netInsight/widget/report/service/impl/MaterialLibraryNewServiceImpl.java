@@ -473,7 +473,7 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
 
     @Override
     public String delLibraryResource(String sids, String libraryId) {
-        String[] sidArry = sids.split(SEMICOLON);
+        String[] sidArry = sids.split("[,|;]");
         Criteria<Favourites> criteria = new Criteria<Favourites>();
         criteria.add(Restrictions.in("sid", Arrays.asList(sidArry)));
         User loginUser = UserUtils.getUser();
@@ -484,13 +484,15 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
         }
         criteria.add(Restrictions.eq("libraryId",libraryId));
         List<Favourites> all = favouritesRepository.findAll(criteria);
-        favouritesRepository.delete(favouritesRepository.findAll(criteria));
+        if(all != null && all.size() > 0){
+            favouritesRepository.delete(all);
+        }
         return Const.SUCCESS;
     }
     //
     @Override
     public String delLibraryResourceForIds(String sids) {
-        String[] sidArry = sids.split(SEMICOLON);
+        String[] sidArry = sids.split("[,|;]");
         Criteria<Favourites> criteria = new Criteria<Favourites>();
         criteria.add(Restrictions.in("sid", Arrays.asList(sidArry)));
         User loginUser = UserUtils.getUser();
