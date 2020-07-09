@@ -1,11 +1,9 @@
 package com.trs.netInsight.util;
 
 import com.trs.netInsight.handler.exception.OperationException;
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -131,11 +129,18 @@ public class ExcelUtil<T> {
                         HashMap<String, String> rowMap = new HashMap<String, String>();//对应一个数据行
                         boolean isgo = true;
                         for (int k = 0; k < titles.size(); k++) {
-                            Cell cell = row.getCell(k);
+                            Cell cell =  row.getCell(k);
                             String key = titles.get(k);
                             String value = null;
                             if (cell != null) {
                                 value = cell.toString();
+                                switch (cell.getCellType()){
+                                    case Cell.CELL_TYPE_NUMERIC:
+                                        cell.setCellType(CellType.STRING);
+                                        value = String.valueOf(cell.getStringCellValue());
+                                        break;
+                                }
+
                             }
                             if (StringUtil.isEmpty(value) && k < (titles.size() - 1)){
                                 isgo = false;

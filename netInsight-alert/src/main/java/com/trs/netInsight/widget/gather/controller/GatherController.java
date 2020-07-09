@@ -729,7 +729,7 @@ public class GatherController {
 //                    gatherPoint.setAuditUserName(user.getUserName());
 //                    gatherPoint.setNeedRemind(true);
 //                    gatherPoint.setAuditTime(new Date());
-//                    gatherPointList.add(gatherPoint);
+                    gatherPointList.add(gatherPoint);
                         if (Const.PAGE_SHOW_XINWEN.equals(gatherPoint.getDataType())){
                             GatherPointOa gatherPointOa = new GatherPointOa(gatherPoint.getSiteName(), gatherPoint.getChannelName(), gatherPoint.getUrlName(), "", gatherPoint.getLevel(), gatherPoint.getId(),gatherPoint.getOrganizationName(),gatherPoint.getUserAccount());
                             gatherPointOaList.add(gatherPointOa);
@@ -816,6 +816,9 @@ public class GatherController {
                     }
 
                 } else {
+                    if ("采集中".equals(gatherPoint.getStatus())){
+                        throw new TRSException("“采集中”状态下无法退回");
+                    }
                     gatherPoint.setStatus("草稿");
                     gatherPoint.setAuditStatus(Const.GATHER_NO_AUDIT);
                     gatherPoint.setRemarks(remarks);
@@ -934,7 +937,7 @@ public class GatherController {
                     for (GatherPoint gatherPoint: gatherPointList) {
                         int is = 0;
                         for (int i = 0; i < dataIds.size(); i++) {
-                            if (gatherPoint.getId().equals(dataIds.get(i))){
+                            if (gatherPoint.getId().equals(dataIds.getString(i))){
                                 is = 1;
                                 continue;
                             }
