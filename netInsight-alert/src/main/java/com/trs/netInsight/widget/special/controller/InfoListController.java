@@ -521,7 +521,7 @@ public class InfoListController {
 	@RequestMapping(value = "/searchList", method = RequestMethod.POST)
     public Object searchList(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
                              @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-                             @RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
+                             @RequestParam(value = "sort", defaultValue = "relevance", required = false) String sort,
 
                              @RequestParam(value = "keywords", required = false) String keywords,
                              @RequestParam(value = "searchType", required = false) String searchType,
@@ -560,17 +560,15 @@ public class InfoListController {
 
 
 		try {
-            //判断当前选择数据源和该次搜索选择的全部数据源是否是包含关系，不包含则无法查询
-            if(!"ALL".equals(source)){
-            	if(!"ALL".equals(checkedSource)){
-					List<String> sourceList = Arrays.asList(source.split(";"));
-					if(!sourceList.contains(checkedSource)){
-						return null;
-					}else{
-						source = checkedSource;
-					}
+			//判断当前选择数据源和该次搜索选择的全部数据源是否是包含关系，不包含则无法查询
+			if (!"ALL".equals(checkedSource)) {
+				List<String> sourceList = Arrays.asList(source.split(";"));
+				if (!sourceList.contains(checkedSource)) {
+					return null;
+				} else {
+					source = checkedSource;
 				}
-            }
+			}
 
             //高级搜索只有一个关键词组
             JSONArray jsonArray = JSONArray.parseArray(keywords);

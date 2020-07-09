@@ -5910,11 +5910,11 @@ public class InfoListServiceImpl implements IInfoListService {
 
 			queryBuilder.setPageNo(pageNo);
 			queryBuilder.setPageSize(pageSize);
-			InfoListResult list = null;
+			InfoListResult infoListResult = null;
 			log.info("综合：" + queryBuilder.asTRSL());
 
 			if ("hot".equals(sort)) {
-				list = commonListService.queryPageListForHot(queryBuilder, source, user, type, true);
+				infoListResult = commonListService.queryPageListForHot(queryBuilder, source, user, type, true);
 
 			} else {
 				switch (sort) { // 排序
@@ -5935,7 +5935,7 @@ public class InfoListServiceImpl implements IInfoListService {
 						}
 						break;
 				}
-				list = commonListService.queryPageList(queryBuilder, sim, irSimflag, irSimflagAll, source, type, user, true);
+				infoListResult = commonListService.queryPageList(queryBuilder, sim, irSimflag, irSimflagAll, source, type, user, true);
 			}
 
 
@@ -5943,8 +5943,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				处理数据
 				InfoListResult
 				 */
-			if (list != null) {
-				InfoListResult infoListResult = (InfoListResult) list;
+			if (infoListResult != null) {
 				String trslk = infoListResult.getTrslk();
 				if (infoListResult.getContent() != null) {
 					PagedList<Object> resultContent = null;
@@ -6035,9 +6034,8 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 					infoListResult.setContent(resultContent);
 				}
-				list = infoListResult;
 			}
-			return list;
+			return infoListResult;
 		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {

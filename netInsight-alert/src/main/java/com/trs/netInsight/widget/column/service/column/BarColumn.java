@@ -167,14 +167,7 @@ public class BarColumn extends AbstractColumn {
 					}
 				}
 			}else{
-				if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {// 舆论来源对比
-					String key = StringUtils.join(CommonListChartUtil.formatGroupName(super.config.getKey()), ";");
-					commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);
-				}else if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {//站点对比
-					commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
-				}else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {//微信公众号对比
-					commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
-				}else if (ColumnConst.HOT_TOPIC_SORT.equals(type)) {//微博热点话题
+				if (ColumnConst.HOT_TOPIC_SORT.equals(type)) {//微博热点话题
 					commonBuilder.filterField(FtsFieldConst.FIELD_TAG, super.config.getKey(), Operator.Equal);
 				}else if (ColumnConst.CHART_BAR_CROSS.equals(type)) {//活跃账号对比
 					String contrastField = FtsFieldConst.FIELD_SITENAME;
@@ -184,10 +177,20 @@ public class BarColumn extends AbstractColumn {
 						contrastField = FtsFieldConst.FIELD_AUTHORS;
 					}
 					commonBuilder.filterField(contrastField, super.config.getKey(), Operator.Equal);
-				} else {
-					//除去专家模式，柱状图只有三种模式，+两种特殊的图，如果不是这5种，则无对比模式
-					throw new TRSSearchException("未获取到检索条件");
+				}else{
+					if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {// 舆论来源对比
+						String key = StringUtils.join(CommonListChartUtil.formatGroupName(super.config.getKey()), ";");
+						commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);
+					}else if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {//站点对比
+						commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
+					}else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {//微信公众号对比
+						commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
+					} else {
+						//除去专家模式，柱状图只有三种模式，+两种特殊的图，如果不是这5种，则无对比模式
+						throw new TRSSearchException("未获取到检索条件");
+					}
 				}
+
 			}
 			if("hot".equals(this.config.getOrderBy())){
 				return commonListService.queryPageListForHot(commonBuilder,checkGroupName,loginUser,"column",true);

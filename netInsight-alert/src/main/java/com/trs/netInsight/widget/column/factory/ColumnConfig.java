@@ -11,9 +11,12 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.WordSpacingUtil;
+import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.IndexTabType;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import edu.stanford.nlp.parser.dvparser.DVModelReranker;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -148,11 +151,28 @@ public class ColumnConfig {
 	 * 检索构造器
 	 */
 	private QueryBuilder queryBuilder;
-
+	public QueryBuilder getQueryBuilder(){
+		if(isFilterXyTrsl){
+			appendXYTrslForSpecialTrsl();
+		}
+		return queryBuilder;
+	}
 	/**
 	 * 联合查询通用构造器
 	 */
 	private QueryCommonBuilder commonBuilder;
+
+	public QueryCommonBuilder getCommonBuilder(){
+		if(isFilterXyTrsl){
+			appendXYTrslForSpecialTrsl();
+		}
+		return commonBuilder;
+	}
+
+	/**
+	 * 是否还需要拼接 xyTrsl 表达式
+	 */
+	private boolean isFilterXyTrsl = true;
 
 	/**
 	 * 初始化配置(不对hybase数据源负责)
@@ -527,6 +547,7 @@ public class ColumnConfig {
 		}
 		// 构造通用检索构造器
 		convertCommonBuilder();
+		appendXYTrslForSpecialTrsl();
 		// 分页
 		queryBuilder.page(pageNo, pageSize);
 	}
@@ -789,6 +810,49 @@ public class ColumnConfig {
 
 		this.queryBuilder = new QueryBuilder();
 		queryBuilder.filterByTRSL(asTRSL);
+	}
+
+	/**
+	 * 给专家模式的表达式拼接xytrsl
+	 */
+	private void appendXYTrslForSpecialTrsl(){
+		//SpecialType specialType = this.indexTab.getSpecialType();
+
+		String xyTrsl = this.indexTab.getXyTrsl();
+		if (StringUtil.isNotEmpty(xyTrsl)) {
+			// 专家模式，xytrsl不为空是饼、柱、折三种图
+			//查信息列表（不是点击图跳转到的列表）时需要用xyTrsl去限制
+			//如果是统计分析中的图表，也需要用xyTrsl去限制
+			if (ColumnConst.LIST_NO_SIM.equals(this.indexTab.getType()) || (this.chartPage != null && this.chartPage.equals(ChartPageInfo.StatisticalChart))) {
+				isFilterXyTrsl = false;
+				//(IR_URLTIME:[20200709000000 TO 20200709015959]) AND
+				//(
+				//(IR_SITENAME:("河北新闻网")) OR  ( *:* -IR_SITENAME:("百度贴吧元搜索") )  OR  (*:* -IR_SITENAME:("百度贴吧")))
+				List<CategoryBean> mediaType = CommonListChartUtil.getMediaType(xyTrsl);
+				StringBuffer sb = new StringBuffer();
+				for (CategoryBean categoryBean : mediaType) {
+					if (StringUtil.isNotEmpty(categoryBean.getValue())) {
+						String value = categoryBean.getValue().toLowerCase().trim();
+						if (sb.length() > 0) {
+							sb.append(" OR ");
+						}
+						if (value.startsWith("not")) {
+							value = categoryBean.getValue().substring(3, categoryBean.getValue().length());
+							while (value.startsWith("[ |	]")) {
+								value = value.substring(1, categoryBean.getValue().length());
+							}
+							sb.append("(").append("*:* -").append(value).append(")");
+						} else {
+							sb.append("(").append(categoryBean.getValue()).append(")");
+						}
+					}
+				}
+				if (sb.length() > 0) {
+					this.queryBuilder.filterByTRSL("(" + sb.toString() + ")");
+					this.commonBuilder.filterByTRSL("(" + sb.toString() + ")");
+				}
+			}
+		}
 	}
 
 }
