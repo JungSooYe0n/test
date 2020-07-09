@@ -1091,14 +1091,15 @@ public class ReportServiceImpl implements IReportService {
 					QueryBuilder queryBuilder = new QueryBuilder();
 					queryBuilder.filterByTRSL(timeTrsl);
 					queryBuilder.page(0, 1);
-					if (Const.GROUPNAME_WEIXIN.equals(groupNameArray[i])) {
+					String equals = CommonListChartUtil.changeGroupName(groupNameArray[i]);
+					if (Const.GROUPNAME_WEIXIN.equals(equals)) {
 						queryBuilder.filterField(FtsFieldConst.FIELD_HKEY, sidArry[i], Operator.Equal);
-					} else if (Const.GROUPNAME_WEIBO.equals(groupNameArray[i])) {
+					} else if (Const.GROUPNAME_WEIBO.equals(equals)) {
 						queryBuilder.filterField(FtsFieldConst.FIELD_MID, sidArry[i], Operator.Equal);
 					} else {
 						queryBuilder.filterField(FtsFieldConst.FIELD_SID, sidArry[i], Operator.Equal);
 					}
-					InfoListResult infoListResult = commonListService.queryPageList(builder, false, false, false, groupNameArray[i], null, user, false);
+					InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, false, groupNameArray[i], null, user, false);
 					if (infoListResult.getContent() != null) {
 						PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 						if (pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
@@ -2475,7 +2476,7 @@ public class ReportServiceImpl implements IReportService {
 	 *
 	 * @throws TRSException
 	 */
-	public Object getFavouritesByCondition(User user, int pageNo, int pageSize,List<String> groupNameList,String keyword,String fuzzyValueScope,String invitationCard,String forwarPrimary) throws TRSException{
+	public Object getFavouritesByCondition(User user, int pageNo, int pageSize,List<String> groupNameList,String keyword,String fuzzyValueScope,String invitationCard,String forwarPrimary,Boolean isExport) throws TRSException{
 		//获取用户可查询的数据源
 		String groupNames = org.apache.commons.lang3.StringUtils.join(groupNameList,";");
 		List<String> groupName = SourceUtil.getGroupNameList(groupNames);
@@ -2587,84 +2588,102 @@ public class ReportServiceImpl implements IReportService {
 		};
 
 		list = favouritesRepository.findAll(criteria,pageable);
+if (isExport){
+	if (ObjectUtil.isNotEmpty(list)) {
+		list.forEach(item -> {
+			if (item.getGroupName().equals("Twitter") || item.getGroupName().equals("Facebook") || item.getGroupName().equals("国内微信")){
+				item.setScreenName(item.getAuthors());
+			}
+			if(StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null)
+				item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
+			item.setUrlTitle(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getUrlTitle())),Const.CONTENT_LENGTH));
+			item.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getStatusContent())),Const.CONTENT_LENGTH));
+			item.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getContent())),Const.CONTENT_LENGTH));
+			item.setTitle(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getTitle())),Const.CONTENT_LENGTH));
+		});
+	}
 
-		if (ObjectUtil.isNotEmpty(list)) {
-			List<Object> resultList = new ArrayList<>();
-			list.forEach(item -> {
-				Map<String, Object> map = new HashMap<>();
+	return new InfoListResult<>(list.getContent(), (int)list.getTotalElements(), list.getTotalPages());
+}else {
+	if (ObjectUtil.isNotEmpty(list)) {
+		List<Object> resultList = new ArrayList<>();
+		list.forEach(item -> {
+			Map<String, Object> map = new HashMap<>();
 
-				String oneGroup = CommonListChartUtil.formatPageShowGroupName(item.getGroupName());
-				map.put("id", item.getSid());
-				map.put("groupName", oneGroup);
-				map.put("urltime", item.getUrlTime());
-				map.put("md5", item.getMdsTag());
+			String oneGroup = CommonListChartUtil.formatPageShowGroupName(item.getGroupName());
+			map.put("id", item.getSid());
+			map.put("groupName", oneGroup);
+			map.put("urltime", item.getUrlTime());
+			map.put("md5", item.getMdsTag());
 
-				if(StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null) item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
-				item.setUrlTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getUrlTitle())),Const.CONTENT_LENGTH));
-				item.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getContent())),Const.CONTENT_LENGTH));
-				item.setTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getTitle())),Const.CONTENT_LENGTH));
+			if (StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null)
+				item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
+			item.setUrlTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getUrlTitle())), Const.CONTENT_LENGTH));
+			item.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getContent())), Const.CONTENT_LENGTH));
+			item.setTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getTitle())), Const.CONTENT_LENGTH));
 
-				String title= item.getTitle();
-				map.put("title", title);
-				if(StringUtil.isNotEmpty(title)){
-					title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
-				}
-				map.put("copyTitle", title); //前端复制功能需要用到
-				//摘要
+			String title = item.getTitle();
+			map.put("title", title);
+			if (StringUtil.isNotEmpty(title)) {
+				title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+			}
+			map.put("copyTitle", title); //前端复制功能需要用到
+			//摘要
+			map.put("abstracts", item.getContent());
+			if (item.getKeywords() != null && item.getKeywords().size() > 3) {
+				map.put("keyWordes", item.getKeywords().subList(0, 3));
+			} else {
+				map.put("keyWordes", item.getKeywords());
+			}
+			String voEmotion = item.getAppraise();
+			if (StringUtil.isNotEmpty(voEmotion)) {
+				map.put("emotion", voEmotion);
+			} else {
+				map.put("emotion", "中性");
+				map.put("isEmotion", null);
+			}
+			map.put("nreserved1", null);
+			map.put("hkey", item.getHkey());
+			if (Const.PAGE_SHOW_LUNTAN.equals(oneGroup)) {
+				map.put("nreserved1", item.getNreserved1());
+			}
+			map.put("urlName", item.getUrlName());
+			map.put("favourite", item.isFavourite());
+			String fullContent = item.getFullContent();
+			if (StringUtil.isNotEmpty(fullContent)) {
+				fullContent = ReportUtil.calcuHit("", fullContent, true);
+			}
+			map.put("siteName", item.getSiteName());
+			map.put("author", item.getAuthors());
+			map.put("srcName", item.getSrcName());
+			//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
+			if (Const.PAGE_SHOW_WEIBO.equals(oneGroup)) {
+				map.put("title", item.getContent());
 				map.put("abstracts", item.getContent());
-				if(item.getKeywords() != null && item.getKeywords().size() >3){
-					map.put("keyWordes", item.getKeywords().subList(0,3));
-				}else{
-					map.put("keyWordes", item.getKeywords());
-				}
-				String voEmotion =  item.getAppraise();
-				if(StringUtil.isNotEmpty(voEmotion)){
-					map.put("emotion",voEmotion);
-				}else{
-					map.put("emotion","中性");
-					map.put("isEmotion",null);
-				}
-				map.put("nreserved1", null);
-				map.put("hkey", item.getHkey());
-				if (Const.PAGE_SHOW_LUNTAN.equals(oneGroup)) {
-					map.put("nreserved1", item.getNreserved1());
-				}
-				map.put("urlName", item.getUrlName());
-				map.put("favourite", item.isFavourite());
-				String fullContent = item.getFullContent();
-				if(StringUtil.isNotEmpty(fullContent)){
-					fullContent = ReportUtil.calcuHit("",fullContent,true);
-				}
-				map.put("siteName", item.getSiteName());
-				map.put("author", item.getAuthors());
-				map.put("srcName", item.getSrcName());
-				//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
-				if (Const.PAGE_SHOW_WEIBO.equals(oneGroup)) {
-					map.put("title", item.getContent());
-					map.put("abstracts", item.getContent());
-					map.put("copyTitle", fullContent); //前端复制功能需要用到
+				map.put("copyTitle", fullContent); //前端复制功能需要用到
 
-					map.put("author", item.getScreenName());
-				} else if (Const.PAGE_SHOW_FACEBOOK.equals(oneGroup) || Const.PAGE_SHOW_TWITTER.equals(oneGroup)) {
-					map.put("title", item.getContent());
-					map.put("abstracts", item.getContent());
-					map.put("copyTitle", fullContent); //前端复制功能需要用到
-					map.put("author", item.getAuthors());
-				} else if(Const.PAGE_SHOW_DUANSHIPIN.equals(oneGroup) || Const.PAGE_SHOW_CHANGSHIPIN.equals(oneGroup)){
-					map.put("title", item.getContent());
-					map.put("abstracts", item.getContent());
-					map.put("author", item.getAuthors());
-					map.put("copyTitle", fullContent); //前端复制功能需要用到
-				}
-				map.put("img", null);
-				map.put("channel", item.getChannel());
-				//前端页面显示需要，与后端无关
-				map.put("isImg", false);
-				map.put("simNum", 0);
-				resultList.add(map);
-			});
-			return new InfoListResult<>(resultList, (int)list.getTotalElements(), list.getTotalPages());
-		}
+				map.put("author", item.getScreenName());
+			} else if (Const.PAGE_SHOW_FACEBOOK.equals(oneGroup) || Const.PAGE_SHOW_TWITTER.equals(oneGroup)) {
+				map.put("title", item.getContent());
+				map.put("abstracts", item.getContent());
+				map.put("copyTitle", fullContent); //前端复制功能需要用到
+				map.put("author", item.getAuthors());
+			} else if (Const.PAGE_SHOW_DUANSHIPIN.equals(oneGroup) || Const.PAGE_SHOW_CHANGSHIPIN.equals(oneGroup)) {
+				map.put("title", item.getContent());
+				map.put("abstracts", item.getContent());
+				map.put("author", item.getAuthors());
+				map.put("copyTitle", fullContent); //前端复制功能需要用到
+			}
+			map.put("img", null);
+			map.put("channel", item.getChannel());
+			//前端页面显示需要，与后端无关
+			map.put("isImg", false);
+			map.put("simNum", 0);
+			resultList.add(map);
+		});
+		return new InfoListResult<>(resultList, (int) list.getTotalElements(), list.getTotalPages());
+	}
+}
 		return null;
 	}
 
