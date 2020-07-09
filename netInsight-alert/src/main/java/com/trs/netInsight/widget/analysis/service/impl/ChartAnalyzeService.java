@@ -3288,4 +3288,19 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 		return groupName;
 	}
 
+	/**
+	 * 获取专题内图表列表数据
+	 *
+	 * @param specialProject
+	 *            专题对象
+
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public Object getChartToListData(SpecialProject specialProject,SpecialChartType specialChartType,String source,String key,String dateTime,String entityType,String mapContrast,
+									 int pageNo,int pageSize,String sort,String fuzzyValue,String fuzzyValueScope,String forwarPrimary,String invitationCard) throws Exception{
+		return null;
+	}
+
 }

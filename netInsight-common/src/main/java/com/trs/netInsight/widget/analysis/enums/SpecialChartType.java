@@ -73,11 +73,19 @@ public enum SpecialChartType {
      * 饼状图
      */
     CHART_PIE(ColumnConst.CHART_PIE, "饼状图","ALL"),
+    /**
+     * 饼状图 - 舆论场发布统计，这个图和上面的饼图几乎一样，只是前端页面的展示不一样
+     */
+    CHART_PIE_OPINION("opinionStatistics", "饼状图 - 舆论场发布统计","ALL"),
 
     /**
      * 饼状图
      */
-    CHART_PIE_EMOTION(ColumnConst.CHART_PIE_EMOTION, "情感分析饼状图","ALL");
+    CHART_PIE_EMOTION(ColumnConst.CHART_PIE_EMOTION, "情感分析饼状图 - 正负面","ALL"),
+    /**
+     * 饼状图 - 情绪统计，喜怒哀乐惧等
+     */
+    CHART_PIE_MOOD("moodStatistics","情绪分析饼状图 - 喜怒哀乐惧等","ALL");
 
 
     private String typeCode;
@@ -86,4 +94,12 @@ public enum SpecialChartType {
 
     private String resource;
 
+    public static SpecialChartType getSpecialChartType(String typeCode){
+        for(SpecialChartType specialChartType :SpecialChartType.values()){
+            if(specialChartType.typeCode.equals(typeCode)){
+                return specialChartType;
+            }
+        }
+        return null;
+    }
 }

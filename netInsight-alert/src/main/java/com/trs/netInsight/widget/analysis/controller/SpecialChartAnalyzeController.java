@@ -2963,15 +2963,11 @@ public class SpecialChartAnalyzeController {
 	 * 			专项id
 	 * @param timeRange
 	 * 			高级筛选时间段
-	 * @param industryType
-	 * 			行业类型
-	 * @param area
-	 * 			地域分布
 	 * @param chartType
 	 * 			图表类型
 	 * @param dateTime
 	 * 			数据时间
-	 * @param xType
+	 * @param key
 	 * 			数据参数
 	 * @param source
 	 * 			数据来源
@@ -2985,48 +2981,45 @@ public class SpecialChartAnalyzeController {
 	//@EnableRedis 有文章删除的时候不能用,否则删除无效
 	@FormatResult
 	@ApiOperation("专题图表通用列表跳转方法")
-	@RequestMapping(value = "/chart2list", method = RequestMethod.GET)
-	public Object chart2list(@ApiParam("专题id")@RequestParam(value = "specialId") String specialId,
-							 @ApiParam("高级筛选时间段") @RequestParam(value = "timeRange", defaultValue = "3d") String timeRange,
-							 @ApiParam("行业类型")@RequestParam(value = "industryType", defaultValue = "ALL") String industryType,
-							 @ApiParam("地域分布")@RequestParam(value = "area", defaultValue = "ALL") String area,
+	@RequestMapping(value = "/chart2list", method = RequestMethod.POST)
+	public Object chart2list(@ApiParam("专题id")@RequestParam(value = "id") String id,
 							 @ApiParam("图表类型")@RequestParam(value = "chartType") String chartType,
-							 @ApiParam("热词：用户点击的外圈词（共30个）")@RequestParam(value = "thirdWord", required = false)String thirdWord,
-							 @ApiParam("数据时间")@RequestParam(value = "dateTime", required = false) String dateTime,
-							 @ApiParam("数据参数")@RequestParam(value = "xType",required = false ) String xType,
-							 @ApiParam("数据来源")@RequestParam(value = "source",required = false ) String source,
-							 @ApiParam("通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+							 @ApiParam("高级筛选时间段") @RequestParam(value = "timeRange", defaultValue = "3d") String timeRange,
+							 @ApiParam("数据来源 - 当前列表要展示的数据源")@RequestParam(value = "source",required = false ) String source,
+							 @ApiParam("数据参数 - 被点击的图上的点")@RequestParam(value = "key",required = false ) String key,
+							 @ApiParam("折线图数据时间")@RequestParam(value = "dateTime", required = false) String dateTime,
+							 @ApiParam("词云图 通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+							 @ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false) String mapContrast,
 							 @ApiParam("排序")@RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
-							 @ApiParam("情感")@RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
+							 @ApiParam("微博原发/转发")@RequestParam(value = "forwardPrimary",defaultValue = "") String forwardPrimary,
+							 @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
 							 @ApiParam("结果中搜索") @RequestParam(value="fuzzyValue",required=false) String fuzzyValue,
 							 @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
 							 @ApiParam("页码")@RequestParam(value = "pageNo",defaultValue = "0") int pageNo,
-							 @ApiParam("步长")@RequestParam(value = "pageSize",defaultValue = "10") int pageSize,
-							 @ApiParam("微博原发/转发")@RequestParam(value = "forwarPrimary",defaultValue = "") String forwarPrimary,
-							 @ApiParam("是否导出") @RequestParam(value = "isExport", defaultValue = "false") boolean isExport,
-							 @ApiParam("主回帖")@RequestParam(value = "invitationCard",defaultValue = "") String invitationCard
-	) throws Exception{
+							 @ApiParam("一页多少条")@RequestParam(value = "pageSize",defaultValue = "10") int pageSize,
+
+							 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+							 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+							 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+							 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+							 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
+							 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+							 @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							 @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+							 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+							 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws Exception{
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
-		SpecialProject specialProject = this.specialProjectNewRepository.findOne(specialId);
-		//页面展示 国外新闻 变为 境外网站  2019-12-10
-		if (StringUtil.isNotEmpty(source)){
-			if ("境外网站".equals(source) || "境外媒体".equals(source)){
-				source = "国外新闻";
-			}else if ("微信".equals(source)){
-				source = "国内微信";
-			}else if ("新闻".equals(source)){
-				source = "国内新闻";
-			}else if ("客户端".equals(source)){
-				source = "国内新闻_手机客户端";
-			}else if ("论坛".equals(source)){
-				source = "国内论坛";
-			}else if ("博客".equals(source)){
-				source = "国内博客";
-			}else if ("电子报".equals(source)){
-				source = "国内新闻_电子报";
-			}
-		}
+		SpecialProject specialProject = this.specialProjectNewRepository.findOne(id);
 		if (specialProject != null) {
 			// 初步高级删选时间范围
 			specialProject.setTimeRange(timeRange);
@@ -3035,7 +3028,11 @@ public class SpecialChartAnalyzeController {
 				specialProject.setStart(timeArray[0]);
 				specialProject.setEnd(timeArray[1]);
 			}
-			return this.specialChartAnalyzeService.getDataByChart(specialProject, industryType, area, chartType, dateTime, xType, source, entityType,sort,emotion,fuzzyValue,fuzzyValueScope,pageNo, pageSize,forwarPrimary,invitationCard,isExport,thirdWord);
+			SpecialChartType specialChartType =SpecialChartType.getSpecialChartType(chartType);
+
+			return this.specialChartAnalyzeService.getChartToListData(specialProject,specialChartType,source,key,dateTime,entityType,mapContrast,pageNo,pageSize,sort,
+											fuzzyValue,fuzzyValueScope,forwardPrimary,invitationCard);
+			//return this.specialChartAnalyzeService.getDataByChart(specialProject, industryType, area, chartType, dateTime, xType, source, entityType,sort,emotion,fuzzyValue,fuzzyValueScope,pageNo, pageSize,forwarPrimary,invitationCard,isExport,thirdWord);
 		}
 		return null;
 	}

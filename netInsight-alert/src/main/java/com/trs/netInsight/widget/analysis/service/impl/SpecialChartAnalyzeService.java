@@ -39,6 +39,7 @@ import com.trs.netInsight.widget.base.enums.ESGroupName;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
@@ -777,6 +778,19 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
 		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
+		if(resultMap == null){
+			return null;
+		}
+		for(Map<String,Object> oneMap : resultMap){
+			oneMap.put("contrast",areaType);
+		}
+		if(resultMap != null && resultMap.size() >0){
+			Collections.sort(resultMap, (o1, o2) -> {
+				Integer seq1 = (Integer) o1.get("value");
+				Integer seq2 = (Integer) o2.get("value");
+				return seq2.compareTo(seq1);
+			});
+		}
 		return resultMap;
 	}
 	@Override
@@ -885,47 +899,47 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
 			builder.setPageSize(20);
 		String groupNames ="";
-		switch (viewType){
-				case Const.OFFICIAL_VIEW:
-					groupNames = "新闻";
-					break;
-            case Const.MEDIA_VIEW:
-                groupNames = "新闻";
-                break;
-            case Const.EXPORT_VIEW:
-                groupNames = "新闻";
-                break;
-            case Const.NETIZEN_VIEW:
-                groupNames = "新闻";
-                break;
-			}
+		switch (viewType) {
+			case Const.OFFICIAL_VIEW:
+				groupNames = "新闻";
+				break;
+			case Const.MEDIA_VIEW:
+				groupNames = "新闻";
+				break;
+			case Const.EXPORT_VIEW:
+				groupNames = "新闻";
+				break;
+			case Const.NETIZEN_VIEW:
+				groupNames = "新闻";
+				break;
+		}
+		User user = UserUtils.getUser();
+		InfoListResult infoListResult = commonListService.queryPageListForHot(builder, groupNames, user, "special", false);
 
-			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(builder, "special", groupNames);
-			if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
-				return null;
+		if (infoListResult == null || infoListResult.getContent() == null) {
+			return null;
+		}
+		PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+
+		if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
+			return null;
+		}
+		String trslk = infoListResult.getTrslk();
+		List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
+		for (FtsDocumentCommonVO vo : voList) {
+			map = new HashMap<>();
+			String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+			if (ObjectUtil.isNotEmpty(vo.getTitle())) {
+				map.put("name", StringUtil.replaceFont(vo.getTitle()));
+				map.put("value", String.valueOf(vo.getSimCount()+1));
+				map.put("sid", vo.getSid());
+				map.put("md5", vo.getMd5Tag());
+				map.put("groupName", CommonListChartUtil.formatPageShowGroupName(groupNames));
+				map.put("trslk", trslk);
 			}
-			List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
-			for (FtsDocumentCommonVO vo : voList) {
-				map = new HashMap<>();
-				String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
-//				map.put("id", vo.getSid());
-//				if (Const.PAGE_SHOW_WEIXIN.equals(groupName)) {
-//					map.put("id", vo.getHkey());
-//				}
-//				map.put("groupName", groupName);
-//				map.put("time", vo.getUrlTime());
-//				map.put("md5", vo.getMd5Tag());
-//				String title = vo.getTitle();
-//				if (StringUtil.isNotEmpty(title)) {
-//					title = StringUtil.replacePartOfHtml(StringUtil.cutContentPro(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
-//				}
-				if (ObjectUtil.isNotEmpty(vo.getTitle())){
-					map.put("name",StringUtil.replaceFont(vo.getTitle()));
-					map.put("value", String.valueOf(vo.getSimCount()));
-				}
-				list.add(map);
-			}
-			return list;
+			list.add(map);
+		}
+		return list;
 	}
 
 	@Override
@@ -4826,7 +4840,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		ArrayList<HashMap<String, Object>> resultData = new ArrayList<>();
 		try {
 			searchBuilder.setPageSize(5);
-			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION,"special",CommonListChartUtil.changeGroupName(groupName));
+			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION_2,"special",CommonListChartUtil.changeGroupName(groupName));
 			for(GroupInfo groupInfo : posResult) {
 				HashMap<String, Object> result = new HashMap<>();
 				result.put("name", groupInfo.getFieldValue());
@@ -5800,6 +5814,297 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 			groupName = groupName.replaceAll("境外媒体","国外新闻");
 		}
 		return groupName;
+	}
+	/**
+	 * 获取专题内图表列表数据
+	 *
+	 * @param specialProject
+	 *            专题对象
+
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public Object getChartToListData(SpecialProject specialProject,SpecialChartType specialChartType,String source,String key,String dateTime,String entityType,String mapContrast,
+									 int pageNo,int pageSize,String sort,String fuzzyValue,String fuzzyValueScope,String forwardPrimary,String invitationCard) throws Exception{
+		InfoListResult infoListResult = null;
+
+		QueryBuilder queryBuilder = specialProject.toNoTimeBuilder(pageNo,pageSize);
+
+		String timeRange = specialProject.getTimeRange();
+		if(SpecialChartType.CHART_LINE.equals(specialChartType)){ // 舆论场趋势分析 - 折线图
+			source = key;
+			String dateEndTime = "";
+			if(dateTime.length() ==10 &&  DateUtil.isTimeFormatterYMD(dateTime)){
+				dateTime = dateTime.replaceAll("/","-");
+				dateTime = dateTime+"000000";
+				dateEndTime = dateTime+"235959";
+			}else if(dateTime.length() ==16 && DateUtil.isTimeFormatterYMDH(dateTime)){
+				dateTime = dateTime.replaceAll("/","-");
+				dateTime = dateTime+":00";
+				dateEndTime = dateTime.substring(0,dateTime.length()-6)+":59:59";
+			}
+			timeRange = dateTime+";"+dateEndTime;
+		}else if(SpecialChartType.CHART_PIE_OPINION.equals(specialChartType)){ //舆论场发布统计 - 饼图
+			source = key;
+
+		}else if(SpecialChartType.CHART_PIE_EMOTION.equals(specialChartType)){  // 正负面分析
+			if("中性".equals(key)){
+				queryBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, "中性 OR \"\"", Operator.Equal);
+			}else{
+				queryBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, key, Operator.Equal);
+			}
+		}else if(SpecialChartType.CHART_PIE_MOOD.equals(specialChartType)){  //  情绪分析 喜怒哀乐惧等
+			queryBuilder.filterField(FtsFieldConst.FIELD_EMOTION_2, key, Operator.Equal);
+		}else if(SpecialChartType.WORD_CLOUD.equals(specialChartType)){  //词云
+			if ("location".equals(entityType) && !"省".equals(key.substring(key.length() - 1)) && !key.contains("自治区")) {
+				String irKeywordNew = "";
+				if ("市".equals(key.substring(key.length() - 1))) {
+					irKeywordNew = key.replace("市", "");
+				} else {
+					irKeywordNew = key;
+				}
+				if (!irKeywordNew.contains("\"")) {
+					irKeywordNew = "\"" + irKeywordNew + "\"";
+				}
+				String trsl = FtsFieldConst.FIELD_URLTITLE + ":(" + irKeywordNew + ") OR " + FtsFieldConst.FIELD_CONTENT + ":(" + irKeywordNew + ")";
+				queryBuilder.filterByTRSL(trsl);
+			} else {
+				queryBuilder.filterField(Const.PARAM_MAPPING.get(entityType), key, Operator.Equal);
+			}
+		}else if(SpecialChartType.MAP.equals(specialChartType)){ // 地图
+			String contrastField = FtsFieldConst.FIELD_CATALOG_AREA;
+			if(StringUtil.isNotEmpty(mapContrast) && mapContrast.equals(ColumnConst.CONTRAST_TYPE_MEDIA_AREA)){
+				contrastField = FtsFieldConst.FIELD_MEDIA_AREA;
+			}
+			Map<String,String> areaMap = null;
+			if(FtsFieldConst.FIELD_MEDIA_AREA.equals(contrastField)){
+				areaMap = Const.MEDIA_PROVINCE_NAME;
+			}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
+				areaMap = Const.CONTTENT_PROVINCE_NAME;
+			}
+			queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) +")");
+		}else if(SpecialChartType.CHART_BAR_CROSS.equals(specialChartType)){ //活跃账号
+			String contrastField = FtsFieldConst.FIELD_SITENAME;
+			if(Const.GROUPNAME_WEIBO.equals(source)){
+				contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+			}else if(Const.MEDIA_TYPE_TF.contains(source)){
+				contrastField = FtsFieldConst.FIELD_AUTHORS;
+			}
+			queryBuilder.filterField(contrastField, key, Operator.Equal);
+		}else{
+			throw new TRSSearchException("未获取到检索条件");
+		}
+		queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(timeRange), Operator.Between);
+
+		if("ALL".equals(source)){
+			source = specialProject.getSource();
+		}
+		List<String> searchSourceList = CommonListChartUtil.formatGroupName(source);
+		//只在原转发和主回帖筛选时添加要查询数据源，因为底层方法通过参数中的groupName去添加了对应的数据源和数据库信息
+		if ((searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) ||
+				(searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwardPrimary) )) {
+			StringBuffer sb = new StringBuffer();
+			if (searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) {
+				sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+				if ("0".equals(invitationCard)) {// 主贴
+					sb.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+				} else if ("1".equals(invitationCard)) {// 回帖
+					sb.append(" AND (").append(FtsFieldConst.FIELD_NRESERVED1).append(":(1)").append(")");
+				}
+
+				sb.append(")");
+				searchSourceList.remove(Const.GROUPNAME_LUNTAN);
+			}
+			if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwardPrimary) ) {
+				if (sb.length() > 0) {
+					sb.append(" OR ");
+				}
+				sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+				if ("primary".equals(forwardPrimary)) {
+					// 原发
+					sb.append(" AND ").append(Const.PRIMARY_WEIBO);
+				} else if ("forward".equals(forwardPrimary)) {
+					//转发
+					sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
+				}
+
+				sb.append(")");
+				searchSourceList.remove(Const.GROUPNAME_WEIBO);
+			}
+			if (searchSourceList.size() > 0) {
+				if (sb.length() > 0) {
+					sb.append(" OR ");
+				}
+				sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
+			}
+			queryBuilder.filterByTRSL(sb.toString());
+		}
+
+		// 结果中搜索
+		if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
+			String[] split = fuzzyValue.split(",");
+			String splitNode = "";
+			for (int i = 0; i < split.length; i++) {
+				if (StringUtil.isNotEmpty(split[i])) {
+					splitNode += split[i] + ",";
+				}
+			}
+			fuzzyValue = splitNode.substring(0, splitNode.length() - 1);
+			if (fuzzyValue.endsWith(";") || fuzzyValue.endsWith(",") || fuzzyValue.endsWith("；")
+					|| fuzzyValue.endsWith("，")) {
+				fuzzyValue = fuzzyValue.substring(0, fuzzyValue.length() - 1);
+
+			}
+			StringBuilder fuzzyBuilder = new StringBuilder();
+			String hybaseField = "fullText";
+			switch (fuzzyValueScope) {
+				case "title":
+					hybaseField = FtsFieldConst.FIELD_URLTITLE;
+					break;
+				case "source":
+					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					break;
+				case "author":
+					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					break;
+			}
+			if ("fullText".equals(hybaseField)) {
+				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
+						.replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND \"")
+						.replaceAll("[;|；]+", "\" OR \"")).append("\"))");
+			} else {
+				fuzzyBuilder.append(hybaseField).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
+						.replaceAll("[;|；]+", "\" OR \"")).append("\"))");
+			}
+			queryBuilder.filterByTRSL(fuzzyBuilder.toString());
+		}
+
+
+		log.info("综合：" + queryBuilder.asTRSL());
+		User user = UserUtils.getUser();
+		String type = "special";
+		Boolean sim = specialProject.isSimilar();
+		Boolean	irSimflag = specialProject.isIrSimflag();
+		Boolean irSimflagAll = specialProject.isIrSimflagAll();
+
+		if ("hot".equals(sort)) {
+			infoListResult = commonListService.queryPageListForHot(queryBuilder, source, user, type, true);
+		} else {
+			switch (sort) { // 排序
+				case "desc":
+					queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				case "relevance":// 相关性排序
+					queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
+				default:
+					if (specialProject.isWeight()) {
+						queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_RELEVANCE + ";-" + FtsFieldConst.FIELD_URLTIME);
+					} else {
+						queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_URLTIME + ";-" + FtsFieldConst.FIELD_RELEVANCE);
+					}
+					break;
+			}
+			infoListResult = commonListService.queryPageList(queryBuilder, sim, irSimflag, irSimflagAll, source, type, user, true);
+		}
+		if (infoListResult != null) {
+			String trslk = infoListResult.getTrslk();
+			if (infoListResult.getContent() != null) {
+				PagedList<Object> resultContent = null;
+				List<Object> resultList = new ArrayList<>();
+				PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+					List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
+					for (FtsDocumentCommonVO vo : voList) {
+						Map<String, Object> map = new HashMap<>();
+						String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+						map.put("id", vo.getSid());
+						map.put("groupName", groupName);
+						map.put("time", vo.getUrlTime());
+						map.put("md5", vo.getMd5Tag());
+						String title = vo.getTitle();
+						map.put("title", title);
+						if (StringUtil.isNotEmpty(title)) {
+							title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+						}
+						map.put("copyTitle", title); //前端复制功能需要用到
+						if(SearchScope.TITLE_CONTENT.equals(specialProject.getSearchScope())){
+							//摘要
+							map.put("abstracts", vo.getContent());
+						}else{
+							//摘要
+							map.put("abstracts", vo.getAbstracts());
+						}
+						if (vo.getKeywords() != null && vo.getKeywords().size() > 3) {
+							map.put("keyWordes", vo.getKeywords().subList(0, 3));
+						} else {
+							map.put("keyWordes", vo.getKeywords());
+						}
+						String voEmotion = vo.getAppraise();
+						if (StringUtil.isNotEmpty(voEmotion)) {
+							map.put("emotion", voEmotion);
+						} else {
+							map.put("emotion", "中性");
+							map.put("isEmotion", null);
+						}
+
+						map.put("nreserved1", null);
+						map.put("hkey", null);
+						if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
+							map.put("nreserved1", vo.getNreserved1());
+							map.put("hkey", vo.getHkey());
+						}
+						map.put("urlName", vo.getUrlName());
+						map.put("favourite", vo.isFavourite());
+						String fullContent = vo.getExportContent();
+						if (StringUtil.isNotEmpty(fullContent)) {
+							fullContent = ReportUtil.calcuHit("", fullContent, true);
+						}
+						map.put("siteName", vo.getSiteName());
+						map.put("author", vo.getAuthors());
+						map.put("srcName", vo.getSrcName());
+						//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
+						if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
+							map.put("title", vo.getContent());
+							map.put("abstracts", vo.getContent());
+							map.put("copyTitle", fullContent); //前端复制功能需要用到
+
+							map.put("author", vo.getScreenName());
+							map.put("srcName", vo.getRetweetedScreenName());
+						} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
+							map.put("title", vo.getContent());
+							map.put("abstracts", vo.getContent());
+							map.put("copyTitle", fullContent); //前端复制功能需要用到
+							map.put("author", vo.getAuthors());
+							map.put("srcName", vo.getRetweetedScreenName());
+						} else if (Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)) {
+							map.put("title", vo.getContent());
+							map.put("abstracts", vo.getContent());
+							map.put("author", vo.getAuthors());
+							map.put("srcName", vo.getSrcName());
+							map.put("copyTitle", fullContent); //前端复制功能需要用到
+						}
+						map.put("trslk", trslk);
+						map.put("channel", vo.getChannel());
+						map.put("img", null);
+						//前端页面显示需要，与后端无关
+						map.put("isImg", false);
+						map.put("simNum", 0);
+
+						resultList.add(map);
+					}
+					resultContent = new PagedList<Object>(pagedList.getPageIndex(),
+							pagedList.getPageSize(), pagedList.getTotalItemCount(), resultList, 1);
+				}
+				infoListResult.setContent(resultContent);
+			}
+		}
+		return infoListResult;
+
 	}
 
 }

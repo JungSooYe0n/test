@@ -2666,4 +2666,50 @@ public class DateUtil {
 		return ZUOTIAN;
 
 	}
+
+	/**
+	 * 是否为yyyy-MM-dd HH:mm:ss格式
+	 *
+	 * @param date
+	 *            日期
+	 * @return 是否为小时格式
+	 * @since zhanghu @ 2013-1-31
+	 */
+	public static boolean isTimeFormatterYMD(String date) {
+		Pattern pattern1 = Pattern
+				.compile("\\d{4}-\\d{2}-\\d{2}");
+		Matcher matcher1 = pattern1.matcher(date);
+		Pattern pattern2 = Pattern
+				.compile("\\d{4}/\\d{2}/\\d{2}");
+		Matcher matcher2 = pattern2.matcher(date);
+		if(matcher1.find() || matcher2.find()){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	/**
+	 * 是否为yyyy-MM-dd HH:mm:ss格式
+	 *
+	 * @param date
+	 *            日期
+	 * @return 是否为小时格式
+	 * @since zhanghu @ 2013-1-31
+	 */
+	public static boolean isTimeFormatterYMDH(String date) {
+		Pattern pattern1 = Pattern
+				.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}");
+		Matcher matcher1 = pattern1.matcher(date);
+		Pattern pattern2 = Pattern
+				.compile("\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}");
+		Matcher matcher2 = pattern2.matcher(date);
+		if(matcher1.find() || matcher2.find()){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+
+
 }

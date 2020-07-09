@@ -544,6 +544,7 @@ public class FtsFieldConst {
 	public static final String FIELD_SITE_PROPERTY = "IR_SITE_PROPERTY";
 
 	public static final String FIELD_EMOTION = "IR_EMOTION";
+	public static final String FIELD_EMOTION_2 = "IR_EMOTION2";
 
 }
 
