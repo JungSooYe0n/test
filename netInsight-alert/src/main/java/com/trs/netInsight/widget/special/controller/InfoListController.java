@@ -562,7 +562,8 @@ public class InfoListController {
 		try {
 			//判断当前选择数据源和该次搜索选择的全部数据源是否是包含关系，不包含则无法查询
 			if (!"ALL".equals(checkedSource)) {
-				List<String> sourceList = Arrays.asList(source.split(";"));
+				List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+				checkedSource = CommonListChartUtil.changeGroupName(checkedSource);
 				if (!sourceList.contains(checkedSource)) {
 					return null;
 				} else {

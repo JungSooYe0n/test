@@ -1154,7 +1154,8 @@ public class ReportServiceImpl implements IReportService {
 						newAdd.setChannel(fav.getChannel());
 
 						String authors = fav.getAuthors();
-						newAdd.setAbstracts(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+						newAdd.setAuthors(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+						newAdd.setAuthor(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
 						String screenName = fav.getScreenName();
 						String srcName = fav.getSrcName();
 
@@ -2613,7 +2614,7 @@ if (isExport){
 			String oneGroup = CommonListChartUtil.formatPageShowGroupName(item.getGroupName());
 			map.put("id", item.getSid());
 			map.put("groupName", oneGroup);
-			map.put("urltime", item.getUrlTime());
+			map.put("urlTime", item.getUrlTime());
 			map.put("md5", item.getMdsTag());
 
 			if (StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null)
@@ -2654,7 +2655,7 @@ if (isExport){
 				fullContent = ReportUtil.calcuHit("", fullContent, true);
 			}
 			map.put("siteName", item.getSiteName());
-			map.put("author", item.getAuthors());
+			map.put("authors", item.getAuthors());
 			map.put("srcName", item.getSrcName());
 			//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
 			if (Const.PAGE_SHOW_WEIBO.equals(oneGroup)) {
@@ -2662,16 +2663,16 @@ if (isExport){
 				map.put("abstracts", item.getContent());
 				map.put("copyTitle", fullContent); //前端复制功能需要用到
 
-				map.put("author", item.getScreenName());
+				map.put("authors", item.getScreenName());
 			} else if (Const.PAGE_SHOW_FACEBOOK.equals(oneGroup) || Const.PAGE_SHOW_TWITTER.equals(oneGroup)) {
 				map.put("title", item.getContent());
 				map.put("abstracts", item.getContent());
 				map.put("copyTitle", fullContent); //前端复制功能需要用到
-				map.put("author", item.getAuthors());
+				map.put("authors", item.getAuthors());
 			} else if (Const.PAGE_SHOW_DUANSHIPIN.equals(oneGroup) || Const.PAGE_SHOW_CHANGSHIPIN.equals(oneGroup)) {
 				map.put("title", item.getContent());
 				map.put("abstracts", item.getContent());
-				map.put("author", item.getAuthors());
+				map.put("authors", item.getAuthors());
 				map.put("copyTitle", fullContent); //前端复制功能需要用到
 			}
 			map.put("img", null);

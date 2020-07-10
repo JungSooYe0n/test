@@ -5705,7 +5705,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					//模糊搜索 - 需要判断是否有词组词序
 					if(wordFromNum > 0){
 						//只将词拆分，不做命中限制
-						String filterTrsl = getFuzzyTrslForWordSpace(searchKey,keyWordIndex,weight,searchKey);
+						String filterTrsl = getFuzzyTrslForWordSpace(keywords,keyWordIndex,weight,searchKey);
 						queryBuilder.filterByTRSL(filterTrsl);
 					}else{
 						//无词距词序时，按照原来写的，拆词后用include 做至少命中几个词
@@ -7230,7 +7230,7 @@ public class InfoListServiceImpl implements IInfoListService {
                     //模糊搜索 - 需要判断是否有词组词序
                     if(wordFromNum > 0){
                         //只将词拆分，不做命中限制
-                        String filterTrsl = getFuzzyTrslForWordSpace(searchKey,keyWordIndex,weight,searchKey);
+                        String filterTrsl = getFuzzyTrslForWordSpace(keywords,keyWordIndex,weight,searchKey);
                         queryBuilder.filterByTRSL(filterTrsl);
                     }else{
                         //无词距词序时，按照原来写的，拆词后用include 做至少命中几个词
