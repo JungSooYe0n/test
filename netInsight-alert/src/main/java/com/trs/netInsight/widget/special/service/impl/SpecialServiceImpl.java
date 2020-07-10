@@ -634,36 +634,12 @@ public class SpecialServiceImpl implements ISpecialService {
 						}
 					}
 
-					if(StringUtil.isNotEmpty(tab.getMediaLevel())){
-						map.put("mediaLevel", tab.getMediaLevel().replaceAll("其他","其它"));
-					}else{
-						map.put("mediaLevel", org.apache.commons.lang.StringUtils.join(Const.MEDIA_LEVEL,";").replaceAll("其他","其它"));
-					}
-					if(StringUtil.isNotEmpty(tab.getMediaIndustry())){
-						map.put("mediaIndustry", tab.getMediaIndustry().replaceAll("其他","其它"));
-					}else{
-						map.put("mediaIndustry", org.apache.commons.lang.StringUtils.join(Const.MEDIA_INDUSTRY,";").replaceAll("其他","其它"));
-					}
-					if(StringUtil.isNotEmpty(tab.getContentIndustry())){
-						map.put("contentIndustry", tab.getContentIndustry().replaceAll("其他","其它"));
-					}else{
-						map.put("contentIndustry", org.apache.commons.lang.StringUtils.join(Const.CONTENT_INDUSTRY,";").replaceAll("其他","其它"));
-					}
-					if(StringUtil.isNotEmpty(tab.getFilterInfo())){
-						map.put("filterInfo", tab.getFilterInfo().replaceAll("其他","其它"));
-					}else{
-						map.put("filterInfo", org.apache.commons.lang.StringUtils.join(Const.FILTER_INFO,";")+";其它");
-					}
-					if(StringUtil.isNotEmpty(tab.getContentArea())){
-						map.put("contentArea", tab.getContentArea().replaceAll("其他","其它"));
-					}else{
-						map.put("contentArea", org.apache.commons.lang.StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它"));
-					}
-					if(StringUtil.isNotEmpty(tab.getMediaArea())){
-						map.put("mediaArea", tab.getMediaArea().replaceAll("其他","其它"));
-					}else{
-						map.put("mediaArea", org.apache.commons.lang.StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它"));
-					}
+					map.put("mediaLevel", tab.getMediaLevel());
+					map.put("mediaIndustry", tab.getMediaIndustry());
+					map.put("contentIndustry", tab.getContentIndustry());
+					map.put("filterInfo", tab.getFilterInfo());
+					map.put("contentArea", tab.getContentArea());
+					map.put("mediaArea", tab.getMediaArea());
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏

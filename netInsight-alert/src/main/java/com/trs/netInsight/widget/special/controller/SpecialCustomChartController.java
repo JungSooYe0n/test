@@ -408,13 +408,7 @@ public class SpecialCustomChartController {
             customChart.setFilterInfo(filterInfo);
             customChart.setContentArea(contentArea);
             customChart.setMediaArea(mediaArea);
-
-            // 栏目从标题+正文修改为仅标题的时候不设置权重，但传的weight还是=true
-            if ("0".equals(keyWordIndex)) {
-                customChart.setWeight(false);
-            } else {
-                customChart.setWeight(weight);
-            }
+            customChart.setWeight(weight);
             customChart.setTabWidth(tabWidth);
 
             return specialCustomChartService.saveSpecialCustomChart(customChart);

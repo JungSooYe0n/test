@@ -119,45 +119,20 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                     oneCcInfo.put("simflag", "urlRemove");
                 } else if (oneCc.isIrSimflagAll()) {
                     oneCcInfo.put("simflag", "sourceRemove");
-                } else {
-                    oneCcInfo.put("simflag", "no");
                 }
                 oneCcInfo.put("tabWidth", oneCc.getTabWidth());
                 oneCcInfo.put("timeRange", oneCc.getTimeRange());
                 oneCcInfo.put("trsl", oneCc.getTrsl());
                 oneCcInfo.put("xyTrsl", oneCc.getXyTrsl());
 
-                if(StringUtil.isNotEmpty(oneCc.getMediaLevel())){
-                    oneCcInfo.put("mediaLevel", oneCc.getMediaLevel().replaceAll("其他","其它"));
-                }else{
-                    oneCcInfo.put("mediaLevel", (StringUtils.join(Const.MEDIA_LEVEL,";")).replaceAll("其他","其它"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getMediaIndustry())){
-                    oneCcInfo.put("mediaIndustry", oneCc.getMediaIndustry().replaceAll("其他","其它"));
-                }else{
-                    oneCcInfo.put("mediaIndustry", StringUtils.join(Const.MEDIA_INDUSTRY,";"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getContentIndustry())){
-                    oneCcInfo.put("contentIndustry", oneCc.getContentIndustry().replaceAll("其他","其它"));
-                }else{
-                    oneCcInfo.put("contentIndustry", StringUtils.join(Const.CONTENT_INDUSTRY,";").replaceAll("其他","其它"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getFilterInfo())){
-                    oneCcInfo.put("filterInfo", oneCc.getFilterInfo().replaceAll("其他","其它"));
-                }else{
-                    oneCcInfo.put("filterInfo", (StringUtils.join(Const.FILTER_INFO,";")+";其他").replaceAll("其他","其它"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getContentArea())){
-                    oneCcInfo.put("contentArea", oneCc.getContentArea().replaceAll("其他","其它"));
-                }else{
-                    oneCcInfo.put("contentArea", StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getMediaArea())){
-                    oneCcInfo.put("mediaArea", oneCc.getMediaArea().replaceAll("其他","其它"));
-                }else{
-                    oneCcInfo.put("mediaArea", StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它"));
-                }
-                addTypeSeq(oneCcInfo,oneCc.getType());
+                oneCcInfo.put("mediaLevel", oneCc.getMediaLevel());
+                oneCcInfo.put("mediaIndustry", oneCc.getMediaIndustry());
+                oneCcInfo.put("contentIndustry", oneCc.getContentIndustry());
+                oneCcInfo.put("filterInfo", oneCc.getFilterInfo());
+                oneCcInfo.put("contentArea", oneCc.getContentArea());
+                oneCcInfo.put("mediaArea", oneCc.getMediaArea());
+
+                addTypeSeq(oneCcInfo, oneCc.getType());
                 ccList.add(oneCcInfo);
             }
         }

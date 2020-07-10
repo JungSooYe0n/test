@@ -742,12 +742,7 @@ public class ColumnController {
 			indexTab.setFilterInfo(filterInfo);
 			indexTab.setMediaArea(mediaArea);
 			indexTab.setContentArea(contentArea);
-			// 栏目从标题+正文修改为仅标题的时候不设置权重，但传的weight还是=true
-			if ("0".equals(keyWordIndex)) {
-				indexTab.setWeight(false);
-			} else {
-				indexTab.setWeight(weight);
-			}
+			indexTab.setWeight(weight);
 			IndexPage indexPage = null;
 			// 根据另存为标识选择另存为与修改操作
 			if (copy) {

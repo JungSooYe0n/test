@@ -92,12 +92,14 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("timeRange", chart.getTimeRange());
                 chartMap.put("trsl", chart.getTrsl());
                 chartMap.put("xyTrsl", chart.getXyTrsl());
-                chartMap.put("mediaLevel", chart.getMediaLevel().replaceAll("其他","其它"));
-                chartMap.put("mediaIndustry", chart.getMediaIndustry().replaceAll("其他","其它"));
-                chartMap.put("contentIndustry", chart.getContentIndustry().replaceAll("其他","其它"));
-                chartMap.put("filterInfo", chart.getFilterInfo().replaceAll("其他","其它"));
-                chartMap.put("contentArea", chart.getContentArea().replaceAll("其他","其它"));
-                chartMap.put("mediaArea", chart.getMediaArea().replaceAll("其他","其它"));
+
+                chartMap.put("mediaLevel", chart.getMediaLevel());
+                chartMap.put("mediaIndustry", chart.getMediaIndustry());
+                chartMap.put("contentIndustry", chart.getContentIndustry());
+                chartMap.put("filterInfo", chart.getFilterInfo());
+                chartMap.put("contentArea", chart.getContentArea());
+                chartMap.put("mediaArea", chart.getMediaArea());
+
                 result.add(chartMap);
             }
         }
@@ -490,56 +492,6 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             result = getBarPieData(customChart, commonBuilder);
         }
         return result;
-    }
-
-    private void addFieldFilter( QueryBuilder queryBuilder,String field,String value,List<String> allValue){
-        if(StringUtil.isNotEmpty(value)){
-            if(value.contains("其它")){
-                value = value.replaceAll("其它","其他");
-            }
-            String[] valueArr = value.split(";");
-            Set<String> valueArrList = new HashSet<>();
-            for(String v : valueArr){
-                if ("其他".equals(v) || "中性".equals(v)) {
-                    valueArrList.add("\"\"");
-                }
-                if (allValue.contains(v)) {
-                    valueArrList.add(v);
-                }
-            }
-            //如果list中有其他，则其他为 其他+“”。依然是算两个
-            if (valueArrList.size() > 0 && valueArrList.size() < allValue.size() + 1) {
-                queryBuilder.filterField(field, StringUtils.join(valueArrList, " OR "), Operator.Equal);
-            }
-        }
-    }
-
-    private void addAreaFilter( QueryBuilder queryBuilder,String field,String areas){
-        Map<String,String> areaMap = null;
-        if(FtsFieldConst.FIELD_MEDIA_AREA.equals(field)){
-            areaMap = Const.MEDIA_PROVINCE_NAME;
-        }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field)){
-            areaMap = Const.CONTTENT_PROVINCE_NAME;
-        }
-        if(StringUtil.isNotEmpty(areas) && areaMap!= null){
-            if(areas.contains("其它")){
-                areas = areas.replaceAll("其它","其他");
-            }
-            String[] areaArr = areas.split(";");
-            Set<String> areaList = new HashSet<>();
-            for(String area : areaArr){
-                if("其他".equals(area)){
-                    areaList.add("\"\"");
-                }
-                if(areaMap.containsKey(area)){
-                    areaList.add(areaMap.get(area));
-                }
-            }
-            //如果list中有其他，则其他为 其他+“”。依然是算两个
-            if (areaList.size() > 0 && areaList.size() < areaMap.size() + 1) {
-                queryBuilder.filterField(field, StringUtils.join(areaList, " OR "), Operator.Equal);
-            }
-        }
     }
 
     private Object getBarPieData(SpecialCustomChart customChart, QueryBuilder queryBuilder) throws TRSSearchException {
