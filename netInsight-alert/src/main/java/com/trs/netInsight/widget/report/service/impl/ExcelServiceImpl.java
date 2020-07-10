@@ -1354,7 +1354,7 @@ public class ExcelServiceImpl implements IExcelService {
 		}
 		if(!"hot".equals(sort)){
 			log.info("导出前N条数据查询数据表达式 - 全部：" + queryBuilder.asTRSL());
-			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(queryBuilder, type, groupNames);
+			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListNoFormat(queryBuilder,false,false,false, type, groupNames);
 			if(pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0){
 				result.addAll(pagedList.getPageItems());
 			}
