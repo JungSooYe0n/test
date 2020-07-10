@@ -1,6 +1,6 @@
 package com.trs.netInsight.widget.special.entity.repository;
 
-import com.trs.netInsight.widget.special.SpecialCustomChart;
+import com.trs.netInsight.widget.special.entity.SpecialCustomChart;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;

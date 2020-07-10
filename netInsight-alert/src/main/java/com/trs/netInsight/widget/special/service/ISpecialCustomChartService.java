@@ -1,7 +1,7 @@
 package com.trs.netInsight.widget.special.service;
 
 import com.trs.netInsight.handler.exception.TRSException;
-import com.trs.netInsight.widget.special.SpecialCustomChart;
+import com.trs.netInsight.widget.special.entity.SpecialCustomChart;
 
 public interface ISpecialCustomChartService {
 
@@ -65,5 +65,6 @@ public interface ISpecialCustomChartService {
      */
     Object selectChartData(SpecialCustomChart customChart,String timeRange,String showType,String entityType,String contrast)throws TRSException;
 
-
+    Object selectChar2ListtData(SpecialCustomChart customChart,String source,String key,String dateTime,String entityType,String mapContrast,String sort,int pageNo,int pageSize,
+                                String forwardPrimary,String invitationCard,String fuzzyValue,String fuzzyValueScope)throws TRSException;
 }

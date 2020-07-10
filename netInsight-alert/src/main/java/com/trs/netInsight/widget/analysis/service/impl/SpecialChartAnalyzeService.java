@@ -5833,6 +5833,9 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 
 		String timeRange = specialProject.getTimeRange();
 		if(SpecialChartType.CHART_LINE.equals(specialChartType)){ // 舆论场趋势分析 - 折线图
+			if("全部".equals(key)){
+				key = "ALL";
+			}
 			source = key;
 			String dateEndTime = "";
 			if(dateTime.length() ==10 &&  DateUtil.isTimeFormatterYMD(dateTime)){
