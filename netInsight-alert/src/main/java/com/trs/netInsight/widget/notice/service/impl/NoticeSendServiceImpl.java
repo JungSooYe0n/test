@@ -433,7 +433,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					String doPost = HttpUtil.doPost(url, each, "utf-8");
 					//json转实体
 					ObjectMapper om = new ObjectMapper();
-					AlertEntity readValue = null;;
+					AlertEntity readValue = null;
 					try {
 						 //json转实体
 						 readValue = om.readValue(doPost, AlertEntity.class);

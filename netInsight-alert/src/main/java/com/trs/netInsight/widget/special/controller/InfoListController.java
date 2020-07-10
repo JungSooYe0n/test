@@ -1092,6 +1092,9 @@ public class InfoListController {
                 ftsDocument.setFavourite(false);
             }
             ftsDocument.setTrslk(trslk);
+            if(StringUtil.isEmpty(ftsDocument.getAppraise())){
+            	ftsDocument.setAppraise("中性");
+			}
 
             if (Const.GROUPNAME_WEIBO.equals(groupName)){
 				realInfoThreadPool.execute(()->infoListService.getRealTimeInfoOfStatus(ftsDocument.getUrlName(),ftsDocument.getSid()));

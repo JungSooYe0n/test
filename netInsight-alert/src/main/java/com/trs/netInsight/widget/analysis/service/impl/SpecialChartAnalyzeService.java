@@ -40,9 +40,11 @@ import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.util.ReportUtil;
+import com.trs.netInsight.widget.special.entity.HotRating;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
+import com.trs.netInsight.widget.special.entity.repository.HotRatingRepository;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.spread.entity.GraphMap;
 import com.trs.netInsight.widget.spread.entity.SinaUser;
@@ -100,6 +102,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	private ICommonChartService commonChartService;
 	@Autowired
 	private ICommonListService commonListService;
+	@Autowired
+	private HotRatingRepository hotRatingRepository;
 
 	@Override
 	public Object mediaLevel(QueryBuilder builder) throws TRSException {
@@ -5496,28 +5500,70 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		boolean irSimflag = specialProject.isIrSimflag();
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
 //		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
+		 int weiboLow = 10000;
+		 int weiboMiddle = 15000;
+		 int weiboHigh = 20000;
+		 int weixinLow = 200;
+		 int weixinMiddle = 300;
+		 int weixinHigh = 500;
+		 int newsLow = 300;
+		 int newsMiddle = 500;
+		 int newsHigh = 800;
+		 int appLow = 300;
+		 int appMiddle = 500;
+		 int appHigh = 800;
+		 int zimeitiLow = 200;
+		 int zimeitiMiddle = 300;
+		 int zimeitiHigh = 500;
+		 int luntanLow = 100;
+		 int luntanMiddle = 150;
+		 int luntanHigh = 200;
+		User user = UserUtils.getUser();
+		if (StringUtil.isNotEmpty(user.getOrganizationId())) {
+			List<HotRating> hotRatingList = hotRatingRepository.findByOrganizationId(user.getOrganizationId());
+			if (ObjectUtil.isNotEmpty(hotRatingList)) {
+				weiboLow = hotRatingList.get(0).getWeiboLow();
+				weiboMiddle = hotRatingList.get(0).getWeiboMiddle();
+				weiboHigh = hotRatingList.get(0).getWeiboHigh();
+				weixinLow = hotRatingList.get(0).getWeixinLow();
+				weixinMiddle = hotRatingList.get(0).getWeixinMiddle();
+				weixinHigh = hotRatingList.get(0).getWeixinHigh();
+				newsLow = hotRatingList.get(0).getNewsLow();
+				newsMiddle = hotRatingList.get(0).getNewsMiddle();
+				newsHigh = hotRatingList.get(0).getNewsHigh();
+				appLow = hotRatingList.get(0).getAppLow();
+				appMiddle = hotRatingList.get(0).getAppMiddle();
+				appHigh = hotRatingList.get(0).getAppHigh();
+				zimeitiLow = hotRatingList.get(0).getZimeitiLow();
+				zimeitiMiddle = hotRatingList.get(0).getZimeitiMiddle();
+				zimeitiHigh = hotRatingList.get(0).getZimeitiHigh();
+				luntanLow = hotRatingList.get(0).getLuntanLow();
+				luntanMiddle = hotRatingList.get(0).getLuntanMiddle();
+				luntanHigh = hotRatingList.get(0).getLuntanHigh();
+			}
+		}
 		ChartResultField chartResultField = new ChartResultField("name","num");
 		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,Const.ALL_GROUP_COLLECT,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
 
 		double total = 0;
 		for (Map<String, Object> mapList : list){
 		    if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("新闻"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),300,500,800) * 0.1;
+                total += getScore(Long.valueOf(mapList.get("num").toString()),newsLow,newsMiddle,newsHigh) * 0.1;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("微博"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),10000,15000,20000) * 0.4;
+                total += getScore(Long.valueOf(mapList.get("num").toString()),weiboLow,weiboMiddle,weiboHigh) * 0.4;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("微信"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),200,300,500) * 0.3;
+                total += getScore(Long.valueOf(mapList.get("num").toString()),weixinLow,weixinMiddle,weixinHigh) * 0.3;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("客户端"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),300,500,800) * 0.1;
+                total += getScore(Long.valueOf(mapList.get("num").toString()),appLow,appMiddle,appHigh) * 0.1;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("自媒体"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),200,300,500) * 0.05;
+                total += getScore(Long.valueOf(mapList.get("num").toString()),zimeitiLow,zimeitiMiddle,zimeitiHigh) * 0.05;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("论坛"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),100,150,200) * 0.05;
+                total += getScore(Long.valueOf(mapList.get("num").toString()),luntanLow,luntanMiddle,luntanHigh) * 0.05;
             }
         }
 //        searchBuilder.setPageSize(200);
