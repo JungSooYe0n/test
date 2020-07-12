@@ -8,32 +8,27 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
-import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
-import com.trs.netInsight.support.fts.model.result.GroupWordInfo;
-import com.trs.netInsight.support.fts.model.result.GroupWordResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.RedisUtil;
-import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.util.WordSpacingUtil;
+import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
-import com.trs.netInsight.widget.column.entity.CustomChart;
 import com.trs.netInsight.widget.column.entity.IndexTabType;
-import com.trs.netInsight.widget.column.entity.StatisticalChart;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
 import com.trs.netInsight.widget.column.repository.CustomChartRepository;
-import com.trs.netInsight.widget.column.repository.StatisticalChartRepository;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.special.SpecialCustomChart;
+import com.trs.netInsight.widget.report.util.ReportUtil;
+import com.trs.netInsight.widget.special.entity.InfoListResult;
+import com.trs.netInsight.widget.special.entity.SpecialCustomChart;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.entity.repository.SpecialCustomChartRepository;
 import com.trs.netInsight.widget.special.service.ISpecialCustomChartService;
+import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,12 +92,14 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("timeRange", chart.getTimeRange());
                 chartMap.put("trsl", chart.getTrsl());
                 chartMap.put("xyTrsl", chart.getXyTrsl());
-                chartMap.put("mediaLevel", chart.getMediaLevel().replaceAll("其他","其它"));
-                chartMap.put("mediaIndustry", chart.getMediaIndustry().replaceAll("其他","其它"));
-                chartMap.put("contentIndustry", chart.getContentIndustry().replaceAll("其他","其它"));
-                chartMap.put("filterInfo", chart.getFilterInfo().replaceAll("其他","其它"));
-                chartMap.put("contentArea", chart.getContentArea().replaceAll("其他","其它"));
-                chartMap.put("mediaArea", chart.getMediaArea().replaceAll("其他","其它"));
+
+                chartMap.put("mediaLevel", chart.getMediaLevel());
+                chartMap.put("mediaIndustry", chart.getMediaIndustry());
+                chartMap.put("contentIndustry", chart.getContentIndustry());
+                chartMap.put("filterInfo", chart.getFilterInfo());
+                chartMap.put("contentArea", chart.getContentArea());
+                chartMap.put("mediaArea", chart.getMediaArea());
+
                 result.add(chartMap);
             }
         }
@@ -168,140 +165,319 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             deleteCount += customChartList.size();
         }
 
-//        List<StatisticalChart> statisticalChartList = customChartRepository.findByParentId(id);
-//        if(statisticalChartList != null && statisticalChartList.size() >0){
-//            customChartRepository.delete(statisticalChartList);
-//            deleteCount += statisticalChartList.size();
-//        }
         return deleteCount;
     }
 
     @Override
-    public Object selectChartData(SpecialCustomChart customChart, String timeRange, String showType, String entityType, String contrast) throws TRSException {
-        QueryBuilder commonBuilder = new QueryBuilder();
+    public Object selectChar2ListtData(SpecialCustomChart customChart,String source,String key,String dateTime,String entityType,String mapContrast,String sort,int pageNo,int pageSize,
+                                       String forwardPrimary,String invitationCard,String fuzzyValue,String fuzzyValueScope) throws TRSException {
+        InfoListResult infoListResult = null;
+        try {
+            QueryBuilder queryBuilder =customChart.getQueryBuilder(false,pageNo,pageSize);
+            IndexTabType indexTabType = ColumnFactory.chooseType(customChart.getType());
+            String timeRange = customChart.getTimeRange();
+            SpecialType specialType = customChart.getSpecialType();
+            if (IndexTabType.WORD_CLOUD.equals(indexTabType)) {
+                if ("location".equals(entityType) && !"省".equals(key.substring(key.length() - 1)) && !key.contains("自治区")) {
+                    String irKeywordNew = "";
+                    if ("市".equals(key.substring(key.length() - 1))) {
+                        irKeywordNew = key.replace("市", "");
+                    } else {
+                        irKeywordNew = key;
+                    }
+                    if (!irKeywordNew.contains("\"")) {
+                        irKeywordNew = "\"" + irKeywordNew + "\"";
+                    }
+                    String trsl = FtsFieldConst.FIELD_URLTITLE + ":(" + irKeywordNew + ") OR " + FtsFieldConst.FIELD_CONTENT + ":(" + irKeywordNew + ")";
+                    queryBuilder.filterByTRSL(trsl);
+                } else {
+                    queryBuilder.filterField(Const.PARAM_MAPPING.get(entityType), key, Operator.Equal);
+                }
 
+            } else if (IndexTabType.MAP.equals(indexTabType)) {
+                String contrastField = FtsFieldConst.FIELD_CATALOG_AREA;
+                if(StringUtil.isNotEmpty(mapContrast) && mapContrast.equals(ColumnConst.CONTRAST_TYPE_MEDIA_AREA)){
+                    contrastField = FtsFieldConst.FIELD_MEDIA_AREA;
+                }
+                Map<String,String> areaMap = null;
+                if(FtsFieldConst.FIELD_MEDIA_AREA.equals(contrastField)){
+                    areaMap = Const.MEDIA_PROVINCE_NAME;
+                }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
+                    areaMap = Const.CONTTENT_PROVINCE_NAME;
+                }
+                queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) +")");
+
+            }else if (IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType) || IndexTabType.CHART_BAR.equals(indexTabType)) {
+                if(IndexTabType.CHART_LINE.equals(indexTabType)){
+                    String dateEndTime = "";
+                    if(dateTime.length() ==10 &&  DateUtil.isTimeFormatterYMD(dateTime)){
+                        dateTime = dateTime.replaceAll("/","-");
+                        dateTime = dateTime+"000000";
+                        dateEndTime = dateTime+"235959";
+                    }else if(dateTime.length() ==16 && DateUtil.isTimeFormatterYMDH(dateTime)){
+                        dateTime = dateTime.replaceAll("/","-");
+                        dateTime = dateTime+":00";
+                        dateEndTime = dateTime.substring(0,dateTime.length()-6)+":59:59";
+                    }
+                    timeRange = dateTime+";"+dateEndTime;
+                }
+
+                if (SpecialType.COMMON.equals(specialType)) {
+                    if (ColumnConst.CONTRAST_TYPE_GROUP.equals(customChart.getContrast())) {// 舆论来源对比
+                        if("全部".equals(key)){
+                            key = "ALL";
+                        }
+                        source = key;
+                        /*key = StringUtils.join(CommonListChartUtil.formatGroupName(key), ";");
+                        queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);*/
+                    }else if (ColumnConst.CONTRAST_TYPE_SITE.equals(customChart.getContrast())) {//站点对比
+                        queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, key, Operator.Equal);
+                    }else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(customChart.getContrast())) {//微信公众号对比
+                        queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, key, Operator.Equal);
+                    } else {
+                        //除去专家模式，柱状图只有三种模式，+两种特殊的图，如果不是这5种，则无对比模式
+                        throw new TRSSearchException("未获取到检索条件");
+                    }
+                }else{
+                    List<CategoryBean> mediaType = CommonListChartUtil.getMediaType(customChart.getXyTrsl());
+                    for (CategoryBean categoryBean : mediaType) {
+                        if (key.equals(categoryBean.getKey())) {
+                            if (StringUtil.isNotEmpty(categoryBean.getValue())) {
+                                String value = categoryBean.getValue().toLowerCase().trim();
+                                if (value.startsWith("not")) {
+                                    queryBuilder.filterByTRSL_NOT(categoryBean.getValue().substring(3, categoryBean.getValue().length()));
+                                } else {
+                                    queryBuilder.filterByTRSL(categoryBean.getValue());
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }else if ( !IndexTabType.LIST_NO_SIM.equals(indexTabType) && !IndexTabType.HOT_LIST.equals(indexTabType)) {//判断到这则是上面的都不符合，所以再不符合这俩，就代表都不对了
+                throw new TRSSearchException("未获取到检索条件");
+            }
+            queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(timeRange), Operator.Between);
+
+            if("ALL".equals(source)){
+                source = customChart.getGroupName();
+            }
+            List<String> searchSourceList = CommonListChartUtil.formatGroupName(source);
+            //只在原转发和主回帖筛选时添加要查询数据源，因为底层方法通过参数中的groupName去添加了对应的数据源和数据库信息
+            if ((searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) ||
+                    (searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwardPrimary) )) {
+                StringBuffer sb = new StringBuffer();
+                if (searchSourceList.contains(Const.GROUPNAME_LUNTAN) && StringUtil.isNotEmpty(invitationCard)) {
+                    sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+                    if ("0".equals(invitationCard)) {// 主贴
+                        sb.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+                    } else if ("1".equals(invitationCard)) {// 回帖
+                        sb.append(" AND (").append(FtsFieldConst.FIELD_NRESERVED1).append(":(1)").append(")");
+                    }
+
+                    sb.append(")");
+                    searchSourceList.remove(Const.GROUPNAME_LUNTAN);
+                }
+                if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && StringUtil.isNotEmpty(forwardPrimary) ) {
+                    if (sb.length() > 0) {
+                        sb.append(" OR ");
+                    }
+                    sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+                    if ("primary".equals(forwardPrimary)) {
+                        // 原发
+                        sb.append(" AND ").append(Const.PRIMARY_WEIBO);
+                    } else if ("forward".equals(forwardPrimary)) {
+                        //转发
+                        sb.append(" NOT ").append(Const.PRIMARY_WEIBO);
+                    }
+
+                    sb.append(")");
+                    searchSourceList.remove(Const.GROUPNAME_WEIBO);
+                }
+                if (searchSourceList.size() > 0) {
+                    if (sb.length() > 0) {
+                        sb.append(" OR ");
+                    }
+                    sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
+                }
+                queryBuilder.filterByTRSL(sb.toString());
+            }
+
+            // 结果中搜索
+            if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
+                String[] split = fuzzyValue.split(",");
+                String splitNode = "";
+                for (int i = 0; i < split.length; i++) {
+                    if (StringUtil.isNotEmpty(split[i])) {
+                        splitNode += split[i] + ",";
+                    }
+                }
+                fuzzyValue = splitNode.substring(0, splitNode.length() - 1);
+                if (fuzzyValue.endsWith(";") || fuzzyValue.endsWith(",") || fuzzyValue.endsWith("；")
+                        || fuzzyValue.endsWith("，")) {
+                    fuzzyValue = fuzzyValue.substring(0, fuzzyValue.length() - 1);
+
+                }
+                StringBuilder fuzzyBuilder = new StringBuilder();
+                String hybaseField = "fullText";
+                switch (fuzzyValueScope) {
+                    case "title":
+                        hybaseField = FtsFieldConst.FIELD_URLTITLE;
+                        break;
+                    case "source":
+                        hybaseField = FtsFieldConst.FIELD_SITENAME;
+                        break;
+                    case "author":
+                        hybaseField = FtsFieldConst.FIELD_AUTHORS;
+                        break;
+                }
+                if ("fullText".equals(hybaseField)) {
+                    fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
+                            .replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND \"")
+                            .replaceAll("[;|；]+", "\" OR \"")).append("\"))");
+                } else {
+                    fuzzyBuilder.append(hybaseField).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
+                            .replaceAll("[;|；]+", "\" OR \"")).append("\"))");
+                }
+                queryBuilder.filterByTRSL(fuzzyBuilder.toString());
+            }
+            log.info("综合：" + queryBuilder.asTRSL());
+            User user = UserUtils.getUser();
+            String type = "special";
+
+            Boolean sim = customChart.isSimilar();
+            Boolean	irSimflag = customChart.isIrSimflag();
+            Boolean irSimflagAll = customChart.isIrSimflagAll();
+
+            if ("hot".equals(sort)) {
+                infoListResult = commonListService.queryPageListForHot(queryBuilder, source, user, type, true);
+            } else {
+                switch (sort) { // 排序
+                    case "desc":
+                        queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+                        break;
+                    case "asc":
+                        queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+                        break;
+                    case "relevance":// 相关性排序
+                        queryBuilder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+                        break;
+                    default:
+                        if (customChart.isWeight()) {
+                            queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_RELEVANCE + ";-" + FtsFieldConst.FIELD_URLTIME);
+                        } else {
+                            queryBuilder.setOrderBy("-" + FtsFieldConst.FIELD_URLTIME + ";-" + FtsFieldConst.FIELD_RELEVANCE);
+                        }
+                        break;
+                }
+                infoListResult = commonListService.queryPageList(queryBuilder, sim, irSimflag, irSimflagAll, source, type, user, true);
+            }
+            if (infoListResult != null) {
+                String trslk = infoListResult.getTrslk();
+                if (infoListResult.getContent() != null) {
+                    PagedList<Object> resultContent = null;
+                    List<Object> resultList = new ArrayList<>();
+                    PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+                    if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+                        List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
+                        for (FtsDocumentCommonVO vo : voList) {
+                            Map<String, Object> map = new HashMap<>();
+                            String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+                            map.put("id", vo.getSid());
+                            map.put("groupName", groupName);
+                            map.put("time", vo.getUrlTime());
+                            map.put("md5", vo.getMd5Tag());
+                            String title = vo.getTitle();
+                            map.put("title", title);
+                            if (StringUtil.isNotEmpty(title)) {
+                                title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+                            }
+                            map.put("copyTitle", title); //前端复制功能需要用到
+                            if("1".equals(customChart.getKeyWordIndex())){
+                                //摘要
+                                map.put("abstracts", vo.getContent());
+                            }else{
+                                //摘要
+                                map.put("abstracts", vo.getAbstracts());
+                            }
+                            if (vo.getKeywords() != null && vo.getKeywords().size() > 3) {
+                                map.put("keyWordes", vo.getKeywords().subList(0, 3));
+                            } else {
+                                map.put("keyWordes", vo.getKeywords());
+                            }
+                            String voEmotion = vo.getAppraise();
+                            if (StringUtil.isNotEmpty(voEmotion)) {
+                                map.put("emotion", voEmotion);
+                            } else {
+                                map.put("emotion", "中性");
+                                map.put("isEmotion", null);
+                            }
+
+                            map.put("nreserved1", null);
+                            map.put("hkey", null);
+                            if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
+                                map.put("nreserved1", vo.getNreserved1());
+                                map.put("hkey", vo.getHkey());
+                            }
+                            map.put("urlName", vo.getUrlName());
+                            map.put("favourite", vo.isFavourite());
+                            String fullContent = vo.getExportContent();
+                            if (StringUtil.isNotEmpty(fullContent)) {
+                                fullContent = ReportUtil.calcuHit("", fullContent, true);
+                            }
+                            map.put("siteName", vo.getSiteName());
+                            map.put("author", vo.getAuthors());
+                            map.put("srcName", vo.getSrcName());
+                            //微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
+                            if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
+                                map.put("title", vo.getContent());
+                                map.put("abstracts", vo.getContent());
+                                map.put("copyTitle", fullContent); //前端复制功能需要用到
+
+                                map.put("author", vo.getScreenName());
+                                map.put("srcName", vo.getRetweetedScreenName());
+                            } else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
+                                map.put("title", vo.getContent());
+                                map.put("abstracts", vo.getContent());
+                                map.put("copyTitle", fullContent); //前端复制功能需要用到
+                                map.put("author", vo.getAuthors());
+                                map.put("srcName", vo.getRetweetedScreenName());
+                            } else if (Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)) {
+                                map.put("title", vo.getContent());
+                                map.put("abstracts", vo.getContent());
+                                map.put("author", vo.getAuthors());
+                                map.put("srcName", vo.getSrcName());
+                                map.put("copyTitle", fullContent); //前端复制功能需要用到
+                            }
+                            map.put("trslk", trslk);
+                            map.put("channel", vo.getChannel());
+                            map.put("img", null);
+                            //前端页面显示需要，与后端无关
+                            map.put("isImg", false);
+                            map.put("simNum", 0);
+
+                            resultList.add(map);
+                        }
+                        resultContent = new PagedList<Object>(pagedList.getPageIndex(),
+                                pagedList.getPageSize(), pagedList.getTotalItemCount(), resultList, 1);
+                    }
+                    infoListResult.setContent(resultContent);
+                }
+            }
+            return infoListResult;
+
+        } catch (TRSException | TRSSearchException e) {
+            throw new TRSSearchException(e);
+        }
+
+    }
+
+        @Override
+    public Object selectChartData(SpecialCustomChart customChart, String timeRange, String showType, String entityType, String contrast) throws TRSException {
         if (StringUtil.isNotEmpty(timeRange)) {
             customChart.setTimeRange(timeRange);
         }
-        String keyWordindex = customChart.getKeyWordIndex();
-        SpecialType specialType = customChart.getSpecialType();
-        if (SpecialType.COMMON.equals(specialType)) {
-            commonBuilder = WordSpacingUtil.handleKeyWords(customChart.getKeyWord(), keyWordindex, customChart.isWeight());
-            String excludeWords = customChart.getExcludeWords();
-            //拼接排除词
-            if ("0".equals(keyWordindex)) { //标题
-                if (StringUtil.isNotEmpty(excludeWords)) {
-                    StringBuilder exbuilder = new StringBuilder();
-                    exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-                            .append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                    commonBuilder.filterByTRSL(exbuilder.toString());
-                }
-            } else if ("1".equals(keyWordindex)) {// 标题加正文
-                if (StringUtil.isNotEmpty(excludeWords)) {
-                    StringBuilder exbuilder = new StringBuilder();
-                    exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-                            .append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                    commonBuilder.filterByTRSL(exbuilder.toString());
-                    StringBuilder exbuilder2 = new StringBuilder();
-                    exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-                            .append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                    ;
-                    commonBuilder.filterByTRSL(exbuilder2.toString());
-                }
-            } else if ("2".equals(keyWordindex)) { //标题 +摘要
-                if (StringUtil.isNotEmpty(excludeWords)) {
-                    StringBuilder exbuilder = new StringBuilder();
-                    exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-                            .append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                    commonBuilder.filterByTRSL(exbuilder.toString());
-                    StringBuilder exbuilder2 = new StringBuilder();
-                    exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
-                            .append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                    ;
-                    commonBuilder.filterByTRSL(exbuilder2.toString());
-                }
-            }
-        } else {
-            commonBuilder.filterByTRSL(customChart.getTrsl());
-        }
-        //监测网站
-        String monitorSite = customChart.getMonitorSite();
-        if (StringUtil.isNotEmpty(monitorSite) && monitorSite.trim().split(";|；").length > 0) {
-            commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME,monitorSite.replaceAll("[;|；]"," OR ") , Operator.Equal);
-        }
-        //排除网站
-        String excludeWeb = customChart.getExcludeWeb();
-        if (StringUtil.isNotEmpty(excludeWeb) && excludeWeb.trim().split(";|；").length > 0) {
-            String[] excludeWebArr = excludeWeb.trim().split(";|；");
-            String asTRSL = commonBuilder.asTRSL();
-            if (excludeWebArr != null && excludeWebArr.length > 0) {
-                String notSite = "";
-                for (String site : excludeWebArr) {
-                    notSite += site + " OR ";
-                }
-                if (notSite.endsWith(" OR ")) {
-                    notSite = notSite.substring(0, notSite.length() - 4);
-                }
-                asTRSL += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME).append(":(").append(notSite)
-                        .append(")").toString();
-            }
-            commonBuilder = new QueryBuilder();
-            commonBuilder.filterByTRSL(asTRSL);
-        }
-        String[] timeArray = new String[2];
-        try {
-            timeArray = DateUtil.formatTimeRangeMinus1(customChart.getTimeRange());
-        } catch (OperationException e) {
-            e.printStackTrace();
-        }
-        commonBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-        Date startToDate = DateUtil.stringToDate(timeArray[0], "yyyyMMddHHmmss");
-        Date endToDate = DateUtil.stringToDate(timeArray[1], "yyyyMMddHHmmss");
-        commonBuilder.setStartTime(startToDate);
-        commonBuilder.setEndTime(endToDate);
-        //媒体等级
-        String mediaLevel = customChart.getMediaLevel();
-        if(StringUtil.isNotEmpty(mediaLevel)){
-            addFieldFilter(commonBuilder,FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
-        }
-        //媒体行业
-        String mediaIndustry = customChart.getMediaIndustry();
-        if(StringUtil.isNotEmpty(mediaIndustry )){
-            addFieldFilter(commonBuilder,FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
-        }
-        //内容行业
-        String contentIndustry = customChart.getContentIndustry();
-        if(StringUtil.isNotEmpty(contentIndustry )){
-            addFieldFilter(commonBuilder,FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
-        }
-        //内容地域
-        String contentArea = customChart.getContentArea();
-        if(StringUtil.isNotEmpty(contentArea )){
-            addAreaFilter(commonBuilder,FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
-        }
-        //媒体地域
-        String mediaArea = customChart.getMediaArea();
-        if(StringUtil.isNotEmpty(mediaArea )){
-            addAreaFilter(commonBuilder,FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
-        }
-        //信息过滤
-        String filterInfo = customChart.getFilterInfo();
-        if(StringUtil.isNotEmpty(filterInfo )){
-            String trsl = commonBuilder.asTRSL();
-            StringBuilder sb = new StringBuilder(trsl);
-            String[] valueArr = filterInfo.split(";");
-            Set<String> valueArrList = new HashSet<>();
-            for(String v : valueArr){
-                if(Const.FILTER_INFO.contains(v)){
-                    valueArrList.add(v);
-                }
-            }
-            if (valueArrList.size() > 0 && valueArrList.size() < Const.FILTER_INFO.size()) {
-                sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
-                commonBuilder = new QueryBuilder();
-                commonBuilder.filterByTRSL(sb.toString());
-            }
-        }
+        QueryBuilder commonBuilder = customChart.getQueryBuilder(true,-1,-1);
         Object result = null;
         IndexTabType indexTabType = ColumnFactory.chooseType(customChart.getType());
         if (IndexTabType.LIST_NO_SIM.equals(indexTabType) || IndexTabType.HOT_LIST.equals(indexTabType)) {
@@ -316,56 +492,6 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             result = getBarPieData(customChart, commonBuilder);
         }
         return result;
-    }
-
-    private void addFieldFilter( QueryBuilder queryBuilder,String field,String value,List<String> allValue){
-        if(StringUtil.isNotEmpty(value)){
-            if(value.contains("其它")){
-                value = value.replaceAll("其它","其他");
-            }
-            String[] valueArr = value.split(";");
-            Set<String> valueArrList = new HashSet<>();
-            for(String v : valueArr){
-                if ("其他".equals(v) || "中性".equals(v)) {
-                    valueArrList.add("\"\"");
-                }
-                if (allValue.contains(v)) {
-                    valueArrList.add(v);
-                }
-            }
-            //如果list中有其他，则其他为 其他+“”。依然是算两个
-            if (valueArrList.size() > 0 && valueArrList.size() < allValue.size() + 1) {
-                queryBuilder.filterField(field, StringUtils.join(valueArrList, " OR "), Operator.Equal);
-            }
-        }
-    }
-
-    private void addAreaFilter( QueryBuilder queryBuilder,String field,String areas){
-        Map<String,String> areaMap = null;
-        if(FtsFieldConst.FIELD_MEDIA_AREA.equals(field)){
-            areaMap = Const.MEDIA_PROVINCE_NAME;
-        }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field)){
-            areaMap = Const.CONTTENT_PROVINCE_NAME;
-        }
-        if(StringUtil.isNotEmpty(areas) && areaMap!= null){
-            if(areas.contains("其它")){
-                areas = areas.replaceAll("其它","其他");
-            }
-            String[] areaArr = areas.split(";");
-            Set<String> areaList = new HashSet<>();
-            for(String area : areaArr){
-                if("其他".equals(area)){
-                    areaList.add("\"\"");
-                }
-                if(areaMap.containsKey(area)){
-                    areaList.add(areaMap.get(area));
-                }
-            }
-            //如果list中有其他，则其他为 其他+“”。依然是算两个
-            if (areaList.size() > 0 && areaList.size() < areaMap.size() + 1) {
-                queryBuilder.filterField(field, StringUtils.join(areaList, " OR "), Operator.Equal);
-            }
-        }
     }
 
     private Object getBarPieData(SpecialCustomChart customChart, QueryBuilder queryBuilder) throws TRSSearchException {

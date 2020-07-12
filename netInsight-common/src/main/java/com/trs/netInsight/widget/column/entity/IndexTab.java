@@ -1,6 +1,7 @@
 
 package com.trs.netInsight.widget.column.entity;
 
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
@@ -10,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -156,6 +158,13 @@ public class IndexTab extends BaseEntity implements Cloneable{
      */
     @Column(name = "ir_simflag")
     private boolean irSimflag = false;
+    public boolean isIrSimflag(){
+    	if(similar == false && irSimflagAll == false){
+			return true;
+		}else{
+			return irSimflag;
+		}
+	}
 
 	/**
 	 * 跨数据源排重
@@ -196,31 +205,73 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 */
 	@Column(name = "media_level")
 	private String mediaLevel;
+	public String getMediaLevel(){
+		if(StringUtil.isNotEmpty(this.mediaLevel)){
+			return this.mediaLevel.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.MEDIA_LEVEL,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 媒体行业
 	 */
 	@Column(name = "media_industry")
 	private String mediaIndustry;
+	public String getMediaIndustry(){
+		if(StringUtil.isNotEmpty(this.mediaIndustry)){
+			return this.mediaIndustry.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.MEDIA_INDUSTRY,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 内容行业
 	 */
 	@Column(name = "content_industry")
 	private String contentIndustry;
+	public String getContentIndustry(){
+		if(StringUtil.isNotEmpty(this.contentIndustry)){
+			return this.contentIndustry.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.CONTENT_INDUSTRY,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 信息过滤  -  信息性质打标，如抽奖
 	 */
 	@Column(name = "filter_info")
 	private String filterInfo;
+	public String getFilterInfo(){
+		if(StringUtil.isNotEmpty(this.filterInfo)){
+			return this.filterInfo.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.FILTER_INFO,";")+";其它";
+		}
+	}
 	/**
 	 * 内容所属地域
 	 */
 	@Column(name = "content_area")
 	private String contentArea;
+	public String getContentArea(){
+		if(StringUtil.isNotEmpty(this.contentArea)){
+			return this.contentArea.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 媒体所属地域
 	 */
 	@Column(name = "media_area")
 	private String mediaArea;
+	public String getMediaArea(){
+		if(StringUtil.isNotEmpty(this.mediaArea)){
+			return this.mediaArea.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+		}
+	}
 
 	public String[]  getType(Boolean isArr){
 		if (StringUtil.isNotEmpty(this.type)){

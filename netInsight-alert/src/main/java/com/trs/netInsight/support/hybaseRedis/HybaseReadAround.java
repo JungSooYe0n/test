@@ -10,6 +10,8 @@ import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
 import com.trs.netInsight.util.DateUtil;
 import com.trs.netInsight.util.RedisUtil;
+import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.user.entity.User;
@@ -53,6 +55,7 @@ public class HybaseReadAround {
     public Object before(ProceedingJoinPoint point, HybaseRead hybaseRead) throws Throwable {
         Object result = null;
         try {
+            User user = UserUtils.getUser();
             MethodSignature methodSign = (MethodSignature)point.getSignature();
             Class returnClazz = methodSign.getReturnType();
             // 获取参数列表及参数值
@@ -62,6 +65,11 @@ public class HybaseReadAround {
             Integer redisKeyHash = paramsStr.hashCode();
             String redisKey = "hybaseRedis_"+redisKeyHash;
             String redisKeyAddTime = "hybaseRedisAddTime_"+redisKeyHash;
+            if(user!= null && StringUtil.isNotEmpty(user.getId())){
+                //先一个用户一个缓存，之后可以尝试当前用户存缓存的key，然后再删除对应的key
+                redisKey = "hybaseRedis_"+user.getId()+"_"+redisKeyHash;
+                redisKeyAddTime = "hybaseRedisAddTime_"+user.getId()+"_"+redisKeyHash;
+            }
             Object rt = RedisUtil.getObject(redisKey);
             String addTime = RedisUtil.getString(redisKeyAddTime);
             //key存放redis中的时间(分)
@@ -126,7 +134,10 @@ public class HybaseReadAround {
         String res = sb.toString();
         if(res.contains("IR_URLTIME")){
             int t1 = res.indexOf("IR_URLTIME");
-            res = res.substring(0,t1)+res.substring(t1+45);
+            StringBuilder resBuilder = new StringBuilder(res);
+            resBuilder.replace(t1+22,t1+26,"0000");
+            resBuilder.replace(t1+40,t1+44,"0000");
+            res = resBuilder.toString();
         }
         return res;
     }

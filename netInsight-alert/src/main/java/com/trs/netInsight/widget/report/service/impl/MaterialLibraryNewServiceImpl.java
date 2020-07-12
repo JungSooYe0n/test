@@ -297,7 +297,8 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     newAdd.setChannel(fav.getChannel());
 
                     String authors = fav.getAuthors();
-                    newAdd.setAbstracts(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+                    newAdd.setAuthors(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+                    newAdd.setAuthor(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
                     String screenName = fav.getScreenName();
                     String srcName = fav.getSrcName();
 

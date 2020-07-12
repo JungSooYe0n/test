@@ -13,17 +13,14 @@ import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
-import com.trs.netInsight.widget.column.entity.CustomChart;
 import com.trs.netInsight.widget.column.entity.IndexTabType;
-import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.special.SpecialCustomChart;
+import com.trs.netInsight.widget.special.entity.SpecialCustomChart;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.service.ISpecialCustomChartService;
 import com.trs.netInsight.widget.special.service.ISpecialProjectService;
-import com.trs.netInsight.widget.special.service.ISpecialService;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
@@ -411,13 +408,7 @@ public class SpecialCustomChartController {
             customChart.setFilterInfo(filterInfo);
             customChart.setContentArea(contentArea);
             customChart.setMediaArea(mediaArea);
-
-            // 栏目从标题+正文修改为仅标题的时候不设置权重，但传的weight还是=true
-            if ("0".equals(keyWordIndex)) {
-                customChart.setWeight(false);
-            } else {
-                customChart.setWeight(weight);
-            }
+            customChart.setWeight(weight);
             customChart.setTabWidth(tabWidth);
 
             return specialCustomChartService.saveSpecialCustomChart(customChart);
@@ -474,5 +465,44 @@ public class SpecialCustomChartController {
         return result;
     }
 
+    /**
+     * 点击自定义图表跳转到的列表
+     *
+     * @param request
+     * @param id
+     * @return
+     * @throws TRSException
+     */
+    @FormatResult
+    @RequestMapping(value = "/list", method = RequestMethod.POST)
+    @ApiOperation("获取自定义图表某个点对应的列表")
+    public Object list(HttpServletRequest request,
+                       @ApiParam("自定义图表的id") @RequestParam(value = "id") String id,
+                       @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+                       @ApiParam("数据来源 - 当前列表要展示的数据源")@RequestParam(value = "source",required = false ) String source,
+                       @ApiParam("数据参数 - 被点击的图上的点")@RequestParam(value = "key",required = false ) String key,
+                       @ApiParam("折线图数据时间")@RequestParam(value = "dateTime", required = false) String dateTime,
+                       @ApiParam("词云图 通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+                       @ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false) String mapContrast,
+                       @ApiParam("排序")@RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
+                       @ApiParam("微博原发/转发")@RequestParam(value = "forwardPrimary",defaultValue = "") String forwardPrimary,
+                       @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+                       @ApiParam("结果中搜索") @RequestParam(value="fuzzyValue",required=false) String fuzzyValue,
+                       @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
+                       @ApiParam("页码")@RequestParam(value = "pageNo",defaultValue = "0") int pageNo,
+                       @ApiParam("一页多少条")@RequestParam(value = "pageSize",defaultValue = "10") int pageSize)
+            throws TRSException {
+        User user = UserUtils.getUser();
+        SpecialCustomChart customChart = specialCustomChartService.findOneSpecialCustomChart(id);
+        if (ObjectUtil.isEmpty(customChart)) {
+            throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
+        }
+        if(StringUtil.isNotEmpty(timeRange)){
+            customChart.setTimeRange(timeRange);
+        }
+        Object result = specialCustomChartService.selectChar2ListtData(customChart, source, key, dateTime, entityType, mapContrast, sort, pageNo, pageSize, forwardPrimary, invitationCard,
+                                    fuzzyValue, fuzzyValueScope);
+        return result;
+    }
 
 }

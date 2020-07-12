@@ -250,6 +250,13 @@ public class SpecialProject extends BaseEntity {
      */
     @Column(name = "ir_simflag")
     private boolean irSimflag = false;
+	public boolean isIrSimflag(){
+		if(similar == false && irSimflagAll == false){
+			return true;
+		}else{
+			return irSimflag;
+		}
+	}
     
     /**
      * 专家模式情况下  是否转换为server表达式
@@ -275,31 +282,73 @@ public class SpecialProject extends BaseEntity {
 	 */
 	@Column(name = "media_level")
 	private String mediaLevel;
+	public String getMediaLevel(){
+		if(StringUtil.isNotEmpty(this.mediaLevel)){
+			return this.mediaLevel.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.MEDIA_LEVEL,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 媒体行业
 	 */
 	@Column(name = "media_industry")
 	private String mediaIndustry;
+	public String getMediaIndustry(){
+		if(StringUtil.isNotEmpty(this.mediaIndustry)){
+			return this.mediaIndustry.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.MEDIA_INDUSTRY,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 内容行业
 	 */
 	@Column(name = "content_industry")
 	private String contentIndustry;
+	public String getContentIndustry(){
+		if(StringUtil.isNotEmpty(this.contentIndustry)){
+			return this.contentIndustry.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.CONTENT_INDUSTRY,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 信息过滤  -  信息性质打标，如抽奖
 	 */
 	@Column(name = "filter_info")
 	private String filterInfo;
+	public String getFilterInfo(){
+		if(StringUtil.isNotEmpty(this.filterInfo)){
+			return this.filterInfo.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.FILTER_INFO,";")+";其它";
+		}
+	}
 	/**
 	 * 内容所属地域
 	 */
 	@Column(name = "content_area")
 	private String contentArea;
+	public String getContentArea(){
+		if(StringUtil.isNotEmpty(this.contentArea)){
+			return this.contentArea.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 媒体所属地域
 	 */
 	@Column(name = "media_area")
 	private String mediaArea;
+	public String getMediaArea(){
+		if(StringUtil.isNotEmpty(this.mediaArea)){
+			return this.mediaArea.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+		}
+	}
 
 	public void setStart(String start) throws ParseException {
 		this.start = start;
@@ -600,9 +649,6 @@ public class SpecialProject extends BaseEntity {
 		default:
 			break;
 		}
-//		if(irSimflag){
-//			searchBuilder.filterByTRSL(Const.IR_SIMFLAG_TRSL);
-//		}
 		if (pageNo != -1) {
 			queryBuilder.setPageNo(pageNo);
 			queryBuilder.setPageSize(pageSize);

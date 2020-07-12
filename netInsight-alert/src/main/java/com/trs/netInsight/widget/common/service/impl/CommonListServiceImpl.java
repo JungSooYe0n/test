@@ -859,6 +859,7 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSSearchException
      */
     @Override
+    @HybaseRead
     public <T extends IQueryBuilder> GroupResult categoryQuery(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String groupField, String type, String groupName) throws TRSException {
         QueryBuilder queryBuilder = null;
         if (StringUtil.isNotEmpty(groupName)) {
@@ -887,6 +888,7 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSSearchException
      */
     @Override
+    @HybaseRead
     public <T extends IQueryBuilder> GroupResult categoryQuery(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String groupField, String type) throws TRSException {
         try {
             QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);

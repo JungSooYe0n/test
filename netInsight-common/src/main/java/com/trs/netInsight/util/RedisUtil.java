@@ -331,6 +331,13 @@ public class RedisUtil {
 	}
 
 
+	public static boolean deleteKeyForFuzzy(String key){
+		Set<String> keys = stringRedisTemplate.keys(key + "*");
+		if(keys != null && keys.size()>0){
+			stringRedisTemplate.delete(keys);
+		}
+		return true;
+	}
 	/**
 	 * 将key信息删除
 	 *

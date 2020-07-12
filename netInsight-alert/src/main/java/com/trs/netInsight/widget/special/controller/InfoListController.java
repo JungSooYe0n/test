@@ -246,14 +246,13 @@ public class InfoListController {
 			}
 			//命中规则
 			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {
-//				specialProject.setKeyWordIndex(wordIndex);
-				if (SearchScope.TITLE.equals(wordIndex)){
+				if (SearchScope.TITLE.equals(wordIndex) || "0".equals(wordIndex)){
 					specialProject.setSearchScope(SearchScope.TITLE);
 				}
-				if (SearchScope.TITLE_CONTENT.equals(wordIndex)){
+				if (SearchScope.TITLE_CONTENT.equals(wordIndex)|| "1".equals(wordIndex)){
 					specialProject.setSearchScope(SearchScope.TITLE_CONTENT);
 				}
-				if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)){
+				if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)|| "2".equals(wordIndex)){
 					specialProject.setSearchScope(SearchScope.TITLE_ABSTRACT);
 				}
 
@@ -279,7 +278,7 @@ public class InfoListController {
 				}
 			}
 			// 跟统计表格一样 如果来源没选 就不查数据
-			List<String> specialSource = CommonListChartUtil.formatGroupName(specialProject.getSource());
+			List<String> specialSource = CommonListChartUtil.formatGroupName(groupName);
 			if(!"ALL".equals(source)){
 				source = CommonListChartUtil.changeGroupName(source);
 				if(!specialSource.contains(source)){
@@ -288,7 +287,6 @@ public class InfoListController {
 			}else{
 				source = StringUtils.join(specialSource,";");
 			}
-//			String keyWordIndex = "positioCon";// 标题加正文 与日常监测统一
 
 				Object documentCommonSearch = infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
 						timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null,
@@ -562,7 +560,8 @@ public class InfoListController {
 		try {
 			//判断当前选择数据源和该次搜索选择的全部数据源是否是包含关系，不包含则无法查询
 			if (!"ALL".equals(checkedSource)) {
-				List<String> sourceList = Arrays.asList(source.split(";"));
+				List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+				checkedSource = CommonListChartUtil.changeGroupName(checkedSource);
 				if (!sourceList.contains(checkedSource)) {
 					return null;
 				} else {
