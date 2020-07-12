@@ -58,6 +58,9 @@ public class HotRating extends BaseEntity {
     private int luntanMiddle = 150;
     @Column(name = "luntan_high")
     private int luntanHigh = 200;
+    public HotRating(){
+
+    }
 //    public HotRating(int weiboLow,int weiboMiddle,int weiboHigh,int weixinLow,int weixinMiddle,int weixinHigh,int newsLow,int newsMiddle,int newsHigh,int appLow,int appMiddle,int appHigh,int zimeitiLow,int zimeitiMiddle,int zimeitiHigh,int luntanLow,int luntanMiddle,int luantanHigh){
 //
 //    }

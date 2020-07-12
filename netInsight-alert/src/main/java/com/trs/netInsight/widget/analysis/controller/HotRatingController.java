@@ -40,7 +40,12 @@ public class HotRatingController {
 //
 //        return Const.SUCCESS;
 //    }
-public Object updateHotRating(@ApiParam("微博低热指数") @RequestParam(value = "weiboLow", required = false) int weiboLow,
+@ApiOperation("修改态势评估热度接口")
+@FormatResult
+@RequestMapping(value = "/updateHotRating", method = RequestMethod.GET)
+public Object updateHotRating(
+        @ApiParam("id") @RequestParam(value = "id", required = false) String id,
+        @ApiParam("微博低热指数") @RequestParam(value = "weiboLow", required = false) int weiboLow,
                                @ApiParam("微博中热指数") @RequestParam(value = "weiboMiddle", required = false) int weiboMiddle,
                               @ApiParam("微博高热指数") @RequestParam(value = "weiboHigh", required = false) int weiboHigh,
                               @ApiParam("微博vip低热指数") @RequestParam(value = "weiboVipLow", required = false) int weiboVipLow,
@@ -62,19 +67,43 @@ public Object updateHotRating(@ApiParam("微博低热指数") @RequestParam(valu
                               @ApiParam("论坛贴吧中热指数") @RequestParam(value = "luntanMiddle", required = false) int luntanMiddle,
                               @ApiParam("论坛贴吧高热指数") @RequestParam(value = "luntanHigh", required = false) int luntanHigh) throws TRSException {
     User user = UserUtils.getUser();
-    if (!UserUtils.ROLE_PLATFORM.contains(user.getCheckRole())) {
+    if (!UserUtils.ROLE_ADMIN.contains(user.getCheckRole())) {
         throw new TRSException("非机构管理员没有此权限");
     }
-    HotRating hotRating = new HotRating(weiboLow,weiboMiddle,weiboHigh,weiboVipLow,weiboVipMiddle,weiboVipHigh,weixinLow,weixinMiddle,weixinHigh,newsLow,newsMiddle,newsHigh,appLow,appMiddle,appHigh,zimeitiLow,zimeitiMiddle,zimeitiHigh,luntanLow,luntanMiddle,luntanHigh);
+    HotRating hotRating = hotRatingRepository.getOne(id);
+    if (ObjectUtil.isNotEmpty(hotRating)){
+        hotRating.setWeiboLow(weiboLow);
+        hotRating.setWeiboMiddle(weiboMiddle);
+        hotRating.setWeiboHigh(weiboHigh);
+        hotRating.setWeiboVipLow(weiboVipLow);
+        hotRating.setWeiboVipMiddle(weiboVipMiddle);
+        hotRating.setWeiboVipHigh(weiboVipHigh);
+        hotRating.setWeixinLow(weixinLow);
+        hotRating.setWeixinMiddle(weixinMiddle);
+        hotRating.setWeixinHigh(weixinHigh);
+        hotRating.setNewsLow(newsLow);
+        hotRating.setNewsMiddle(newsMiddle);
+        hotRating.setNewsHigh(newsHigh);
+        hotRating.setAppLow(appLow);
+        hotRating.setAppMiddle(appMiddle);
+        hotRating.setAppHigh(appHigh);
+        hotRating.setZimeitiLow(zimeitiLow);
+        hotRating.setZimeitiMiddle(zimeitiMiddle);
+        hotRating.setZimeitiHigh(zimeitiHigh);
+        hotRating.setLuntanLow(luntanLow);
+        hotRating.setLuntanMiddle(luntanMiddle);
+        hotRating.setLuntanHigh(luntanHigh);
+    }
+//    HotRating hotRating = new HotRating(weiboLow,weiboMiddle,weiboHigh,weiboVipLow,weiboVipMiddle,weiboVipHigh,weixinLow,weixinMiddle,weixinHigh,newsLow,newsMiddle,newsHigh,appLow,appMiddle,appHigh,zimeitiLow,zimeitiMiddle,zimeitiHigh,luntanLow,luntanMiddle,luntanHigh);
     hotRatingRepository.save(hotRating);
     return Const.SUCCESS;
 }
-    @ApiOperation("态势评估热度接口")
+    @ApiOperation("获取态势评估热度接口")
     @FormatResult
     @RequestMapping(value = "/getHotRating", method = RequestMethod.GET)
     public Object getHotRating() throws TRSException {
         User user = UserUtils.getUser();
-        if (!UserUtils.ROLE_PLATFORM.contains(user.getCheckRole())) {
+        if (!UserUtils.ROLE_ADMIN.contains(user.getCheckRole())) {
             throw new TRSException("非机构管理员没有此权限");
         }
         List<HotRating> hotRatingList = hotRatingRepository.findByOrganizationId(user.getOrganizationId());

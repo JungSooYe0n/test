@@ -4712,12 +4712,18 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		int maxLength = 5;
 		List<String> list = DateUtil.getBetweenDateString(timeArray[0], timeArray[1], DateUtil.yyyyMMddHHmmss,
 				DateUtil.yyyyMMdd3);
+		String contrastField = FtsFieldConst.FIELD_SITENAME;
+		if(Const.GROUPNAME_WEIBO.equals(groupName)){
+			contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+		}else if(Const.MEDIA_TYPE_TF.contains(groupName)){
+			contrastField = FtsFieldConst.FIELD_AUTHORS;
+		}
 		if (list != null) {
 			List<Map<String, Object>> listMapData = new ArrayList<>();
 			int size = list.size();
 			//超过8个点 ，只展示8个  2020-01-06
-			if (size > 8) {
-				list = list.subList(size - 8, size);
+			if (size > 10) {
+				list = list.subList(size - 10, size);
 			}
 			for (String time : list) {
 				Map<String, Object> mapData = new HashMap<>();
@@ -4726,14 +4732,11 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				QueryBuilder builderWxb = new QueryBuilder(0, 1000);
 				builderWxb.filterByTRSL(searchBuilder.asTRSL());
 				builderWxb.filterField(FtsFieldConst.FIELD_URLDATE, time, Operator.Equal);
-//				builderWxb.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻", Operator.Equal);
 				builderWxb.filterField(FtsFieldConst.FIELD_WXB_LIST, "0", Operator.Equal);
-//				GroupResult resultWxb = hybase8SearchService.categoryQuery(builderWxb, similar, irSimflag,irSimflagAll,
-//						FtsFieldConst.FIELD_SITENAME,"special", searchBuilder.getDatabase());
 				GroupResult resultWxb = null;
 				try {
 					resultWxb = commonListService.categoryQuery(builderWxb, similar, irSimflag,irSimflagAll,
-							FtsFieldConst.FIELD_SITENAME,"special",groupName);
+							contrastField,"special",groupName);
 				} catch (TRSException e) {
 					e.printStackTrace();
 				}
@@ -4743,15 +4746,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				// 非wxb白名单的数据
 				QueryBuilder builderNotWxb = new QueryBuilder(0, 1000);
 				builderNotWxb.filterByTRSL(searchBuilder.asTRSL());
-//				builderNotWxb.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻", Operator.Equal);
 				builderNotWxb.filterField(FtsFieldConst.FIELD_URLDATE, time, Operator.Equal);
 				builderNotWxb.filterField(FtsFieldConst.FIELD_WXB_LIST, "0", Operator.NotEqual);
-//				GroupResult resultNotWxb = hybase8SearchService.categoryQuery(builderNotWxb, similar, irSimflag,irSimflagAll,
-//						FtsFieldConst.FIELD_SITENAME,"special" ,searchBuilder.getDatabase());
 				GroupResult resultNotWxb = null;
 				try {
 					resultNotWxb = commonListService.categoryQuery(builderNotWxb, similar, irSimflag,irSimflagAll,
-							FtsFieldConst.FIELD_SITENAME,"special",groupName);
+							contrastField,"special",groupName);
 				} catch (TRSException e) {
 					e.printStackTrace();
 				}
@@ -4760,7 +4760,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				}
 				mapData.put("count", listData.size());
 				// 取 maxLength 个
-				if ( !isApi){
+				if (!isApi){
 					if (listData.size() > maxLength) {
 						listData = listData.subList(0, maxLength);
 					}
