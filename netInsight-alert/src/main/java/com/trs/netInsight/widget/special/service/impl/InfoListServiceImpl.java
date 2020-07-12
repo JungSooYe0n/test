@@ -6340,7 +6340,7 @@ public class InfoListServiceImpl implements IInfoListService {
 
 
 				if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
-					builder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
+					addFieldFilter(FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE,builder);
 				}
 
 			// 结果中搜索

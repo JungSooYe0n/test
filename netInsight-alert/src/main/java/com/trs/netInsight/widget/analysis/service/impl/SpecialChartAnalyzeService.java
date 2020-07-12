@@ -2366,7 +2366,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 
 		if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
-			builder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
+			addFieldFilter(FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE,builder);
 		}
 
 		// 结果中搜索
@@ -2419,6 +2419,27 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		total.put(resultField.getCountField(),count);
 		cateqoryQuery.add(0,total);
 		return cateqoryQuery;
+	}
+	private void addFieldFilter(String field,String value,List<String> allValue,QueryBuilder queryBuilder){
+		if(StringUtil.isNotEmpty(value)){
+			if(value.contains("其它")){
+				value = value.replaceAll("其它","其他");
+			}
+			String[] valueArr = value.split(";");
+			Set<String> valueArrList = new HashSet<>();
+			for(String v : valueArr){
+				if ("其他".equals(v) || "中性".equals(v)) {
+					valueArrList.add("\"\"");
+				}
+				if (allValue.contains(v)) {
+					valueArrList.add(v);
+				}
+			}
+			//如果list中有其他，则其他为 其他+“”。依然是算两个
+			if(valueArrList.size() >0  &&  valueArrList.size() < allValue.size() +1){
+				queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+			}
+		}
 	}
 
 	@Override
@@ -5631,19 +5652,9 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
 		//微博情感分析 -->  情感分析 ！！！按专题分析创建的来源统计  20200107
 		String groupName = specialProject.getSource();
-//		String[] groupNames = StringUtil.isNotEmpty(groupName)?groupName.split(";"):null;
-//		String[] database = TrslUtil.chooseDatabases(groupNames);
-//		if (ObjectUtil.isEmpty(database)){
-//			return null;
-//		}
-//		if (StringUtil.isNotEmpty(groupName)) {
-//			searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-//					.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-//		}
+
 		String trsl = searchBuilder.asTRSL();
 		log.info(trsl);
-//		GroupResult records = hybase8SearchService.categoryQuery(specialProject.isServer(), trsl, sim, irSimflag,irSimflagAll,
-//				ESFieldConst.IR_APPRAISE, 3, "special",database);
 		searchBuilder.setPageSize(3);
 		//todo
 		ChartResultField chartResultField = new ChartResultField("name","num");
@@ -5940,7 +5951,7 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 			}else if(Const.MEDIA_TYPE_TF.contains(source)){
 				contrastField = FtsFieldConst.FIELD_AUTHORS;
 			}
-			queryBuilder.filterField(contrastField, key, Operator.Equal);
+			queryBuilder.filterField(contrastField, "\""+key+"\"", Operator.Equal);
 		}else{
 			throw new TRSSearchException("未获取到检索条件");
 		}

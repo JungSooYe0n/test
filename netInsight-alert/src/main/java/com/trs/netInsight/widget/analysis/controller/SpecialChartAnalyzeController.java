@@ -2846,7 +2846,6 @@ public class SpecialChartAnalyzeController {
 					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 				}
 			}
-//			String[] timeRange = DateUtil.formatTimeRange(days);
 			//排重
 			if ("netRemove".equals(simflag)) { //单一媒体排重
 				specialProject.setSimilar(true);
@@ -2863,17 +2862,15 @@ public class SpecialChartAnalyzeController {
 			}
 			//命中规则
 			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {
-//				specialProject.setKeyWordIndex(wordIndex);
-				if (SearchScope.TITLE.equals(wordIndex)){
+				if (SearchScope.TITLE.equals(wordIndex) || "0".equals(wordIndex)){
 					specialProject.setSearchScope(SearchScope.TITLE);
 				}
-				if (SearchScope.TITLE_CONTENT.equals(wordIndex)){
+				if (SearchScope.TITLE_CONTENT.equals(wordIndex)|| "1".equals(wordIndex)){
 					specialProject.setSearchScope(SearchScope.TITLE_CONTENT);
 				}
-				if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)){
+				if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)|| "2".equals(wordIndex)){
 					specialProject.setSearchScope(SearchScope.TITLE_ABSTRACT);
 				}
-
 			}
 			specialProject.setMonitorSite(monitorSite);
 			specialProject.setExcludeWeb(excludeWeb);
@@ -2896,15 +2893,6 @@ public class SpecialChartAnalyzeController {
 				}
 			}
 			// 跟统计表格一样 如果来源没选 就不查数据
-			List<String> specialSource = CommonListChartUtil.formatGroupName(specialProject.getSource());
-			if(!"ALL".equals(groupName)){
-				groupName = CommonListChartUtil.changeGroupName(groupName);
-//				if(!specialSource.contains(groupName)){
-//					return null;
-//				}
-			}else{
-				groupName = StringUtils.join(specialSource,";");
-			}
 			Object total = specialChartAnalyzeService.getSpecialStattotal(specialProject,groupName,
 					timeRange, emotion, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null,
 					"special", read, mediaLevel, mediaIndustry,
