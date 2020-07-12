@@ -16,6 +16,7 @@ package com.trs.netInsight.widget.article.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.trs.netInsight.support.hybaseRedis.HybaseReadUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.report.service.IMaterialLibraryNewService;
 import com.trs.netInsight.widget.report.service.IReportService;
@@ -114,6 +115,9 @@ public class ArticleDeleteController {
 			materialLibraryNewService.delLibraryResourceForIds(sidsJoined);
 			if(StringUtils.isNotBlank(id)){
 				RedisFactory.deleteAllKey(id);
+			}
+			if(sids != null && sids.length >0){
+				HybaseReadUtil.remaveHybaseReadRedisKey(UserUtils.getUser());
 			}
 			return list;
 		}
