@@ -40,6 +40,35 @@ public class HotRatingController {
 //
 //        return Const.SUCCESS;
 //    }
+public Object updateHotRating(@ApiParam("微博低热指数") @RequestParam(value = "weiboLow", required = false) int weiboLow,
+                               @ApiParam("微博中热指数") @RequestParam(value = "weiboMiddle", required = false) int weiboMiddle,
+                              @ApiParam("微博高热指数") @RequestParam(value = "weiboHigh", required = false) int weiboHigh,
+                              @ApiParam("微博vip低热指数") @RequestParam(value = "weiboVipLow", required = false) int weiboVipLow,
+                              @ApiParam("微博vip中热指数") @RequestParam(value = "weiboVipMiddle", required = false) int weiboVipMiddle,
+                              @ApiParam("微博vip高热指数") @RequestParam(value = "weiboVipHigh", required = false) int weiboVipHigh,
+                              @ApiParam("微信低热指数") @RequestParam(value = "weixinLow", required = false) int weixinLow,
+                              @ApiParam("微信中热指数") @RequestParam(value = "weixinMiddle", required = false) int weixinMiddle,
+                              @ApiParam("微信高热指数") @RequestParam(value = "weixinHigh", required = false) int weixinHigh,
+                              @ApiParam("新闻低热指数") @RequestParam(value = "newsLow", required = false) int newsLow,
+                              @ApiParam("新闻中热指数") @RequestParam(value = "newsMiddle", required = false) int newsMiddle,
+                              @ApiParam("新闻高热指数") @RequestParam(value = "newsHigh", required = false) int newsHigh,
+                              @ApiParam("客户端低热指数") @RequestParam(value = "appLow", required = false) int appLow,
+                              @ApiParam("客户端中热指数") @RequestParam(value = "appMiddle", required = false) int appMiddle,
+                              @ApiParam("客户端高热指数") @RequestParam(value = "appHigh", required = false) int appHigh,
+                              @ApiParam("自媒体低热指数") @RequestParam(value = "zimeitiLow", required = false) int zimeitiLow,
+                              @ApiParam("自媒体中热指数") @RequestParam(value = "zimeitiMiddle", required = false) int zimeitiMiddle,
+                              @ApiParam("自媒体高热指数") @RequestParam(value = "zimeitiHigh", required = false) int zimeitiHigh,
+                              @ApiParam("论坛贴吧低热指数") @RequestParam(value = "luntanLow", required = false) int luntanLow,
+                              @ApiParam("论坛贴吧中热指数") @RequestParam(value = "luntanMiddle", required = false) int luntanMiddle,
+                              @ApiParam("论坛贴吧高热指数") @RequestParam(value = "luntanHigh", required = false) int luntanHigh) throws TRSException {
+    User user = UserUtils.getUser();
+    if (!UserUtils.ROLE_PLATFORM.contains(user.getCheckRole())) {
+        throw new TRSException("非机构管理员没有此权限");
+    }
+    HotRating hotRating = new HotRating(weiboLow,weiboMiddle,weiboHigh,weiboVipLow,weiboVipMiddle,weiboVipHigh,weixinLow,weixinMiddle,weixinHigh,newsLow,newsMiddle,newsHigh,appLow,appMiddle,appHigh,zimeitiLow,zimeitiMiddle,zimeitiHigh,luntanLow,luntanMiddle,luntanHigh);
+    hotRatingRepository.save(hotRating);
+    return Const.SUCCESS;
+}
     @ApiOperation("态势评估热度接口")
     @FormatResult
     @RequestMapping(value = "/getHotRating", method = RequestMethod.GET)
