@@ -595,13 +595,13 @@ public class GatherController {
                     predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
 
                     predicate.add(cb.or(predicateOrg.toArray(new Predicate[predicateOrg.size()])));
-                        predicate.add(cb.or(cb.equal(root.get("status"), "草稿"), cb.equal(root.get("status"), "采集中")));
+
                 } else if (UserUtils.ROLE_ADMIN.equals(user.getCheckRole())){
                     predicate.add(cb.equal(root.get("userId"), user.getId()));
                 }else {
                     predicate.add(cb.equal(root.get("subGroupId"), user.getSubGroupId()));
                 }
-
+                predicate.add(cb.or(cb.equal(root.get("status"), "草稿"), cb.equal(root.get("status"), "采集中")));
                 predicate.add(cb.equal(root.get("isNeedRemind"), true));
                 Predicate[] pre = new Predicate[predicate.size()];
                 return query.where(predicate.toArray(pre)).getRestriction();
