@@ -1389,7 +1389,7 @@ public class ExcelServiceImpl implements IExcelService {
 				allFavourites = (InfoListResult)reportService.getFavouritesByCondition(user, 0, num, Arrays.asList(source), keywords,fuzzyValueScope, invitationCard, forwarPrimary,true);
 
 			} else if (ExportListType.LIBRARY.equals(exportListType)) {
-				allFavourites = (InfoListResult)materialLibraryNewService.findMaterialSourceByCondition(libraryId,0,num,Arrays.asList(source),keywords,fuzzyValueScope,invitationCard,forwarPrimary,time);
+				allFavourites = (InfoListResult)materialLibraryNewService.findMaterialSourceByCondition(libraryId,0,num,Arrays.asList(source),keywords,fuzzyValueScope,invitationCard,forwarPrimary,time,true);
 			}
 
 			if (allFavourites != null) {
