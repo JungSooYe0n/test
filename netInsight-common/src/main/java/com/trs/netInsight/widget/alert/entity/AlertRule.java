@@ -109,7 +109,8 @@ public class AlertRule extends BaseEntity {
 	 */
 	@Column(name = "exclude_site_name", columnDefinition = "TEXT")
 	private String excludeSiteName;
-
+	@Column(name = "monitor_site", columnDefinition = "TEXT")
+	private String monitorSite;// 监测网站
 	/**
 	 * 关键词位置
 	 */
@@ -295,6 +296,10 @@ public class AlertRule extends BaseEntity {
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
+			//监测网站
+			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
+			}
 			break;
 		case SPECIAL:
 			if (StringUtils.isBlank(this.trsl)) {
@@ -360,6 +365,10 @@ public class AlertRule extends BaseEntity {
 			//excludeSiteName 这个字段是排除网站   不应该和 excludeWords一样都拼在 URLTITLE里 或者URLTITLE + CONTENT 里  应该拼在 IR_SITENAME字段里
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+			}
+			//监测网站
+			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			
 			break;
@@ -430,6 +439,10 @@ public class AlertRule extends BaseEntity {
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
+			//监测网站
+			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
+			}
 			break;
 		case SPECIAL:
 			if (StringUtils.isBlank(this.weChatTrsl)) {
@@ -497,6 +510,10 @@ public class AlertRule extends BaseEntity {
 
 				if (StringUtil.isNotEmpty(this.excludeSiteName)) {
 					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+				}
+				//监测网站
+				if (StringUtil.isNotEmpty(this.monitorSite)) {
+					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 				}
 				break;
 			case SPECIAL:

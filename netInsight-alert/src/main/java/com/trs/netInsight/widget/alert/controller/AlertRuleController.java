@@ -160,6 +160,7 @@ public class AlertRuleController {
 			@ApiParam("任意关键词") @RequestParam(value = "anyKeyword", required = false) String anyKeyword,
 			@ApiParam("排除词") @RequestParam(value = "excludeWords", required = false) String excludeWords,
 			@ApiParam("排除网站") @RequestParam(value = "excludeSiteName", required = false) String excludeSiteName,
+							 @ApiParam("排除网站") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 			@ApiParam("关键词位置 TITLE；TITLE_ABSTRACT；TITLE_CONTENT") @RequestParam(value = "scope", required = false, defaultValue = "TITLE") String scope,
 			@ApiParam("发送方式 ") @RequestParam(value = "sendway", defaultValue = "EMAIL", required = false) String sendWay,
 			@ApiParam("站内用户发送方式 ") @RequestParam(value = "websiteSendWay", defaultValue = "EMAIL", required = false) String websiteSendWay,
@@ -256,7 +257,7 @@ public class AlertRuleController {
 		}
 		// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
 		AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, repetition, irSimflag,irSimflagAll,groupName, anyKeyword,
-				excludeWords, excludeSiteName, scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
+				excludeWords, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight, null, null,
 				countBy, frequencyId, md5Num, md5Range, false, false);
 		// timeInterval看逻辑是按分钟存储 2h 120
@@ -315,6 +316,7 @@ public class AlertRuleController {
 			@ApiParam("任意关键词") @RequestParam(value = "anyKeyword", required = false) String anyKeyword,
 			@ApiParam("排除词") @RequestParam(value = "excludeWords", required = false) String excludeWords,
 			@ApiParam("排除网站") @RequestParam(value = "excludeSiteName", required = false) String excludeSiteName,
+							 @ApiParam("监测网站") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 			@ApiParam("关键词位置 TITLE；TITLE_ABSTRACT；TITLE_CONTENT") @RequestParam(value = "scope", required = false, defaultValue = "TITLE") String scope,
 			@ApiParam("发送方式 ") @RequestParam(value = "sendway", defaultValue = "EMAIL", required = false) String sendWay,
 			@ApiParam("站内用户发送方式 ") @RequestParam(value = "websiteSendWay", defaultValue = "EMAIL", required = false) String websiteSendWay,
@@ -391,6 +393,7 @@ public class AlertRuleController {
 		alertRule.setAnyKeyword(anyKeyword);
 		alertRule.setExcludeWords(excludeWords);
 		alertRule.setExcludeSiteName(excludeSiteName);
+		alertRule.setMonitorSite(monitorSite);
 		alertRule.setScope(scopeValue);
 		alertRule.setSendWay(sendWay);
 		alertRule.setWebsiteSendWay(websiteSendWay);

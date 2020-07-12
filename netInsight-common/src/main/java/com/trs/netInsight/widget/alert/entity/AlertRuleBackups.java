@@ -122,7 +122,8 @@ public class AlertRuleBackups extends BaseEntity {
 	 */
 	@Column(name = "exclude_site_name", columnDefinition = "TEXT")
 	private String excludeSiteName;
-
+	@Column(name = "monitor_site", columnDefinition = "TEXT")
+	private String monitorSite;// 监测网站
 	/**
 	 * 关键词位置
 	 */
@@ -238,7 +239,7 @@ public class AlertRuleBackups extends BaseEntity {
 	public static AlertRuleBackups getAlertRuleBackups(AlertRule alertRule) {
 		AlertRuleBackups alertRuleBackups = new AlertRuleBackups(alertRule.getId(), alertRule.getStatus(),
 				alertRule.getTitle(), alertRule.getTimeInterval(), alertRule.getGrowth(), alertRule.isRepetition(),alertRule.isIrSimflag(),
-				alertRule.isIrSimflagAll(),alertRule.getGroupName(),alertRule.getAnyKeyword(), alertRule.getExcludeWords(), alertRule.getExcludeSiteName(),
+				alertRule.isIrSimflagAll(),alertRule.getGroupName(),alertRule.getAnyKeyword(), alertRule.getExcludeWords(), alertRule.getExcludeSiteName(),alertRule.getMonitorSite(),
 				alertRule.getScope(), alertRule.getSendWay(), alertRule.getWebsiteSendWay(), alertRule.getWebsiteId(),
 				alertRule.getAlertStartHour(), alertRule.getAlertEndHour(), alertRule.getLastStartTime(),
 				alertRule.getLastExecutionTime(), alertRule.getAlertType(), alertRule.getWeek(), alertRule.getSpecialType(),
