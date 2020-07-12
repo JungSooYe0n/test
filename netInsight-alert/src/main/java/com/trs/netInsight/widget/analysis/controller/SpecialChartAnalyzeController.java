@@ -1632,7 +1632,7 @@ public class SpecialChartAnalyzeController {
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSimCount(), ftsStatus));
 					}
 					return ftsQueryWeiBo;
-				case "新闻网站":
+				case Const.PAGE_SHOW_XINWEN:
 					List<FtsDocumentCommonVO> listChuan = new ArrayList<>();
 					QueryBuilder queryFts = new QueryBuilder();
 					String trsl = statBuilder.asTRSL();
@@ -1749,7 +1749,7 @@ public class SpecialChartAnalyzeController {
 						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
 					}
 					return listweixin;
-				case "自媒体号":
+				case Const.PAGE_SHOW_ZIMEITI:
 					List<FtsDocumentCommonVO> listzimeiti = new ArrayList<>();
 					QueryBuilder queryFts3 = new QueryBuilder();
 					String trsl3 = statBuilder.asTRSL();

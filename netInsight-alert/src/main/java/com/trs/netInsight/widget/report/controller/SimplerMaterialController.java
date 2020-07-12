@@ -147,7 +147,7 @@ public class SimplerMaterialController {
                 throw new OperationException("所传参数：groupName值有误，为:"+str+"，获取我的收藏列表出错");
             }
         }
-        return materialLibraryNewService.findMaterialSourceByCondition(libraryId,pageNo,pageSize,source,fuzzyValue,fuzzyValueScope,invitationCard,forwarPrimary,time);
+        return materialLibraryNewService.findMaterialSourceByCondition(libraryId,pageNo,pageSize,source,fuzzyValue,fuzzyValueScope,invitationCard,forwarPrimary,time,false);
         //历史方法  -  >  存在筛选问题，而且是从hybase拿取数据，现在从mysql拿取
         // return materialLibraryNewService.findMaterialResource(libraryId,pageNo,pageSize,groupName,fuzzyValue,invitationCard,forwarPrimary,time);
     }

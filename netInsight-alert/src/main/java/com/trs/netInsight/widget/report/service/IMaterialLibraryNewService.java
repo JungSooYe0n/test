@@ -80,7 +80,7 @@ public interface IMaterialLibraryNewService {
      */
     public Object findMaterialSourceByCondition(String libraryId, int pageNo, int pageSize,
                                                     List<String> groupName, String fuzzyValue, String fuzzyValueScope,String invitationCard,
-                                                    String forwarPrimary, String time) throws TRSException;
+                                                    String forwarPrimary, String time,Boolean isExport) throws TRSException;
 
     public Object changeHistoryMaterial();
 }
