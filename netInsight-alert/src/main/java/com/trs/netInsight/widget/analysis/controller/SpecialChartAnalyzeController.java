@@ -3204,14 +3204,8 @@ public class SpecialChartAnalyzeController {
 
 				// 根据时间升序,只要第一条
 				QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, true);
-//				if (specialProject.isServer()) {
-//					searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
-//				} else {
-//					searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
-//				}
 				searchBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				searchBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
-//				searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
 				return specialChartAnalyzeService.spreadAnalysis(searchBuilder, timeArray, similar, irSimflag,irSimflagAll,false,groupName);
 			}
 			return null;

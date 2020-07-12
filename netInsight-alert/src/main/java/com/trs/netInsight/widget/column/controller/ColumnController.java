@@ -1258,6 +1258,8 @@ public class ColumnController {
 			indexTab.setContrast(statisticalChartInfo.getContrast());
 			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
 				indexTab.setTabWidth(100);
+			}else if(StatisticalChartInfo.HOT_TOPIC_SORT.equals(statisticalChartInfo)){
+				indexTab.setGroupName(Const.GROUPNAME_WEIBO);
 			}
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);

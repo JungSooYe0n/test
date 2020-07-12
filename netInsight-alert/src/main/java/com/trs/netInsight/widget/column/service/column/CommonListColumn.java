@@ -243,14 +243,16 @@ public class CommonListColumn extends AbstractColumn {
 		try {
 			ChartResultField resultField = new ChartResultField("name", "value");
 			List<Map<String, Object>> cateqoryQuery = (List<Map<String, Object>>)commonListService.queryListGroupNameStattotal(queryBuilder, sim, irSimflag, irSimflagAll, groupName, "column", resultField);
-			Long count = 0L;
-			for(Map<String, Object> map :cateqoryQuery){
-				count += (Long)map.get(resultField.getCountField());
+			if(cateqoryQuery != null){
+				Long count = 0L;
+				for(Map<String, Object> map :cateqoryQuery){
+					count += (Long)map.get(resultField.getCountField());
+				}
+				Map<String, Object> total = new HashMap<>();
+				total.put(resultField.getContrastField(),"全部");
+				total.put(resultField.getCountField(),count);
+				cateqoryQuery.add(0,total);
 			}
-			Map<String, Object> total = new HashMap<>();
-			total.put(resultField.getContrastField(),"全部");
-			total.put(resultField.getCountField(),count);
-			cateqoryQuery.add(0,total);
 			return cateqoryQuery;
 		} catch (TRSException e) {
 			throw new TRSSearchException(e);

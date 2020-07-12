@@ -5889,16 +5889,18 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 		QueryBuilder queryBuilder = specialProject.toNoTimeBuilder(pageNo,pageSize);
 
 		String timeRange = specialProject.getTimeRange();
-		if(SpecialChartType.CHART_LINE.equals(specialChartType)){ // 舆论场趋势分析 - 折线图
-			if("全部".equals(key)){
-				key = "ALL";
+		if(SpecialChartType.CHART_LINE.equals(specialChartType) || SpecialChartType.NEWSSITEANALYSIS.equals(specialChartType)){ // 舆论场趋势分析 - 折线图
+			if(SpecialChartType.CHART_LINE.equals(specialChartType)){
+				if("全部".equals(key)){
+					key = "ALL";
+				}
+				source = key;
 			}
-			source = key;
 			String dateEndTime = "";
 			if(dateTime.length() ==10 &&  DateUtil.isTimeFormatterYMD(dateTime)){
 				dateTime = dateTime.replaceAll("/","-");
-				dateTime = dateTime+"000000";
-				dateEndTime = dateTime+"235959";
+				dateTime = dateTime+" 00:00:00";
+				dateEndTime = dateTime.substring(0,dateTime.length()-9)+" 23:59:59";
 			}else if(dateTime.length() ==16 && DateUtil.isTimeFormatterYMDH(dateTime)){
 				dateTime = dateTime.replaceAll("/","-");
 				dateTime = dateTime+":00";

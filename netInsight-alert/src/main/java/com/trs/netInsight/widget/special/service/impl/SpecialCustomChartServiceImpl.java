@@ -212,8 +212,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                     String dateEndTime = "";
                     if(dateTime.length() ==10 &&  DateUtil.isTimeFormatterYMD(dateTime)){
                         dateTime = dateTime.replaceAll("/","-");
-                        dateTime = dateTime+"000000";
-                        dateEndTime = dateTime+"235959";
+                        dateTime = dateTime+" 00:00:00";
+                        dateEndTime = dateTime.substring(0,dateTime.length()-9)+" 23:59:59";
                     }else if(dateTime.length() ==16 && DateUtil.isTimeFormatterYMDH(dateTime)){
                         dateTime = dateTime.replaceAll("/","-");
                         dateTime = dateTime+":00";

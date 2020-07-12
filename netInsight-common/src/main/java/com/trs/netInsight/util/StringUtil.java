@@ -36,6 +36,18 @@ public final class StringUtil {
 	public static final String img3 = "(?=&lt;IMAGE&nbsp;IDX=).+?(?=&nbsp;&gt;)";
 	public static final String img4 = "(?=&lt;img&nbsp;src=).+?(?=&nbsp;&gt;)";
 	public static final String img5 = "(?=&lt;img&nbsp;src=).+?(?=&quot;&gt;)";
+
+	public static final String img6 = "(?=&lt;IMAGE&nbsp;ALT=).+?(?=&nbsp;&gt;)";
+	public static final String img7 = "(?=&lt;IMAGE&nbsp;ALT=).+?(?=&quot;&gt;)";
+	public static final String img9 = "(?=&lt;img).+?(?=&gt;)";
+	public static final String img10 = "(?=&lt;img).+?(?=&gt;)";
+
+	public static final String img11 = "(?=&lt;IMAGE&nbsp;ALT=).+?(?=&nbsp;/&gt;)";
+	public static final String img12 = "(?=&lt;IMAGE&nbsp;ALT=).+?(?=&quot;/&gt;)";
+	public static final String img13 = "(?=&lt;img).+?(?=/&gt;)";
+	public static final String img14 = "(?=&lt;img).+?(?=/&gt;)";
+	public static final String img15 = "(?=&lt;img&nbsp;).+?(?=&nbsp;/&gt;)";
+
 	public static final String video1 = "(?=&lt;video&nbsp;src=).+?(?=&quot;&gt;)";
 	public static final String video2 = "(?=&lt;AUDIO&nbsp;SRC=).+?(?=&quot;&gt;)";
 	public static final String videoSuffix1 = "&lt;/video&gt;";
@@ -261,6 +273,17 @@ public final class StringUtil {
 		content = content.replaceAll(img3,"");
 		content = content.replaceAll(img4,"");
 		content = content.replaceAll(img5,"");
+
+		content = content.replaceAll(img6,"");
+		content = content.replaceAll(img7,"");
+		content = content.replaceAll(img9,"");
+		content = content.replaceAll(img10,"");
+		content = content.replaceAll(img11,"");
+		content = content.replaceAll(img12,"");
+		content = content.replaceAll(img13,"");
+		content = content.replaceAll(img14,"");
+		content = content.replaceAll(img15,"");
+
 		content = content.replaceAll(video1,"");
 		content = content.replaceAll(video2,"");
 		content = content.replaceAll(videoSuffix1,"");
