@@ -35,7 +35,10 @@ import com.trs.netInsight.widget.special.entity.AsyncInfo;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -48,13 +51,16 @@ import java.util.concurrent.Executors;
  */
 @Service
 @Slf4j
+//@EnableAspectJAutoProxy(exposeProxy = true)
 public class CommonListServiceImpl implements ICommonListService {
 
     @Autowired
     private FullTextSearch hybase8SearchServiceNew;
     @Autowired
     private IFavouritesService favouritesService;
-
+    @Autowired
+    @Lazy
+    private ICommonListService commonListService;
 
     /**
      * 线程池跑任务
@@ -427,13 +433,12 @@ public class CommonListServiceImpl implements ICommonListService {
 
             List<FtsDocumentCommonVO> ftsDocumentCommonVOS = new ArrayList<>();
             // hybase不能直接分页 每次都统计出50条 然后再取
-
+            long startTime = System.currentTimeMillis();
             List<GroupInfo> groupList = new ArrayList();
             builder.page(0, 50);
             //单独算法,已修改
-            GroupResult md5TAG = hybase8SearchServiceNew.categoryQuery(builder, sim, irSimflag,
-                    irSimflagAll, "MD5TAG", type,
-                    builder.getDatabase());
+            GroupResult md5TAG = commonListService.categoryQuery(builder, sim, irSimflag,
+                    irSimflagAll, "MD5TAG", type);
             groupList = md5TAG.getGroupList();
 
             int start = (int) (pageSize * pageNo);
@@ -464,6 +469,8 @@ public class CommonListServiceImpl implements ICommonListService {
                     ftsDocumentCommonVOS.add(vo);
                 }
             }
+            long endTime = System.currentTimeMillis();
+            log.error("间隔HY时间：" + (endTime - startTime));
             if (0 == ftsDocumentCommonVOS.size()) {
                 return null;
             }
@@ -471,7 +478,7 @@ public class CommonListServiceImpl implements ICommonListService {
                     (int) (pageSize < 0 ? 15 : pageSize), pageListSize, ftsDocumentCommonVOS, 1);
             return pagedList;
         } catch (Exception e) {
-            throw new OperationException("listByHot error:" + e);
+            throw new OperationException("热点列表计算失败:" + e);
         }
     }
 
@@ -534,7 +541,7 @@ public class CommonListServiceImpl implements ICommonListService {
             return null;
         }
         queryBuilder.setPageSize(queryBuilder.getPageSize() >= 1 ? queryBuilder.getPageSize() : 15);
-        GroupResult groupResult = categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, FtsFieldConst.FIELD_GROUPNAME, type, null);
+        GroupResult groupResult = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, FtsFieldConst.FIELD_GROUPNAME, type);
 
         Map<String, Long> map = new LinkedHashMap<>();
         if(groupResult != null){
@@ -613,7 +620,7 @@ public class CommonListServiceImpl implements ICommonListService {
 
                     searchBuilder.setPageSize(1);
 
-                    long ftsCount = ftsCount(searchBuilder, sim, irSimflag, irSimflagAll, type);
+                    long ftsCount = commonListService.ftsCount(searchBuilder, sim, irSimflag, irSimflagAll, type);
                     //现在计算相似文章数，默认按照减去自身
                     asyncDocument.setSimNum(ftsCount);
                 } else {
@@ -710,8 +717,8 @@ public class CommonListServiceImpl implements ICommonListService {
                         GroupResult categoryInfos = null;
                         try {
                             //计算网信办白名单的
-                            categoryInfos = categoryQuery(searchBuilder_wxb, sim, irSimflag, irSimflagAll,
-                                    FtsFieldConst.FIELD_SITENAME, type, null);
+                            categoryInfos = commonListService.categoryQuery(searchBuilder_wxb, sim, irSimflag, irSimflagAll,
+                                    FtsFieldConst.FIELD_SITENAME, type);
                         } catch (TRSSearchException e) {
                             throw new TRSSearchException(e);
                         }
@@ -728,8 +735,8 @@ public class CommonListServiceImpl implements ICommonListService {
                             searchBuilder_industry.page(0, 3);
                             try {
                                 //计算五大商业媒体
-                                categoryInfos = categoryQuery(searchBuilder_industry, sim, irSimflag, irSimflagAll,
-                                        FtsFieldConst.FIELD_SITENAME, type, null);
+                                categoryInfos = commonListService.categoryQuery(searchBuilder_industry, sim, irSimflag, irSimflagAll,
+                                        FtsFieldConst.FIELD_SITENAME, type);
                             } catch (TRSSearchException e) {
                                 throw new TRSSearchException(e);
                             }
@@ -744,8 +751,8 @@ public class CommonListServiceImpl implements ICommonListService {
                             searchBuilder.page(0, 3);
                             try {
                                 //计算普通媒体的
-                                categoryInfos = categoryQuery(searchBuilder, sim, irSimflag, irSimflagAll,
-                                        FtsFieldConst.FIELD_SITENAME, type, null);
+                                categoryInfos = commonListService.categoryQuery(searchBuilder, sim, irSimflag, irSimflagAll,
+                                        FtsFieldConst.FIELD_SITENAME, type);
                             } catch (TRSSearchException e) {
                                 throw new TRSSearchException(e);
                             }
@@ -897,7 +904,6 @@ public class CommonListServiceImpl implements ICommonListService {
                 return null;
             }
             GroupResult groupInfos = hybase8SearchServiceNew.categoryQuery(queryBuilder, isSimilar, irSimflag, irSimflagAll, groupField, type, queryBuilder.getDatabase());
-
             return groupInfos;
         } catch (Exception e) {
             throw new TRSSearchException("分类统计失败:" + e);
