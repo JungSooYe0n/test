@@ -928,6 +928,13 @@ public class GatherController {
                 String sendPost = HttpUtil.oaRelateEtl(uploadpoint, map);
                 JSONObject jsonObject = JSONObject.parseObject(sendPost);
                 if (jsonObject.getBoolean("success")) {
+                    for (GatherPoint gatherPoint : gatherPointList){
+                        gatherPoint.setStatus("采集中");
+                        gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
+                        gatherPoint.setAuditUserName(user.getUserName());
+                        gatherPoint.setNeedRemind(true);
+                        gatherPoint.setAuditTime(new Date());
+                    }
                     gatherRepository.save(gatherPointList);
                     return jsonObject.getString("msg");
                 } else {
