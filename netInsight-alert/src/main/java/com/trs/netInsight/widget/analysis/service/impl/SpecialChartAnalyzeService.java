@@ -901,7 +901,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 			//用queryCommonBuilder和QueryBuilder 是一样的的
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
-			builder.setPageSize(20);
+			builder.setPageSize(10);
 		String groupNames ="";
 		switch (viewType) {
 			case Const.OFFICIAL_VIEW:
