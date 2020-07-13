@@ -89,10 +89,10 @@ public class ArticleHybaseServiceImpl implements IArticleHybaseService {
 		record.addColumn(FtsFieldConst.FIELD_LOADTIME, new Date());
 		String uuid = UUID.randomUUID().toString();
 		record.addColumn(FtsFieldConst.FIELD_SID,uuid);
-		if ("国内微信".equals(documentInsert.getGroupname())){
+		if (Const.GROUPNAME_WEIXIN.equals(documentInsert.getGroupname())){
 			record.addColumn(FtsFieldConst.FIELD_HKEY, UUID.randomUUID().toString());
 		}
-		if ("微博".equals(documentInsert.getGroupname())){
+		if (Const.GROUPNAME_WEIBO.equals(documentInsert.getGroupname())){
 			record.addColumn(FtsFieldConst.FIELD_SCREEN_NAME, documentInsert.getAuthors());
 			record.addColumn(FtsFieldConst.FIELD_MID, uuid);
 		}
@@ -129,6 +129,10 @@ public class ArticleHybaseServiceImpl implements IArticleHybaseService {
 		query.filterField(FtsFieldConst.FIELD_ORGANIZATIONID, organizationId, Operator.Equal);
 		PagedList<FtsDocumentInsertShow> ftsPageList = hybase8SearchService.ftsPageList(query,
 				FtsDocumentInsertShow.class, true,false,false,null);
+		List<FtsDocumentInsertShow> list = ftsPageList.getPageItems();
+		for(FtsDocumentInsertShow vo :list){
+			vo.setGroupName(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(vo.getGroupName()));
+		}
 		return ftsPageList;
 	}
 

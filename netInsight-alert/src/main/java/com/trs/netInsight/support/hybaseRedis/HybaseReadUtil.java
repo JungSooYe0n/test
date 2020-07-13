@@ -11,9 +11,9 @@ public class HybaseReadUtil {
          * 只需要删除对应的时间key，这时只有在查询时间超长时才会取缓存
          */
         if(user!= null && StringUtil.isNotEmpty(user.getId())){
-            //String redisKey = "hybaseRedis_"+user.getId()+"_";
+            String redisKey = "hybaseRedis_"+user.getId()+"_";
             String redisKeyAddTime = "hybaseRedisAddTime_"+user.getId()+"_";
-            //RedisUtil.deleteKeyForFuzzy(redisKey);
+            RedisUtil.deleteKeyForFuzzy(redisKey);
             RedisUtil.deleteKeyForFuzzy(redisKeyAddTime);
         }
     }

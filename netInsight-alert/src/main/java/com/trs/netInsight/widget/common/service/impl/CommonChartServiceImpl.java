@@ -50,12 +50,6 @@ public class CommonChartServiceImpl implements ICommonChartService {
      */
     private <T extends IQueryBuilder> GroupResult getCategoryQueryData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
                                                                        String xyTrsl, String contrastField, String type) throws TRSException {
-        /*QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
-        List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
-        String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
-        String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
-        queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-        String[] database = TrslUtil.chooseDatabases(groupArray);*/
         T newBuilder = builder;
         QueryBuilder queryBuilder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(newBuilder,groupName,0);
         if(queryBuilder == null){
@@ -264,7 +258,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
             try {
                 //地图部分专家或者普通，因为没有分类对比表达式
                 GroupResult categoryInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName,  "", contrastField, type);
-                if(categoryInfos == null){
+                if(categoryInfos == null || categoryInfos.getGroupList().size() ==0){
                     return null;
                 }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
@@ -320,27 +314,32 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 GroupResult people = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("people"), type);
                 GroupResult location = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("location"), type);
                 GroupResult agency = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("agency"), type);
-                List<GroupInfo> peopleList = people.getGroupList();
-                List<GroupInfo> locationList = location.getGroupList();
-                List<GroupInfo> agencyList = agency.getGroupList();
 
-                for (GroupInfo groupInfo : peopleList) {
-                    wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "people");
+                if(people != null && people.getGroupList().size()>0){
+                    List<GroupInfo> peopleList = people.getGroupList();
+                    for (GroupInfo groupInfo : peopleList) {
+                        wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "people");
+                    }
                 }
-
-                for (GroupInfo groupInfo : locationList) {
-                    wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "location");
+                if(location != null && location.getGroupList().size()>0){
+                    List<GroupInfo> locationList = location.getGroupList();
+                    for (GroupInfo groupInfo : locationList) {
+                        wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "location");
+                    }
                 }
-
-                for (GroupInfo groupInfo : agencyList) {
-                    wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "agency");
+                if(agency != null && agency.getGroupList().size()>0){
+                    List<GroupInfo> agencyList = agency.getGroupList();
+                    for (GroupInfo groupInfo : agencyList) {
+                        wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "agency");
+                    }
                 }
-
             } else {
                 GroupResult result = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get(entityType), type);
-                List<GroupInfo> groupList = result.getGroupList();
-                for (GroupInfo groupInfo : groupList) {
-                    wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), entityType);
+                if(result != null && result.getGroupList().size()>0){
+                    List<GroupInfo> groupList = result.getGroupList();
+                    for (GroupInfo groupInfo : groupList) {
+                        wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), entityType);
+                    }
                 }
             }
             wordInfos.sort();

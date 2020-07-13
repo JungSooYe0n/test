@@ -16,6 +16,7 @@ package com.trs.netInsight.widget.article.controller;
 import java.text.ParseException;
 
 
+import com.trs.netInsight.config.constant.Const;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -83,6 +84,7 @@ public class ArticleController {
 			@ApiParam("文章标题") @RequestParam(value = "urltitle") String urltitle,
 			@ApiParam("文章时间") @RequestParam(value = "urltime") String urltime,
 			@ApiParam("分组") @RequestParam(value = "groupname")String groupname) throws OperationException {
+		groupname = Const.SOURCE_GROUPNAME_CONTRAST.get(groupname);
 		FtsDocumentInsert documentInsert = new FtsDocumentInsert(authors, channel, content, sitename,
 				urlname, DateUtil.stringToDate(urltime, DateUtil.yyyyMMdd), urltitle, appraise, industry,groupname);
 		try {
