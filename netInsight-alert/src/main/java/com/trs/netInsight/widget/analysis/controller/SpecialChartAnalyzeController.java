@@ -143,6 +143,7 @@ public class SpecialChartAnalyzeController {
 		return specialChartAnalyzeService.getSituationAssessment(searchBuilder,specialProject);
 
 	}
+	@EnableRedis
 	@FormatResult
 	@ApiOperation("观点分析")
 	@RequestMapping(value = "/sentimentAnalysis", method = RequestMethod.GET)
@@ -724,6 +725,7 @@ public class SpecialChartAnalyzeController {
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_ACTIVE_LEVEL, systemLogType = SystemLogType.SPECIAL,systemLogOperationPosition="专题分析/${specialId}/内容统计/媒体活跃等级")
 	@FormatResult
 	@ApiOperation("活跃账号")
+	@EnableRedis
 	@RequestMapping(value = "/active_account", method = RequestMethod.GET)
 	public Object getActiveAccount(@RequestParam("specialId") String specialId,
 								 @RequestParam(value = "area", defaultValue = "ALL") String area,

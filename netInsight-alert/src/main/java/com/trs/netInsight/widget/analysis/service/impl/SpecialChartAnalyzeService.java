@@ -884,6 +884,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	@Override
 	public List<Map<String, Object>> getSentimentAnalysis(SpecialProject specialProject, String timeRange, String viewType) throws TRSException {
 		List<Map<String, Object>> list = new ArrayList<>();
+		long start = new Date().getTime();
 		Map<String, Object> map = null;
 
 			if (timeRange != null) {
@@ -919,7 +920,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 		User user = UserUtils.getUser();
 		InfoListResult infoListResult = commonListService.queryPageListForHot(builder, groupNames, user, "special", false);
-
+		long end = new Date().getTime();
+		long time = end - start;
+		log.info("观点分析海贝查询所需时间" + time);
 		if (infoListResult == null || infoListResult.getContent() == null) {
 			return null;
 		}
@@ -943,11 +946,16 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			}
 			list.add(map);
 		}
+		long end2 = new Date().getTime();
+		long time2 = end2 - start;
+		log.info("观点分析后台查询所需时间" + time);
 		return list;
 	}
 
 	@Override
 	public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange,String showType) {
+		long start = new Date().getTime();
+
 		Map<String, Object> result = new HashMap<>();
 		Map<String, Object> singleMap = new HashMap<>();
 		Map<String, Object> doubleMap = new HashMap<>();
@@ -1040,7 +1048,11 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 				QueryBuilder builder = new QueryBuilder();
 				builder.filterByTRSL(queryTrsl);
+				long start2 = new Date().getTime();
 				Map<String, List<Object>> oneTimeResult = (Map<String, List<Object>>) commonChartService.getChartLineColumnData(builder, sim, irSimflag, irSimflagAll, source, "special", "", contrastField, contrastData, groupBy, groupDate, resultField);
+				long end2 = new Date().getTime();
+				long time2 = end2 - start2;
+				log.info("一条线海贝查询所需时间" + time2);
 				if(contrastList.size() ==0){
 					List<Object> oneTimeContrast = oneTimeResult.get(resultField.getContrastField());
 					contrastData.clear();
@@ -1062,7 +1074,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					}
 				}
 			}
-
+			long end = new Date().getTime();
+			long time = end - start;
+			log.info("全部折线海贝查询所需时间" + time);
 			Long countTotal = 0L;
 			for(Object num : totalList){
 				countTotal = countTotal+ (Long)num;
