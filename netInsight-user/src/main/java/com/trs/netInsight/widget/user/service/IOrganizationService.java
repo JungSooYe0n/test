@@ -171,7 +171,7 @@ public interface IOrganizationService {
                 String[] rolePlatformIds, String descriptions, int userLimit, int columnNum, int specialNum, int alertNum, int alertAccountNum, int keyWordsNum,
                 String[] dataSources, int columnDateLimit, int specialDateLimit, int aSearchDateLimit,
                 String suffix, String pageTitle, String companyName, String applyTel, String loginLogoPic,
-                String QRCodePic, Boolean isShieldRegister, Boolean isShowCarousel, int isAdmin, int isAutoAdd, String tenantId, String tradition, String weiBo, String weiXin, String overseas);
+                String QRCodePic, Boolean isShieldRegister, Boolean isShowCarousel, int isAdmin, int isAutoAdd, String tenantId, String tradition, String weiBo, String weiXin, String overseas,String video);
 	/**
 	 * 根据id删除机构
 	 *

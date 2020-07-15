@@ -819,6 +819,7 @@ public class CommonListServiceImpl implements ICommonListService {
         if (queryBuilder == null) {
             return null;
         }
+        queryBuilder.page(0,1);
         return ftsCount(queryBuilder, isSimilar, irSimflag, irSimflagAll, type);
 
     }
@@ -844,6 +845,7 @@ public class CommonListServiceImpl implements ICommonListService {
             if (queryBuilder == null) {
                 return null;
             }
+            queryBuilder.page(0,1);
             count = hybase8SearchServiceNew.ftsCount(queryBuilder, isSimilar, irSimflag, irSimflagAll, type);
             return count;
         } catch (Exception e) {

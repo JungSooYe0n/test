@@ -322,7 +322,8 @@ public class UserController {
 						  @ApiParam("传统库表名") @RequestParam(value = "tradition",required = false)String tradition,
 						  @ApiParam("微博库表名") @RequestParam(value = "weiBo",required = false)String weiBo,
 						  @ApiParam("微信库表名") @RequestParam(value = "weiXin",required = false)String weiXin,
-						  @ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas)
+						  @ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas,
+						  @ApiParam("视频库表名") @RequestParam(value = "video",required = false)String video)
 			throws TRSException {
 
 		// 判断账号是否为空
@@ -449,7 +450,7 @@ public class UserController {
 				ownerId = user.getSubGroupId();
 			}
 			if (CheckRole.ROLE_PLATFORM.equals(checkRole) && UserUtils.isSuperAdmin()) {
-				hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,ownerId,organizationId);
+				hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,video,ownerId,organizationId);
 			}
 			return "添加用户成功！";
 		} catch (Exception e) {
@@ -488,7 +489,8 @@ public class UserController {
 							 @ApiParam("传统库表名") @RequestParam(value = "tradition",required = false)String tradition,
 							 @ApiParam("微博库表名") @RequestParam(value = "weiBo",required = false)String weiBo,
 							 @ApiParam("微信库表名") @RequestParam(value = "weiXin",required = false)String weiXin,
-							 @ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas)
+							 @ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas,
+							 @ApiParam("视频库表名") @RequestParam(value = "video",required = false)String video)
 			throws TRSException {
 
 		// 判断用户名是否为空
@@ -563,7 +565,7 @@ public class UserController {
 			if (StringUtil.isNotEmpty(user.getSubGroupId())){
 				ownerId = user.getSubGroupId();
 			}
-			hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,ownerId,user.getOrganizationId());
+			hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,video,ownerId,user.getOrganizationId());
 		}
 		userService.update(user, false);
 		return "修改用户成功！";

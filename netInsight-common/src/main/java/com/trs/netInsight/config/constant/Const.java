@@ -1311,6 +1311,7 @@ public class Const {
             put("新疆", "中国\\\\新疆自治区");// hybase中是这个 正确是新疆维吾尔自治区
             put("香港", "中国\\\\香港特别行政区");
             put("澳门", "中国\\\\澳门特别行政区");
+            put("其他", "其他");
         }
     };
     /**
@@ -1354,6 +1355,7 @@ public class Const {
             put("新疆", "新疆维吾尔族自治区");
             put("香港", "香港特别行政区");
             put("澳门", "澳门特别行政区");
+            put("其他", "其他");
         }
     };
     @Autowired
@@ -1371,6 +1373,7 @@ public class Const {
         SINAUSERS = hybaseDatabaseConfig.getSinaweiboUsers();
         INSERT = hybaseDatabaseConfig.getInsert();
         HYBASE_OVERSEAS = hybaseDatabaseConfig.getOverseas();
+        HYBASE_VIDEO = hybaseDatabaseConfig.getVideo();
     }
 
     public static final List<String> PAGE_SHOW_DATASOURCE_SORT = Arrays.asList(Const.PAGE_SHOW_XINWEN,  Const.PAGE_SHOW_KEHUDUAN,Const.PAGE_SHOW_DIANZIBAO,Const.PAGE_SHOW_WEIBO, Const.PAGE_SHOW_WEIXIN,
@@ -1392,6 +1395,9 @@ public class Const {
      * 内容行业
      */
     public static final List<String> CONTENT_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品","其他");
+    /**
+     * 地域信息
+     */
     public static final List<String> AREA_LIST = Arrays.asList( "北京", "天津", "上海", "重庆", "河北", "山西", "辽宁", "吉林", "黑龙江", "江苏", "浙江", "安徽", "福建", "江西", "山东",
             "河南", "湖北", "湖南", "广东", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "台湾", "内蒙古", "广西", "西藏", "宁夏", "新疆", "香港", "澳门","其他");
 

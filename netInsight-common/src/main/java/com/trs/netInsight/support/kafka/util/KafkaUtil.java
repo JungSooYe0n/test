@@ -48,7 +48,7 @@ public class KafkaUtil {
 			}, FailureCallback -> log.error(
 					"kafka Producer发送消息失败！sendResult=" + JSONObject.toJSONString(sendResult.getProducerRecord())));
 		} catch (Exception e) {
-			log.error("获取producer返回值失败", e);
+			log.error("获取producer返回值失败");
 		}
 	}
 }

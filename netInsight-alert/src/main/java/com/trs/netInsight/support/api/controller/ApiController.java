@@ -508,7 +508,9 @@ public class ApiController {
     @GetMapping("/getStatusOption")
     public Object getStatusOption(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.weiboOption(specialId, "", "ALL", "ALL");
+        return specialChartAnalyzeController.weiboOption(specialId, "", false,null,null,null,null,
+                null,null,null,null,null,null,
+                null,null,null,null,null,null,null,null,null);
     }
 
 
@@ -642,7 +644,9 @@ public class ApiController {
     public Object getWordCloud(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId,
                                @RequestParam(value = "entityType") String entityType) throws Exception {
-        return specialChartAnalyzeController.getWordYun(specialId, "ALL", "ALL", "", entityType, "all");
+        return specialChartAnalyzeController.getWordYun(specialId, "",entityType,"all",false,null,null,null,null,
+                null,null,null,null,null,null,
+                null,null,null,null,null,null,null,null,null);
     }
 
     /**

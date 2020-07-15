@@ -25,6 +25,10 @@ public enum FtsHybaseType {
      */
     OVERSEAS,
     /**
+     * 视频库
+     */
+    VIDEO,
+    /**
      * 手工录入库
      */
     INSERT,

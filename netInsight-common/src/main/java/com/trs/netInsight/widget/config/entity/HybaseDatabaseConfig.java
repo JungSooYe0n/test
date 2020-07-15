@@ -60,6 +60,12 @@ public class HybaseDatabaseConfig implements Serializable {
      */
     @Column(name = "overseas", columnDefinition="varchar(100) COMMENT 'TF库'")
     private String overseas;
+
+    /**
+     * 海外数据库  TF
+     */
+    @Column(name = "video", columnDefinition="varchar(100) COMMENT '视频库'")
+    private String video;
     /**
      * 手工录入库
      */

@@ -604,14 +604,14 @@ public interface IInfoListService {
 	 * @param sort
 	 * @param invitationCard
 	 * @param keywords
-	 * @param notKeyWords
+	 * @param
 	 * @return
 	 * @throws TRSException
 	 * @Return : Object
 	 */
-	public Object documentCommonSearch(SpecialProject specialProject, int pageNo, int pageSize, String source, String time, String emotion, String sort, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
-									   String notKeyWords, String type,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-									   String contentArea,String mediaArea,String preciseFilter) throws TRSException;
+	public Object documentCommonSearch(SpecialProject specialProject, int pageNo, int pageSize, String source, String time, String emotion, String sort,
+									   String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
+									   String type,String read,String preciseFilter) throws TRSException;
 	
 	public void setForeignData(String foreign,QueryBuilder builder, QueryBuilder countBuilder,QueryCommonBuilder builderCom,QueryCommonBuilder countBuilderCom);
 

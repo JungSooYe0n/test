@@ -103,7 +103,7 @@ public class OrganizationServiceImpl implements IOrganizationService {
 					   String[] rolePlatformIds,String descriptions, int userLimit,int columnNum,int specialNum,int alertNum,int alertAccountNum,int keyWordsNum,
 					   String[] dataSources, int columnDateLimit,int specialDateLimit,int aSearchDateLimit,
 					   String suffix, String pageTitle, String companyName, String applyTel, String loginLogoPic,
-					   String QRCodePic,Boolean isShieldRegister ,Boolean isShowCarousel,int isAdmin,int isAutoAdd,String tenantId,String tradition,String weiBo,String weiXin,String overseas) {
+					   String QRCodePic,Boolean isShieldRegister ,Boolean isShowCarousel,int isAdmin,int isAutoAdd,String tenantId,String tradition,String weiBo,String weiXin,String overseas,String video) {
 		try {
 			// 保存机构
 			Organization organization = new Organization();
@@ -149,7 +149,7 @@ public class OrganizationServiceImpl implements IOrganizationService {
 			}
 			// 保存机构
 			String organizationId = this.add(organization);
-			hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,null,organizationId);
+			hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,video,null,organizationId);
 //			hybaseShardContrller.saveMicroblog(tradition,weiBo,weiXin,overseas,null,organizationId);
 			//自动添加的时候如果部署管理员不添加用户
 			if(isAdmin == 1){

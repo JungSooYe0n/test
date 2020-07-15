@@ -1006,12 +1006,12 @@ public class SpecialController {
 			}else{
 				source = StringUtils.join(specialSource,";");
 			}
-//			String keyWordIndex = "positioCon";// 标题加正文 与日常监测统一
+			specialProject.setConditionScreen(true);
+			specialProject.addFilterCondition( mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 
 			Object documentCommonSearch = infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
-					timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null,
-					"special", read, mediaLevel, mediaIndustry,
-					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+					timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
+					"special", read, preciseFilter);
 			long endTime = System.currentTimeMillis();
 			log.warn("间隔时间："+(endTime - startTime));
 			return documentCommonSearch;
