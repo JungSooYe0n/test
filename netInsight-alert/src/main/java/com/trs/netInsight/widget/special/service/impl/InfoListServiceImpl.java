@@ -68,7 +68,6 @@ import java.util.regex.Pattern;
  */
 @Service
 @Slf4j
-@Transactional
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class InfoListServiceImpl implements IInfoListService {
 
@@ -6194,12 +6193,12 @@ public class InfoListServiceImpl implements IInfoListService {
 	}
 
 	@Override
-	public Object documentCommonSearch(SpecialProject specialProject, int pageNo, int pageSize, String source, String time,String emotion, String sort, String invitationCard, String forwarPrimary, String keywords,
-									   String fuzzyValueScope,String notKeyWords, String type,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-									   String contentArea,String mediaArea,String preciseFilter) throws TRSException {
+	public Object documentCommonSearch(SpecialProject specialProject, int pageNo, int pageSize, String source, String time, String emotion, String sort,
+									   String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
+									   String type,String read,String preciseFilter) throws TRSException {
 		try {
 			User loginUser = UserUtils.getUser();
-			specialProject.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+
 			QueryBuilder builder = null;
 			if(StringUtil.isNotEmpty(time)){
 				builder = specialProject.toSearchBuilder(pageNo, pageSize, false);

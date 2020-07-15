@@ -47,6 +47,7 @@ import com.trs.netInsight.widget.special.entity.JunkData;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SearchPage;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
+import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.special.service.IJunkDataService;
 import com.trs.netInsight.widget.special.service.ISearchRecordService;
@@ -163,31 +164,16 @@ public class InfoListController {
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_LIST, systemLogType = SystemLogType.SPECIAL, systemLogOperationPosition = "查询专题数据列表：${specialId}")
 	@FormatResult
 	@ApiOperation("专项检测信息列表")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "specialId", value = "专项ID", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "pageNo", value = "页码", dataType = "int", paramType = "query", required = false),
-			@ApiImplicitParam(name = "pageSize", value = "步长", dataType = "int", paramType = "query", required = false),
-			@ApiImplicitParam(name = "source", value = "来源", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "time", value = "时间", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "area", value = "内容地域", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "industry", value = "行业类型", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "emotion", value = "情感", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "sort", value = " 排序方式", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "keywords", value = " 在结果查询", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "fuzzyValueScope", value = "结果中搜索de范围", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "foreign", value = "欧洲  美国", dataType = "String", paramType = "query", required = false)
-
-	})
 	@RequestMapping(value = "/info", method = RequestMethod.POST)
-	public Object dataList(@RequestParam(value = "specialId") String specialId,
-			@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-			@RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-			@RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
-			@RequestParam(value = "sort", defaultValue = "", required = false) String sort,
-			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
-			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
-			@ApiParam("结果中搜索")@RequestParam(value = "keywords", required = false) String keywords,
-			@ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
+	public Object dataList(@ApiParam("专题id")@RequestParam(value = "specialId") String specialId,
+						   @ApiParam("页码")@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+						   @ApiParam("当前页显示条数")@RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+						   @ApiParam("数据源 -当前列表的")@RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
+						   @ApiParam("排序")@RequestParam(value = "sort", defaultValue = "", required = false) String sort,
+						   @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+						   @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
+						   @ApiParam("结果中搜索") @RequestParam(value = "keywords", required = false) String keywords,
+						   @ApiParam("结果中搜索的范围") @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
 
 						   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
 						   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
@@ -196,9 +182,9 @@ public class InfoListController {
 						   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
 						   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 						   @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
-						   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
-						   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
-						   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+						   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+						   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+						   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
 						   @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
 						   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
 						   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
@@ -230,53 +216,8 @@ public class InfoListController {
 					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 				}
 			}
-			//排重
-			if ("netRemove".equals(simflag)) { //单一媒体排重
-				specialProject.setSimilar(true);
-				specialProject.setIrSimflag(false);
-				specialProject.setIrSimflagAll(false);
-			} else if ("urlRemove".equals(simflag)) { //站内排重
-				specialProject.setSimilar(false);
-				specialProject.setIrSimflag(true);
-				specialProject.setIrSimflagAll(false);
-			} else if ("sourceRemove".equals(simflag)) { //全网排重
-				specialProject.setSimilar(false);
-				specialProject.setIrSimflag(false);
-				specialProject.setIrSimflagAll(true);
-			}
-			//命中规则
-			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {
-				if (SearchScope.TITLE.equals(wordIndex) || "0".equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE);
-				}
-				if (SearchScope.TITLE_CONTENT.equals(wordIndex)|| "1".equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE_CONTENT);
-				}
-				if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)|| "2".equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE_ABSTRACT);
-				}
-
-			}
-			specialProject.setMonitorSite(monitorSite);
-			specialProject.setExcludeWeb(excludeWeb);
-			//排除关键词
-			specialProject.setExcludeWordIndex(excludeWordIndex);
-			specialProject.setExcludeWords(excludeWord);
-
-			//修改词距 选择修改词距时，才能修改词距
-			if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(specialProject.getTrsl()) && wordFromNum >= 0) {
-				String keywordJson = specialProject.getAnyKeywords();
-				JSONArray jsonArray = JSONArray.parseArray(keywordJson);
-				//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
-				if (jsonArray != null && jsonArray.size() == 1) {
-					Object o = jsonArray.get(0);
-					JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
-					jsonObject.put("wordSpace", wordFromNum);
-					jsonObject.put("wordOrder", wordFromSort);
-					jsonArray.set(0, jsonObject);
-					specialProject.setAnyKeywords(jsonArray.toJSONString());
-				}
-			}
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 			// 跟统计表格一样 如果来源没选 就不查数据
 			List<String> specialSource = CommonListChartUtil.formatGroupName(groupName);
 			if(!"ALL".equals(source)){
@@ -288,10 +229,9 @@ public class InfoListController {
 				source = StringUtils.join(specialSource,";");
 			}
 
-				Object documentCommonSearch = infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
-						timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null,
-						"special", read, mediaLevel, mediaIndustry,
-						contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+			Object documentCommonSearch =  infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
+						timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
+						"special", read, preciseFilter);
 				long endTime = System.currentTimeMillis();
 				log.warn("间隔时间："+(endTime - startTime));
 				return documentCommonSearch;

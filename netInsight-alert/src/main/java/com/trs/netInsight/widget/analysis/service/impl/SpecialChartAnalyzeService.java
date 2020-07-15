@@ -81,9 +81,6 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
-	@PersistenceContext
-	private EntityManager entityManager;
-
 	@Autowired
 	private IDistrictInfoService districtInfoService;
 
@@ -774,10 +771,6 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			searchBuilder.filterField("IR_URLTIME", timeArray, Operator.Between);
 		}
 		String groupName = CommonListChartUtil.changeGroupName(searchBuilder.getGroupName());
-//		if (StringUtil.isNotEmpty(groupName)) {
-//			searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-//					.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-//		}
 		ChartResultField chartResultField = new ChartResultField("name","value");
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
@@ -2238,8 +2231,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope, String notKeyWords, String type, String read, String mediaLevel, String mediaIndustry, String contentIndustry, String filterInfo, String contentArea, String mediaArea, String preciseFilter) throws TRSException{
-		specialProject.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
+									  String type, String read, String preciseFilter) throws TRSException{
+
 		QueryBuilder builder = null;
 		if(StringUtil.isNotEmpty(time)){
 			builder = specialProject.toSearchBuilder(0, 20, false);
@@ -5689,7 +5683,7 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 //		long ftsCount = hybase8SearchService.ftsCount(searchBuilder, sim, irSimflag,irSimflagAll,"special" );
 		Object ftsCount = 0L;
 		try {
-			ftsCount = commonListService.ftsCount(searchBuilder,sim,irSimflag,irSimflagAll,"special");
+			ftsCount = commonListService.ftsCount(searchBuilder,sim,irSimflag,irSimflagAll,"special",groupName);
 		} catch (TRSException e) {
 			e.printStackTrace();
 		}
