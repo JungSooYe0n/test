@@ -3040,7 +3040,12 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
         return null;
     }
 
-    @Override
+	@Override
+	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder) throws TRSSearchException, TRSException {
+		return null;
+	}
+
+	@Override
 	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange) {
 		return null;
 	}

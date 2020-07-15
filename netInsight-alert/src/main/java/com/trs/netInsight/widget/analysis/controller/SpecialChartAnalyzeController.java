@@ -3325,14 +3325,51 @@ public class SpecialChartAnalyzeController {
 		}
 
 	}
+	@FormatResult
+	@ApiOperation("传播分析/站点")
+	@RequestMapping(value = "/spreadAnalysisSiteName", method = RequestMethod.GET)
+	public Object spreadAnalysisSiteName(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
+								 @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange) throws OperationException {
+		try {
+			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+			if (specialProject != null) {
+				// url排重
+				boolean irSimflag = specialProject.isIrSimflag();
+				boolean similar = specialProject.isSimilar();
+				//跨数据源排重
+				boolean irSimflagAll = specialProject.isIrSimflagAll();
+
+				if (StringUtils.isBlank(timeRange)) {
+					timeRange = specialProject.getTimeRange();
+					if (StringUtils.isBlank(timeRange)) {
+						timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+						timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+					}
+				}
+				String[] timeArray = DateUtil.formatTimeRange(timeRange);
+				if (timeArray != null && timeArray.length == 2) {
+					specialProject.setStart(timeArray[0]);
+					specialProject.setEnd(timeArray[1]);
+				}
+
+				// 根据时间升序,只要第一条
+//				QueryBuilder searchBuilder = specialProject.toBuilder(0,2);
+				QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
+				return specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new OperationException("查询出错：" + e, e);
+		} finally {
+		}
+	}
 	@EnableRedis
 	@FormatResult
 	@ApiOperation("传播分析")
 	@RequestMapping(value = "/spreadAnalysis", method = RequestMethod.GET)
 	public Object spreadAnalysis(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
 								   @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-								 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
-								   @ApiParam("每日最多展示网站个数，主要配合api，网察页面不需要理会此参数") @RequestParam(value = "isApi", defaultValue = "false",required = false) boolean isApi) throws OperationException {
+								 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName) throws OperationException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();

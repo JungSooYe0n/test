@@ -70,6 +70,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.trs.netInsight.config.constant.ChartConst.*;
+import static com.trs.netInsight.config.constant.Const.MEDIA_LEVEL;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -4712,6 +4713,80 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 
 		return content;
+	}
+
+	@Override
+	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder) throws TRSSearchException, TRSException {
+	//这个根据前端要求 按照他们的数据结构返回
+		List<String> groupNames = Arrays.asList("新闻","微博","自媒体号","微信");
+		List<String> MEDIA_LEVEL = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体","其它媒体");
+		List<Object> resultList = new ArrayList<>();
+		List<Object> weixinAndZiMeiTiList = new ArrayList<>();
+		List<Object> xinweiAndWeiboList = new ArrayList<>();
+		HashMap weixinAndZiMeiTi = new HashMap();
+		HashMap xinweiAndWeibo = new HashMap();
+		List<Object> nameListweixin = new ArrayList<>();
+		List<Object> nameListweibo = new ArrayList<>();
+		for (String name : groupNames) {
+			HashMap mapName = new HashMap();
+
+			List<Object> infoList = new ArrayList<>();
+			for (String mediaLevel : MEDIA_LEVEL) {
+				QueryBuilder queryBuilder = new QueryBuilder();
+				queryBuilder.setPageSize(2);
+				queryBuilder.filterByTRSL(searchBuilder.asTRSL());
+				if (mediaLevel.equals("其它媒体")){
+					queryBuilder.filterField("中央党媒", mediaLevel, Operator.NotEqual);
+					queryBuilder.filterField("地方党媒", mediaLevel, Operator.NotEqual);
+					queryBuilder.filterField("政府网站", mediaLevel, Operator.NotEqual);
+					queryBuilder.filterField("重点商业媒体", mediaLevel, Operator.NotEqual);
+				}else {
+					queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, mediaLevel, Operator.Equal);
+				}
+				String contrastField = FtsFieldConst.FIELD_SITENAME;
+				if (Const.GROUPNAME_WEIBO.equals(name)) {
+					contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+				} else if (Const.MEDIA_TYPE_TF.contains(name)) {
+					contrastField = FtsFieldConst.FIELD_AUTHORS;
+				}
+
+				List<HashMap<String, String>> mapList = new ArrayList<>();
+				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, true, name, "special", UserUtils.getUser(), false);
+				if (ObjectUtil.isNotEmpty(infoListResult)) {
+					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+					List<FtsDocumentCommonVO> list = content.getPageItems();
+					for (int i = 0; i < list.size(); i++) {
+						HashMap<String, String> hashMap = new HashMap<>();
+						String siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
+						hashMap.put("name", siteName + "-" + mediaLevel);
+						mapList.add(hashMap);
+					}
+					Map<String, Object> oneInfo = new HashMap<>();
+					oneInfo.put("name", mediaLevel + "-" + name);
+					oneInfo.put("children", mapList);
+					infoList.add(oneInfo);
+				}
+
+			}
+			mapName.put("name",name);
+			mapName.put("children",infoList);
+			if (name.contains("微信") || name.equals("自媒体号")){
+				nameListweixin.add(mapName);
+			}else {
+				nameListweibo.add(mapName);
+			}
+		}
+		weixinAndZiMeiTi.put("children",nameListweixin);
+		weixinAndZiMeiTiList.add(weixinAndZiMeiTi);
+		xinweiAndWeibo.put("children",nameListweibo);
+		xinweiAndWeiboList.add(xinweiAndWeibo);
+		HashMap hashMap1 = new HashMap();
+		HashMap hashMap2 = new HashMap();
+		hashMap1.put("weixinAndZiMeiTi",weixinAndZiMeiTiList);
+		hashMap2.put("xinweiAndWeibo",xinweiAndWeiboList);
+		resultList.add(hashMap1);
+		resultList.add(hashMap2);
+		return resultList;
 	}
 
 	@Override
