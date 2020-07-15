@@ -3169,6 +3169,7 @@ public class SpecialChartAnalyzeController {
 		}
 
 	}
+    @EnableRedis
 	@FormatResult
 	@ApiOperation("传播分析/站点")
 	@RequestMapping(value = "/spreadAnalysisSiteName", method = RequestMethod.GET)

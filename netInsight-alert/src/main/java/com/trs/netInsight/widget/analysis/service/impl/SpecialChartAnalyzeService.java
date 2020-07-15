@@ -4764,7 +4764,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					for (int i = 0; i < list.size(); i++) {
 						HashMap<String, String> hashMap = new HashMap<>();
 						String siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-						hashMap.put("name", siteName + "-" + mediaLevel);
+						hashMap.put("name", siteName + "-" + name);
 						mapList.add(hashMap);
 					}
 					Map<String, Object> oneInfo = new HashMap<>();
