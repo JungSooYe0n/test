@@ -1495,6 +1495,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if (indices.contains(Const.HYBASE_OVERSEAS) && StringUtil.isNotEmpty(trsHybaseShard.getOverseas())) {
                 indices = indices.replaceAll(Const.HYBASE_OVERSEAS, trsHybaseShard.getOverseas());
             }
+            if (indices.contains(Const.HYBASE_VIDEO) && StringUtil.isNotEmpty(trsHybaseShard.getVideo())) {
+                indices = indices.replaceAll(Const.HYBASE_VIDEO, trsHybaseShard.getVideo());
+            }
         }
         return indices;
     }

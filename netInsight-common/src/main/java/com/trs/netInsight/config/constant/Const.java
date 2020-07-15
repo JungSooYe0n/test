@@ -1373,6 +1373,7 @@ public class Const {
         SINAUSERS = hybaseDatabaseConfig.getSinaweiboUsers();
         INSERT = hybaseDatabaseConfig.getInsert();
         HYBASE_OVERSEAS = hybaseDatabaseConfig.getOverseas();
+        HYBASE_VIDEO = hybaseDatabaseConfig.getVideo();
     }
 
     public static final List<String> PAGE_SHOW_DATASOURCE_SORT = Arrays.asList(Const.PAGE_SHOW_XINWEN,  Const.PAGE_SHOW_KEHUDUAN,Const.PAGE_SHOW_DIANZIBAO,Const.PAGE_SHOW_WEIBO, Const.PAGE_SHOW_WEIXIN,

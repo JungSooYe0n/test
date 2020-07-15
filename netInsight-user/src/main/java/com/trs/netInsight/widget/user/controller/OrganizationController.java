@@ -183,7 +183,8 @@ public class OrganizationController {
  			@ApiParam("传统库表名") @RequestParam(value = "tradition",required = false)String tradition,
 			@ApiParam("微博库表名") @RequestParam(value = "weiBo",required = false)String weiBo,
 			@ApiParam("微信库表名") @RequestParam(value = "weiXin",required = false)String weiXin,
-			@ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas
+			@ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas,
+			@ApiParam("视频库表名") @RequestParam(value = "video",required = false)String video
 			//@ApiParam("普通账号权限，多个用逗号隔开") @RequestParam(value = "roleIds", required = false) String[] roleIds,
 			// api暂时未实现
 	) throws TRSException {
@@ -390,7 +391,8 @@ public class OrganizationController {
 
 		organizationService.add(organizationType, organizationName,pictureName, userName,password, displayName, email, phone,
 				expireAt, customerSource, headOfSales, rolePlatforms,descriptions, userLimit, columnNum, specialNum,alertNum,alertAccountNum,keyWordsNum, dataSources, columnDateLimit
-				,specialDateLimit,aSearchDateLimit,suffix,pageTitle,companyName,applyTel,loginLogoPic,QRCodePic,isShieldRegister,isShowCarousel,1,0,null,tradition,weiBo,weiXin,overseas);
+				,specialDateLimit,aSearchDateLimit,suffix,pageTitle,companyName,applyTel,loginLogoPic,QRCodePic,isShieldRegister,isShowCarousel,1,0,null,
+				tradition,weiBo,weiXin,overseas,video);
 		return "添加成功！";
 	}
 
@@ -555,7 +557,8 @@ public class OrganizationController {
 									 @ApiParam("传统库表名") @RequestParam(value = "tradition",required = false)String tradition,
 									 @ApiParam("微博库表名") @RequestParam(value = "weiBo",required = false)String weiBo,
 									 @ApiParam("微信库表名") @RequestParam(value = "weiXin",required = false)String weiXin,
-									 @ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas
+									 @ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas,
+									 @ApiParam("视频库表名") @RequestParam(value = "video",required = false)String video
 									 //@ApiParam("账号同时登录") @RequestParam(value = "sameTimeLogin", required = false, defaultValue = "false") boolean sameTimeLogin,
 									 //@ApiParam("普通账号权限，多个用逗号隔开") @RequestParam(value = "roleIds", required = false) String[] roleIds,
 									 //@ApiParam("数据设置，全部传ALL，多个用逗号隔开") @RequestParam(value = "dataSources", required = false, defaultValue = "ALL") String[] dataSources,
@@ -802,7 +805,7 @@ public class OrganizationController {
 					fileName = pictureName;
 				}
 
-				hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,null,id);
+				hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,video,null,id);
 				organizationService.updateOrganization(id, organizationType, organizationName,fileName,userName,password, displayName, email,
 						phone, expireAt, customerSource, headOfSales, rolePlatforms, descriptions, userLimit,columnNum,specialNum,alertNum,alertAccountNum,
 						keyWordsNum,dataSources,columnDateLimit,specialDateLimit,asearchDateLimit,suffix,pageTitle,

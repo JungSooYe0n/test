@@ -19,9 +19,10 @@ public interface IHybaseShardService {
      * @param weiBo
      * @param weiXin
      * @param overseas
+     * @param video
      * @param ownerId
      */
-    public void save(String hybaseServer,String hybaseUser,String hybasePwd,String tradition,String weiBo,String weiXin,String overseas,String ownerId,String organizationId);
+    public void save(String hybaseServer,String hybaseUser,String hybasePwd,String tradition,String weiBo,String weiXin,String overseas,String video,String ownerId,String organizationId);
 
     /**
      * 查某用户所拥有小库资源

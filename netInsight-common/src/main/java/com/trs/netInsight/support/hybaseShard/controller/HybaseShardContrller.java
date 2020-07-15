@@ -43,10 +43,11 @@ public class HybaseShardContrller {
                                 @ApiParam("微博库表名") @RequestParam(value = "weiBo", required = false) String weiBo,
                                 @ApiParam("微信库表名") @RequestParam(value = "weiXin", required = false) String weiXin,
                                 @ApiParam("海外库表名") @RequestParam(value = "overseas", required = false) String overseas,
+                                @ApiParam("视频库表名") @RequestParam(value = "video", required = false) String video,
                                 @ApiParam("节点所属用户或用户分组id") @RequestParam(value = "ownerId", required = false) String ownerId,
                                 @ApiParam("节点所属机构id") @RequestParam(value = "organizationId", required = false) String organizationId) throws TRSException {
 
-        hybaseShardService.save(HybaseFactory.getServer(), HybaseFactory.getUserName(), HybaseFactory.getPassword(), tradition, weiBo, weiXin, overseas, ownerId, organizationId);
+        hybaseShardService.save(HybaseFactory.getServer(), HybaseFactory.getUserName(), HybaseFactory.getPassword(), tradition, weiBo, weiXin, overseas,video, ownerId, organizationId);
         return "success!";
     }
 
@@ -93,6 +94,9 @@ public class HybaseShardContrller {
             if(StringUtil.isEmpty(trsHybaseShard.getOverseas())){
                 trsHybaseShard.setOverseas(Const.HYBASE_OVERSEAS);
             }
+            if(StringUtil.isEmpty(trsHybaseShard.getVideo())){
+                trsHybaseShard.setVideo(Const.HYBASE_VIDEO);
+            }
         }else {
             //为空则是表示历史机构 添加默认库
             trsHybaseShard = new HybaseShard();
@@ -103,6 +107,7 @@ public class HybaseShardContrller {
             trsHybaseShard.setWeiBo(Const.WEIBO);
             trsHybaseShard.setTradition(Const.HYBASE_NI_INDEX);
             trsHybaseShard.setOverseas(Const.HYBASE_OVERSEAS);
+            trsHybaseShard.setVideo(Const.HYBASE_VIDEO);
         }
         return trsHybaseShard;
     }
@@ -118,6 +123,7 @@ public class HybaseShardContrller {
             List<String> weibo = new ArrayList<>();
             List<String> weixin = new ArrayList<>();
             List<String> oversea = new ArrayList<>();
+            List<String> video = new ArrayList<>();
             for (TRSDatabase hyBase : list) {
                 if (hyBase.getName().contains("system2.traditionalmedia")) {
                     tradition.add(hyBase.getName());
@@ -127,6 +133,8 @@ public class HybaseShardContrller {
                     weixin.add(hyBase.getName());
                 } else if (hyBase.getName().contains("system2.overseasMedia")) {
                     oversea.add(hyBase.getName());
+                }else if (hyBase.getName().contains("system2.media")) {
+                    video.add(hyBase.getName());
                 }
             }
             HashMap<String, List<String>> hashMap = new HashMap<>();
@@ -134,6 +142,7 @@ public class HybaseShardContrller {
             if (weibo.size() > 0) hashMap.put("weibo", weibo);
             if (weixin.size() > 0) hashMap.put("weixin", weixin);
             if (oversea.size() > 0) hashMap.put("oversea", oversea);
+            if (video.size() > 0) hashMap.put("video", video);
             return hashMap;
         } catch (com.trs.hybase.client.TRSException e) {
             e.printStackTrace();
