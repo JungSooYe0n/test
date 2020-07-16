@@ -167,7 +167,7 @@ public class CommonListServiceImpl implements ICommonListService {
             if (StringUtil.isNotEmpty(groupName)) {
                 builder = (QueryCommonBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 1);
             } else {
-                builder = CommonListChartUtil.formatQueryCommonBuilder(builder);
+                builder = CommonListChartUtil.formatQueryCommonBuilder(queryBuilder);
             }
             if (builder == null) {
                 return null;
@@ -217,7 +217,7 @@ public class CommonListServiceImpl implements ICommonListService {
         if (StringUtil.isNotEmpty(groupName)) {
             builder = (QueryCommonBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 1);
         } else {
-            builder = CommonListChartUtil.formatQueryCommonBuilder(builder);
+            builder = CommonListChartUtil.formatQueryCommonBuilder(queryBuilder);
         }
         if (builder == null) {
             return null;
@@ -333,7 +333,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 builder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 0);
 
             } else {
-                builder = CommonListChartUtil.formatQueryBuilder(builder);
+                builder = CommonListChartUtil.formatQueryBuilder(queryBuilder);
             }
             if (builder == null) {
                 return null;
@@ -388,7 +388,7 @@ public class CommonListServiceImpl implements ICommonListService {
             builder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 0);
 
         } else {
-            builder = CommonListChartUtil.formatQueryBuilder(builder);
+            builder = CommonListChartUtil.formatQueryBuilder(queryBuilder);
         }
         if (builder == null) {
             return null;
@@ -543,6 +543,9 @@ public class CommonListServiceImpl implements ICommonListService {
         queryBuilder.setPageSize(queryBuilder.getPageSize() >= 1 ? queryBuilder.getPageSize() : 15);
         GroupResult groupResult = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, FtsFieldConst.FIELD_GROUPNAME, type);
 
+        if(groupResult == null || groupResult.getGroupList()==null || groupResult.getGroupList().size() ==0){
+            return null;
+        }
         Map<String, Long> map = new LinkedHashMap<>();
         if(groupResult != null){
             for (GroupInfo groupInfo : groupResult.getGroupList()) {
