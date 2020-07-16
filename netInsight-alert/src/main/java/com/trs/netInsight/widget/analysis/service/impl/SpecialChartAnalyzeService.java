@@ -4947,7 +4947,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		String groupName = specialProject.getSource();
 		ArrayList<HashMap<String, Object>> resultData = new ArrayList<>();
 		try {
-			searchBuilder.setPageSize(5);
+			searchBuilder.setPageSize(10);
 			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION_2,"special",CommonListChartUtil.changeGroupName(groupName));
 			for(GroupInfo groupInfo : posResult) {
 				HashMap<String, Object> result = new HashMap<>();
