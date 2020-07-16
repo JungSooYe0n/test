@@ -592,6 +592,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getSource()));
 					map.put("keyWord", tab.getAnyKeywords());
 					map.put("keyWordIndex", tab.getSearchScope());
+					map.put("excludeWordsIndex",tab.getExcludeWordIndex());
 					map.put("weight", tab.isWeight());
 					map.put("excludeWords", tab.getExcludeWords());
 					map.put("excludeWeb", tab.getExcludeWeb());

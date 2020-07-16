@@ -117,7 +117,8 @@ public class SpecialChartAnalyzeController {
 							   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 							   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-							   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+							   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
@@ -139,6 +140,7 @@ public class SpecialChartAnalyzeController {
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 			specialProject.addFilterCondition(read, preciseFilter, emotion);
 		}
+		log.info("【舆论场趋势分析折线】随机数： "+randomNum);
 		return specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
 
 	}
@@ -846,7 +848,8 @@ public class SpecialChartAnalyzeController {
 								   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 								   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-								   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
+								   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum
 	) throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
@@ -882,6 +885,7 @@ public class SpecialChartAnalyzeController {
 			boolean sim = specialProject.isSimilar();
 			String[] range = DateUtil.formatTimeRange(timeRange);
 			String source = specialProject.getSource();
+			log.info("【活跃账号】随机数："+randomNum);
 			Object mediaActiveAccount = specialChartAnalyzeService.mediaActiveAccount(builder,source, range, sim,
 					irSimflag,irSimflagAll);
 			long end = new Date().getTime();
@@ -3325,6 +3329,7 @@ public class SpecialChartAnalyzeController {
 		}
 
 	}
+    @EnableRedis
 	@FormatResult
 	@ApiOperation("传播分析/站点")
 	@RequestMapping(value = "/spreadAnalysisSiteName", method = RequestMethod.GET)
