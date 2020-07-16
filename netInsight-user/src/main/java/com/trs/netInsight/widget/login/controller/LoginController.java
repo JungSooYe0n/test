@@ -323,23 +323,23 @@ public class LoginController {
 			user = UserUtils.checkOrganization(user);
 			String dataSource = user.getDataSources();
 			if(StringUtil.isNotEmpty(dataSource) && !"ALL".equals(dataSource)){
-				StringBuffer dataSourceNew = new StringBuffer();
-				String source = CommonListChartUtil.formatPageShowGroupName(dataSource);
-				if(source != null){
 
 
-					List<String> dataSourceList = Arrays.asList(source.split(","));
-					for(String pageShow: Const.PAGE_SHOW_DATASOURCE_SORT){
-						if(dataSourceList.contains(pageShow)){
-							if(dataSourceNew.length() == 0){
-								dataSourceNew.append(source);
-							}else{
-								dataSourceNew.append(",").append(source);
-							}
-						}
-					}
-				}
-				user.setDataSources(dataSourceNew.toString());
+//				StringBuffer dataSourceNew = new StringBuffer();
+				String source = CommonListChartUtil.formatPageShowGroupName(StringUtils.join(dataSource.split(",|，"),";"));
+//				if(source != null){
+//					List<String> dataSourceList = Arrays.asList(source.split(","));
+//					for(String pageShow: Const.PAGE_SHOW_DATASOURCE_SORT){
+//						if(dataSourceList.contains(pageShow)){
+//							if(dataSourceNew.length() == 0){
+//								dataSourceNew.append(source);
+//							}else{
+//								dataSourceNew.append(",").append(source);
+//							}
+//						}
+//					}
+//				}
+				user.setDataSources(StringUtils.join(source.split("；|;"),","));
 			}
 			return user;
 		}
