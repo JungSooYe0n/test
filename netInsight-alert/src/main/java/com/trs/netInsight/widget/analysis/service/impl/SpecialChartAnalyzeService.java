@@ -4718,7 +4718,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	@Override
 	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder) throws TRSSearchException, TRSException {
 	//这个根据前端要求 按照他们的数据结构返回
-		List<String> groupNames = Arrays.asList("新闻","微博","自媒体号","微信");
+//		List<String> groupNames = Arrays.asList("新闻","微博","自媒体号","微信");
+		List<String> groupNames = Arrays.asList("新闻","自媒体号");
 		List<String> MEDIA_LEVEL = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体","其它媒体");
 		List<Object> resultList = new ArrayList<>();
 		List<Object> weixinAndZiMeiTiList = new ArrayList<>();
@@ -4783,10 +4784,10 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		HashMap hashMap1 = new HashMap();
 		HashMap hashMap2 = new HashMap();
 		hashMap1.put("weixinAndZiMeiTi",weixinAndZiMeiTiList);
-		hashMap2.put("xinweiAndWeibo",xinweiAndWeiboList);
-		resultList.add(hashMap1);
-		resultList.add(hashMap2);
-		return resultList;
+		hashMap1.put("xinweiAndWeibo",xinweiAndWeiboList);
+//		resultList.add(hashMap1);
+//		resultList.add(hashMap2);
+		return hashMap1;
 	}
 
 	@Override
