@@ -901,15 +901,19 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		switch (viewType) {
 			case Const.OFFICIAL_VIEW:
 				groupNames = "新闻";
+				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, "政府网站", Operator.Equal);
 				break;
 			case Const.MEDIA_VIEW:
 				groupNames = "新闻";
+				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, "中央党媒", Operator.Equal);
+				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, "地方党媒", Operator.Equal);
 				break;
 			case Const.EXPORT_VIEW:
 				groupNames = "新闻";
 				break;
 			case Const.NETIZEN_VIEW:
-				groupNames = "新闻";
+				//微博+微信  这里我先查微博 再查微信
+				groupNames = "微博";
 				break;
 		}
 		User user = UserUtils.getUser();
@@ -918,6 +922,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		long time = end - start;
 		log.info("观点分析海贝查询所需时间" + time);
 		if (infoListResult == null || infoListResult.getContent() == null) {
+			if (viewType.equals(Const.NETIZEN_VIEW)){
+				 infoListResult = commonListService.queryPageListForHot(builder, "微信", user, "special", false);
+				if (infoListResult == null || infoListResult.getContent() == null) {
+					return null;
+				}
+			}
 			return null;
 		}
 		PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
@@ -935,7 +945,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				map.put("value", String.valueOf(vo.getSimCount()+1));
 				map.put("sid", vo.getSid());
 				map.put("md5", vo.getMd5Tag());
-				map.put("groupName", CommonListChartUtil.formatPageShowGroupName(groupNames));
+				map.put("groupName", CommonListChartUtil.formatPageShowGroupName(vo.getGroupName()));
 				map.put("trslk", trslk);
 			}
 			list.add(map);

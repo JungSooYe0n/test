@@ -231,5 +231,7 @@ public class CommonListChartUtil {
             return null;
         }
     }
-
+    public static String StringShowGroupName(String str) {
+    return str.replaceAll("\"groupName\":\"国内微信\"","\"groupName\":\"微信\"").replaceAll("\"groupName\":\"国内新闻_手机客户端\"","\"groupName\":\"新闻app\"").replaceAll("\"groupName\":\"国内新闻\"","\"groupName\":\"新闻网站\"").replaceAll("\"groupName\":\"国内论坛\"","\"groupName\":\"论坛\"").replaceAll("\"groupName\":\"国外新闻\"","\"groupName\":\"境外\"").replaceAll("\"groupName\":\"国内新闻_电子报\"","\"groupName\":\"电子报\"").replaceAll("\"groupName\":\"国内博客\"","\"groupName\":\"博客\"").replaceAll("\"groupName\":\"twitter\"","\"groupName\":\"Twitter\"").replaceAll("\"groupName\":\"FaceBook\"","\"groupName\":\"Facebook\"");
+    }
 }
