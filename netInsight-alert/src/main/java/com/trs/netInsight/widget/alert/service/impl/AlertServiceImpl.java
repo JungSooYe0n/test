@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -349,7 +350,7 @@ public class AlertServiceImpl implements IAlertService {
 				String message = map.get("message");
 				throw new OperationException("预警弹窗获取失败,message:"+message ,new Exception());
 			}
-	        Map<String,Object> map = (Map<String,Object>)JSON.parse(doGet);
+	        Map<String,Object> map = (Map<String,Object>)JSON.parse(CommonListChartUtil.StringShowGroupName(doGet));
 			log.error("返回："+DateUtil.formatCurrentTime(DateUtil.yyyyMMdd));
 			return map;
 	}
