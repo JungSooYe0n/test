@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import com.trs.netInsight.util.DateUtil;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.report.constant.Chapter;
 import com.trs.netInsight.widget.report.constant.ReportConst;
 import com.trs.netInsight.widget.report.constant.SimplerReportConst;
 import com.trs.netInsight.widget.report.util.ReportUtil;
@@ -351,14 +352,15 @@ public class GenerateReportImpl implements IGenerateReport {
 //		elementList = ReportUtil.tElementListHandle(elementList);
 		AtomicInteger i = new AtomicInteger(0);
 		for(TElementNew e : elementList){
+			Chapter chapter = Chapter.valueOf(e.getChapterDetail());
 			switch (e.getChapterType()) {
 				case ReportConst.SINGLERESOURCE:
 					i.getAndIncrement();    //以原子方式将当前值 + 1
 					List<ReportResource> chapaterContent = e.getChapaterContent();
-					if (e.getChapterPosition() == 0) {
+					if (e.getChapterPosition() == 0 || chapter.equals(Chapter.Report_Synopsis)) {
 						//报告简介
 						singleParagraph(xwpfDocument, e.getChapterName(), reportIntro, i.intValue());
-					} else if(e.getChapterPosition() == 1){
+					} else if(e.getChapterPosition() == 1|| chapter.equals(Chapter.Statistics_Summarize)){
 						//数据统计概述
 						singleParagraph(xwpfDocument,  e.getChapterName(), CollectionUtils.isEmpty(chapaterContent) ? null : chapaterContent.get(0).getImgComment(), i.intValue());
 					}
@@ -373,7 +375,12 @@ public class GenerateReportImpl implements IGenerateReport {
 					break;
 				case ReportConst.CHART:
 					i.getAndIncrement();
-					List<Map<String, String>> chapterContent = base64data.get(e.getChapterName());
+					String base64MapKey = e.getChapterName();
+					String keyName = e.getChapterDetail() + "_"+e.getChapterPosition();
+					if(base64data.containsKey(keyName)){
+						base64MapKey = keyName;
+					}
+					List<Map<String, String>> chapterContent = base64data.get(base64MapKey);
 					try {
 						imgParagraph(xwpfDocument, e.getChapterName(), chapterContent, i.intValue());
 					} catch (Exception e1) {
@@ -611,6 +618,7 @@ public class GenerateReportImpl implements IGenerateReport {
 				XWPFParagraph mainBodyParagraph = xwpfDocument.createParagraph();
 				mainBodyParagraph.setAlignment(ParagraphAlignment.CENTER);
 				XWPFRun textLine = mainBodyParagraph.createRun();
+				String chapterDetail = chapterContent.get(j).get("chapterDetail");
 				byte[] imgComments = base64.decode(chapterContent.get(j).get("imgComment"));
 				byte[] decode = null;
 				if (imgComments != null){
@@ -652,6 +660,15 @@ public class GenerateReportImpl implements IGenerateReport {
                         height = 4670000;
                         break;
 					default:break;
+				}
+				if(StringUtil.isNotEmpty(chapterDetail)){
+					if(Chapter.Source_contrast.toString().equals(chapterDetail)){
+						width = 5000000;
+						height = 3300000;
+					}else if(Chapter.Emotion_Analyze.toString().equals(chapterDetail)){
+						width = 5000000;
+						height = 3300000;
+					}
 				}
 				textLine.addPicture(byteArrayInputStream, Document.PICTURE_TYPE_PNG, "1.png", width, height);
 				XWPFParagraph commentParagraph = xwpfDocument.createParagraph();

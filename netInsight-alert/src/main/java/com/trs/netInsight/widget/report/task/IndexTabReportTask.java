@@ -60,7 +60,7 @@ public class IndexTabReportTask implements Runnable {
         this.reportDataNewRepository = reportDataNewRepository;
     }
     private IDistrictInfoService districtInfoService = (IDistrictInfoService) ObjectContainer.getBean(IDistrictInfoService.class);
-    private ICommonListService commonListService = (ICommonListService) ObjectContainer.getBean(CommonListServiceImpl.class);
+    private ICommonListService commonListService = (ICommonListService) ObjectContainer.getBean(ICommonListService.class);
     private ICommonChartService commonChartService = (ICommonChartService) ObjectContainer.getBean(CommonChartServiceImpl.class);
 
     @Override

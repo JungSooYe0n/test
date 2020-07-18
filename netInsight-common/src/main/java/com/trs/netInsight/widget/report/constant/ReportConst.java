@@ -382,6 +382,7 @@ public class ReportConst {
         //配合历史数据 （专题报  改造 20191121）
         CHAPTERS2METHODSETNEW.put("NEWSHOTTOP10", "setNewsHotTopics");
         CHAPTERS2METHODSETNEW.put("WEIBOHOTTOP10", "setWeiboHotTopics");
+        CHAPTERS2METHODSETNEW.put("PROPAFATIONANALYSIS", "setSpreadAnalysisSiteName");
 
         CHAPTERS2METHODNEW = new HashMap<>();
         CHAPTERS2METHODNEW.put("REPORTINTRO", "getReportIntro");
@@ -415,10 +416,26 @@ public class ReportConst {
         CHAPTERS2METHODNEW.put(NEWSEVENTCONTEXTkey, "getNewsEventContext");
         CHAPTERS2METHODNEW.put(ACTIVEACCOUNTkey, "getActiveAccount");
         CHAPTERS2METHODNEW.put(WORDCLOUDSTATISTICSkey, "getWordCloudStatistics");
+        CHAPTERS2METHODNEW.put(PROPAFATIONANALYSIS, "getWordCloudStatistics");
+        CHAPTERS2METHODNEW.put("PROPAFATIONANALYSIS", "getSpreadAnalysisSiteName");
 
     }
 
+    //handmade
 
+    //手动报告的模板
+    public static final String Hand_Made_Report_Synopsis = "报告简介";
+    public static final String Hand_Made_Statistics_Summarize = "数据统计概述";
+    public static final String Hand_Made_Source_contrast = "数据来源对比";
+    public static final String Hand_Made_Data_Statistics = "数据统计";
+    public static final String Hand_Made_Area = "全国地域分布";
+    public static final String Hand_Made_Emotion_Analyze = "情感分析";
+    public static final String Hand_Made_Hot_News = "热点新闻";
+    public static final String Hand_Made_TOP10_News = "网站来源TOP10";
+    public static final String Hand_Made_Hot_Weibo = "热点微博";
+    public static final String Hand_Made_TOP10_Weibo = "微博活跃用户TOP10";
+    public static final String Hand_Made_TOP10_Wechat = "微信活跃用户TOP10";
+    public static final String Hand_Made_TOP10_User = "活跃用户TOP10";
 
 
 }

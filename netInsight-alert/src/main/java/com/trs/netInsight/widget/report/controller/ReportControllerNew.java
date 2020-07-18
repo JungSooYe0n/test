@@ -9,6 +9,7 @@ import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.widget.report.constant.Chapter;
 import com.trs.netInsight.widget.report.entity.TemplateNew;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
@@ -78,7 +79,10 @@ public class ReportControllerNew {
 							   String thisIssue,
 							   String preparationUnits,
 							   String preparationAuthors,
-							   String statisticsTime) {
+							   String statisticsTime) throws OperationException{
+		if(StringUtil.isEmpty(templateType)){
+			throw new OperationException("没有选择模板类型");
+		}
 		return reportServiceNew.saveTemplate(templateId, templateName,
 				templateList, templateType, totalIssue, thisIssue, preparationUnits, preparationAuthors, statisticsTime);
 	}
@@ -146,7 +150,7 @@ public class ReportControllerNew {
 	 * @returnf
 	 * @throws TRSException
 	 */
-	@ApiOperation("显示所有的报告资源，在添加日报、周报、月报时显示")
+	@ApiOperation("显示所有的报告资源，在添加日报、周报、月报时显示 - 是在制作报告页面的数据，当前页面的数据不是生产报告中的资源")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportType", value = "报告类型", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true) })
@@ -173,49 +177,45 @@ public class ReportControllerNew {
 	@ApiOperation("添加到我的资源池/已生成的报告，单选、多选公用1个接口")
 	@FormatResult
 	@ApiImplicitParams({
-			@ApiImplicitParam(name = "sids", value = "需要增加到资源池的sid集合，用分号（;）隔开", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "groupName", value = "来源 查库用 传多个的时候用（;）隔开", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "sids", value = "需要增加到资源池的sid集合，用分号（;）隔开", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "groupName", value = "来源 查库用 传多个的时候用（;）隔开", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "trslk", value = "列表查询表达式，查数据用", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "chapter", value = "章节", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "img_data", value = "图片资源数据", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "img_type", value = "图片资源数据类型", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "reportType", value = "报告类型", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "chapterPosition", value = "章节位置", dataType = "Integer", paramType = "query", required = true),
-			@ApiImplicitParam(name = "reportId", value = "报告id(此时为已生成的报告)", dataType = "reportId", paramType = "query", required = true)})
+			@ApiImplicitParam(name = "reportId", value = "报告id(此时为已生成的报告)", dataType = "reportId", paramType = "query", required = false)})
 	@Log(systemLogOperation = SystemLogOperation.REPORT_ADD_REPORT_RESOURCE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@RequestMapping(value = "/addReportResource", method = RequestMethod.POST)
 	public Object addReportResource(
-			@RequestParam(value = "sids") String sids,
-			@RequestParam(value = "groupName") String groupName,
+			@RequestParam(value = "sids",required = false) String sids,
+			@RequestParam(value = "groupName",required = false) String groupName,
+			@RequestParam(value = "trslk",required = false) String trslk,
 			@RequestParam(value = "chapter") String chapter,
 			// 二级标题暂时不用
-			@RequestParam(value = "secondaryChapter", required = false) String secondaryChapter,
 			@RequestParam(value = "img_data", required = false) String img_data,
 			@RequestParam(value = "img_type", required = false) String img_type,
 			@RequestParam(value = "reportType") String reportType,
 			@RequestParam(value = "templateId") String templateId,
 			@RequestParam(value = "chapterPosition") Integer chapterPosition,
-			@RequestParam(value = "reportId") String reportId) throws Exception {
+			@RequestParam(value = "reportId",required = false) String reportId) throws Exception {
 		try {
 			//页面栏目数据未加载出来就点“加入简报”操作，造成传空入库后，模板内前端页面无法显示
 			if (StringUtil.isNotEmpty(img_type) && StringUtil.isEmpty(img_data)){
 				throw new OperationException("已知是图表类模块，图表数据为空！");
 			}
-			String[] split = groupName.split(";");
-			for (int i = 0; i < split.length; i++) {
-				if (split[i].equals("国内新闻_手机客户端")
-						|| split[i].equals("国内新闻_电子报")) {
-					split[i] = split[i].substring(split[i].length() - 3,
-							split[i].length());
+			if(StringUtil.isNotEmpty(groupName)){
+				String[] split = groupName.split(";");
+				for (int i = 0; i < split.length; i++) {
+					split[i] = Const.SOURCE_GROUPNAME_CONTRAST.get(split[i]);
 				}
-				if ("微信".equals(split[i])) {
-					split[i] = "国内微信";
-				}
+				groupName = StringUtils.join(split, ";");
 			}
-			groupName = StringUtils.join(split, ";");
 			String userId = UserUtils.getUser().getId();
-			Object result = reportServiceNew.saveReportResource(sids, userId,
-					groupName, chapter, img_data, secondaryChapter, reportType,
+			Object result = reportServiceNew.saveReportResource(sids,trslk, userId,
+					groupName, chapter, img_data, reportType,
 					templateId, img_type, chapterPosition, reportId);
 			if ("fail".equals(result)) {
 				throw new OperationException("请检查sid和md5tag及groupName的数量是否一致");
@@ -795,7 +795,7 @@ public class ReportControllerNew {
 		if (StringUtil.isNotEmpty(resourceId)){
 			reportServiceNew.updateReportResource(resourceId,imgComment);
 		}else if (StringUtil.isNotEmpty(templateId)){
-			reportServiceNew.saveOverView( UserUtils.getUser().getId(), "数据统计概述", imgComment, reportType, templateId);
+			reportServiceNew.saveOverView( UserUtils.getUser().getId(), Chapter.Statistics_Summarize.toString(), imgComment, reportType, templateId);
 		}
 		return Const.SUCCESS;
 	}

@@ -167,6 +167,12 @@ public class ReportDataNew extends BaseEntity{
 	@Column(name = "active_account", columnDefinition = "mediumtext")
 	private String activeAccount;
 	/**
+	 * 传播分析站点
+	 */
+	@Column(name = "spread_analysis_sitename", columnDefinition = "mediumtext")
+	private String spreadAnalysisSiteName;
+
+	/**
 	 * 极简模式  自定义模块
 	 */
 	@Transient

@@ -1,16 +1,21 @@
 package com.trs.netInsight.widget.report.task;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.support.fts.FullTextSearch;
+import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.util.CollectionsUtil;
+import com.trs.netInsight.util.RedisUtil;
+import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.report.constant.Chapter;
+import com.trs.netInsight.widget.report.constant.ReportConst;
+import com.trs.netInsight.widget.report.entity.ReportNew;
 import com.trs.netInsight.widget.report.util.ReportUtil;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +29,14 @@ import com.trs.netInsight.support.template.ObjectContainer;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.report.entity.ReportResource;
 import com.trs.netInsight.widget.report.entity.repository.ReportResourceRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import static com.trs.netInsight.widget.report.constant.ReportConst.*;
 
 /**
@@ -34,22 +47,25 @@ import static com.trs.netInsight.widget.report.constant.ReportConst.*;
 @Slf4j
 @NoArgsConstructor
 public class ReportResourceTask implements Runnable{
-
-	private FullTextSearch hybase8SearchService = (Hybase8SearchImpl) ObjectContainer
-												.getBean(Hybase8SearchImpl.class);
+	private ICommonListService commonListService = (ICommonListService) ObjectContainer.getBean(ICommonListService.class);
 
 	private ReportResourceRepository reportResourceRepository = (ReportResourceRepository) ObjectContainer.getBean(ReportResourceRepository.class);
 	
 	private List<ReportResource> reportResourcesList;
+	private String trslk;
 	
 	public ReportResourceTask(List<ReportResource> reportResourcesList){
 		this.reportResourcesList = reportResourcesList;
+	}
+	public ReportResourceTask(List<ReportResource> reportResourcesList,String trslk){
+		this.reportResourcesList = reportResourcesList;
+		this.trslk = trslk;
 	}
 	@Override
 	public void run() {
 		List<ReportResource> list ;
 		try {
-			list = reportResourceHandle(reportResourcesList);
+			list = reportResourceHandle(reportResourcesList,trslk);
 			reportResourceRepository.save(list);
 			log.info(String.format(REPORTRESOURCELOG,"成功保存至数据库，size："+list.size()));
 		} catch (Exception e) {
@@ -66,7 +82,7 @@ public class ReportResourceTask implements Runnable{
 	 * @throws Exception
 	 */
 	public List<ReportResource> reportResourceHandle(
-			List<ReportResource> reportResourcesList) throws Exception {
+			List<ReportResource> reportResourcesList,String trslk) throws Exception {
 		if (reportResourcesList == null || reportResourcesList.size() == 0) {
 			log.info(String.format(REPORTRESOURCELOG,"资源重复"));
 			return null;
@@ -75,11 +91,11 @@ public class ReportResourceTask implements Runnable{
 				// 可能是单1条列表类型数据，或图片
 				ReportResource reportResource = reportResourcesList.get(0);//s.isNullOrEmpty(reportResource.getImg_data())
 				
-				if (StringUtil.isEmpty(reportResource.getImg_data()) && !OVERVIEWOFDATA.equals(reportResource.getChapter())) {
+				if (StringUtil.isEmpty(reportResource.getImg_data()) && (!OVERVIEWOFDATA.equals(reportResource.getChapter())&& !Chapter.Statistics_Summarize.toString().equals(reportResource.getChapter())) ) {
 					log.info(String.format(REPORTRESOURCELOG,"单条报告列表资源！"));
 					// 列表类型数据
-					if (reportResource.getGroupName().equals("国内微信")) {
-						ArrayList<ReportResource> reportResourcePool = reportResourcePool(null,new String[] { reportResource.getSid() });
+					if (reportResource.getGroupName().equals(Const.GROUPNAME_WEIXIN)) {
+						ArrayList<ReportResource> reportResourcePool = reportResourcePool(null,new String[] { reportResource.getSid() },trslk);
 						log.info(String.format(REPORTRESOURCELOG,"根据SID查询报告资源完成！ "));
 						// 计算转载数
 						//produceRttCount(reportResourcePool);
@@ -88,21 +104,26 @@ public class ReportResourceTask implements Runnable{
 					} else {
 						ArrayList<String> arrayList = new ArrayList<>();
 						arrayList.add(reportResource.getSid());
-						ArrayList<ReportResource> reportResourcePool = reportResourcePool(arrayList, null);
+						ArrayList<ReportResource> reportResourcePool = reportResourcePool(arrayList, null,trslk);
 						setReportResourceData(reportResource,reportResourcePool.get(0));
 					}
 				} else {
 					log.info(String.format(REPORTRESOURCELOG,"单条报告图片资源！"));
 					// 图片
 					// 如果是数据统计概述章节的话
-					if (OVERVIEWOFDATA.equals(reportResource.getChapter())) {
+					if (OVERVIEWOFDATA.equals(reportResource.getChapter()) ||Chapter.Statistics_Summarize.toString().equals(reportResource.getChapter())) {
 						if (StringUtil.isNotEmpty(reportResource.getImg_data())){
 							reportResource.setImgComment(ReportUtil.getOverviewOfData(reportResource.getImg_data().replace("\\n", "")));
 						}
 					} else {
 						// 图片添加comment
-						reportResource.setImgComment(ReportUtil.getImgComment(reportResource.getImg_data(),reportResource.getImgType(),reportResource.getChapter()));
+						reportResource.setImgComment(ReportUtil.getImgComment(reportResource.getImg_data(),reportResource.getImgType(),Chapter.valueOf(reportResource.getChapter()).getValue()));
 					}
+					reportResource.setDocPosition(0);
+
+					//查找当前模块当前位置有几条数据 - 图表，当前位置只允许一个图，如果之前加了图，就删除他们
+					removeSameModules(reportResource.getTemplateId(),reportResource.getChapter(),reportResource.getChapterPosition(),reportResource.getResourceStatus());
+
 				}
 				reportResourcesList.remove(0);
 				reportResourcesList.add(reportResource);
@@ -115,63 +136,35 @@ public class ReportResourceTask implements Runnable{
 				Set<String> keySet = collectResults.keySet();
 				List<String> sidList = new ArrayList<>();
 				for (String key : keySet) {
-					if (!"国内微信".equals(key)) {
+					if (!Const.GROUPNAME_WEIXIN.equals(key)) {
 						collectResults.get(key).stream().forEach(e -> sidList.add(e.getSid()));
 					}
 				}
 				String[] sidsWeChat = null;
-				if(collectResults.get("国内微信")!=null){
-					sidsWeChat = collectResults.get("国内微信").stream().map(ReportResource::getSid).toArray(String[]::new);
+				if(collectResults.get(Const.GROUPNAME_WEIXIN)!=null){
+					sidsWeChat = collectResults.get(Const.GROUPNAME_WEIXIN).stream().map(ReportResource::getSid).toArray(String[]::new);
 				}
 				// 一次性全部查出来
-				ArrayList<ReportResource> reportResourcePool = reportResourcePool(sidList, sidsWeChat);
-				// 计算转载数
-				//produceRttCount(reportResourcePool);
+				ArrayList<ReportResource> reportResourcePool = reportResourcePool(sidList, sidsWeChat,trslk);
+
 				//信息合并
-					for (int i = 0; i < reportResourcesList.size(); i++) {
-						ReportResource reportResource = reportResourcesList.get(i);
-						for (ReportResource reportResourceInner : reportResourcePool) {
-							if (reportResource.getSid().equals(reportResourceInner.getSid())) {
-								// 匹配成功,重新赋值
-								setReportResourceData(reportResource,reportResourceInner);
-								reportResourcesList.remove(i);
-								reportResourcesList.add(i, reportResource);
-								break;
-							}
+				for (int i = 0; i < reportResourcesList.size(); i++) {
+					ReportResource reportResource = reportResourcesList.get(i);
+					for (ReportResource reportResourceInner : reportResourcePool) {
+						if (reportResource.getSid().equals(reportResourceInner.getSid())) {
+							// 匹配成功,重新赋值
+							setReportResourceData(reportResource, reportResourceInner);
+							reportResourcesList.remove(i);
+							reportResourcesList.add(i, reportResource);
+							break;
 						}
 					}
 				}
-				return reportResourcesList;
 			}
+			return reportResourcesList;
 		}
-	/**
-	 * 计算转载数
-	 * @author shao.guangze
-	 * @param reportResourcePool
-	 */
-//	private void produceRttCount(ArrayList<ReportResource> reportResourcePool) {
-//		for (int i = 0; i < reportResourcePool.size(); i++) {
-//			ReportResource reportResource = reportResourcePool.get(i);
-//			if (reportResource.getMd5Tag() == null) {
-//				reportResource.setRttCount(new Long(0));
-//				reportResourcePool.remove(i);
-//				reportResourcePool.add(i, reportResource);
-//				continue;
-//			}
-//			String md5queryTRSL = FtsFieldConst.FIELD_MD5TAG + ":"+ reportResource.getMd5Tag();
-//			QueryCommonBuilder queryBuilder = new QueryCommonBuilder();
-//			queryBuilder.setDatabase(Const.HYBASE_NI_INDEX.split(";"));
-//			queryBuilder.filterByTRSL(md5queryTRSL);
-//			// 昨天0点到当前时间
-//			queryBuilder.filterByTRSL(FtsFieldConst.FIELD_URLTIME + ":"
-//					+ getFormatDateTRSL());
-//			long ftsCount = hybase8SearchService.ftsCountCommon(
-//					queryBuilder, false,false);
-//			reportResource.setRttCount(ftsCount);
-//			reportResourcePool.remove(i);
-//			reportResourcePool.add(i, reportResource);
-//		}
-//	}
+		}
+
 	/**
 	 * 获取昨天0点到当前时间的 时间数组， 24h+
 	 * 
@@ -190,35 +183,53 @@ public class ReportResourceTask implements Runnable{
 		return "[" + yesterdayDate + " TO " + currentDate + "]";
 	}
 	private ArrayList<ReportResource> reportResourcePool(List<String> sidList,
-			String[] sidsWeChat) throws TRSException {
+			String[] sidsWeChat,String trslk) throws TRSException {
+		if(!CollectionsUtil.isNotEmpty(sidList) && (sidsWeChat==null || sidsWeChat.length==0)){
+			return null;
+		}
+		String type = "detail";
 		String sidsTRSL = ReportUtil.buildSql(sidList);
 		String weChatTRSL = null;
 		if (sidsWeChat != null) {
 			List<String> hkeysWeChat = Arrays.asList(sidsWeChat);
 			weChatTRSL = ReportUtil.buildSqlWeiXin(hkeysWeChat);
 		}
-		QueryCommonBuilder queryBuilder = new QueryCommonBuilder();
-		if (!StringUtils.isEmpty(sidsTRSL) && !StringUtils.isEmpty(weChatTRSL)) {
-			queryBuilder.filterByTRSL("(" + sidsTRSL + ") OR (" + weChatTRSL
-					+ ")");
-		} else if (!StringUtils.isEmpty(sidsTRSL)) {
-			queryBuilder.filterByTRSL(sidsTRSL);
-		} else if (!StringUtils.isEmpty(weChatTRSL)) {
-			queryBuilder.filterByTRSL(weChatTRSL);
-		} else {
-			return null;
+		QueryBuilder builderWeiXin = new QueryBuilder();//微信的表达式
+		QueryBuilder builder = new QueryBuilder();//其他数据源的表达式
+		String trsl = "";
+		if(StringUtil.isNotEmpty(trslk)){
+			 trsl= RedisUtil.getString(trslk);
+			trsl = removeSimflag(trsl);
+			builder.filterByTRSL(trsl);
+			builderWeiXin.filterByTRSL(trsl);
 		}
-		String[] split = Const.MIX_DATABASE.split(";");
-		queryBuilder.setDatabase(split);
-		queryBuilder.setPageSize(200);
-		// Operator.Equal);
-		PagedList<FtsDocumentCommonVO> ftsQueryResult = hybase8SearchService
-				.pageListCommon(queryBuilder, false,false,false,"detail");
+
+		List<FtsDocumentCommonVO> result = new ArrayList<>();
+		if(CollectionsUtil.isNotEmpty(sidList)){
+			builder.filterByTRSL(sidsTRSL);
+			builder.setDatabase(Const.MIX_DATABASE);
+			builder.page(0,200);
+			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListNoFormat(builder, false, false, false, type,null);
+
+			if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+				result.addAll(pagedList.getPageItems());
+			}
+		}
+		if(sidsWeChat != null &&sidsWeChat.length>0){
+			builderWeiXin.filterByTRSL(weChatTRSL);
+			builderWeiXin.setDatabase(Const.WECHAT);
+			builderWeiXin.page(0,200);
+			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListNoFormat(builderWeiXin, false, false, false, type, Const.GROUPNAME_WEIXIN);
+			if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+				result.addAll(pagedList.getPageItems());
+			}
+		}
+
+
 		ArrayList<ReportResource> reportResources = new ArrayList<>();
-		if (ftsQueryResult != null && ftsQueryResult.size() > 0) {
+		if (result.size() > 0) {
 			ReportResource reportResourceTemp = null;
-			for (FtsDocumentCommonVO ftsDocumentCommonVO : ftsQueryResult
-					.getPageItems()) {
+			for (FtsDocumentCommonVO ftsDocumentCommonVO : result) {
 				reportResourceTemp = new ReportResource();
 				reportResourceTemp.setUrlDate(ftsDocumentCommonVO.getUrlTime());
 				reportResourceTemp.setGroupName(ftsDocumentCommonVO
@@ -259,6 +270,9 @@ public class ReportResourceTask implements Runnable{
 					reportResourceTemp.setNewsAbstract(ReportUtil.replaceHtml(StringUtil.removeFourChar(StringUtil.replaceImg(ftsDocumentCommonVO.getAbstracts()))));
 				}
 
+				Integer simnum = calculateMd5Hot(ftsDocumentCommonVO,trsl,type);
+				reportResourceTemp.setSimNum(simnum.toString());
+				reportResourceTemp.setSimCount(simnum.toString());
 				reportResources.add(reportResourceTemp);
 			}
 		}
@@ -275,6 +289,8 @@ public class ReportResourceTask implements Runnable{
 		
 		reportResource.setUrlDate(hybaseReportResource.getUrlDate());
 		reportResource.setRttCount(hybaseReportResource.getRttCount());
+		reportResource.setSimCount(hybaseReportResource.getSimCount());
+		reportResource.setSimNum(hybaseReportResource.getSimNum());
 		reportResource.setMd5Tag(hybaseReportResource.getMd5Tag());
 		reportResource.setTitle(ReportUtil.replaceHtml(StringUtil.removeFourChar(hybaseReportResource.getTitle())));
 		reportResource.setContent(ReportUtil.replaceHtml(StringUtil.removeFourChar(hybaseReportResource.getContent())));
@@ -283,5 +299,80 @@ public class ReportResourceTask implements Runnable{
 		reportResource.setNewsAbstract(ReportUtil.replaceHtml(StringUtil.removeFourChar(hybaseReportResource.getNewsAbstract())));
 		reportResource.setUrlName(hybaseReportResource.getUrlName());
 	}
+
+	private Integer removeSameModules(String templateId,String chapter,Integer chapterPosition,Integer resourceStatus){
+		 List<ReportResource> list =  reportResourceRepository.findAll((Root<ReportResource> root, CriteriaQuery<?> query, CriteriaBuilder cb) ->{
+			ArrayList<Predicate> allPredicates = new ArrayList<>();
+
+			allPredicates.add(cb.equal(root.get("templateId").as(String.class), templateId));
+			allPredicates.add(cb.equal(root.get("chapter").as(String.class), chapter));
+			allPredicates.add(cb.equal(root.get("chapterPosition").as(String.class), chapterPosition));
+			allPredicates.add(cb.equal(root.get("resourceStatus").as(String.class), resourceStatus));
+			return cb.and(allPredicates.toArray(new Predicate[allPredicates.size()]));
+		});
+		 int size = 0;
+		if(list != null && list.size()>0){
+			size = list.size();
+			reportResourceRepository.delete(list);
+		}
+		return size;
+	}
+
+	private String removeSimflag(String trslk) {
+		if(trslk.indexOf("AND SIMFLAG:(1000 OR \"\")") != -1){
+			trslk = trslk.replace(" AND SIMFLAG:(1000 OR \"\")","");
+		}else if (trslk.indexOf("AND (IR_SIMFLAGALL:(\"0\" OR \"\"))") != -1){
+			trslk = trslk.replace(" AND (IR_SIMFLAGALL:(\"0\" OR \"\"))","");
+		}
+		trslk = trslk.replaceAll("AND \\(IR_SIMFLAGALL:\\(\"0\" OR \"\"\\)\\)"," ");
+		trslk = trslk.replaceAll("AND (IR_SIMFLAG:(0 OR \"\"))","");
+		return trslk;
+	}
+
+	private Integer calculateMd5Hot(FtsDocumentCommonVO document,String trsl,String type){
+		QueryBuilder searchBuilder = new QueryBuilder();
+		if(StringUtil.isNotEmpty(trsl)){
+			trsl = removeSimflag(trsl);
+			searchBuilder.filterByTRSL(trsl);
+		}
+		String md5Tag = document.getMd5Tag();
+		String id = document.getSid();
+		if(document.getGroupName().equals(Const.GROUPNAME_WEIXIN)){
+			id= document.getHkey();
+		}
+		if (StringUtil.isNotEmpty(md5Tag)) {
+			searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
+			if (StringUtil.isNotEmpty(id)) {
+				//id不为空，则去掉当前文章
+				StringBuffer idBuffer = new StringBuffer();
+				if (Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())) {
+					idBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id).append(")");
+				} else if (Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())) {
+					idBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id).append(")");
+				} else {
+					idBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id).append(")");
+				}
+				searchBuilder.filterByTRSL_NOT(idBuffer.toString());
+			}
+			searchBuilder.setPageSize(1);
+			searchBuilder.setDatabase(Const.MIX_DATABASE);
+			Integer simNum = 0;
+			try {
+				Long ftsCount = commonListService.ftsCount(searchBuilder, false, true, false, type);
+				if(ftsCount != null && ftsCount >0){
+					simNum = Integer.valueOf(ftsCount.toString());
+				}
+			} catch (TRSException e) {
+				e.printStackTrace();
+			}
+			return simNum;
+
+		}else{
+			return 0;
+		}
+	}
+
+
+
 
 }

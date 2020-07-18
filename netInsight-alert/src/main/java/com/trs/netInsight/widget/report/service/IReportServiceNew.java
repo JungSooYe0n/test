@@ -49,8 +49,8 @@ public interface IReportServiceNew {
 	 * 加入资源池
 	 * @throws Exception 
 	 */
-	public Object saveReportResource(String sids, String userId, String groupName, String chapter,
-									 String img_data, String secondaryChapter, String reportType,
+	public Object saveReportResource(String sids, String trslk,String userId, String groupName, String chapter,
+									 String img_data, String reportType,
 									 String templateId, String img_type, Integer chapterPosition,
 									 String reportId) throws Exception;
 

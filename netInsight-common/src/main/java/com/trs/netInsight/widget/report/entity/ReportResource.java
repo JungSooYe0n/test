@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.report.entity;
 
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,12 +28,6 @@ public class ReportResource extends BaseEntity {
 	 * 
 	 */
 	private static final long serialVersionUID = -3525513008518315850L;
-
-	/**
-	 * 报告资源表的主键id
-	 */
-	/*@Column(name = "resource_id")
-	private String resourceId;*/
 
 	/**
 	 * 为拖拽设计，记录每条信息在该模块中的位置
@@ -198,12 +193,26 @@ public class ReportResource extends BaseEntity {
 	 */
 	@Column(name = "sim_count")
 	private String simCount;
+	public String getSimCount(){
+		if(StringUtil.isEmpty(this.simCount)){
+			return "0";
+		}else{
+			return this.simCount;
+		}
+	}
 
 	/**
 	 *   为热点微博、热点新闻的热度值
 	 */
 	@Column(name = "sim_num")
 	private String simNum;
+	public String getSimNum(){
+		if(StringUtil.isEmpty(this.simNum)){
+			return "0";
+		}else{
+			return this.simNum;
+		}
+	}
 	/***
 	 * 0 正在查
 	 * 1 已完成

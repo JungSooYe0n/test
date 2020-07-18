@@ -4,6 +4,7 @@ import com.trs.netInsight.widget.base.entity.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Transient;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -85,6 +86,21 @@ public class ReportNew extends BaseEntity{
 	 * */
 	@Column(name = "template_list", columnDefinition="TEXT")
 	private String templateList;
+
+	/**
+	 * 当前报告是否可以预览，因为老报告模板改变了，不让预览了
+	 * 老报告没有这个字段是空
+	 * */
+	@Column(name = "preview_flag")
+	private Boolean previewFlag = true;
+	public Boolean getPreviewFlag(){
+		if(previewFlag != null ){
+			return previewFlag;
+		}else{
+			return false;
+		}
+	}
+
 	
 	public ReportNew(Builder builder){
 		this.reportName = builder.reportName;
