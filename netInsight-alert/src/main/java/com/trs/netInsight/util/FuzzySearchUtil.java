@@ -105,16 +105,23 @@ public class FuzzySearchUtil {
             if (weight) {
                 initTrsl.append(newBuilder.asTRSL()).append(FtsFieldConst.WEIGHT).append(" OR ")
                         .append(FtsFieldConst.FIELD_CONTENT).append(":(").append(keywordTrsl.toString()).append(")");
+                //20200718 - 查询时，需要对ocrContent一起进行查询，不管命中位置是哪里（原因：因为只有微薄有ocrContent，所以这个虽然查了所有库，但是只对微博生效，微博只有正文字段，所以两个字段一起查）
+                initTrsl.append(" OR ")
+                        .append(FtsFieldConst.FIELD_OCR_CONTENT).append(":(").append(keywordTrsl.toString()).append(")");
             } else {
                 newBuilder.filterChildField(FtsFieldConst.FIELD_CONTENT, keywordTrsl.toString(), Operator.Equal);
+                newBuilder.filterChildField(FtsFieldConst.FIELD_OCR_CONTENT, keywordTrsl.toString(), Operator.Equal);
                 initTrsl.append(newBuilder.asTRSL());
             }
         }else if ("2".equals(keyWordIndex)) {//标题 + 摘要
             if (weight) {
                 initTrsl.append(newBuilder.asTRSL()).append(FtsFieldConst.WEIGHT).append(" OR ")
                         .append(FtsFieldConst.FIELD_ABSTRACTS).append(":(").append(keywordTrsl.toString()).append(")");
+                initTrsl.append(" OR ")
+                        .append(FtsFieldConst.FIELD_OCR_CONTENT).append(":(").append(keywordTrsl.toString()).append(")");
             } else {
                 newBuilder.filterChildField(FtsFieldConst.FIELD_ABSTRACTS, keywordTrsl.toString(), Operator.Equal);
+                newBuilder.filterChildField(FtsFieldConst.FIELD_OCR_CONTENT, keywordTrsl.toString(), Operator.Equal);
                 initTrsl.append(newBuilder.asTRSL());
             }
         } else if ("0".equals(keyWordIndex)) {//仅标题
@@ -202,6 +209,8 @@ public class FuzzySearchUtil {
                 String title = fuzzyTrsl.toString();
                 String content = "";
                 filterTrsl1.append("(").append(fuzzyTrsl).append(")");
+                String ocrContent = title.replaceAll(FtsFieldConst.FIELD_TITLE, FtsFieldConst.FIELD_OCR_CONTENT);
+                filterTrsl1.append(" OR ").append("(").append(ocrContent).append(")");
                 if ("1".equals(keyWordIndex)) {//标题+正文
                     content = title.replaceAll(FtsFieldConst.FIELD_TITLE, FtsFieldConst.FIELD_CONTENT);
                     filterTrsl1.append(" OR ").append("(").append(content).append(")");

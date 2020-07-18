@@ -95,6 +95,21 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
     private String content;
 
     /**
+     * ocrContent
+     */
+    @FtsField(value = "IR_OCR_CONTENT", highLight = true)
+    private String ocrContent;
+
+    private Boolean imgOcr = false;
+    public Boolean getImgOcr(){
+        if(StringUtil.isNotEmpty(this.ocrContent)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    /**
      * 不做截取处理（解决混合情况导出内容不完整）
      * 为混合列表导出正文使用
      */

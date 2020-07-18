@@ -1100,7 +1100,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
-									  String type, String read, String preciseFilter) {
+									  String type, String read, String preciseFilter,String imgOcr) {
 		return null;
 	}
 

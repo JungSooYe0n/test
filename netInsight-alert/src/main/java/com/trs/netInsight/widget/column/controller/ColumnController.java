@@ -975,7 +975,8 @@ public class ColumnController {
 			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query")})
+			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "imgOcr", value = "OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg", dataType = "String", paramType = "query")})
 	public Object selectChart(@RequestParam("id") String id,
 							  @RequestParam(value = "chartPage", defaultValue = "TabChart") String chartPage,
 							  @RequestParam(value = "showType", required = false, defaultValue = "") String showType,
@@ -1002,7 +1003,8 @@ public class ColumnController {
 							  @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							  @RequestParam(value = "contentArea", required = false) String contentArea,
 							  @RequestParam(value = "mediaArea", required = false) String mediaArea,
-							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							  @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr)
 			throws SearchException, TRSException {
 		IndexTab indexTab = null;
 		ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
@@ -1098,11 +1100,11 @@ public class ColumnController {
 		ColumnConfig config = new ColumnConfig();
 		if(openFiltrate != null && openFiltrate){
 			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default", "", "",
-					"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+					"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 		}else{
 			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default",  "", "",
 					"", "",read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
+					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter,imgOcr);
 		}
 		// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，用统计分析的StatisticalChart，其他图用tabChart
 		config.setChartPage(chartPageInfo);
@@ -1233,7 +1235,8 @@ public class ColumnController {
 			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr)
 			throws TRSException, SearchException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
@@ -1329,11 +1332,11 @@ public class ColumnController {
 			}
 			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
 					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, mediaLevel, mediaIndustry,
-					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 		}else{
 			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
 					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(),
-					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
+					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter,imgOcr);
 		}
 	}
 
@@ -1369,7 +1372,8 @@ public class ColumnController {
 			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	) throws TRSException, SearchException {
 
 		//防止前端乱输入
@@ -1434,7 +1438,7 @@ public class ColumnController {
 		}
 		return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, "", "", "",
 				sort, "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
-				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 	}
 
 	@FormatResult
@@ -1462,7 +1466,8 @@ public class ColumnController {
 			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr)
 			throws TRSException, SearchException {
 		//查询一个栏目的列表（不是通过点击图跳转的列表）时，其实就是把当前栏目当成普通列表，不受当前栏目类型的影响
 		IndexTabMapper mapper = indexTabMapperService.findOne(id);
@@ -1524,7 +1529,7 @@ public class ColumnController {
 		ColumnConfig config = new ColumnConfig();
 		//这个页面中的筛选条件，前端会将回显数据传回来，所以直接用回显数据
 		config.initSection(indexTab, indexTab.getTimeRange(), 0, 15, null, emotion, null, "", "", "default",  "", "",
-				"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+				"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 		column.setDistrictInfoService(districtInfoService);
 		column.setCommonListService(commonListService);
 		column.setCommonChartService(commonChartService);

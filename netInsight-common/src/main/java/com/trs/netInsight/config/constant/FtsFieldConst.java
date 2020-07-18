@@ -78,6 +78,11 @@ public class FtsFieldConst {
 	public final static String FIELD_CONTENT = "IR_CONTENT";
 
 	/**
+	 * OCR 正文
+	 */
+	public final static String FIELD_OCR_CONTENT = "IR_OCR_CONTENT";
+
+	/**
 	 * 摘要
 	 */
 	public final static String FIELD_ABSTRACTS = "IR_ABSTRACT";

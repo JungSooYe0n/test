@@ -1491,7 +1491,7 @@ public class ColumnServiceImpl implements IColumnService {
 	public Object selectList(IndexTab indexTab, int pageNo, int pageSize, String source, String emotion, String entityType,
 							 String dateTime, String key, String sort,  String invitationCard,
 							 String forwarPrimary, String keywords, String fuzzyValueScope,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-							 String contentArea,String mediaArea,String preciseFilter) {
+							 String contentArea,String mediaArea,String preciseFilter,String imgOcr) {
 		String userName = UserUtils.getUser().getUserName();
 		long start = new Date().getTime();
 		if (indexTab != null) {
@@ -1501,7 +1501,7 @@ public class ColumnServiceImpl implements IColumnService {
 				ColumnConfig config = new ColumnConfig();
 				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort,  invitationCard,
-						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 				column.setCommonListService(commonListService);
 				column.setCommonChartService(commonChartService);
 				column.setCommonListService(commonListService);
@@ -1516,92 +1516,7 @@ public class ColumnServiceImpl implements IColumnService {
 					InfoListResult infoListResult = (InfoListResult) list;
 					String trslk = infoListResult.getTrslk();
 					if (infoListResult.getContent() != null) {
-						PagedList<Object> resultContent = null;
-						List<Object> resultList = new ArrayList<>();
-						PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
-						if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
-							List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
-							for (FtsDocumentCommonVO vo : voList) {
-								Map<String, Object> map = new HashMap<>();
-								String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
-								map.put("id", vo.getSid());
-								map.put("groupName", groupName);
-								map.put("time", vo.getUrlTime());
-								map.put("md5", vo.getMd5Tag());
-								String title= vo.getTitle();
-								map.put("title", title);
-								if(StringUtil.isNotEmpty(title)){
-									title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
-								}
-								map.put("copyTitle", title); //前端复制功能需要用到
-								if("1".equals(wordIndex)){
-									//摘要
-									map.put("abstracts", vo.getContent());
-								}else{
-									//摘要
-									map.put("abstracts", vo.getAbstracts());
-								}
-								if(vo.getKeywords() != null && vo.getKeywords().size() >3){
-									map.put("keyWordes", vo.getKeywords().subList(0,3));
-								}else{
-									map.put("keyWordes", vo.getKeywords());
-								}
-								String voEmotion =  vo.getAppraise();
-								if(StringUtil.isNotEmpty(voEmotion)){
-									map.put("emotion",voEmotion);
-								}else{
-									map.put("emotion","中性");
-									map.put("isEmotion",null);
-								}
-
-								map.put("nreserved1", null);
-								map.put("hkey", null);
-								if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
-									map.put("nreserved1", vo.getNreserved1());
-									map.put("hkey", vo.getHkey());
-								}
-								map.put("urlName", vo.getUrlName());
-								map.put("favourite", vo.isFavourite());
-								String fullContent = vo.getExportContent();
-								if(StringUtil.isNotEmpty(fullContent)){
-									fullContent = ReportUtil.calcuHit("",fullContent,true);
-								}
-                                map.put("siteName", vo.getSiteName());
-                                map.put("author", vo.getAuthors());
-                                map.put("srcName", vo.getSrcName());
-								//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
-								if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
-									map.put("title", vo.getContent());
-									map.put("abstracts", vo.getContent());
-									map.put("copyTitle", fullContent); //前端复制功能需要用到
-
-									map.put("author", vo.getScreenName());
-									map.put("srcName", vo.getRetweetedScreenName());
-								} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
-									map.put("title", vo.getContent());
-									map.put("abstracts", vo.getContent());
-									map.put("copyTitle", fullContent); //前端复制功能需要用到
-									map.put("author", vo.getAuthors());
-									map.put("srcName", vo.getRetweetedScreenName());
-								} else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
-									map.put("title", vo.getContent());
-									map.put("abstracts", vo.getContent());
-									map.put("author", vo.getAuthors());
-									map.put("srcName", vo.getSrcName());
-									map.put("copyTitle", fullContent); //前端复制功能需要用到
-								}
-								map.put("trslk", trslk);
-								map.put("channel", vo.getChannel());
-								map.put("img", null);
-								//前端页面显示需要，与后端无关
-								map.put("isImg", false);
-								map.put("simNum", 0);
-
-								resultList.add(map);
-							}
-							resultContent = new PagedList<Object>(pagedList.getPageIndex(),
-									pagedList.getPageSize(), pagedList.getTotalItemCount(), resultList, 1);
-						}
+						PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslk,wordIndex);
 						infoListResult.setContent(resultContent);
 					}
 					list = infoListResult;

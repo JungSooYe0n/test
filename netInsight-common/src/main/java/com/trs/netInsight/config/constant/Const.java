@@ -272,6 +272,16 @@ public class Const {
     public static final String SRCNAME_XINWEN = FtsFieldConst.FIELD_SRCNAME + ":(0 OR \"\")";
 
     /**
+     *  IR_OCR_CONTENT 不为空
+     */
+    public static final String OCR_INCLUDE = "*:* -"+FtsFieldConst.FIELD_OCR_CONTENT + ":(\"\")";
+
+    /**
+     * IR_OCR_CONTENT 为空
+     */
+    public static final String OCR_NOT_INCLUDE = FtsFieldConst.FIELD_OCR_CONTENT + ":(\"\")";
+
+    /**
      * 预警标题长度
      */
     public static final int ALERT_NUM = 22;

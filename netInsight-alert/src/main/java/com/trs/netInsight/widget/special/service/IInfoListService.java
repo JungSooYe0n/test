@@ -611,7 +611,7 @@ public interface IInfoListService {
 	 */
 	public Object documentCommonSearch(SpecialProject specialProject, int pageNo, int pageSize, String source, String time, String emotion, String sort,
 									   String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
-									   String type,String read,String preciseFilter) throws TRSException;
+									   String type,String read,String preciseFilter,String imgOcr) throws TRSException;
 	
 	public void setForeignData(String foreign,QueryBuilder builder, QueryBuilder countBuilder,QueryCommonBuilder builderCom,QueryCommonBuilder countBuilderCom);
 
@@ -660,12 +660,12 @@ public interface IInfoListService {
 								  String keywords, String keyWordIndex, String time, boolean weight, String fromWebSite, String excludeWeb,
 								  String emotion, String read, String notKeyWords, String excludeWordIndex, String mediaLevel,
 								  String mediaIndustry, String contentIndustry, String filterInfo, String contentArea,
-								  String mediaArea, String preciseFilter, String type) throws TRSException;
+								  String mediaArea, String preciseFilter, String imgOcr,String type) throws TRSException;
 
 	public Object advancedSearchList(boolean sim, boolean irSimflag, boolean irSimflagAll, int pageNo, int pageSize, String sort,
 									 String keywords, String searchType, String time, String keyWordIndex, boolean weight, String monitorSite,
 									 String excludeWeb, String emotion, String read, String excludeWords, String excludeWordsIndex, String source,
 									 String mediaLevel, String mediaIndustry, String contentIndustry, String filterInfo, String contentArea, String mediaArea,
-									 String preciseFilter, String invitationCard, String forwardPrimary, String fuzzyValue, String fuzzyValueScope, String type) throws TRSException;
+									 String preciseFilter, String invitationCard, String forwardPrimary, String fuzzyValue, String fuzzyValueScope,String imgOcr, String type) throws TRSException;
 }
 

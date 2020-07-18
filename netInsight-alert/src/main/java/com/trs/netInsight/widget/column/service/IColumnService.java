@@ -188,7 +188,7 @@ public interface IColumnService {
 	public Object selectList(IndexTab indexTab,int pageNo,int pageSize,String source,String emotion,String entityType,
 							 String dateTime,String key,String sort,String invitationCard,
 							 String forwarPrimary,String keywords,String fuzzyValueScope,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-							 String contentArea,String mediaArea,String preciseFilter);
+							 String contentArea,String mediaArea,String preciseFilter,String imgOcr);
 	/**
 	 * 日常监测 图数据导出
 	 * @param data

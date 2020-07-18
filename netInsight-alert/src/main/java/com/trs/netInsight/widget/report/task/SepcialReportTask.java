@@ -867,7 +867,7 @@ public class SepcialReportTask implements Runnable {
         //TODO read preciseFilter 为空字符串 两个字段之间 传 tab.get 对应字段
         config.initSection(indexTab, indexTab.getTimeRange(), 0, maxSize, null, null, "keywords", "", "", "desc",
                 "", "", "", "", "", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(),
-                indexTab.getMediaArea(), "");
+                indexTab.getMediaArea(), "","");
         column.setDistrictInfoService(districtInfoService);
         column.setCommonChartService(commonChartService);
         column.setCommonListService(commonListService);

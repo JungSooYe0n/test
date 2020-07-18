@@ -287,7 +287,7 @@ public class ApiController {
             ColumnConfig config = new ColumnConfig();
             config.initSection(indexTab, timerange, 0, pageSize, "", "", entityType, "", "", "default",
                     "", "", "","","", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                    indexTab.getContentArea(), indexTab.getMediaArea(), "");
+                    indexTab.getContentArea(), indexTab.getMediaArea(), "","");
             //column.setChartAnalyzeService(chartAnalyzeService);
             column.setDistrictInfoService(districtInfoService);
             column.setCommonListService(commonListService);
@@ -348,7 +348,7 @@ public class ApiController {
                 }
                 config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, invitationCard, "", "",forwarPrimary,
                         "", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                        indexTab.getContentArea(), indexTab.getMediaArea(), "");
+                        indexTab.getContentArea(), indexTab.getMediaArea(), "","");
                 column.setDistrictInfoService(districtInfoService);
                 column.setCommonListService(commonListService);
                 column.setCommonChartService(commonChartService);
@@ -424,7 +424,9 @@ public class ApiController {
         if (pageSize > maxPageSize){
             pageSize = maxPageSize;
         }
-        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"","","","","",false,0,false,"","","","","","","","");
+        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"",
+                "","","","",false,0,false,"","",
+                "","","","","","","");
     }
 
     /**
@@ -510,7 +512,7 @@ public class ApiController {
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
         return specialChartAnalyzeController.weiboOption(specialId, "", false,null,null,null,null,
                 null,null,null,null,null,null,
-                null,null,null,null,null,null,null,null,null);
+                null,null,null,null,null,null,null,null,null,null);
     }
 
 
@@ -646,7 +648,7 @@ public class ApiController {
                                @RequestParam(value = "entityType") String entityType) throws Exception {
         return specialChartAnalyzeController.getWordYun(specialId, "",entityType,"all",false,null,null,null,null,
                 null,null,null,null,null,null,
-                null,null,null,null,null,null,null,null,null);
+                null,null,null,null,null,null,null,null,null,null);
     }
 
     /**
@@ -780,7 +782,7 @@ public class ApiController {
         keywords = jsonArray.toJSONString();
         return infoListController.searchList(pageNo,pageSize,sort,keywords,"precise",time,simflag,"1",false,"","",emotion,
                 0,false,"","","1","ALL","","","",
-                "","","","",invitationCard,forwarPrimary,"","",groupName);
+                "","","","","",invitationCard,forwarPrimary,"","",groupName);
     }
 
     /**

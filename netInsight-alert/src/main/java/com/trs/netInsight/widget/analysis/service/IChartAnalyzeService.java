@@ -247,7 +247,7 @@ public interface IChartAnalyzeService {
 									 String area, String foreign) throws TRSException;
 
 	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
-									   String type,String read,String preciseFilter) throws TRSException;
+									   String type,String read,String preciseFilter,String imgOcr) throws TRSException;
 
 	/**
 	 * 普通搜索统计表格 选几个来源统计几个来源

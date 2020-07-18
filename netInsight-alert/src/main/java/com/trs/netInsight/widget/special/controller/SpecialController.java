@@ -900,34 +900,35 @@ public class SpecialController {
 	}
 	@RequestMapping(value = "/specialList", method = RequestMethod.POST)
 	public Object specialList(@RequestParam(value = "specialId") String specialId,
-						   @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-						   @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-						   @RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
-						   @RequestParam(value = "sort", defaultValue = "", required = false) String sort,
-						   @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
-						   @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
-						   @ApiParam("结果中搜索")@RequestParam(value = "keywords", required = false) String keywords,
-						   @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
+							  @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+							  @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+							  @RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
+							  @RequestParam(value = "sort", defaultValue = "", required = false) String sort,
+							  @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+							  @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
+							  @ApiParam("结果中搜索") @RequestParam(value = "keywords", required = false) String keywords,
+							  @ApiParam("结果中搜索的范围") @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
 
-						   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
-						   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
-						   @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
-						   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
-						   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
-						   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-						   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
-						   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
-						   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
-						   @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
-						   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
-						   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
-						   @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
-						   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
-						   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
-						   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
-						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
-						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
+							  @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							  @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+							  @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							  @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+							  @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+							  @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							  @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
+							  @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex", defaultValue = "1", required = false) String excludeWordIndex,
+							  @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+							  @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							  @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							  @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							  @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+							  @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							  @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							  @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							  @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+							  @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							  @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr) throws TRSException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
@@ -1011,7 +1012,7 @@ public class SpecialController {
 
 			Object documentCommonSearch = infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
 					timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
-					"special", read, preciseFilter);
+					"special", read, preciseFilter,imgOcr);
 			long endTime = System.currentTimeMillis();
 			log.warn("间隔时间："+(endTime - startTime));
 			return documentCommonSearch;

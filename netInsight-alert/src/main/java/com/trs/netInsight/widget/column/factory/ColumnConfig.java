@@ -128,6 +128,7 @@ public class ColumnConfig {
 	 * 原发primary 转发forward
 	 */
 	private String forwarPrimary;
+	private String imgOcr;
 	/**
 	 * 是否按照权重
 	 */
@@ -323,9 +324,21 @@ public class ColumnConfig {
 		Date endToDate = DateUtil.stringToDate(timeArray[1], "yyyyMMddHHmmss");
 		queryBuilder.setStartTime(startToDate);
 		queryBuilder.setEndTime(endToDate);
+		//查看OCR - 图片
+		if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
+			if("img".equals(imgOcr)){ // 看有ocr的
+				this.queryBuilder.filterByTRSL(Const.OCR_INCLUDE);
+			}else if("noimg".equals(imgOcr)){  // 不看有ocr的
+				this.queryBuilder.filterByTRSL(Const.OCR_NOT_INCLUDE);
+			}
+		}
+
 		// 监测网站
 		if (this.indexTab.getMonitorSite() != null && this.indexTab.getMonitorSite().split("[;|；]").length > 0) {
-			this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,this.indexTab.getMonitorSite().replaceAll("[;|；]"," OR ") , Operator.Equal);
+			String addMonitorSite = addMonitorSite(this.indexTab.getMonitorSite());
+			if(StringUtil.isNotEmpty(addMonitorSite)){
+				this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
+			}
 		}
 		// 排除网站
 		if (this.indexTab.getExcludeWeb() != null && this.indexTab.getExcludeWeb().split("[;|；]").length > 0) {
@@ -678,10 +691,9 @@ public class ColumnConfig {
 	//TODO  如果是日常监测筛选  因为普通模式添加了筛选字段，包括地域和行业等筛选字段需要添加
 	public void initSection(IndexTab indexTab, String timeRange, int pageNo, int pageSize, String groupName,
 							String emotion, String entityType, String dataTime, String key, String orderBy,
-							//String area, String irKeyword,
 							String invitationCard, String fuzzyValue,String fuzzyValueScope, String forwarPrimary
 							,String read, String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-							String contentArea,String mediaArea,String preciseFilter
+							String contentArea,String mediaArea,String preciseFilter,String imgOcr
 	) throws OperationException {
 		this.orderBy = orderBy;
 		this.dataTime = dataTime;
@@ -696,6 +708,7 @@ public class ColumnConfig {
 		this.pageNo = pageNo;
 		this.pageSize = pageSize;
 		this.forwarPrimary = forwarPrimary;
+		this.imgOcr = imgOcr;
 		addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 		this.init(indexTab, timeRange, pageNo, pageSize, entityType, orderBy, fuzzyValue);
 	}
@@ -710,38 +723,10 @@ public class ColumnConfig {
 	 */
 	private void createFilter(String keyWords, String keyWordindex, String excludeWords,String excludeWordsIndex, boolean weight) {
 		if (StringUtil.isNotEmpty(keyWordindex) && (StringUtil.isNotEmpty(keyWords) || StringUtil.isNotEmpty(excludeWords))) {// 普通模式
-
 			queryBuilder = WordSpacingUtil.handleKeyWords(keyWords, keyWordindex, this.weight);
-			//拼接排除词
-			if("0".equals(excludeWordsIndex)){ //标题
-				if (StringUtil.isNotEmpty(excludeWords)) {
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					this.queryBuilder.filterByTRSL(exbuilder.toString());
-				}
-			} else if ("1".equals(excludeWordsIndex)) {// 标题加正文
-				if (StringUtil.isNotEmpty(excludeWords)) {
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					this.queryBuilder.filterByTRSL(exbuilder.toString());
-					StringBuilder exbuilder2 = new StringBuilder();
-					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-					this.queryBuilder.filterByTRSL(exbuilder2.toString());
-				}
-			}else if("2".equals(excludeWordsIndex)){ //标题 +摘要
-				if (StringUtil.isNotEmpty(excludeWords)) {
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					this.queryBuilder.filterByTRSL(exbuilder.toString());
-					StringBuilder exbuilder2 = new StringBuilder();
-					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-					this.queryBuilder.filterByTRSL(exbuilder2.toString());
-				}
+			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeWordsIndex);
+			if(StringUtil.isNotEmpty(excludeWordTrsl)){
+				this.queryBuilder.filterByTRSL(excludeWordTrsl);
 			}
 		} else {// 专家模式
 			if(StringUtil.isNotEmpty(this.indexTab.getTrsl())){
@@ -811,6 +796,31 @@ public class ColumnConfig {
 		this.queryBuilder = new QueryBuilder();
 		queryBuilder.filterByTRSL(asTRSL);
 	}
+
+	/**
+	 * 增加监测站点
+	 *
+	 * @Return : void
+	 */
+	private String addMonitorSite(String monitorSite) {
+		if(StringUtil.isNotEmpty(monitorSite)){
+			String[] splitArr  = monitorSite.split("[;|；]");
+			List<String> list = new ArrayList<>();
+			for(String split:splitArr){
+				if(StringUtil.isNotEmpty(split)){
+					list.add(split);
+				}
+			}
+			if(list.size()>0){
+				return StringUtils.join(list," OR ");
+			}else{
+				return "";
+			}
+		}else{
+			return "";
+		}
+	}
+
 
 	/**
 	 * 给专家模式的表达式拼接xytrsl

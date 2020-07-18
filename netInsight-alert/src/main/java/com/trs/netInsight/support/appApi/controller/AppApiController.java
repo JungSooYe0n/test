@@ -232,7 +232,7 @@ public class AppApiController {
         ColumnConfig config = new ColumnConfig();
         config.initSection(indexTab, timeRan, pageNo, pageSize ,"ALL","ALL", entityType,null,null,"default",
                  "","","","","", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                indexTab.getContentArea(), indexTab.getMediaArea(), "");
+                indexTab.getContentArea(), indexTab.getMediaArea(), "","");
         column.setCommonListService(commonListService);
         column.setCommonChartService(commonChartService);
         column.setDistrictInfoService(districtInfoService);

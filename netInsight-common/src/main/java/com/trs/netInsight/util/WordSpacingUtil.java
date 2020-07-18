@@ -7,6 +7,10 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 普通模式词距关键词处理
@@ -32,152 +36,168 @@ public class WordSpacingUtil {
         // 切割关键词位置
         keyWords=keyWords.trim();
         String expressionTotal = "";
+        List<String> wordIndexList = new ArrayList<>();
+        wordIndexList.add(keyWordindex);
+        wordIndexList.add("3"); //命中IR_OCR_CONTENT字段  --------
+        //现在要查询微博时，需要命中正文或者ocr，其他数据源OCR暂时没有数据，所以查询时需要在表达式后边拼接OR命中OCR
         if (StringUtil.isNotEmpty(keyWords)){
-            JSONArray jsonArray = JSONArray.fromObject(keyWords);
-            for (Object keyWord : jsonArray) {
-                QueryBuilder queryBuilder = new QueryBuilder();
-
-                StringBuilder childTrsl = new StringBuilder();
-
-                JSONObject parseObject = JSONObject.fromObject(String.valueOf(keyWord));
-                String keyWordsSingle = parseObject.getString("keyWords");
-                if (StringUtil.isNotEmpty(keyWordsSingle)){
-                    int wordSpace = parseObject.getInt("wordSpace");
-                    boolean wordOrder = parseObject.getBoolean("wordOrder");
-                    //防止关键字以多个 , （逗号）结尾，导致表达式故障问题
-                    String[] split = keyWordsSingle.split(",");
-                    String splitNode = "";
-                    for (int i = 0; i < split.length; i++) {
-                        if (StringUtil.isNotEmpty(split[i])) {
-                            if (split[i].endsWith(";")){
-                                split[i] = split[i].substring(0, split[i].length() - 1);
-                            }
-                            splitNode += split[i] + ",";
-                        }
-                    }
-                    keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
-
-                    String replaceAnyKey = "";
-                    if (wordSpace > 0){
-                        if (keyWordsSingle.endsWith(";")|| keyWordsSingle.endsWith("；")) {
-                            replaceAnyKey = keyWordsSingle.substring(0, keyWordsSingle.length() - 1);
-                            childTrsl.append("((\\\"")
-                                    .append(replaceAnyKey.replaceAll("[,|，]", "\\\\\") AND (\\\\\"").replaceAll("[;|；]+", "\\\\\" OR \\\\\""))
-                                    .append("\\\"))");
-                        } else {
-                            childTrsl.append("((\\\"")
-                                    .append(keyWordsSingle.replaceAll("[,|，]", "\\\\\") AND (\\\\\"").replaceAll("[;|；]+", "\\\\\" OR \\\\\""))
-                                    .append("\\\"))");
-                        }
-                    }else {
-                        if (keyWordsSingle.endsWith(";")|| keyWordsSingle.endsWith("；")) {
-                            replaceAnyKey = keyWordsSingle.substring(0, keyWordsSingle.length() - 1);
-                            childTrsl.append("((\"")
-                                    .append(replaceAnyKey.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
-                                    .append("\"))");
-                        } else {
-                            childTrsl.append("((\"")
-                                    .append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
-                                    .append("\"))");
-                        }
-                    }
-
-
-
-                    String expressionElement = childTrsl.toString();
-                    if (keyWordindex.trim().equals("1")) {// 标题加正文
-                        if (StringUtil.isNotEmpty(expressionElement)){
-                            //词距+标题命中
-                            if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0 && weight){
-                                if (wordOrder){
-                                    //#PRE
-                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
-                                            " OR "+FtsFieldConst.FIELD_CONTENT+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
-                                }else{
-                                    //#POS
-                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
-                                            " OR "+FtsFieldConst.FIELD_CONTENT+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
+            for(String hitIndex :wordIndexList){
+                keyWordindex = hitIndex;
+                JSONArray jsonArray = JSONArray.fromObject(keyWords);
+                for (Object keyWord : jsonArray) {
+                    QueryBuilder queryBuilder = new QueryBuilder();
+                    StringBuilder childTrsl = new StringBuilder();
+                    JSONObject parseObject = JSONObject.fromObject(String.valueOf(keyWord));
+                    String keyWordsSingle = parseObject.getString("keyWords");
+                    if (StringUtil.isNotEmpty(keyWordsSingle)){
+                        int wordSpace = parseObject.getInt("wordSpace");
+                        boolean wordOrder = parseObject.getBoolean("wordOrder");
+                        //防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+                        String[] split = keyWordsSingle.split(",");
+                        String splitNode = "";
+                        for (int i = 0; i < split.length; i++) {
+                            if (StringUtil.isNotEmpty(split[i])) {
+                                if (split[i].endsWith(";")){
+                                    split[i] = split[i].substring(0, split[i].length() - 1);
                                 }
-                            }else if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){
-                                //仅词距
-                                if (wordOrder){
-                                    //#PRE
-                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
-                                            " OR "+FtsFieldConst.FIELD_CONTENT+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
-                                }else{
-                                    //#POS
-                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
-                                            " OR "+FtsFieldConst.FIELD_CONTENT+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
-                                }
-                            }else if (weight){
-                                //仅标题命中
-                                queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
-                                expressionElement = queryBuilder.asTRSL()+FtsFieldConst.WEIGHT+
-                                        " OR "+FtsFieldConst.FIELD_CONTENT+":"+childTrsl.toString();
-                            }else {
-                                //标题+正文  时间排序  无词距
-                                queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
-                                expressionElement = queryBuilder.asTRSL() +
-                                        " OR "+FtsFieldConst.FIELD_CONTENT+":"+childTrsl.toString();
+                                splitNode += split[i] + ",";
                             }
                         }
-                    }else if (keyWordindex.trim().equals("2")) {// 标题加摘要
-                        if (StringUtil.isNotEmpty(expressionElement)){
-                            //词距+标题命中
-                            if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0 && weight){
-                                if (wordOrder){
-                                    //#PRE
-                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
-                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
-                                }else{
-                                    //#POS
-                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
-                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
-                                }
-                            }else if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){
-                                //仅词距
-                                if (wordOrder){
-                                    //#PRE
-                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
-                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
-                                }else{
-                                    //#POS
-                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
-                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
-                                }
-                            }else if (weight){
-                                //仅标题命中
-                                queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
-                                expressionElement = queryBuilder.asTRSL()+FtsFieldConst.WEIGHT+
-                                        " OR "+FtsFieldConst.FIELD_ABSTRACTS+":"+childTrsl.toString();
-                            }else {
-                                //标题+正文  时间排序  无词距
-                                queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
-                                expressionElement = queryBuilder.asTRSL() +
-                                        " OR "+FtsFieldConst.FIELD_ABSTRACTS+":"+childTrsl.toString();
-                            }
-                        }
-                    } else {// 仅标题
+                        keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 
-                        if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){
-                            //仅词距
-                            if (wordOrder){
-                                //#PRE
-                                expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace + ")";
-                            }else{
-                                //#POS
-                                expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace + ")" ;
+                        String replaceAnyKey = "";
+                        if (wordSpace > 0){
+                            if (keyWordsSingle.endsWith(";")|| keyWordsSingle.endsWith("；")) {
+                                replaceAnyKey = keyWordsSingle.substring(0, keyWordsSingle.length() - 1);
+                                childTrsl.append("((\\\"")
+                                        .append(replaceAnyKey.replaceAll("[,|，]", "\\\\\") AND (\\\\\"").replaceAll("[;|；]+", "\\\\\" OR \\\\\""))
+                                        .append("\\\"))");
+                            } else {
+                                childTrsl.append("((\\\"")
+                                        .append(keyWordsSingle.replaceAll("[,|，]", "\\\\\") AND (\\\\\"").replaceAll("[;|；]+", "\\\\\" OR \\\\\""))
+                                        .append("\\\"))");
                             }
                         }else {
-                            expressionElement = FtsFieldConst.FIELD_TITLE+":"+childTrsl.toString();
+                            if (keyWordsSingle.endsWith(";")|| keyWordsSingle.endsWith("；")) {
+                                replaceAnyKey = keyWordsSingle.substring(0, keyWordsSingle.length() - 1);
+                                childTrsl.append("((\"")
+                                        .append(replaceAnyKey.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+                                        .append("\"))");
+                            } else {
+                                childTrsl.append("((\"")
+                                        .append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+                                        .append("\"))");
+                            }
                         }
+
+                        String expressionElement = childTrsl.toString();
+                        if (keyWordindex.trim().equals("1")) {// 标题加正文
+                            if (StringUtil.isNotEmpty(expressionElement)){
+                                //词距+标题命中
+                                if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0 && weight){
+                                    if (wordOrder){
+                                        //#PRE
+                                        expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
+                                                " OR "+FtsFieldConst.FIELD_CONTENT+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
+                                    }else{
+                                        //#POS
+                                        expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
+                                                " OR "+FtsFieldConst.FIELD_CONTENT+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
+                                    }
+                                }else if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){
+                                    //仅词距
+                                    if (wordOrder){
+                                        //#PRE
+                                        expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
+                                                " OR "+FtsFieldConst.FIELD_CONTENT+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
+                                    }else{
+                                        //#POS
+                                        expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
+                                                " OR "+FtsFieldConst.FIELD_CONTENT+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
+                                    }
+                                }else if (weight){
+                                    //仅标题命中
+                                    queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
+                                    expressionElement = queryBuilder.asTRSL()+FtsFieldConst.WEIGHT+
+                                            " OR "+FtsFieldConst.FIELD_CONTENT+":"+childTrsl.toString();
+                                }else {
+                                    //标题+正文  时间排序  无词距
+                                    queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
+                                    expressionElement = queryBuilder.asTRSL() +
+                                            " OR "+FtsFieldConst.FIELD_CONTENT+":"+childTrsl.toString();
+                                }
+                            }
+                        }else if (keyWordindex.trim().equals("2")) {// 标题加摘要
+                            if (StringUtil.isNotEmpty(expressionElement)){
+                                //词距+标题命中
+                                if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0 && weight){
+                                    if (wordOrder){
+                                        //#PRE
+                                        expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
+                                                " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
+                                    }else{
+                                        //#POS
+                                        expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace + ")"+FtsFieldConst.WEIGHT +
+                                                " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+")";
+                                    }
+                                }else if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){
+                                    //仅词距
+                                    if (wordOrder){
+                                        //#PRE
+                                        expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
+                                                " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.PRE +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
+                                    }else{
+                                        //#POS
+                                        expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace+ ")" +
+                                                " OR "+FtsFieldConst.FIELD_ABSTRACTS+ FtsFieldConst.POS +":(\""+childTrsl.toString()+"\"~"+wordSpace+ ")";
+                                    }
+                                }else if (weight){
+                                    //仅标题命中
+                                    queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
+                                    expressionElement = queryBuilder.asTRSL()+FtsFieldConst.WEIGHT+
+                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+":"+childTrsl.toString();
+                                }else {
+                                    //标题+正文  时间排序  无词距
+                                    queryBuilder.filterChildField(FtsFieldConst.FIELD_TITLE, childTrsl.toString(), Operator.Equal);
+                                    expressionElement = queryBuilder.asTRSL() +
+                                            " OR "+FtsFieldConst.FIELD_ABSTRACTS+":"+childTrsl.toString();
+                                }
+                            }
+                        } else if(keyWordindex.trim().equals("3")) {// 命中微博ocr
+
+                            if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){
+                                //仅词距
+                                if (wordOrder){
+                                    //#PRE
+                                    expressionElement = FtsFieldConst.FIELD_OCR_CONTENT + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace + ")";
+                                }else{
+                                    //#POS
+                                    expressionElement = FtsFieldConst.FIELD_OCR_CONTENT + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace + ")" ;
+                                }
+                            }else {
+                                expressionElement = FtsFieldConst.FIELD_OCR_CONTENT+":"+childTrsl.toString();
+                            }
+                        }else {// 仅标题
+
+                            if (ObjectUtil.isNotEmpty(wordSpace) && wordSpace > 0){
+                                //仅词距
+                                if (wordOrder){
+                                    //#PRE
+                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.PRE +":(\"" + expressionElement + "\"~" + wordSpace + ")";
+                                }else{
+                                    //#POS
+                                    expressionElement = FtsFieldConst.FIELD_TITLE + FtsFieldConst.POS +":(\"" + expressionElement + "\"~" + wordSpace + ")" ;
+                                }
+                            }else {
+                                expressionElement = FtsFieldConst.FIELD_TITLE+":"+childTrsl.toString();
+                            }
+                        }
+                        expressionElement = "("+expressionElement+") OR ";
+                        expressionTotal += expressionElement;
                     }
-                    expressionElement = "("+expressionElement+") OR ";
-                    expressionTotal += expressionElement;
+
                 }
-
             }
-
         }
         QueryBuilder searchBuilder = new QueryBuilder();
         if (StringUtil.isNotEmpty(expressionTotal) && expressionTotal.endsWith(" OR ")){
@@ -391,4 +411,80 @@ public class WordSpacingUtil {
 
         return builder;
     }
+
+
+    public static String appendExcludeWords(String excludeWords,String excludeWordsIndex){
+
+        if (StringUtil.isNotEmpty(excludeWords)) {
+            String string = replaceSymbol(excludeWords);
+            QueryBuilder queryBuilder = new QueryBuilder();
+            //拼接排除词
+            if ("0".equals(excludeWordsIndex)) { //标题
+                StringBuilder exbuilder = new StringBuilder();
+                exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
+                        .append(string).append("\")");
+                queryBuilder.filterByTRSL(exbuilder.toString());
+
+                StringBuilder exbuilder3 = new StringBuilder();
+                exbuilder3.append("*:* -").append(FtsFieldConst.FIELD_OCR_CONTENT).append(":(\"")
+                        .append(string).append("\")");
+                queryBuilder.filterByTRSL(exbuilder3.toString());
+            } else if ("1".equals(excludeWordsIndex)) {// 标题加正文
+                StringBuilder exbuilder = new StringBuilder();
+                exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
+                        .append(string).append("\")");
+                queryBuilder.filterByTRSL(exbuilder.toString());
+
+                StringBuilder exbuilder2 = new StringBuilder();
+                exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
+                        .append(string).append("\")");
+                queryBuilder.filterByTRSL(exbuilder2.toString());
+                StringBuilder exbuilder3 = new StringBuilder();
+                exbuilder3.append("*:* -").append(FtsFieldConst.FIELD_OCR_CONTENT).append(":(\"")
+                        .append(string).append("\")");
+                queryBuilder.filterByTRSL(exbuilder3.toString());
+            } else if ("2".equals(excludeWordsIndex)) { //标题 +摘要
+                StringBuilder exbuilder = new StringBuilder();
+                exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
+                        .append(string).append("\")");
+                queryBuilder.filterByTRSL(exbuilder.toString());
+
+                StringBuilder exbuilder2 = new StringBuilder();
+                exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
+                        .append(string).append("\")");
+                queryBuilder.filterByTRSL(exbuilder2.toString());
+                StringBuilder exbuilder3 = new StringBuilder();
+                exbuilder3.append("*:* -").append(FtsFieldConst.FIELD_OCR_CONTENT).append(":(\"")
+                        .append(string).append("\")");
+                queryBuilder.filterByTRSL(exbuilder3.toString());
+            }
+            return queryBuilder.asTRSL();
+        }
+        return "";
+    }
+
+
+    private static String replaceSymbol(String word){
+        if(StringUtil.isNotEmpty(word)){
+            String[] splitArr  = word.split("[;|；]");
+            List<String> list = new ArrayList<>();
+            for(String split:splitArr){
+                if(StringUtil.isNotEmpty(split)){
+                    list.add(split);
+                }
+            }
+            if(list.size()>0){
+                return StringUtils.join(list,"\" OR \"");
+
+            }else{
+                return "";
+            }
+        }else{
+            return "";
+        }
+
+
+    }
+
+
 }

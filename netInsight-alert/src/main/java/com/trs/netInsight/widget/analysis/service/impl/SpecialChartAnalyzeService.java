@@ -2243,7 +2243,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
-									  String type, String read, String preciseFilter) throws TRSException{
+									  String type, String read, String preciseFilter,String imgOcr) throws TRSException{
 
 		QueryBuilder builder = null;
 		if(StringUtil.isNotEmpty(time)){
@@ -2253,7 +2253,14 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}else{
 			builder = specialProject.toSearchBuilder(0, 20, true);
 		}
-
+		//查看OCR - 图片
+		if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
+			if("img".equals(imgOcr)){ // 看有ocr的
+				builder.filterByTRSL(Const.OCR_INCLUDE);
+			}else if("noimg".equals(imgOcr)){  // 不看有ocr的
+				builder.filterByTRSL(Const.OCR_NOT_INCLUDE);
+			}
+		}
 		boolean sim = specialProject.isSimilar();
 		boolean irSimflag = specialProject.isIrSimflag();
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
@@ -6178,92 +6185,8 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 		if (infoListResult != null) {
 			String trslk = infoListResult.getTrslk();
 			if (infoListResult.getContent() != null) {
-				PagedList<Object> resultContent = null;
-				List<Object> resultList = new ArrayList<>();
-				PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
-				if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
-					List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
-					for (FtsDocumentCommonVO vo : voList) {
-						Map<String, Object> map = new HashMap<>();
-						String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
-						map.put("id", vo.getSid());
-						map.put("groupName", groupName);
-						map.put("time", vo.getUrlTime());
-						map.put("md5", vo.getMd5Tag());
-						String title = vo.getTitle();
-						map.put("title", title);
-						if (StringUtil.isNotEmpty(title)) {
-							title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
-						}
-						map.put("copyTitle", title); //前端复制功能需要用到
-						if(SearchScope.TITLE_CONTENT.equals(specialProject.getSearchScope())){
-							//摘要
-							map.put("abstracts", vo.getContent());
-						}else{
-							//摘要
-							map.put("abstracts", vo.getAbstracts());
-						}
-						if (vo.getKeywords() != null && vo.getKeywords().size() > 3) {
-							map.put("keyWordes", vo.getKeywords().subList(0, 3));
-						} else {
-							map.put("keyWordes", vo.getKeywords());
-						}
-						String voEmotion = vo.getAppraise();
-						if (StringUtil.isNotEmpty(voEmotion)) {
-							map.put("emotion", voEmotion);
-						} else {
-							map.put("emotion", "中性");
-							map.put("isEmotion", null);
-						}
-
-						map.put("nreserved1", null);
-						map.put("hkey", null);
-						if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
-							map.put("nreserved1", vo.getNreserved1());
-							map.put("hkey", vo.getHkey());
-						}
-						map.put("urlName", vo.getUrlName());
-						map.put("favourite", vo.isFavourite());
-						String fullContent = vo.getExportContent();
-						if (StringUtil.isNotEmpty(fullContent)) {
-							fullContent = ReportUtil.calcuHit("", fullContent, true);
-						}
-						map.put("siteName", vo.getSiteName());
-						map.put("author", vo.getAuthors());
-						map.put("srcName", vo.getSrcName());
-						//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
-						if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
-							map.put("title", vo.getContent());
-							map.put("abstracts", vo.getContent());
-							map.put("copyTitle", fullContent); //前端复制功能需要用到
-
-							map.put("author", vo.getScreenName());
-							map.put("srcName", vo.getRetweetedScreenName());
-						} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
-							map.put("title", vo.getContent());
-							map.put("abstracts", vo.getContent());
-							map.put("copyTitle", fullContent); //前端复制功能需要用到
-							map.put("author", vo.getAuthors());
-							map.put("srcName", vo.getRetweetedScreenName());
-						} else if (Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)) {
-							map.put("title", vo.getContent());
-							map.put("abstracts", vo.getContent());
-							map.put("author", vo.getAuthors());
-							map.put("srcName", vo.getSrcName());
-							map.put("copyTitle", fullContent); //前端复制功能需要用到
-						}
-						map.put("trslk", trslk);
-						map.put("channel", vo.getChannel());
-						map.put("img", null);
-						//前端页面显示需要，与后端无关
-						map.put("isImg", false);
-						map.put("simNum", 0);
-
-						resultList.add(map);
-					}
-					resultContent = new PagedList<Object>(pagedList.getPageIndex(),
-							pagedList.getPageSize(), pagedList.getTotalItemCount(), resultList, 1);
-				}
+				String wordIndex = String.valueOf(specialProject.getSearchScope().ordinal());
+				PagedList<Object> resultContent =CommonListChartUtil.formatListData(infoListResult,trslk,wordIndex);
 				infoListResult.setContent(resultContent);
 			}
 		}

@@ -594,39 +594,22 @@ public class SpecialProject extends BaseEntity {
 		if(conditionScreen || SpecialType.COMMON.equals(this.specialType)){
 			//监测网站
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
-				queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
+				String addMonitorSite = addMonitorSite(this.monitorSite);
+				if(StringUtil.isNotEmpty(addMonitorSite)){
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
+				}
 			}
 			//拼凑排除词
-			if (StringUtil.isNotEmpty(excludeWords)) {
-				if ("0".equals(excludeWordIndex)) { //标题
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					queryBuilder.filterByTRSL(exbuilder.toString());
-				} else if ("1".equals(excludeWordIndex)) {// 标题加正文
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					queryBuilder.filterByTRSL(exbuilder.toString());
-					StringBuilder exbuilder2 = new StringBuilder();
-					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-
-					queryBuilder.filterByTRSL(exbuilder2.toString());
-				} else if ("2".equals(excludeWordIndex)) { //标题 +摘要
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					queryBuilder.filterByTRSL(exbuilder.toString());
-					StringBuilder exbuilder2 = new StringBuilder();
-					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					queryBuilder.filterByTRSL(exbuilder2.toString());
-				}
+			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeWordIndex);
+			if(StringUtil.isNotEmpty(excludeWordTrsl)){
+				queryBuilder.filterByTRSL(excludeWordTrsl);
 			}
 			//排除网站
 			if (StringUtil.isNotEmpty(this.excludeWeb)) {
-				queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeWeb.replaceAll(";|；", " OR "), Operator.NotEqual);
+				String Site = addMonitorSite(this.excludeWeb);
+				if(StringUtil.isNotEmpty(Site)){
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Site, Operator.NotEqual);
+				}
 			}
 			//媒体等级
 			if(StringUtil.isNotEmpty(mediaLevel)){
@@ -669,6 +652,14 @@ public class SpecialProject extends BaseEntity {
 			// 情感值
 			if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
 				addFieldFilter(queryBuilder,FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE);
+			}
+			// 是否查看OCR_CONTENT 数据
+			if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
+				if("img".equals(imgOcr)){ // 看有ocr的
+					queryBuilder.filterByTRSL(Const.OCR_INCLUDE);
+				}else if("noimg".equals(imgOcr)){  // 不看有ocr的
+					queryBuilder.filterByTRSL(Const.OCR_NOT_INCLUDE);
+				}
 			}
 			// 阅读标记
 			if (StringUtils.isNoneBlank(read) && !"ALL".equals(read)) {
@@ -1009,6 +1000,29 @@ public class SpecialProject extends BaseEntity {
 		return searchBuilder;
 	}
 
+	/**
+	 * 增加监测站点
+	 *
+	 * @Return : void
+	 */
+	private String addMonitorSite(String monitorSite) {
+		if(StringUtil.isNotEmpty(monitorSite)){
+			String[] splitArr  = monitorSite.split("[;|；]");
+			List<String> list = new ArrayList<>();
+			for(String split:splitArr){
+				if(StringUtil.isNotEmpty(split)){
+					list.add(split);
+				}
+			}
+			if(list.size()>0){
+				return StringUtils.join(list," OR ");
+			}else{
+				return "";
+			}
+		}else{
+			return "";
+		}
+	}
 	private void addFieldFilter(QueryBuilder queryBuilder,String field,String value,List<String> allValue){
 		if(StringUtil.isNotEmpty(value)){
 			if(value.contains("其它")){
@@ -1132,6 +1146,8 @@ public class SpecialProject extends BaseEntity {
 	private String preciseFilter;//精准筛选
 	@Transient
 	private String emotion;//  阅读标记
+	@Transient
+	private String imgOcr;//  阅读标记
 
 	/**
 	 * 添加筛选条件信息
@@ -1139,10 +1155,11 @@ public class SpecialProject extends BaseEntity {
 	 * @param preciseFilter  媒体行业
 	 * @param emotion  内容行业
 	 */
-	public void addFilterCondition(String read,String preciseFilter,String emotion){
+	public void addFilterCondition(String read,String preciseFilter,String emotion,String imgOcr){
 		this.read = read;
 		this.preciseFilter = preciseFilter;
 		this.emotion = emotion;
+		this.imgOcr = imgOcr;
 
 	}
 

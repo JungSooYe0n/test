@@ -194,7 +194,8 @@ public class InfoListController {
 						   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
+						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+						   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws TRSException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
@@ -231,7 +232,7 @@ public class InfoListController {
 
 			Object documentCommonSearch =  infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
 						timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
-						"special", read, preciseFilter);
+						"special", read, preciseFilter,imgOcr);
 				long endTime = System.currentTimeMillis();
 				log.warn("间隔时间："+(endTime - startTime));
 				return documentCommonSearch;
@@ -358,7 +359,8 @@ public class InfoListController {
 			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 
 
 			/*@ApiParam("新闻信息资质") @RequestParam(value = "newsInformation", required = false) String newsInformation,
@@ -414,7 +416,7 @@ public class InfoListController {
 			}
 			Object total = infoListService.searchstattotal(isSimilar, irSimflag, irSimflagAll, source,searchType,
 					keywords,keyWordIndex,time,weight,monitorSite,excludeWeb,emotion,read,excludeWords,excludeWordsIndex,
-					mediaLevel,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea,preciseFilter, "advance");
+					mediaLevel,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea,preciseFilter, imgOcr,"advance");
 			return total;
 		} catch (Exception e) {
 			throw new OperationException("统计表格错误,message: " + e, e);
@@ -451,6 +453,7 @@ public class InfoListController {
             @ApiImplicitParam(name = "contentArea", value = "内容地域", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "imgOcr", value = "OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "fuzzyValueScope", value = "结果中搜索de范围", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "fuzzyValue", value = "结果中搜索", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "invitationCard", value = "论坛主贴 0 /回帖 1 所有=主贴+回帖+转帖", dataType = "String", paramType = "query", required = false),
@@ -485,6 +488,7 @@ public class InfoListController {
                              @RequestParam(value = "contentArea", required = false) String contentArea,
                              @RequestParam(value = "mediaArea", required = false) String mediaArea,
                              @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							 @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr,
 
                              @RequestParam(value = "invitationCard", required = false) String invitationCard,
                              @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary,
@@ -558,7 +562,7 @@ public class InfoListController {
 			return infoListService.advancedSearchList(isSimilar, irSimflag, irSimflagAll, pageNo, pageSize, sort,
 					keywords, searchType, time, keyWordIndex, weight, monitorSite, excludeWeb, emotion, read, excludeWords, excludeWordsIndex, source,
 					mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,
-					preciseFilter, invitationCard, forwardPrimary, fuzzyValue, fuzzyValueScope, "advance");
+					preciseFilter, invitationCard, forwardPrimary, fuzzyValue, fuzzyValueScope, imgOcr,"advance");
 
 			//return null;
 		} catch (Exception e) {
@@ -707,88 +711,7 @@ public class InfoListController {
 		if (infoListResult != null) {
 			if (infoListResult.getContent() != null) {
 				String trslkForPage = infoListResult.getTrslk();
-				PagedList<Object> resultContent = null;
-				List<Object> resultList = new ArrayList<>();
-				PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
-				if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
-					List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
-					for (FtsDocumentCommonVO vo : voList) {
-						Map<String, Object> map = new HashMap<>();
-						String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
-						map.put("id", vo.getSid());
-						map.put("groupName", groupName);
-						map.put("time", vo.getUrlTime());
-						map.put("md5", vo.getMd5Tag());
-						String title= vo.getTitle();
-						map.put("title", title);
-						if(StringUtil.isNotEmpty(title)){
-							title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
-						}
-						map.put("copyTitle", title); //前端复制功能需要用到
-						//摘要
-						map.put("abstracts", vo.getAbstracts());
-
-						if(vo.getKeywords() != null && vo.getKeywords().size() >3){
-							map.put("keyWordes", vo.getKeywords().subList(0,3));
-						}else{
-							map.put("keyWordes", vo.getKeywords());
-						}
-						String voEmotion =  vo.getAppraise();
-						if(StringUtil.isNotEmpty(voEmotion)){
-							map.put("emotion",voEmotion);
-						}else{
-							map.put("emotion","中性");
-							map.put("isEmotion",null);
-						}
-
-						map.put("nreserved1", null);
-						map.put("hkey", null);
-						if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
-							map.put("nreserved1", vo.getNreserved1());
-							map.put("hkey", vo.getHkey());
-						}
-						map.put("urlName", vo.getUrlName());
-						map.put("favourite", vo.isFavourite());
-						String fullContent = vo.getExportContent();
-						if(StringUtil.isNotEmpty(fullContent)){
-							fullContent = ReportUtil.calcuHit("",fullContent,true);
-						}
-						map.put("siteName", vo.getSiteName());
-						map.put("author", vo.getAuthors());
-						map.put("srcName", vo.getSrcName());
-						//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
-						if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
-							map.put("title", vo.getContent());
-							map.put("abstracts", vo.getContent());
-							map.put("copyTitle", fullContent); //前端复制功能需要用到
-
-							map.put("author", vo.getScreenName());
-							map.put("srcName", vo.getRetweetedScreenName());
-						} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
-							map.put("title", vo.getContent());
-							map.put("abstracts", vo.getContent());
-							map.put("copyTitle", fullContent); //前端复制功能需要用到
-							map.put("author", vo.getAuthors());
-							map.put("srcName", vo.getRetweetedScreenName());
-						} else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
-							map.put("title", vo.getContent());
-							map.put("abstracts", vo.getContent());
-							map.put("copyTitle", fullContent); //前端复制功能需要用到
-							map.put("author", vo.getAuthors());
-							map.put("srcName", vo.getSrcName());
-						}
-						map.put("trslk", trslkForPage);
-						map.put("channel", vo.getChannel());
-						map.put("img", null);
-						//前端页面显示需要，与后端无关
-						map.put("isImg", false);
-						map.put("simNum", 0);
-
-						resultList.add(map);
-					}
-					resultContent = new PagedList<Object>(pagedList.getPageIndex(),
-							pagedList.getPageSize(), pagedList.getTotalItemCount(), resultList, 1);
-				}
+				PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslkForPage,null);
 				infoListResult.setContent(resultContent);
 			}
 		}

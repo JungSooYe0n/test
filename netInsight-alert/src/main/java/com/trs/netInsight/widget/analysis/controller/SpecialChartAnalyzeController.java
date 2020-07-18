@@ -118,6 +118,7 @@ public class SpecialChartAnalyzeController {
 							   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 							   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 							   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr,
 							   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
@@ -138,7 +139,7 @@ public class SpecialChartAnalyzeController {
 		if(openFiltrate){
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-			specialProject.addFilterCondition(read, preciseFilter, emotion);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
 		log.info("【舆论场趋势分析折线】随机数： "+randomNum);
 		return specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
@@ -170,7 +171,8 @@ public class SpecialChartAnalyzeController {
 									  @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 									  @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 									  @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-									  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+									  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+									  @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
@@ -190,7 +192,7 @@ public class SpecialChartAnalyzeController {
 		if(openFiltrate){
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-			specialProject.addFilterCondition(read, preciseFilter, emotion);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
 		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
 		return specialChartAnalyzeService.getSituationAssessment(searchBuilder,specialProject);
@@ -223,7 +225,8 @@ public class SpecialChartAnalyzeController {
 									@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 									@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 									@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-									@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+									@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+									@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
@@ -243,7 +246,7 @@ public class SpecialChartAnalyzeController {
 		if(openFiltrate){
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-			specialProject.addFilterCondition(read, preciseFilter, emotion);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
 		return specialChartAnalyzeService.getSentimentAnalysis(specialProject,timeRange,viewType);
 
@@ -341,7 +344,8 @@ public class SpecialChartAnalyzeController {
 								 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws Exception {
+								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws Exception {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
 		ObjectUtil.assertNull(specialProject, "专题ID");
@@ -360,7 +364,7 @@ public class SpecialChartAnalyzeController {
 		if(openFiltrate){
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-			specialProject.addFilterCondition(read, preciseFilter, emotion);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
 
 		// 排重
@@ -697,8 +701,8 @@ public class SpecialChartAnalyzeController {
 					   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 					   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 					   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-					   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
-
+					   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+					   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 					   ) throws Exception {
 		long start = new Date().getTime();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
@@ -715,7 +719,7 @@ public class SpecialChartAnalyzeController {
 			if(openFiltrate){
 				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-				specialProject.addFilterCondition(read, preciseFilter, emotion);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 			}
 			//单一媒体排重
 			boolean isSimilar = specialProject.isSimilar();
@@ -782,7 +786,8 @@ public class SpecialChartAnalyzeController {
 							  @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							  @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 							  @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-							  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws Exception {
+							  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							  @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws Exception {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
@@ -799,7 +804,7 @@ public class SpecialChartAnalyzeController {
 		if(openFiltrate){
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-			specialProject.addFilterCondition(read, preciseFilter, emotion);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
 		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
 		List<Map<String, String>> list =specialChartAnalyzeService.emotionOption(searchBuilder,specialProject);
@@ -849,7 +854,8 @@ public class SpecialChartAnalyzeController {
 								   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 								   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
-								   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum
+								   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+								   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	) throws TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
@@ -862,7 +868,7 @@ public class SpecialChartAnalyzeController {
 			if(openFiltrate){
 				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-				specialProject.addFilterCondition(read, preciseFilter, emotion);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 			}
 			// url排重
 			boolean irSimflag = specialProject.isIrSimflag();
@@ -1060,7 +1066,8 @@ public class SpecialChartAnalyzeController {
 							 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 							 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
+							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 			) throws Exception {
 		long start = new Date().getTime();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
@@ -1075,7 +1082,7 @@ public class SpecialChartAnalyzeController {
 		if(openFiltrate){
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-			specialProject.addFilterCondition(read, preciseFilter, emotion);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
 
 		QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
@@ -1714,7 +1721,8 @@ public class SpecialChartAnalyzeController {
 								 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
+								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	) throws TRSException {
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
@@ -1728,7 +1736,7 @@ public class SpecialChartAnalyzeController {
 			if(openFiltrate){
 				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-				specialProject.addFilterCondition(read, preciseFilter, emotion);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 			}
 			//String groupName = specialProject.getSource();//多个以;隔开
 			// 单一数据源排重
@@ -2003,7 +2011,8 @@ public class SpecialChartAnalyzeController {
 							 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 							 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
+							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	)
 			throws TRSException {
 		pageSize = pageSize>=1?pageSize:10;
@@ -2026,7 +2035,7 @@ public class SpecialChartAnalyzeController {
 		if(openFiltrate){
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-			specialProject.addFilterCondition(read, preciseFilter, emotion);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
 		// 跟统计表格一样 如果来源没选 就不查数据
 		groupName = CommonListChartUtil.changeGroupName(groupName);
@@ -2547,7 +2556,8 @@ public class SpecialChartAnalyzeController {
 								 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
+								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	) throws Exception {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
@@ -2559,7 +2569,7 @@ public class SpecialChartAnalyzeController {
 			if(openFiltrate){
 				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-				specialProject.addFilterCondition(read, preciseFilter, emotion);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 			}
 			return specialChartAnalyzeService.getMoodStatistics(specialProject, timeRange);
 		} catch (Exception e) {
@@ -3035,7 +3045,8 @@ public class SpecialChartAnalyzeController {
 								   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 								   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-								   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
+								   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws TRSException {
 		log.warn("图表分析统计表格stattotal接口开始调用");
 		long start = new Date().getTime();
 		try {
@@ -3053,7 +3064,7 @@ public class SpecialChartAnalyzeController {
 			// 跟统计表格一样 如果来源没选 就不查数据
 			Object total = specialChartAnalyzeService.getSpecialStattotal(specialProject,groupName,
 					timeRange, emotion, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
-					"special", read,  preciseFilter);
+					"special", read,  preciseFilter,imgOcr);
 			long end = new Date().getTime();
 			long time = end - start;
 			log.info("专题监测统计后台所需时间" + time);
@@ -3162,7 +3173,8 @@ public class SpecialChartAnalyzeController {
 							 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 							 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws Exception{
+							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws Exception{
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 		SpecialProject specialProject = this.specialProjectNewRepository.findOne(id);
@@ -3178,7 +3190,7 @@ public class SpecialChartAnalyzeController {
 			if(openFiltrate){
 				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-				specialProject.addFilterCondition(read, preciseFilter, emotion);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 			}
 			return this.specialChartAnalyzeService.getChartToListData(specialProject,specialChartType,source,key,dateTime,entityType,mapContrast,pageNo,pageSize,sort,
 											fuzzyValue,fuzzyValueScope,forwardPrimary,invitationCard);
@@ -3355,7 +3367,8 @@ public class SpecialChartAnalyzeController {
 										 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 										 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 										 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-										 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws OperationException {
+										 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+										 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws OperationException {
 		try {
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			if (specialProject != null) {
@@ -3376,7 +3389,7 @@ public class SpecialChartAnalyzeController {
 				if(openFiltrate){
 					specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 							mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
-					specialProject.addFilterCondition(read, preciseFilter, emotion);
+					specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 				}
 				// 根据时间升序,只要第一条
 				QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
