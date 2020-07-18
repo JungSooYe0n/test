@@ -835,6 +835,9 @@ public class Const {
             put(GROUPNAME_TWITTER, SHEET_TWITTER);
             put(GROUPNAME_FACEBOOK, SHEET_FACEBOOK);
             put("FaceBook", SHEET_FACEBOOK);
+            put(SHEET_ZIMEITI, GROUPNAME_ZIMEITI);
+            put(SHEET_DUANSHIPIN, GROUPNAME_DUANSHIPIN);
+            put(SHEET_CHANGSHIPIN, GROUPNAME_CHANGSHIPIN);
         }
     };
     /**
