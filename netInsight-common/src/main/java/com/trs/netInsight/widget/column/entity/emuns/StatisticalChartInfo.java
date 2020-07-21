@@ -58,13 +58,18 @@ public enum StatisticalChartInfo {
     HOT_TOPIC_SORT(ColumnConst.HOT_TOPIC_SORT, "微博热点话题排行", 5, ColumnConst.CONTRAST_TYPE_TOPIC),
 
     /**
+     * 热点栏目
+     */
+    HOT_LIST(ColumnConst.LIST_SIM,"热点信息列表", 6, ColumnConst.CONTRAST_TYPE_TOPIC),
+
+    /**
      * 词云栏目
      */
-    WORD_CLOUD(ColumnConst.CHART_WORD_CLOUD, "词云统计", 6, null),
+    WORD_CLOUD(ColumnConst.CHART_WORD_CLOUD, "词云统计", 7, null),
     /**
      * 地域热力图
      */
-    MAP(ColumnConst.CHART_MAP, "地域统计", 7, ColumnConst.CONTRAST_TYPE_HIT_ARTICLE);
+    MAP(ColumnConst.CHART_MAP, "地域统计", 8, ColumnConst.CONTRAST_TYPE_HIT_ARTICLE);
 
     private String chartType;
 

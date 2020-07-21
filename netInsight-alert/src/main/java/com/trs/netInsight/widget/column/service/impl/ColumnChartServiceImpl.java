@@ -68,10 +68,9 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         map.put("statisticalChart", null);
         map.put("customChart", null);
         List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentId(id, sort);
-        if (statisticalChartList == null || statisticalChartList.size() == 0) {
-            statisticalChartList = this.initStatisticalChart(id);
-        }
-        List<Object> scList = null;
+        statisticalChartList = this.initStatisticalChart(statisticalChartList,id);
+
+        List<Map<String, Object>> scList = null;
         if (statisticalChartList != null && statisticalChartList.size() > 0) {
             scList = new ArrayList<>();
             for (StatisticalChart oneSc : statisticalChartList) {
@@ -88,6 +87,11 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                 scList.add(oneScInfo);
             }
         }
+        Collections.sort(scList, (o1, o2) -> {
+            Integer seq1 = (Integer) o1.get("sequence");
+            Integer seq2 = (Integer) o2.get("sequence");
+            return seq1.compareTo(seq2);
+        });
         map.put("statisticalChart", scList);
         List<CustomChart> customChartList = customChartRepository.findByParentId(id, sort);
         List<Object> ccList = null;
@@ -354,18 +358,30 @@ public class ColumnChartServiceImpl implements IColumnChartService {
     /**
      * 初始化统计图表信息
      *
-     * @param id  栏目id
      * @return
      */
     @Transactional
     @Override
-    public List<StatisticalChart> initStatisticalChart(String id) {
-        List<StatisticalChart> statisticalChartList = new ArrayList<>();
-        for (StatisticalChartInfo statisticalChartInfo : StatisticalChartInfo.values()) {
-            StatisticalChart statisticalChart = new StatisticalChart(statisticalChartInfo.getChartType(),
-                    statisticalChartInfo.getSequence(), false, statisticalChartInfo.getChartName(), id);
-            statisticalChart = statisticalChartRepository.save(statisticalChart);
-            statisticalChartList.add(statisticalChart);
+    public List<StatisticalChart> initStatisticalChart(List<StatisticalChart> statisticalChartList, String indexTabId) {
+        if(statisticalChartList == null){
+            statisticalChartList = new ArrayList<>();
+        }
+        if(statisticalChartList.size() < StatisticalChartInfo.values().length){
+            Set<String> chartTypeSet = new HashSet<>();
+            if(statisticalChartList.size() >0 ){
+                for(StatisticalChart statisticalChart :statisticalChartList){
+                    chartTypeSet.add(statisticalChart.getChartType());
+                }
+            }
+
+            for (StatisticalChartInfo statisticalChartInfo : StatisticalChartInfo.values()) {
+                if( !chartTypeSet.contains(statisticalChartInfo.getChartType())){
+                    StatisticalChart statisticalChart = new StatisticalChart(statisticalChartInfo.getChartType(),
+                            statisticalChartInfo.getSequence(), false, statisticalChartInfo.getChartName(), indexTabId);
+                    statisticalChart = statisticalChartRepository.save(statisticalChart);
+                    statisticalChartList.add(statisticalChart);
+                }
+            }
         }
         return statisticalChartList;
     }

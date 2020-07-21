@@ -334,10 +334,10 @@ public class ColumnChartController {
             } else {
                 trsl = null;
                 xyTrsl = null;
-                if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
-                        && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
+                if (StringUtil.isEmpty(contrast) && (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)
+                        || IndexTabType.CHART_LINE.equals(indexTabType))) {
                     throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
-                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType) || IndexTabType.WORD_CLOUD.equals(indexTabType)){
                     contrast = null;
                 }
             }
@@ -492,10 +492,10 @@ public class ColumnChartController {
             } else {
                 trsl = null;
                 xyTrsl = null;
-                if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
-                        && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
+                if (StringUtil.isEmpty(contrast) && (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)
+                        || IndexTabType.CHART_LINE.equals(indexTabType))) {
                     throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
-                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType) || IndexTabType.WORD_CLOUD.equals(indexTabType)){
                     contrast = null;
                 }
             }

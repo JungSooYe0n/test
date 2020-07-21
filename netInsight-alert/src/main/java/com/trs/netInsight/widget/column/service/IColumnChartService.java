@@ -29,7 +29,7 @@ public interface IColumnChartService {
      * @param id
      * @return
      */
-    List<StatisticalChart> initStatisticalChart(String id);
+    List<StatisticalChart> initStatisticalChart(List<StatisticalChart> statisticalChartList,String id);
 
     /**
      * 获取当前栏目id下的自定义图表的最大序号
