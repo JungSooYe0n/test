@@ -135,7 +135,7 @@ public interface IColumnService {
 	 * @return
 	 * @throws OperationException
 	 */
-	public List<Object> selectColumn(User user,String typeId) throws OperationException;
+	public Object selectColumn(User user,String typeId) throws OperationException;
 
 	/**
 	 * 保存

@@ -234,7 +234,7 @@ public class ColumnServiceImpl implements IColumnService {
 	}
 
 	@Override
-	public List<Object> selectColumn(User user,String typeId) throws OperationException {
+	public Object selectColumn(User user,String typeId) throws OperationException {
 		List<IndexPage> oneIndexPage = null;
 		List<IndexTabMapper> oneIndexTab = null;
 		Map<String,Object> oneColumn = this.getOneLevelColumnForMap(typeId,user);
@@ -245,10 +245,11 @@ public class ColumnServiceImpl implements IColumnService {
 			oneIndexTab = (List<IndexTabMapper>) oneColumn.get("tab");
 		}
 		//获取到了第一层的栏目和分组信息，现在对信息进行排序
-		List<Object> result =  sortColumn(oneIndexTab,oneIndexPage,true,false);
+		List<Object> column =  sortColumn(oneIndexTab,oneIndexPage,true,false);
 		List<Boolean> isGetOne = new ArrayList<>();
 		isGetOne.add(false);
-		return formatResultColumn(result,0,isGetOne,false);
+		Object result = formatResultColumn(column,0,isGetOne,null);
+		return result;
 	}
 
 	/**
@@ -258,7 +259,7 @@ public class ColumnServiceImpl implements IColumnService {
 	 * @param isGetOne  是否找到了要显示的第一个栏目
 	 * @return
 	 */
-	private List<Object> formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
+	private Object formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne ,Object returnResult) {
 		//前端需要字段
 		/*
 		id
@@ -268,6 +269,10 @@ public class ColumnServiceImpl implements IColumnService {
 		show
 		children
 		 */
+		Map<String,Object> topMap = new HashMap<>();
+		if(returnResult != null){
+			topMap= (Map<String,Object>) returnResult;
+		}
 		List<Object> result = new ArrayList<>();
 		Map<String, Object> map = null;
 		if (list != null && list.size() > 0) {
@@ -342,13 +347,14 @@ public class ColumnServiceImpl implements IColumnService {
 					map.put("active", false);
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
-						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
-						//if(!mapper.isHide() && !parentHide){
+						isGetOne.set(0,true);
+						if(returnResult == null){
 							map.put("active", true);
 							isGetOne.set(0,true);
-						//}
+						}else{
+							topMap.put("active", true);
+						}
 					}
-
 				} else if (obj instanceof IndexPage) {
 					IndexPage page = (IndexPage) obj;
 					map.put("id", page.getId());
@@ -359,20 +365,13 @@ public class ColumnServiceImpl implements IColumnService {
 					map.put("hide", page.isHide());
 					map.put("active", false);
 					List<Object> childColumn = page.getColumnList();
-					List<Object> child = new ArrayList<>();
-					/*//如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值
-					//如果父级没被隐藏，当前级被隐藏，则用当前级的隐藏值
-					//如果父级没隐藏，当前级没隐藏，用没隐藏，父级则可
-					if(!parentHide){
-						if(page.isHide()){
-							parentHide = true;
-						}
-					}
-					//如果分组被隐藏了，前端不会显示，所以这里不查询了*/
-					if (childColumn != null && childColumn.size() > 0) {
-						child = this.formatResultColumn(childColumn,level+1,isGetOne,false);
-					}
+
+					Object child = null;
 					map.put("children", child);
+					if (childColumn != null && childColumn.size() > 0) {
+						child = this.formatResultColumn(childColumn,level+1,isGetOne,map);
+						map.put("children", child);
+					}
 				}
 				result.add(map);
 			}
