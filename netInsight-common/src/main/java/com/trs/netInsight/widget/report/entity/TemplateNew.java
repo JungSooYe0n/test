@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.report.entity;
 
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;

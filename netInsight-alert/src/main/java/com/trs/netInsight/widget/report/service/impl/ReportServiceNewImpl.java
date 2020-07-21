@@ -99,7 +99,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			.newFixedThreadPool(5);
 	
 	@Override
-	public String saveTemplate(String templateId, String templateName, String templateList, String templateType,
+	public String saveTemplate(String templateId, String templateName,String reportName, String templateList, String templateType,
 							   String totalIssue, String thisIssue, String preparationUnits, String preparationAuthors,
 							   String statisticsTime) {
 		User user = UserUtils.getUser();
@@ -121,12 +121,12 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			if(allTemplate == null || allTemplate.size() == 0){
 				templateNew.setTemplatePosition(1);
 			}else{
-				templateNew.setTemplatePosition(allTemplate.get(allTemplate.size()-1).getTemplatePosition() + 1);
+				templateNew.setTemplatePosition(allTemplate.get(0).getTemplatePosition() + 1);
 			}
 			templateNew.setTemplateList(templateList);
 			templateNew.setTemplateType(templateType);
 			templateNew.setUserId(UserUtils.getUser().getId());
-			setTemplateHeader(templateNew, totalIssue, thisIssue, preparationUnits, preparationAuthors, statisticsTime);
+			setTemplateHeader(templateNew, totalIssue, thisIssue, preparationUnits, preparationAuthors, statisticsTime,reportName);
 			// 同mybatis类似，结果映射到对象中
 			templateNewRepository.save(templateNew);
 		} else {
@@ -137,7 +137,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			String templateListFormated = templateListPositionHandle(templateList);
 			templateNew.setTemplateList(templateListFormated);
 			templateNew.setTemplateType(templateType);
-			setTemplateHeader(templateNew, totalIssue, thisIssue, preparationUnits, preparationAuthors, statisticsTime);
+			setTemplateHeader(templateNew, totalIssue, thisIssue, preparationUnits, preparationAuthors, statisticsTime,reportName);
 			templateNewRepository.save(templateNew);
 		}
 		return Const.SUCCESS;
@@ -153,13 +153,13 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	 * @param statisticsTime
 	 */
 	private void setTemplateHeader(TemplateNew templateNew, String totalIssue, String thisIssue, String preparationUnits,
-								   String preparationAuthors, String statisticsTime) {
+								   String preparationAuthors, String statisticsTime,String reportName) {
 		ReportNew report = new ReportNew.Builder()
 				.withTotalIssue(totalIssue)
 				.withThisIssue(thisIssue)
 				.withPreparationUnits(preparationUnits)
 				.withPreparationAuthors(preparationAuthors)
-				.withStatisticsTime(statisticsTime).build();
+				.withStatisticsTime(statisticsTime).withReportName(reportName).build();
 		templateNew.setTemplateHeader(JSON.toJSONString(report));
 	}
 
@@ -342,19 +342,19 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			return templateNew;
 		}else if(DAILYREPORT.equals(templateType)){
 			templateNew.setTemplateList(JSON.toJSONString(ReportUtil.createEmptyTemplate(1)));
-			setTemplateHeader(templateNew,new String("30"), new String("1") ,getPreparedUnion(), preparedAuthor, "24h");
+			setTemplateHeader(templateNew,new String("30"), new String("1") ,getPreparedUnion(), preparedAuthor, "24h",DEFAULTDAILYTEMPLATE);
 			templateNew.setTemplateType(DAILYREPORT);
 			templateNew.setTemplateName(DEFAULTDAILYTEMPLATE);
 			return templateNew;
 		}else if(WEEKLYREPORT.equals(templateType)){
 			templateNew.setTemplateList(JSON.toJSONString(ReportUtil.createEmptyTemplate(1)));
-			setTemplateHeader(templateNew,new String("4"), new String("1") ,getPreparedUnion(), preparedAuthor, "7d");
+			setTemplateHeader(templateNew,new String("4"), new String("1") ,getPreparedUnion(), preparedAuthor, "7d",DEFAULTWEEKLYTEMPLATE);
 			templateNew.setTemplateType(WEEKLYREPORT);
 			templateNew.setTemplateName(DEFAULTWEEKLYTEMPLATE);
 			return templateNew;
 		}else{
 			templateNew.setTemplateList(JSON.toJSONString(ReportUtil.createEmptyTemplate(1)));
-			setTemplateHeader(templateNew,new String("12"), new String("1") ,getPreparedUnion(), preparedAuthor, "30d");
+			setTemplateHeader(templateNew,new String("12"), new String("1") ,getPreparedUnion(), preparedAuthor, "30d",DEFAULTMONTHLYTEMPLATE);
 			templateNew.setTemplateType(MONTHLYREPORT);
             templateNew.setTemplateName(DEFAULTMONTHLYTEMPLATE);
 			return templateNew;
@@ -732,8 +732,11 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			
 			templateNew4Page.setTemplatePosition(templateNew.getTemplatePosition());
 			templateNew4Page.setGroupName(templateNew.getGroupName());
-
-			templateNew4Page.setTemplateHeader(JSON.parseObject(templateNew.getTemplateHeader(), ReportNew.class));
+			ReportNew header = JSON.parseObject(templateNew.getTemplateHeader(), ReportNew.class);
+			if(StringUtil.isEmpty(header.getReportName())){
+				header.setReportName(templateNew.getTemplateName());
+			}
+			templateNew4Page.setTemplateHeader(header);
 
 			templateNew4Page.setTemplateActive(false);
 			templateNew4Page.setIsDefault(templateNew.getIsDefault());
@@ -775,7 +778,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 
 		//重新保存template，因为template_header有可能被修改
 		setTemplateHeader(templateNew, report.getTotalIssue(),
-				report.getThisIssue(), report.getPreparationUnits(), report.getPreparationAuthors(), primaryStatisticsTime);
+				report.getThisIssue(), report.getPreparationUnits(), report.getPreparationAuthors(), primaryStatisticsTime,report.getReportName());
 		templateNew.setTemplateName(report.getReportName());
 		templateNewRepository.save(templateNew);
 

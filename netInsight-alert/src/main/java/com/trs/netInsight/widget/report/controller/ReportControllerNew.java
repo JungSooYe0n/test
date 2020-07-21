@@ -63,6 +63,7 @@ public class ReportControllerNew {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "templateName", value = "模板名称", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "reportName", value = "报告名称", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "templateList", value = "具体模板数据", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "templateType", value = "报告类型", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "totalIssue", value = "总期号", dataType = "String", paramType = "query", required = false),
@@ -73,6 +74,7 @@ public class ReportControllerNew {
 	@FormatResult
 	public Object saveTemplate(String templateId,
 							   String templateName,
+							   String reportName,
 							   String templateList,
 							   String templateType,
 							   String totalIssue,
@@ -83,7 +85,7 @@ public class ReportControllerNew {
 		if(StringUtil.isEmpty(templateType)){
 			throw new OperationException("没有选择模板类型");
 		}
-		return reportServiceNew.saveTemplate(templateId, templateName,
+		return reportServiceNew.saveTemplate(templateId, templateName,reportName,
 				templateList, templateType, totalIssue, thisIssue, preparationUnits, preparationAuthors, statisticsTime);
 	}
 
@@ -429,7 +431,8 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "searchText", value = "结果中搜索", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "groupName", value = "专报分组名称", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "pageNum", value = "分页第几页", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "pageSize", value = "分页每页显示多少条", dataType = "String", paramType = "query", required = true)})
+			@ApiImplicitParam(name = "pageSize", value = "分页每页显示多少条", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "time", value = "筛选时间", dataType = "String", paramType = "query", required = true)})
 	@RequestMapping(value = "/listAllReport", method = RequestMethod.POST)
 	@FormatResult
 	public Object listAllReport(String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize){

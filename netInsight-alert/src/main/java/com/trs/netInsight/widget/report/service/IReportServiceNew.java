@@ -24,7 +24,7 @@ public interface IReportServiceNew {
 
 	public String deleteTemplate(String templateId);
 
-	public String saveTemplate(String templateId, String templateName,
+	public String saveTemplate(String templateId, String templateName,String reportName,
                                String templateList, String templateType, String totalIssue, String thisIssue,
 							   String preparationUnits, String preparationAuthors, String statisticsTime);
 
