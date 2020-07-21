@@ -14,9 +14,13 @@
 package com.trs.netInsight.widget.notice.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.trs.hybase.client.TRSException;
+import com.trs.hybase.client.TRSInputRecord;
 import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.result.Message;
+import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.*;
@@ -61,14 +65,6 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 	private IMailSendService mailSend;
 
 	@Autowired
-	private ISendAlertService sendAlertService;
-	/**
-	 * app
-	 */
-	@Autowired
-	private IAlertSendService alertSendService;
-
-	@Autowired
 	private IAlertAccountService alertAccountService;
 
 	@Autowired
@@ -78,13 +74,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 	private OrganizationRepository organizationRepository;
 
 	@Autowired
-	private AlertRepository alertRepository;
-
-	@Autowired
 	private AlertBackupsRepository backupsRepository;
-
-//	@Autowired
-//	private
+	@Autowired
+	private FullTextSearch hybase8SearchServiceNew;
 
 	private SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
 	
@@ -115,6 +107,12 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 			@SuppressWarnings("unchecked")
 			List<Map<String, String>> list = (List<Map<String, String>>) map.get("listMap");
 			int size = (int) map.get("size");
+			log.error("receivers信息："+receivers+"，sendAll传入userId："+userId);
+			try {
+				User ceshiUser = this.findByUserName(receivers);
+			} catch (Exception e) {
+				log.error("findByUserName查询失败！receivers信息是："+receivers+"findById查询所得userName为："+userName);
+			}
 			switch (send) {
 			case EMAIL:
 				User findByUserName = findByUserName(receivers);
@@ -137,9 +135,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						if (ObjectUtil.isNotEmpty(emailList)) {
 							String rece = String.join(";", emailList);
 							String ids = this.addAlertOrAlertBackups(true, list, rece, SendWay.EMAIL, userId,"send");
-//							map.put("userName", findByUserName.getUserName());
 							map.put("userName", userName);
-//							return mailSend.sendEmail(template, subject, JSONObject.toJSONString(map), rece);
 							return mailSend.sendEmail(template, subject, map, rece);
 						}
 					}
@@ -164,22 +160,10 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							String saveOther = this.addAlertOrAlertBackups(true, list, receiver, SendWay.SMS, userId,"receive");
 						}
 					}
-					
-//					AlertSendWeChat sendAlert = new AlertSendWeChat(ids, subject, DateUtil.formatCurrentTime(DateUtil.yyyyMMdd),
-//							SendWay.SMS, size);
-//					sendAlert.setCreatedUserId(userId);
-//					AlertSendWeChat add = sendAlertService.add(sendAlert);
-//					messagingTemplate.convertAndSendToUser(receiver, "/topic/greetings", add);
 				}
 				return Message.getMessage(CodeUtils.SUCCESS, "发送成功！", null);
 
 			case WE_CHAT:
-				/*List<Map<String, String>> listWeiChat = new ArrayList<>();
-				if (list != null && list.size() > 5) {
-					listWeiChat = list.subList(0, 5);
-				} else {
-					listWeiChat = list;
-				}*/
 				List<List<Map<String, String>>> listWeiChats = new ArrayList<>();
 				List<List<String>> messageLists = new ArrayList<>();
 				for(int i = 0;i<list.size();i+=5){
@@ -192,31 +176,24 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				int i = 1;
 				for(List<Map<String, String>> listWeiChat :listWeiChats){
 					String alertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
-					AlertSendWeChat sendAlert = new AlertSendWeChat(null, subject, alertTime, SendWay.WE_CHAT, listWeiChat.size());
-					sendAlert.setCreatedUserId(userId);
 					String id = UUID.randomUUID().toString();
+					TRSInputRecord record = new TRSInputRecord();
+					record.addColumn(FtsFieldConst.FIELD_ALERT_TYPE_ID,id);
+					record.addColumn(FtsFieldConst.FIELD_ALERT_NAME,subject);
+					record.addColumn(FtsFieldConst.FIELD_ALERT_TIME,alertTime);
+					record.addColumn(FtsFieldConst.FIELD_SEND_WAY,SendWay.WE_CHAT.toString());
+					record.addColumn(FtsFieldConst.FIELD_SIZE,listWeiChat.size());
+					record.addColumn(FtsFieldConst.FIELD_USER_ID,userId);
+					record.addColumn(FtsFieldConst.FIELD_RECEIVER,receivers);
 
-//				AlertSendWeChat add = sendAlertService.add(sendAlert);
-//				AlertSendWeChat add = sendAlertService.add(sendAlert);
-//				String id = add.getId();
 					List<String> messageList = new ArrayList<>();
 					// 通过用户名
-					User findByUserNameWE_CHAT = findByUserName(receivers);
+					User findByUserNameWE_CHAT = this.findByUserName(receivers);
 					Environment env = SpringUtil.getBean(Environment.class);
 					String netinsightUrl = env.getProperty(Const.NETINSIGHT_URL);
-					//json命名，为了方便快速的查找。
-					SimpleDateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");//设置日期格式
-					SimpleDateFormat df2 = new SimpleDateFormat("HH");//设置日期格式
-					Date nowDate = new Date();
-					String format = df1.format(nowDate);
-					int hour = Integer.parseInt(df2.format(nowDate));
-					String amOrPm = "am";
-					if(hour>=12){
-						amOrPm = "pm";
-					}
-					sendAlert.setId(id+"+"+format+"+"+amOrPm);
+
 					String alertDetailUrl = WeixinMessageUtil.ALERT_DETAILS_URL.replaceAll("ID","")
-							.replace("NETINSIGHT_URL", netinsightUrl)+id+"+"+format+"+"+amOrPm;
+							.replace("NETINSIGHT_URL", netinsightUrl)+id;
 
 					if(subject==null){
 						subject="";
@@ -230,32 +207,33 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 					List<AlertAccount> accountList = new ArrayList<>();
 					if (findByUserNameWE_CHAT != null) {
-//					List<AlertAccount> receiveList = alertAccountService
-//							.findByUserIdAndType(findByUserNameWE_CHAT.getId(), SendWay.WE_CHAT);
 						accountList = alertAccountService.findByUserIdAndType(findByUserNameWE_CHAT.getId(), SendWay.WE_CHAT);
 					}else{//直接传的微信号   这个人没停止预警  就发  停止预警就不发
 						//通过微信号查alertaccount中的active  true发  false不发
-//					List<AlertAccount> accountList = alertAccountService.findByAccount(receivers);
 						AlertAccount alertaccount = alertAccountService.findByAccountAndUserIdAndType(receivers,userId, SendWay.WE_CHAT);
 						accountList.add(alertaccount);
 					}
-//				if (accountList != null && accountList.size() > 0) {
 					for (AlertAccount alertAccount : accountList) {
 						if (alertAccount != null) {
 							String alertIds = this.addAlertOrAlertBackups(true, listWeiChat, receivers, SendWay.WE_CHAT,
-									userId+"+"+format+"+"+amOrPm,"send");
-							sendAlert.setIds(alertIds);
+									userId,"send");
+							record.addColumn(FtsFieldConst.FIELD_ALERT_IDS,alertIds);
 							//直接存文件不编辑了
-							sendAlertService.add(sendAlert);
-//							sendAlertService.edit(add);
-
+//							存入hybase system2.alert_type库
+							hybase8SearchServiceNew.insertRecords(record,Const.ALERTTYPE,true,null);
 							if (alertAccount.isActive()) {
 								log.error("netinsightUrl:" + netinsightUrl);
 								AlertTemplateMsg alertTemplateMsg = new AlertTemplateMsg(alertAccount.getAccount(),
 										alertDetailUrl,alertTitle, StringUtil.toString(listWeiChat,i), alertTime, "");
 
-								String sendWeixin = WeixinUtil.sendWeixin(WeixinUtil.getToken(), alertTemplateMsg);
-
+								String sendWeixin =  null;
+								try {
+									sendWeixin = WeixinUtil.sendWeixin(WeixinUtil.getToken(), alertTemplateMsg);
+									log.error("微信预警自动推送成功！预警名称："+subject+"接收人："+receivers+"预警账号："+alertAccount.getAccount());
+								} catch (Exception e) {
+									log.error("微信预警自动推送失败！预警名称："+subject+"接收人："+receivers+"预警账号："+alertAccount.getAccount());
+									e.printStackTrace();
+								}
 								log.error("发送微信返回值：" + sendWeixin);
 								if (StringUtils.equals("ok", sendWeixin)) {
 									messageList.add(alertAccount.getName() + "：发送成功！");
@@ -271,7 +249,6 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						}
 						log.error("微信推送！预警名称："+subject+"接收人："+receivers+"接收人id："+alertAccount.getAccount());
 					}
-//				}
 					log.error("微信推送循环外！预警名称："+subject+"接收人："+receivers);
 					messageLists.add(messageList);
 					i = i+listWeiChat.size();
@@ -280,12 +257,18 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				case APP:// 安卓端
 					String appAlertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
 					//手动
-					User byUserNameAPP = findByUserName(receivers);
+					User byUserNameAPP = this.findByUserName(receivers);
 					String nameAPPId = byUserNameAPP.getId();
-					AlertSend alertSend = new AlertSend(null, subject, appAlertTime, SendWay.APP,sendType, nameAPPId,size);
-					alertSend.setCreatedUserId(userId);
 					String appAlertId = UUID.randomUUID().toString().replaceAll("-", "");
-					alertSend.setId(appAlertId);
+					TRSInputRecord record = new TRSInputRecord();
+					record.addColumn(FtsFieldConst.FIELD_ALERT_TYPE_ID,appAlertId);
+					record.addColumn(FtsFieldConst.FIELD_ALERT_NAME,subject);
+					record.addColumn(FtsFieldConst.FIELD_ALERT_TIME,appAlertTime);
+					record.addColumn(FtsFieldConst.FIELD_SEND_WAY,SendWay.APP.toString());
+					record.addColumn(FtsFieldConst.FIELD_SIZE,size);
+					record.addColumn(FtsFieldConst.FIELD_USER_ID,userId);
+					record.addColumn(FtsFieldConst.FIELD_RECEIVER,receivers);
+					record.addColumn(FtsFieldConst.FIELD_ALERT_SOURCE,sendType.toString());
 
 					if (ObjectUtil.isEmpty(byUserNameAPP)){
 						throw new OperationException("请选择APP端预警接收人！");
@@ -295,7 +278,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					String alertMessage = JPushMessageUtil.ALERT_MESSAGE.replace("SUBJECT", subject).replace("SIZE", String.valueOf(size)).replace("USERNAME", userName);
 					mapData.put("type","预警");
 					mapData.put("title",alertMessage);
-					mapData.put("alertId",alertSend.getId());
+					mapData.put("alertId",appAlertId);
 					mapData.put("receviceUserid",nameAPPId);
 					Message message = null;
 					//try住后 APP端不登录时，收不到提醒，但会查到预警信息
@@ -307,12 +290,12 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					}
 					String alertAppIds = this.addAlertOrAlertBackups(true, list, receivers, SendWay.APP,
 							userId,"send");
-					alertSend.setIds(alertAppIds);
+					record.addColumn(FtsFieldConst.FIELD_ALERT_IDS,alertAppIds);
 					//直接存文件不编辑了
-					alertSendService.add(alertSend);
+					hybase8SearchServiceNew.insertRecords(record,Const.ALERTTYPE,true,null);
 					return message;
 
-			default:
+				default:
 				return Message.getMessage(CodeUtils.FAIL, "发送方式不明确！", null);
 			}
 		} catch (Exception e) {
@@ -341,121 +324,103 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 	/**
 	 * 判断保存到那个表
-	 * 
-	 * @date Created at 2018年3月14日 下午3:45:01
-	 * @Author 谷泽昊
+	 *
 	 * @param choose
 	 * @param list
 	 * @param receiver
 	 * @param sendWay
 	 * @param userId
 	 * @throws OperationException
+	 * @date Created at 2018年3月14日 下午3:45:01
+	 * @Author 谷泽昊
 	 */
 	private String addAlertOrAlertBackups(boolean choose, List<Map<String, String>> list, String receiver,
-                                          SendWay sendWay, String userId, String sendOrreceive) throws OperationException {
+										  SendWay sendWay, String userId, String sendOrreceive) throws OperationException {
 		StringBuffer buffer = new StringBuffer();
+		User user = userRepository.findOne(userId);
 		if (choose) {
+			//			批量添加预警记录 至  hybase库
+			List<TRSInputRecord> trsInputRecords = new ArrayList<>();
 			for (Map<String, String> each : list) {
 				String title = StringUtil.replaceNRT(StringUtil.removeFourChar(each.get("title")));
 				title = StringUtil.replaceEmoji(title);
 				String content = each.get("content");
 
-				if (!SendWay.APP.equals(sendWay)){
+				if (!SendWay.APP.equals(sendWay)) {
 					content = StringUtil.removeFourChar(content);
 					content = StringUtil.replaceEmoji(content);
-					content = StringUtil.replaceImg(content) ;
-					System.err.println("content"+content);
+					content = StringUtil.replaceImg(content);
 				}
-				each.put("content", content);
-				each.put("title", title);
-				AlertEntity alert = new AlertEntity();
-//				Map<String,Object> map = new HashMap<String,Object>();
-				alert.setTrslk(each.get("trslk") == null ? "" : each.get("trslk"));
-				alert.setUrlName(each.get("url"));
-				alert.setTitle(title);
-				alert.setGroupName(each.get("groupName"));
-				alert.setSid(each.get("sid"));
-				alert.setSendWay(sendWay);
-				each.put("sendWay", String.valueOf(sendWay));
-				alert.setReceiver(receiver);
-				alert.setAuthor(each.get("author"));
-				each.put("receiver", receiver);
-				each.put("sendOrreceive", sendOrreceive);
-				alert.setAppraise(each.get("appraise"));
-				alert.setSiteName(each.get("siteName"));
-				alert.setNreserved1(each.get("nreserved1"));
-				alert.setKeywords(each.get("keywords"));
-				String retweetedMid = each.get("retweetedMid");
-				if (null == retweetedMid){
-					retweetedMid = "0";
-				}
-				alert.setRetweetedMid(retweetedMid);
-				alert.setMd5tag(each.get("md5"));
-				alert.setContent(content);
-				if(StringUtil.isNotEmpty(each.get("screenName"))){
-					alert.setScreenName(each.get("screenName"));
-				}else{
-					alert.setScreenName(each.get("author"));
-				}
-				String rtString = each.get("rttCount");
-				if (StringUtil.isNotEmpty(rtString)) {
-					alert.setRttCount(Long.valueOf(each.get("rttCount")));
-				} else {
-					alert.setRttCount(0);
-				}
-				String commtCount = each.get("commtCount");
-				if (StringUtil.isNotEmpty(commtCount)) {
-					alert.setCommtCount(Long.valueOf(each.get("commtCount")));
-				} else {
-					alert.setCommtCount(0);
-				}
-				each.put("commtCount", String.valueOf(alert.getCommtCount()));
+				TRSInputRecord record = new TRSInputRecord();
 				try {
-					alert.setTime(sdf.parse(each.get("urlTime")));
-				} catch (ParseException e) {
-					log.error("时间转换出错或者Hybase中时间为空");
-					alert.setTime(new Date());
+					record.addColumn(FtsFieldConst.FIELD_URLNAME, each.get("url"));
+					record.addColumn(FtsFieldConst.FIELD_URLTITLE, title);
+					record.addColumn(FtsFieldConst.FIELD_GROUPNAME, each.get("groupName"));
+					record.addColumn(FtsFieldConst.FIELD_SID, each.get("sid"));
+					record.addColumn(FtsFieldConst.FIELD_SEND_WAY, sendWay.toString());
+					record.addColumn(FtsFieldConst.FIELD_RECEIVER, receiver);
+					record.addColumn(FtsFieldConst.FIELD_APPRAISE, each.get("appraise"));
+					record.addColumn(FtsFieldConst.FIELD_SITENAME, each.get("siteName"));
+					record.addColumn(FtsFieldConst.FIELD_NRESERVED1, each.get("nreserved1"));
+					record.addColumn(FtsFieldConst.FIELD_KEYWORDS, each.get("keywords"));
+					record.addColumn(FtsFieldConst.FIELD_SEND_RECEIVE, sendOrreceive);
+					String retweetedMid = each.get("retweetedMid");
+					if (null == retweetedMid) {
+						retweetedMid = "0";
+					}
+					record.addColumn(FtsFieldConst.IR_RETWEETED_MID, retweetedMid);
+					record.addColumn(FtsFieldConst.FIELD_MD5TAG, each.get("md5"));
+					record.addColumn(FtsFieldConst.FIELD_CONTENT, content);
+					String scrName = "";
+					if (StringUtil.isNotEmpty(each.get("screenName"))) {
+						scrName = each.get("screenName");
+					} else {
+						scrName = each.get("author");
+					}
+					record.addColumn(FtsFieldConst.FIELD_SCREEN_NAME, scrName);
+					String rtString = each.get("rttCount");
+					if (StringUtil.isNotEmpty(rtString)) {
+						record.addColumn(FtsFieldConst.FIELD_RTTCOUNT, Long.valueOf(each.get("rttCount")));
+					} else {
+						record.addColumn(FtsFieldConst.FIELD_RTTCOUNT, 0);
+					}
+					String commtCount = each.get("commtCount");
+					if (StringUtil.isNotEmpty(commtCount)) {
+						record.addColumn(FtsFieldConst.FIELD_COMMTCOUNT, Long.valueOf(each.get("commtCount")));
+					} else {
+						record.addColumn(FtsFieldConst.FIELD_COMMTCOUNT, 0);
+					}
+					try {
+						record.addColumn(FtsFieldConst.FIELD_URLTIME, sdf.parse(each.get("urlTime")));
+					} catch (ParseException e) {
+						log.error("时间转换出错或者Hybase中时间为空");
+						record.addColumn(FtsFieldConst.FIELD_URLTIME, new Date());
+						e.printStackTrace();
+					}
+					if (ObjectUtil.isNotEmpty(user)) {
+						record.addColumn(FtsFieldConst.FIELD_SubGroup_ID, user.getSubGroupId());
+					}
+					record.addColumn(FtsFieldConst.FIELD_USER_ID, userId);
+					record.addColumn(FtsFieldConst.FIELD_ORGANIZATION_ID, each.get("organizationId"));
+					String alertId = UUID.randomUUID().toString();
+					record.addColumn(FtsFieldConst.FIELD_ALERT_ID, alertId);
+					record.addColumn(FtsFieldConst.FIELD_IMAGE_URL, each.get("imageUrl"));
+					record.addColumn(FtsFieldConst.FIELD_URLTITLE_WHOLE, each.get("titleWhole"));
+
+					trsInputRecords.add(record);
+					buffer.append(alertId).append(";");
+
+				} catch (TRSException e) {
+					log.error("预警记录record.addColumn出错：", e);
 					e.printStackTrace();
 				}
-//				each.put("time", each.get("urlTime"));
-				alert.setUserId(userId);
-				each.put("userId", userId);
-				alert.setAlertRuleBackupsId(each.get("alertRuleBackupsId"));
-				alert.setOrganizationId(each.get("organizationId"));
-				alert.setFlag(false);
-				alert.setImageUrl(each.get("imageUrl"));
-				each.put("md5tag", each.get("md5"));
-				each.put("urlName", each.get("url"));
-				alert.setTitleWhole(each.get("titleWhole"));
-//				each.put("createdUserId", userId);
-				if(httpClient){
-					String url = alertNetinsightUrl+"/alert/add";
-					String doPost = HttpUtil.doPost(url, each, "utf-8");
-					//json转实体
-					ObjectMapper om = new ObjectMapper();
-					AlertEntity readValue = null;
-					try {
-						 //json转实体
-						 readValue = om.readValue(doPost, AlertEntity.class);
-					} catch (IOException e) {
-						throw new OperationException("预警查找报错", e);
-					}
-					String id = readValue.getId();
-					buffer.append(id).append(";");
-				}else{
-					User user = findByUserName(receiver);
-					String userIds = UserUtils.getUser().getId();
-					if(user != null){
-						if(user.getId().equals(userIds)){
-							if("receive".equals(sendOrreceive)){
-								return  null;
-							}
-						}
-					}
-					AlertEntity save = alertRepository.save(alert);
-					String id = save.getId();
-					buffer.append(id).append(";");
-				}
+			}
+
+			try {
+				hybase8SearchServiceNew.insertRecords(trsInputRecords, Const.ALERT, true, null);
+			} catch (com.trs.netInsight.handler.exception.TRSException e) {
+				log.error("批量添加预警记录至 hybase 出错：用户id：" + userId + "，该次预警为手动预警，预警内容id：" + buffer.toString(), e);
+				e.printStackTrace();
 			}
 			return buffer.toString();
 		} else {
@@ -470,7 +435,6 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				}
 				String title = StringUtil.replaceNRT(StringUtil.removeFourChar(each.get("title")));
 				AlertBackups backups = new AlertBackups();
-				//backups.setTrslk(each.get("trslk"));
 				backups.setUrlName(each.get("url"));
 				backups.setAuthor(each.get("author"));
 				backups.setTitle(title);

@@ -16,6 +16,8 @@ package com.trs.netInsight.widget.alert.service;
 import java.util.Date;
 import java.util.List;
 
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
+import com.trs.netInsight.widget.alert.entity.PageAlert;
 import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -138,7 +140,7 @@ public interface IAlertService {
 	 * @return
 	 */
 	public List<AlertEntity> findAll(Criteria<AlertEntity> criteria);
-	
+
 	/**
 	 * 批量查询
 	 * @date Created at 2018年3月14日  下午4:16:52
@@ -146,8 +148,8 @@ public interface IAlertService {
 	 * @param listString
 	 * @return
 	 */
-	public List<AlertEntity> findbyIds(String listString) throws OperationException;
-	
+	public List<FtsDocumentAlert> findbyIds(String userId, String listString) throws TRSException;
+
 	/**
 	 * 根据规则Id查询
 	 * @param id 规则id
@@ -200,7 +202,24 @@ public interface IAlertService {
 	 */
 	public Object alertListHttp(int pageNo,int pageSize,String way,String source,String time,String receivers,String invitationCard,
 			String forwarPrimary,String keywords,String fuzzyValueScope) throws OperationException;
-	
+
+	/**
+	 * 已发和站内预警列表
+	 * @param pageNo 第几页  从0开始
+	 * @param pageSize 一页几条
+	 * @param way 站内SMS  否则已发
+	 * @param source 来源
+	 * @param time 时间
+	 * @param receivers 接收人
+	 * @param invitationCard 对应国内论坛的nreserved1
+	 * @param forwarPrimary 微博的原发 primary 转发 forward
+	 * @param keywords 关键字
+	 * @return
+	 */
+	public PageAlert alertListHybase(int pageNo, int pageSize, String way, String source, String time, String receivers, String invitationCard,
+									 String forwarPrimary, String keywords, String fuzzyValueScope) throws TRSException;
+
+
 	/**
 	 * 原预警删除  本地不用启动alert_netinsight
 	 * @param id 要删除的id 多个时以分号分割
@@ -208,15 +227,14 @@ public interface IAlertService {
 	 * @throws OperationException 
 	 */
 	public Object deleteLocal(String id) throws OperationException;
-	
+
 	/**
 	 * 关联alert_netinsight的删除预警
 	 * @param id 要删除的id 多个时以分号分割
-	 * @param createdTime 与id一一对应的时间  多个时以分号分割
 	 * @return
-	 * @throws OperationException 
+	 * @throws OperationException
 	 */
-	public Object deleteHttp(String id,String createdTime) throws OperationException;
+	public Object deleteHttp(String id) throws OperationException;
 
 	/**
 	 * 站内预警

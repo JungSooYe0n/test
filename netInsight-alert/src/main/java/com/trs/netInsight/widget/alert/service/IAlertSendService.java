@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.alert.service;
 
 import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.widget.alert.entity.AlertSend;
 import com.trs.netInsight.widget.alert.entity.PageAlertSend;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
@@ -35,7 +36,7 @@ public interface IAlertSendService {
      * @return
      * @throws OperationException
      */
-    public PageAlertSend findOne(String id,String userId) throws OperationException;
+    public PageAlertSend findOne(String id,String userId) throws TRSException;
 
     /**
      * 查询 APP推送

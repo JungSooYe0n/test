@@ -72,9 +72,6 @@ public class ESSearchImpl implements FullTextSearch {
 	}
 
 	/**
-	 * @see com.trs.support.fts.FullTextSearch#ftsQuery(QueryBuilder, int, int,
-	 *      boolean, boolean)
-	 * @since slzs @ 2017年4月10日 下午3:11:49
 	 * @param query
 	 * @param pageNo
 	 * @param pageSize
@@ -135,7 +132,6 @@ public class ESSearchImpl implements FullTextSearch {
 	}
 
 	/**
-	 * @see com.trs.support.fts.FullTextSearch#ftsCount(QueryBuilder)
 	 * @since slzs @ 2017年4月10日 下午3:11:49
 	 * @param query
 	 * @return
@@ -147,8 +143,6 @@ public class ESSearchImpl implements FullTextSearch {
 	}
 
 	/**
-	 * @see com.trs.support.fts.FullTextSearch#ftsCountsByInterval(QueryBuilder,
-	 *      Date[])
 	 * @since slzs @ 2017年4月10日 下午3:11:49
 	 * @param query
 	 * @param intervals
@@ -388,4 +382,8 @@ public class ESSearchImpl implements FullTextSearch {
 //		return null;
 //	}
 
+	@Override
+	public <T extends IDocument> PagedList<T> ftsAlertList(QueryBuilder query, Class<T> resultClass) throws TRSException, TRSSearchException {
+		return null;
+	}
 }

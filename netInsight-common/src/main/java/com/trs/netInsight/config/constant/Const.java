@@ -13,9 +13,11 @@
  */
 package com.trs.netInsight.config.constant;
 
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.config.entity.HybaseDatabaseConfig;
 import com.trs.netInsight.widget.config.service.ISystemConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.util.StringUtils;
 
@@ -144,6 +146,31 @@ public class Const {
     public static final String EXPORT_VIEW = "EXPORT_VIEW";
     public static final String NETIZEN_VIEW = "NETIZEN_VIEW";
 
+    //	已发预警详情库 - 默认的
+    public static final String DEFAULT_ALERT = "system2.alert";
+    //	已发预警 类型 主要是 微信与APP  -- 默认的
+    public static final String DEFAULT_ALERTTYPE = "system2.alert_type";
+
+    //	已发预警详情库
+    public static  String ALERT = "system2.alert";
+    @Value("${alert.database}")
+    public void setALERT(String alertDatabse) {
+        if(StringUtil.isNotEmpty(alertDatabse)){
+            this.ALERT = alertDatabse;
+        }else{
+            this.ALERT = this.DEFAULT_ALERT;
+        }
+    }
+    //	已发预警 类型 主要是 微信与APP
+    public static  String ALERTTYPE = "system2.alert_type";
+    @Value("${alert.type.database}")
+    public void setALERTTYPE(String alertTypeDatabse) {
+        if(StringUtil.isNotEmpty(alertTypeDatabse)){
+            this.ALERTTYPE = alertTypeDatabse;
+        }else{
+            this.ALERTTYPE = this.DEFAULT_ALERTTYPE;
+        }
+    }
 
 /**hybase库名区间结束
  * ********************************************************************************************************************************************
@@ -507,39 +534,6 @@ public class Const {
             put("app", "国内新闻_手机客户端");
         }
     };
-
-    /**
-     * 数据来源
-     */
-   /* public static final Map<String, String> DATA_SOURCES = new HashMap<String, String>() {
-
-        private static final long serialVersionUID = 1L;
-
-        {
-            put("国内新闻", Const.GROUPNAME_XINWEN);
-            put("新闻", Const.GROUPNAME_XINWEN);
-            put("微博", Const.GROUPNAME_WEIBO);
-            put("微信", Const.GROUPNAME_WEIXIN);
-            put("国内微信", Const.GROUPNAME_WEIXIN);
-            put("客户端", Const.GROUPNAME_KEHUDUAN);
-            put("手机客户端", Const.GROUPNAME_KEHUDUAN);
-            put("国内新闻_手机客户端", Const.GROUPNAME_KEHUDUAN);
-            put("论坛", Const.GROUPNAME_LUNTAN);
-            put("国内论坛", Const.GROUPNAME_LUNTAN);
-            put("博客", Const.GROUPNAME_BOKE);
-            put("国内博客", Const.GROUPNAME_BOKE);
-            put("电子报", Const.GROUPNAME_DIANZIBAO);
-            put("国内新闻_电子报", Const.GROUPNAME_DIANZIBAO);
-            put("国外新闻", Const.GROUPNAME_GUOWAIXINWEN);
-            put("境外媒体", Const.GROUPNAME_GUOWAIXINWEN);
-            put("境外网站", Const.GROUPNAME_GUOWAIXINWEN);
-            put("境外新闻", Const.GROUPNAME_GUOWAIXINWEN);
-            put("Twitter", Const.GROUPNAME_TWITTER);
-            put("twitter", Const.GROUPNAME_TWITTER);
-            put("Facebook", Const.GROUPNAME_FACEBOOK);
-            put("FaceBook", Const.GROUPNAME_FACEBOOK);
-        }
-    };*/
 
     /**
      * 微信网址的配置项

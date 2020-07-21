@@ -53,51 +53,16 @@ public class SendAlertServiceImpl implements ISendAlertService {
 
 	@Override
 	public AlertSendWeChat add(AlertSendWeChat sendAlert) throws OperationException {
-		if(httpClient){
-			String url = alertNetinsightUrl+"/sendAlert/add";
-//			sendAlert.setId(GUIDGenerator.generate(AlertSendWeChat.class));
-			String doPost = HttpUtil.doPost(url, wechatToMap(sendAlert), "utf-8");
-			ObjectMapper om = new ObjectMapper();
-			AlertSendWeChat readValue = null;
-			try {
-				 //json转实体
-				 readValue = om.readValue(doPost, AlertSendWeChat.class);
-			} catch (IOException e) {
-				throw new OperationException("微信结果保存报错", e);
-			}
-			return readValue;
-		}else{
-			return sendAlertRepository.save(sendAlert);
-		}
+		return null;
 	}
 
 	@Override
 	public void delete(AlertSendWeChat sendAlert) {
-		if(httpClient){
-			String url = alertNetinsightUrl+"/sendAlert/delete";
-			String doPost = HttpUtil.doPost(url, wechatToMap(sendAlert), "utf-8");
-		}else{
-			sendAlertRepository.delete(sendAlert);
-		}
 	}
 
 	@Override
 	public AlertSendWeChat findOne(String id) throws OperationException {
-		if(httpClient){
-			String url = alertNetinsightUrl+"/sendAlert/findOne?id="+id;
-			String doGet = HttpUtil.doGet(url, null);
-			ObjectMapper om = new ObjectMapper();
-			AlertSendWeChat readValue = null;;
-			try {
-				 //json转实体
-				 readValue = om.readValue(doGet, AlertSendWeChat.class);
-			} catch (IOException e) {
-				throw new OperationException("微信预警查找报错", e);
-			}
-			return readValue;
-		}else{
-			return sendAlertRepository.findOne(id);
-		}
+		return null;
 	}
 
 	@Override
@@ -107,14 +72,6 @@ public class SendAlertServiceImpl implements ISendAlertService {
 
 	@Override
 	public void edit(AlertSendWeChat findOne) {
-		if(httpClient){
-			String url = alertNetinsightUrl+"/sendAlert/edit";
-			String doPost = HttpUtil.doPost(url, wechatToMap(findOne), "utf-8");
-			System.err.println("edit");
-		}else{
-			sendAlertRepository.saveAndFlush(findOne);
-		}
-		
 	}
 
 	/**

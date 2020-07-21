@@ -90,16 +90,13 @@ public class WeixinUtil {
 	 * redis储存
 	 */
 	public static final String WEIXINREDISKEY = "WEI_XIN_REDIS_KEY";
+	public static Integer counter = 0;
 
 	/**
 	 * 获取token
 	 * 
 	 * @date Created at 2018年1月22日 下午3:43:28
 	 * @Author 谷泽昊
-	 * @param appid
-	 *            第三方用户唯一凭证
-	 * @param secret
-	 *            第三方用户唯一凭证密钥，即appsecret
 	 * @return
 	 */
 	public static String getToken() {
@@ -125,7 +122,8 @@ public class WeixinUtil {
 		} else {
 			token = parseObject.getString("errcode");
 		}
-
+		counter++;
+		log.error("调用获取access_token接口，目前调用微信接口第"+counter+"次！返回结果："+tokenMap);
 		return token;
 	}
 
@@ -174,7 +172,8 @@ public class WeixinUtil {
 						jsonObject.getString("errmsg"));
 			}
 		}
-
+		counter++;
+		log.error("调用创建菜单接口，目前调用微信接口第"+counter+"次！");
 		return result;
 	}
 
@@ -204,6 +203,8 @@ public class WeixinUtil {
 		String jsonTicket = HttpUtil.sendPost(url, code.toJSON());
 		Ticket ticket = JSONObject.parseObject(jsonTicket, Ticket.class);
 		RedisUtil.setString(redisKey, jsonTicket, ticket.getExpireSeconds(), TimeUnit.SECONDS);
+		counter++;
+		log.error("调用获取二维码接口，目前调用微信接口第"+counter+"次！");
 		return ticket;
 	}
 
@@ -216,6 +217,8 @@ public class WeixinUtil {
 	 * @return
 	 */
 	public static String showQrcode(String ticket) {
+		counter++;
+		log.error("调用获取二维码图片接口，目前调用微信接口第"+counter+"次！");
 		return QRCODE_GET_URL.replace("TICKET", ticket);
 	}
 
@@ -231,6 +234,8 @@ public class WeixinUtil {
 	public static String getUser(String access_token, String openid) {
 		String doGet = HttpUtil.doGet(USER_INFO_URL.replace("ACCESS_TOKEN", access_token).replace("OPENID", openid),
 				"utf-8");
+		counter++;
+		log.error("调用获取用户接口，扫描绑定用到。目前调用微信接口第"+counter+"次！");
 		return doGet;
 	}
 	
@@ -245,8 +250,15 @@ public class WeixinUtil {
 	public static String sendWeixin(String access_token, AlertTemplateMsg alertTemplateMsg){
 		log.error(alertTemplateMsg.toJson());
 		String sendPost = HttpUtil.sendPost(TEMPLATE_MESSAGE_URL.replace("ACCESS_TOKEN", access_token), alertTemplateMsg.toJson());
+		log.error("微信发送信息返回："+sendPost);
 		JSONObject parseObject = JSONObject.parseObject(sendPost);
-		return parseObject.getString("errmsg");
+		counter++;
+		log.error("调用获取信息发送接口，目前调用微信接口第"+counter+"次！返回信息为："+sendPost);
+		if (ObjectUtil.isNotEmpty(parseObject)){
+			return parseObject.getString("errmsg");
+		}else {
+			return "微信推送接口无任何返回信息！";
+		}
 	}
 }
 

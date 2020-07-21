@@ -551,6 +551,62 @@ public class FtsFieldConst {
 	public static final String FIELD_EMOTION = "IR_EMOTION";
 	public static final String FIELD_EMOTION_2 = "IR_EMOTION2";
 
+	//	--------------------已发预警------------
+	/*
+	 * 发送方式
+	 */
+	public static final String FIELD_SEND_WAY = "IR_SEND_WAY";
+	/*
+	 * 接收人
+	 */
+	public static final String FIELD_RECEIVER = "IR_RECEIVER";
+
+	/*
+	 * 用户分组id
+	 */
+	public static final String FIELD_SubGroup_ID = "IR_SubGroup_ID";
+	/*
+	 * 机构id
+	 * */
+	public static final String FIELD_ORGANIZATION_ID = "IR_ORGANIZATION_ID";
+	/*
+	 * 用户 id
+	 * */
+	public static final String FIELD_USER_ID = "IR_USER_ID";
+
+	/*
+	 * 已发预警 唯一 id
+	 * */
+	public static final String FIELD_ALERT_ID = "IR_ALERT_ID";
+
+	/*
+	 * 图片url
+	 * */
+	public static final String FIELD_IMAGE_URL = "IR_IMAGE_URL";
+
+	/*
+	 * 完整title
+	 * */
+	public static final String FIELD_URLTITLE_WHOLE = "IR_URLTITLE_WHOLE";
+
+	/*
+	 * 预警规则备份id
+	 * */
+	public static final String FIELD_ALERT_RULE_BACKUPS_ID = "IR_ALERT_RULE_BACKUPS_ID";
+	public static final String FIELD_SEND_RECEIVE = "IR_SEND_RECEIVE";
+
+//	---------------已发预警类型----------------------
+
+	/*
+	 * 已发预警类型 唯一 id
+	 * */
+	public static final String FIELD_ALERT_TYPE_ID = "IR_ALERT_TYPE_ID";
+	public static final String FIELD_ALERT_IDS = "IR_ALERT_IDS";
+	public static final String FIELD_ALERT_NAME = "IR_ALERT_TNAME";
+	public static final String FIELD_ALERT_TIME = "IR_ALERT_TIME";
+	public static final String FIELD_SIZE = "IR_SIZE";
+	public static final String FIELD_ALERT_SOURCE = "IR_ALERT_SOURCE";
+
 }
 
 /**

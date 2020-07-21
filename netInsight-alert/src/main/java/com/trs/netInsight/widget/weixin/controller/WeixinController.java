@@ -13,12 +13,17 @@
  */
 package com.trs.netInsight.widget.weixin.controller;
 
+import com.trs.dev4.jdk16.dao.PagedList;
+import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
-import com.trs.netInsight.util.CodeUtils;
-import com.trs.netInsight.util.SHA1;
-import com.trs.netInsight.util.WeixinMessageUtil;
-import com.trs.netInsight.util.WeixinUtil;
+import com.trs.netInsight.support.fts.FullTextSearch;
+import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlertType;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
 import com.trs.netInsight.widget.alert.entity.AlertAccount;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
@@ -72,6 +77,8 @@ public class WeixinController {
 
 	@Autowired
 	private IAlertService alertService;
+	@Autowired
+	private FullTextSearch hybase8SearchService;
 
 	// 自定义 token
 	private String TOKEN = "trsnetinsight";
@@ -90,10 +97,6 @@ public class WeixinController {
 	 * 
 	 * @date Created at 2018年1月23日 上午10:20:07
 	 * @Author 谷泽昊
-	 * @param signature
-	 * @param timestamp
-	 * @param nonce
-	 * @param echostr
 	 * @throws IOException
 	 */
 	@ApiOperation("与微信服务器验证绑定")
@@ -139,7 +142,6 @@ public class WeixinController {
 	 * @date Created at 2018年1月26日 上午11:41:40
 	 * @Author 谷泽昊
 	 * @param openId
-	 * @param username
 	 * @param active
 	 * @return
 	 */
@@ -182,8 +184,6 @@ public class WeixinController {
 	 * @date Created at 2018年1月26日 上午11:41:40
 	 * @Author 谷泽昊
 	 * @param openId
-	 * @param username
-	 * @param active
 	 * @return
 	 */
 	@ApiOperation("取消绑定")
@@ -222,11 +222,17 @@ public class WeixinController {
 	@GetMapping(value = "/alertDetails")
 	public Object alertDetails(@RequestParam(value = "id", required = true) String id) throws TRSException {
 		try {
-			AlertSendWeChat findOne = sendAlertService.findOne(id);
-			if (findOne != null) {
+//			AlertSendWeChat findOne = sendAlertService.findOne(id);
+			QueryBuilder queryBuilder = new QueryBuilder();
+			queryBuilder.filterField(FtsFieldConst.FIELD_ALERT_TYPE_ID,id, Operator.Equal);
+			queryBuilder.setDatabase(Const.ALERTTYPE);
+			queryBuilder.page(0,1);
+			PagedList<FtsDocumentAlertType> pagedList = hybase8SearchService.ftsAlertList(queryBuilder, FtsDocumentAlertType.class);
+			if (ObjectUtil.isNotEmpty(pagedList) && ObjectUtil.isNotEmpty(pagedList.getPageItems().get(0))){
+				FtsDocumentAlertType ftsDocumentAlertType = pagedList.getPageItems().get(0);
 				Map<String, Object> mapData = new HashMap<>();
 				List<Map<String, Object>> listMap = new ArrayList<>();
-				String sids = findOne.getIds();
+				String sids = ftsDocumentAlertType.getIds();
 				/*List<String> listString = null;
 				if (sids != null) {
 					String[] split = sids.split(";");
@@ -234,8 +240,9 @@ public class WeixinController {
 				} else {
 					return "查询不到预警内容！";
 				}*/
-				List<AlertEntity> list = alertService.findbyIds(sids);
-				for (AlertEntity alertEntity : list) {
+				String userId = UserUtils.getUser().getId();
+				List<FtsDocumentAlert> list = alertService.findbyIds(userId,sids);
+				for (FtsDocumentAlert alertEntity : list) {
 					Map<String, Object> map = new HashMap<>();
 					map.put("title", alertEntity.getTitle());
 					map.put("urlTime", alertEntity.getTime());
@@ -243,8 +250,8 @@ public class WeixinController {
 					map.put("urlName", alertEntity.getUrlName());
 					listMap.add(map);
 				}
-				mapData.put("alertTime", findOne.getAlertTime());
-				mapData.put("size", findOne.getSize());
+				mapData.put("alertTime", ftsDocumentAlertType.getAlertTime());
+				mapData.put("size", ftsDocumentAlertType.getSize());
 				mapData.put("data", listMap);
 				return mapData;
 			} else {

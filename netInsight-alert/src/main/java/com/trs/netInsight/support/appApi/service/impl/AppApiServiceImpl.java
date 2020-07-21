@@ -15,8 +15,11 @@ import com.trs.netInsight.support.appApi.result.ApiResultType;
 import com.trs.netInsight.support.appApi.service.IApiService;
 import com.trs.netInsight.support.appApi.service.IOAuthService;
 import com.trs.netInsight.support.fts.FullTextSearch;
+import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlertType;
 import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.*;
@@ -24,6 +27,7 @@ import com.trs.netInsight.widget.UserHelp;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.AlertSend;
 import com.trs.netInsight.widget.alert.entity.PageAlertSend;
+import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.service.IAlertSendService;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
@@ -284,110 +288,122 @@ public class AppApiServiceImpl implements IApiService {
     @Override
     public PageAlertSend getAppAlertData(String userId, String alertSource, int pageNo, int pageSize) {
 
-        PageAlertSend pageAlertSend = alertSendService.findByUserIdAndSendType(pageNo, pageSize, userId, alertSource);
-        if (ObjectUtil.isNotEmpty(pageAlertSend)){
-            List<AlertSend> alertSends = pageAlertSend.getContent();
-            if (ObjectUtil.isNotEmpty(alertSends)){
-                for (AlertSend alertSend : alertSends) {
-                    if (alertSend != null) {
-                        Date alertTime = com.trs.netInsight.util.DateUtil.stringToDate(alertSend.getAlertTime(), com.trs.netInsight.util.DateUtil.yyyyMMdd);
-                        alertSend.setAlertTime(String.valueOf(alertTime.getTime()));
-                        String pushUserId = alertSend.getCreatedUserId();
-                        User user = userService.findById(pushUserId);
-                        if (ObjectUtil.isNotEmpty(user)){
-                            alertSend.setPushHuman(user.getUserName());
-                        }
-                        List<Map<String, Object>> listMap = new ArrayList<>();
-                        String sids = alertSend.getIds();
-                        String createdUserId = alertSend.getCreatedUserId();
-                        String url = alertNetinsightUrl+"/alert/getAlertByUserIdAndId";
-                        String doPost = HttpUtil.sendPost(url, "userId="+createdUserId+"&ids="+sids);
-                        if(StringUtil.isEmpty(doPost)){
-                            alertSend.setAlertData(null);
-                        }else if(doPost.contains("\"code\":500")){
-                            Map<String,String> map = (Map<String,String>)JSON.parse(doPost);
-                            String message = map.get("message");
-                            log.error("预警数据获取失败,message:"+message);
-                        }else {
-                            //json转list
-                            List<AlertEntity> list = JSONArray.parseObject(doPost, new TypeReference<ArrayList<AlertEntity>>() {});
-                            try {
-                                if (ObjectUtil.isNotEmpty(list)){
-                                    //收藏
-                                    List<String> sidFavourite = new ArrayList<>();
-                                    //原生sql
-                                    Specification<Favourites> criteria = new Specification<Favourites>() {
+        PageAlertSend pageAlertSend = new PageAlertSend();
+        pageAlertSend.setFirst(pageNo == 0 ? true : false);
+        pageAlertSend.setPageId(UUID.randomUUID().toString().replaceAll("-",""));
+        pageAlertSend.setSize(pageSize);
+        pageAlertSend.setNumber(pageNo);
+        QueryBuilder queryBuilder = new QueryBuilder();
+        queryBuilder.filterField(FtsFieldConst.FIELD_SEND_WAY, SendWay.APP.toString(), Operator.Equal);
+        queryBuilder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
+        queryBuilder.filterField(FtsFieldConst.FIELD_ALERT_SOURCE,alertSource,Operator.Equal);
+        //		时间  发预警的时间  这里应该是loadTime
+        try {
+            queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange("6d"),Operator.Between);
+        } catch (OperationException e) {
+            log.error(""+e);
+            e.printStackTrace();
+        }
+        queryBuilder.setDatabase(Const.ALERTTYPE);
+        queryBuilder.page(0,-1);
+        try {
+            PagedList<FtsDocumentAlertType> pagedList = hybase8SearchService.ftsAlertList(queryBuilder, FtsDocumentAlertType.class);
+            if (ObjectUtil.isNotEmpty(pagedList) && ObjectUtil.isNotEmpty(pagedList.getPageItems())){
+                List<FtsDocumentAlertType> alertTypes = pagedList.getPageItems();
+                pageAlertSend.setContent(alertTypes);
+                pageAlertSend.setLast(pageNo == pagedList.getTotalPageCount() - 1 ? true : false);
+                pageAlertSend.setTotalPages(pagedList.getTotalPageCount());
+                pageAlertSend.setTotalElements(pagedList.getTotalItemCount());
 
-                                        @Override
-                                        public Predicate toPredicate(Root<Favourites> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-                                            List<Object> predicates = new ArrayList<>();
-                                            predicates.add(cb.equal(root.get("userId"),userId));
-                                            predicates.add(cb.isNull(root.get("libraryId")));
-                                            Predicate[] pre = new Predicate[predicates.size()];
+                for (FtsDocumentAlertType alertType : alertTypes) {
+                    Date alertTime = com.trs.netInsight.util.DateUtil.stringToDate(alertType.getAlertTime(), com.trs.netInsight.util.DateUtil.yyyyMMdd);
+                    alertType.setAlertTime(String.valueOf(alertTime.getTime()));
+                    String pushUserId = alertType.getUserId();
+                    User user = userService.findById(pushUserId);
+                    if (ObjectUtil.isNotEmpty(user)){
+                        alertType.setPushHuman(user.getUserName());
+                    }
+                    List<Map<String, Object>> listMap = new ArrayList<>();
+                    String alertIds = alertType.getIds();
+                    if (StringUtil.isNotEmpty(alertIds)) {
+                        QueryBuilder builder = new QueryBuilder();
+                        builder.setPageSize(-1);
+                        builder.setPageNo(0);
+                        builder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
+                        builder.filterField(FtsFieldConst.FIELD_ALERT_ID,alertIds.split(";"),Operator.Equal);
+                        builder.setDatabase(Const.ALERT);
+                        PagedList<FtsDocumentAlert> ftsDocumentAlertPagedList = hybase8SearchService.ftsAlertList(builder, FtsDocumentAlert.class);
+                        if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())){
+                            List<FtsDocumentAlert> pageItems = ftsDocumentAlertPagedList.getPageItems();
+                            //收藏
+                            List<String> sidFavourite = new ArrayList<>();
+                            //原生sql
+                            Specification<Favourites> criteria = new Specification<Favourites>() {
 
-                                            return query.where(predicates.toArray(pre)).getRestriction();
-                                        }
-                                    };
-                                    List<Favourites> favouritesList = favouritesRepository.findAll(criteria, new Sort(Sort.Direction.DESC, "urltime"));
-                                    if(ObjectUtil.isNotEmpty(favouritesList)){
-                                        for (Favourites faSidList : favouritesList) {
-                                            //sidFavourite装载了所有已收藏的文章sid
-                                            sidFavourite.add(faSidList.getSid());
-                                        }
-                                    }
-                                    for (AlertEntity alertEntity : list) {
-                                        Map<String, Object> map = new HashMap<>();
-                                        map.put("title", StringUtil.replaceImg(alertEntity.getTitle()));
-                                        Date time = alertEntity.getTime();
-                                        map.put("urlTime", time.getTime());
-                                        String groupName = alertEntity.getGroupName();
-                                        String siteName = alertEntity.getSiteName();
-                                        if (Const.MEDIA_TYPE_WEIBO.contains(groupName) || Const.MEDIA_TYPE_TF.contains(groupName)){
-                                            siteName = alertEntity.getScreenName();
-                                        }else if (StringUtil.isEmpty(siteName)){
-                                            siteName = groupName;
-                                        }
-                                        map.put("siteName", siteName);
-                                        map.put("urlName", alertEntity.getUrlName());
-                                        String sid = alertEntity.getSid();
-                                        map.put("sid", sid);
-                                        map.put("time", time.getTime());
-                                        map.put("groupName",alertEntity.getGroupName());
-                                        map.put("nreserved1",alertEntity.getNreserved1());
-                                        map.put("md5Tag",alertEntity.getMd5tag());
-                                        map.put("imageUrl",alertEntity.getImageUrl());
+                                @Override
+                                public Predicate toPredicate(Root<Favourites> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                                    List<Object> predicates = new ArrayList<>();
+                                    predicates.add(cb.equal(root.get("userId"),userId));
+                                    predicates.add(cb.isNull(root.get("libraryId")));
+                                    Predicate[] pre = new Predicate[predicates.size()];
 
-                                        //是否收藏信息
-                                        int indexOfFa = sidFavourite.indexOf(sid);
-                                        if (indexOfFa < 0) {
-                                            map.put("favourite",false);
-                                        } else {
-                                            map.put("favourite",true);
-                                        }
-
-                                        listMap.add(map);
-                                    }
-                                    alertSend.setAlertData(listMap);
-                                }else {
-                                    alertSend.setAlertData(null);
+                                    return query.where(predicates.toArray(pre)).getRestriction();
                                 }
-                            } catch (Exception e) {
-                                log.error("查询APP端预警数据出错！",e);
+                            };
+                            List<Favourites> favouritesList = favouritesRepository.findAll(criteria, new Sort(Sort.Direction.DESC, "urltime"));
+                            if(ObjectUtil.isNotEmpty(favouritesList)){
+                                for (Favourites faSidList : favouritesList) {
+                                    //sidFavourite装载了所有已收藏的文章sid
+                                    sidFavourite.add(faSidList.getSid());
+                                }
                             }
+                            for (FtsDocumentAlert alertEntity : pageItems) {
+                                Map<String, Object> map = new HashMap<>();
+                                map.put("title", StringUtil.replaceImg(alertEntity.getTitle()));
+                                Date time = alertEntity.getTime();
+                                map.put("urlTime", time.getTime());
+                                String groupName = alertEntity.getGroupName();
+                                String siteName = alertEntity.getSiteName();
+                                if (Const.MEDIA_TYPE_WEIBO.contains(groupName) || Const.MEDIA_TYPE_TF.contains(groupName)){
+                                    siteName = alertEntity.getScreenName();
+                                }else if (StringUtil.isEmpty(siteName)){
+                                    siteName = groupName;
+                                }
+                                map.put("siteName", siteName);
+                                map.put("urlName", alertEntity.getUrlName());
+                                String sid = alertEntity.getSid();
+                                map.put("sid", sid);
+                                map.put("time", time.getTime());
+                                map.put("groupName",alertEntity.getGroupName());
+                                map.put("nreserved1",alertEntity.getNreserved1());
+                                map.put("md5Tag",alertEntity.getMd5tag());
+                                map.put("imageUrl",alertEntity.getImageUrl());
+
+                                //是否收藏信息
+                                int indexOfFa = sidFavourite.indexOf(sid);
+                                if (indexOfFa < 0) {
+                                    map.put("favourite",false);
+                                } else {
+                                    map.put("favourite",true);
+                                }
+
+                                listMap.add(map);
+                            }
+                            alertType.setAlertData(listMap);
+                        }else {
+                            alertType.setAlertData(null);
                         }
                     }
                 }
-                return pageAlertSend;
             }
-
-            return pageAlertSend;
+        } catch (TRSException e) {
+            e.printStackTrace();
         }
-
         return pageAlertSend;
     }
 
     @Override
-    public PageAlertSend getOneAlertData(String alertId,String userId) {
+    public PageAlertSend getOneAlertData(String alertId,String userId) throws TRSException{
         try {
             return alertSendService.findOne(alertId,userId);
         } catch (OperationException e) {

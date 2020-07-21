@@ -3,8 +3,16 @@ package com.trs.netInsight.widget.alert.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
+import com.trs.netInsight.support.fts.FullTextSearch;
+import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlertType;
 import com.trs.netInsight.util.HttpUtil;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
@@ -12,8 +20,10 @@ import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.AlertSend;
 import com.trs.netInsight.widget.alert.entity.PageAlertSend;
+import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.entity.repository.AlertSendRepository;
 import com.trs.netInsight.widget.alert.service.IAlertSendService;
+import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.user.entity.User;
@@ -47,78 +57,57 @@ public class AlertSendServiceImpl implements IAlertSendService {
     private AlertSendRepository alertSendRepository;
     @Autowired
     private FavouritesRepository favouritesRepository;
+    @Autowired
+    private FullTextSearch hybase8SearchServiceNew;
+    @Autowired
+    private IAlertService alertService;
 
     @Value("${http.alert.netinsight.url}")
     private String alertNetinsightUrl;
     @Override
     public AlertSend add(AlertSend alertSend) throws OperationException {
-        if (httpClient){
-            String url = alertNetinsightUrl +"/alertSend/add";
-            String doPost = HttpUtil.doPost(url, alertSendToMap(alertSend), "utf-8");
-            ObjectMapper om = new ObjectMapper();
-            AlertSend readValue = null;
-            try {
-                //json转实体
-                readValue = om.readValue(doPost, AlertSend.class);
-            } catch (IOException e) {
-                throw new OperationException("app结果保存报错", e);
-            }
-            return readValue;
-        }else {
-            return alertSendRepository.save(alertSend);
-        }
+        return null;
+
     }
 
     @Override
     public void delete(AlertSend alertSend) {
-        if(httpClient){
-            String url = alertNetinsightUrl+"/alertSend/delete";
-            String doPost = HttpUtil.doPost(url, alertSendToMap(alertSend), "utf-8");
-        }else{
-            alertSendRepository.delete(alertSend);
-        }
+
     }
 
     @Override
-    public PageAlertSend findOne(String id,String userId) throws OperationException {
+    public PageAlertSend findOne(String id,String userId) throws TRSException {
         PageAlertSend pageAlertSend = new PageAlertSend();
-        AlertSend alertSend = null;;
-        if(httpClient){
-            String url = alertNetinsightUrl+"/alertSend/findOne?id="+id+"&userId="+userId;
-            String doGet = HttpUtil.doGet(url, null);
-            ObjectMapper om = new ObjectMapper();
-            try {
-                if (StringUtil.isNotEmpty(doGet)){
-                    //json转实体
-                    alertSend = om.readValue(doGet, AlertSend.class);
-                }
-            } catch (IOException e) {
-                throw new OperationException("app预警查找报错", e);
-            }
-        }else{
-            alertSend =  alertSendRepository.findOne(id);
-        }
 
-        if (alertSend != null) {
-            Date alertTime = com.trs.netInsight.util.DateUtil.stringToDate(alertSend.getAlertTime(), com.trs.netInsight.util.DateUtil.yyyyMMdd);
-            alertSend.setAlertTime(String.valueOf(alertTime.getTime()));
-            String pushUserId = alertSend.getCreatedUserId();
+
+        QueryBuilder queryBuilder = new QueryBuilder();
+        queryBuilder.filterField(FtsFieldConst.FIELD_SEND_WAY, SendWay.APP.toString(), Operator.Equal);
+        queryBuilder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
+        queryBuilder.filterField(FtsFieldConst.FIELD_ALERT_TYPE_ID,id,Operator.Equal);
+        queryBuilder.setDatabase(Const.ALERTTYPE);
+        queryBuilder.page(0,1);
+        PagedList<FtsDocumentAlertType> pagedList = hybase8SearchServiceNew.ftsAlertList(queryBuilder, FtsDocumentAlertType.class);
+        FtsDocumentAlertType ftsDocumentAlertType = null;
+        if (ObjectUtil.isNotEmpty(pagedList) && ObjectUtil.isNotEmpty(pagedList.getPageItems().get(0))){
+            ftsDocumentAlertType = pagedList.getPageItems().get(0);
+
+            Date alertTime = com.trs.netInsight.util.DateUtil.stringToDate(ftsDocumentAlertType.getAlertTime(), com.trs.netInsight.util.DateUtil.yyyyMMdd);
+            ftsDocumentAlertType.setAlertTime(String.valueOf(alertTime.getTime()));
+            String pushUserId = ftsDocumentAlertType.getUserId();
             User user = userRepository.findOne(pushUserId);
             if (ObjectUtil.isNotEmpty(user)){
-                alertSend.setPushHuman(user.getUserName());
+                ftsDocumentAlertType.setPushHuman(user.getUserName());
             }
             // 选择查询的库
             List<Map<String, Object>> listMap = new ArrayList<>();
 
-            String sids = alertSend.getIds();
-            String createdUserId = alertSend.getCreatedUserId();
-            String url = alertNetinsightUrl+"/alert/getAlertByUserIdAndId";
-            String doPost = HttpUtil.sendPost(url, "userId="+createdUserId+"&ids="+sids);
-            if(StringUtil.isEmpty(doPost)){
-                alertSend.setAlertData(null);
+            String alertIds = ftsDocumentAlertType.getIds();
+            String createdUserId = ftsDocumentAlertType.getUserId();
+
+            List<FtsDocumentAlert> ftsDocumentAlerts = alertService.findbyIds(createdUserId, alertIds);
+            if(ObjectUtil.isEmpty(ftsDocumentAlerts)){
+                ftsDocumentAlertType.setAlertData(null);
             }else {
-                //json转list
-                List<AlertEntity> list = JSONArray.parseObject(doPost, new TypeReference<ArrayList<AlertEntity>>() {});
                 //收藏
                 List<String> sidFavourite = new ArrayList<>();
                 //原生sql
@@ -142,68 +131,49 @@ public class AlertSendServiceImpl implements IAlertSendService {
                         sidFavourite.add(faSidList.getSid());
                     }
                 }
-                if (ObjectUtil.isNotEmpty(list)){
-                    for (AlertEntity alertEntity : list) {
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("title", StringUtil.replaceImg(alertEntity.getTitle()));
-                        Date time = alertEntity.getTime();
-                        map.put("urlTime", time.getTime());
-                        String groupName = alertEntity.getGroupName();
-                        String siteName = alertEntity.getSiteName();
-                        if (Const.MEDIA_TYPE_WEIBO.contains(groupName) || Const.MEDIA_TYPE_TF.contains(groupName)){
-                            siteName = alertEntity.getScreenName();
-                        }else if (StringUtil.isEmpty(siteName)){
-                            siteName = groupName;
-                        }
-                        map.put("siteName", siteName);
-                        map.put("urlName", alertEntity.getUrlName());
-                        String sid = alertEntity.getSid();
-                        map.put("sid", sid);
-                        map.put("groupName",alertEntity.getGroupName());
-                        map.put("nreserved1",alertEntity.getNreserved1());
-                        map.put("md5Tag",alertEntity.getMd5tag());
-                        map.put("imageUrl",alertEntity.getImageUrl());
-                        //是否收藏信息
-                        int indexOfFa = sidFavourite.indexOf(sid);
-                        if (indexOfFa < 0) {
-                            map.put("favourite",false);
-                        } else {
-                            map.put("favourite",true);
-                        }
-
-                        map.put("time",time.getTime());
-                        listMap.add(map);
+                for (FtsDocumentAlert alertEntity : ftsDocumentAlerts) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("title", StringUtil.replaceImg(alertEntity.getTitle()));
+                    Date time = alertEntity.getTime();
+                    map.put("urlTime", time.getTime());
+                    String groupName = alertEntity.getGroupName();
+                    String siteName = alertEntity.getSiteName();
+                    if (Const.MEDIA_TYPE_WEIBO.contains(groupName) || Const.MEDIA_TYPE_TF.contains(groupName)){
+                        siteName = alertEntity.getScreenName();
+                    }else if (StringUtil.isEmpty(siteName)){
+                        siteName = groupName;
                     }
-                    alertSend.setAlertData(listMap);
-                }else {
-                    alertSend.setAlertData(null);
+                    map.put("siteName", siteName);
+                    map.put("urlName", alertEntity.getUrlName());
+                    String sid = alertEntity.getSid();
+                    map.put("sid", sid);
+                    map.put("groupName",alertEntity.getGroupName());
+                    map.put("nreserved1",alertEntity.getNreserved1());
+                    map.put("md5Tag",alertEntity.getMd5tag());
+                    map.put("imageUrl",alertEntity.getImageUrl());
+                    //是否收藏信息
+                    int indexOfFa = sidFavourite.indexOf(sid);
+                    if (indexOfFa < 0) {
+                        map.put("favourite",false);
+                    } else {
+                        map.put("favourite",true);
+                    }
+
+                    map.put("time",time.getTime());
+                    listMap.add(map);
                 }
+                ftsDocumentAlertType.setAlertData(listMap);
             }
         }
-        ArrayList<AlertSend> alertSends = new ArrayList<>();
-        alertSends.add(alertSend);
+        ArrayList<FtsDocumentAlertType> alertSends = new ArrayList<>();
+        alertSends.add(ftsDocumentAlertType);
         pageAlertSend.setContent(alertSends);
         return pageAlertSend;
     }
 
     @Override
     public PageAlertSend findByUserIdAndSendType(int pageNo, int pageSize, String userId, String sendType) {
-        //把原本存储在criteria的查询条件存在Map里 不然没法从criteria取条件
-
-
-        PageAlertSend allJsonFile = null;
-        String url = alertNetinsightUrl+"/alertSend/findAllJsonFile?sendType="+sendType+"&userId="+userId+"&pageNo="+pageNo+"&pageSize="+pageSize;
-        String doGet = HttpUtil.doGet(url, null);
-        ObjectMapper om = new ObjectMapper();
-        try {
-            if (StringUtil.isNotEmpty(doGet)){
-                //json转实体
-                allJsonFile = om.readValue(doGet, PageAlertSend.class);
-            }
-        } catch (IOException e) {
-
-        }
-        return allJsonFile;
+        return null;
     }
 
     /**

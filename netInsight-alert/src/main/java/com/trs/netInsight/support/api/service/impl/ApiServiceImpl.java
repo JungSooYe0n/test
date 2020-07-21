@@ -88,12 +88,10 @@ public class ApiServiceImpl implements IApiService {
             sources = sources.replaceAll("国内论坛;","").replaceAll(";国内论坛","").replaceAll("国内论坛","");
         }
         // 增加具体来源
-        if (StringUtils.isNotBlank(sources) && "ALL".equals(sources)) {
-            if (StringUtils.isNotBlank(sources)) {
-                sources = sources.replaceAll(";", " OR ");
-                if (sources.endsWith("OR ")) {
-                    sources = sources.substring(0, sources.lastIndexOf("OR"));
-                }
+        if (StringUtils.isNotBlank(sources) && !"ALL".equals(sources)) {
+            sources = sources.replaceAll(";", " OR ");
+            if (sources.endsWith("OR ")) {
+                sources = sources.substring(0, sources.lastIndexOf("OR"));
             }
         }
         sources = sources.replace("微信", "国内微信").replace("境外媒体", "国外新闻");

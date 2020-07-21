@@ -1,11 +1,10 @@
 package com.trs.netInsight.widget.alert.controller;
 
 import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.SourceUtil;
-import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.alert.entity.PageAlert;
 import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.user.entity.User;
 import io.swagger.annotations.Api;
@@ -18,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * 预警过信息查询
@@ -37,7 +38,6 @@ public class AlertController {
 	@Autowired
 	private IAlertService alertService;
 
-	private List< String> timeList = Arrays.asList("0d","7d","30d");
 
 	@ApiOperation("已发送和站内的列表法展示接口")
 	@GetMapping("/list")
@@ -51,20 +51,17 @@ public class AlertController {
 			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
 			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
 			@ApiParam("结果中搜索 ") @RequestParam(value = "keywords", required = false) String keywords,
-			@ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope) throws OperationException {
+			@ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope) throws TRSException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 		source = SourceUtil.isSource(source);
 		if(StringUtil.isEmpty(source)){
 			return null;
 		}
-		if(httpClient){
-			//跨工程
-			return alertService.alertListHttp(pageNo, pageSize, way, source, time, receivers, invitationCard, forwarPrimary, keywords,fuzzyValueScope);
-		}else{
-			//本地,返回的alertEntity实体中keywords为string类型。。海贝库查出来的是List<String>
-			return alertService.alertListLocal(pageNo, pageSize, way, source, time, receivers, invitationCard, forwarPrimary, keywords,fuzzyValueScope);
-		}
+		PageAlert pageAlert = alertService.alertListHybase(pageNo, pageSize, way, source, time, receivers, invitationCard, forwarPrimary, keywords, fuzzyValueScope);
+		String uuid = UUID.randomUUID().toString();
+		Map<String, Object> putValue = MapUtil.putValue(new String[] { "pageId", "list" }, uuid, pageAlert);
+		return putValue;
 	}
 
 	/**
@@ -83,7 +80,7 @@ public class AlertController {
 						  @ApiParam("是否是刚刚登陆进来") @RequestParam(value = "justLogin", defaultValue = "false", required = false) Boolean justLogin,
 						  @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
 						  @ApiParam("步长") @RequestParam(value = "pageSize", defaultValue = "3", required = false) int pageSize)
-			throws OperationException {
+			throws TRSException {
 	    Boolean isAlert = UserUtils.getUser().getIsAlert();
 		if(isAlert == null || isAlert){
 			/*
@@ -96,37 +93,25 @@ public class AlertController {
 			int i = 0;
 			if (justLogin) {
 				time = "0d";
-				i = 1;
 			}
 			String source = SourceUtil.isSource("ALL");
 			if(StringUtil.isEmpty(source)){
 				return null;
 			}
-			if (httpClient) {
-				//跨工程
-				Object obj = alertService.alertListHttp(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
-				for (; i < timeList.size(); i++) {
-					time = timeList.get(i);
-					if (ObjectUtil.isEmpty(obj)) {
-						obj = alertService.alertListHttp(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
-					} else {
-						break;
-					}
-				}
-				return obj;
-			} else {
-				//本地,返回的alertEntity实体中keywords为string类型。。海贝库查出来的是List<String>
-				Object obj = alertService.alertListLocal(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
-				for (; i < timeList.size(); i++) {
-					time = timeList.get(i);
-					if (ObjectUtil.isEmpty(obj)) {
-						obj = alertService.alertListLocal(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
-					} else {
-						break;
-					}
-				}
-				return obj;
+			//跨工程
+			PageAlert pageAlert = alertService.alertListHybase(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
+
+			if (ObjectUtil.isEmpty(pageAlert) || pageAlert.getContent() == null || pageAlert.getContent().size() ==0) {
+				time = "30d";
+				pageAlert = alertService.alertListHybase(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
 			}
+
+			if (ObjectUtil.isEmpty(pageAlert)) {
+				return null;
+			}
+			String uuid = UUID.randomUUID().toString();
+			Map<String, Object> putValue = MapUtil.putValue(new String[] { "pageId", "list" }, uuid, pageAlert);
+			return putValue;
 		} else {
 			//预警弹框不在提醒  ---  如果设置了不再提醒，当前次登录中不再提醒，再次登录状态重置，继续提醒
 			return null;
@@ -142,7 +127,7 @@ public class AlertController {
 	@ApiOperation("站内预警弹窗是否继续提示")
 	@FormatResult
 	@RequestMapping(value = "/isAlertSMS", method = RequestMethod.GET)
-	public Object isAlertSMS(/*@ApiParam("不在提示") @RequestParam(value = "isAlert", defaultValue = "true", required = false) Boolean justLogin */)
+	public Object isAlertSMS()
 			throws OperationException {
 		User user = UserUtils.updateIsAlert(false);
 		return user;
@@ -151,12 +136,8 @@ public class AlertController {
 	@ApiOperation("预警删除接口")
 	@PostMapping("/delete")
 	@FormatResult
-	public Object delete(@RequestParam("id") String id,@RequestParam("deTime") String createdTime) throws OperationException {
-		if(httpClient){
-			return alertService.deleteHttp(id,createdTime);
-		}else{
-			return alertService.deleteLocal(id);
-		}
+	public Object delete(@RequestParam("id") String id) throws OperationException {
+		return alertService.deleteHttp(id);
 	}
 
 }

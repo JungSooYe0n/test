@@ -257,7 +257,7 @@ public interface FullTextSearch {
 	/**
 	 * 单条插入
 	 *
-	 * @param records
+	 * @param record
 	 *            记录集,类属性详见《TRS Hybase JAVA开发接口》</br>
 	 *            <font color='red'>
 	 *            <code> TRSInputRecord 内包含 TRSInputColumn 集合,TRSInputColumn 的 name-value必须与 hybase的database类型相同,否则会抛出异常</code>
@@ -292,8 +292,6 @@ public interface FullTextSearch {
 	/**
 	 * 多表联合查询数量
 	 *
-	 * @param query
-	 * @param isSimilar
 	 * @return
 	 */
 	public long ftsCountCommon(QueryCommonBuilder builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String type);
@@ -430,5 +428,6 @@ public interface FullTextSearch {
 	 */
 	public <T extends IDocument> List<T> ftsQuery(QueryBuilder query, Class<T> resultClass) throws TRSException, TRSSearchException;
 
-
+	public <T extends IDocument> PagedList<T> ftsAlertList(QueryBuilder query, Class<T> resultClass)
+			throws TRSException, TRSSearchException;
 }

@@ -39,5 +39,13 @@ public enum FtsHybaseType {
     /**
      * 混合库  包含微博 微信 传统 海外
      */
-    MIX
+    MIX,
+    /**
+     * 已发预警详情库 - 默认的
+     */
+    ALERT,
+    /**
+     * 已发预警 类型 主要是 微信与APP  -- 默认的
+     */
+    ALERT_TYPE
 }

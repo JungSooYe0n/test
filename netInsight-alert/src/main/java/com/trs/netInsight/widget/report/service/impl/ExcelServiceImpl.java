@@ -26,6 +26,7 @@ import com.trs.netInsight.support.report.excel.ExcelData;
 import com.trs.netInsight.support.report.excel.ExcelFactory;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
+import com.trs.netInsight.widget.alert.entity.PageAlert;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -973,25 +974,10 @@ public class ExcelServiceImpl implements IExcelService {
 			//已发预警 我发给谁
 			criteria.add(Restrictions.eq("userId", userId));
 		}
-		List<AlertEntity> list = new ArrayList<>();
-		if(httpClient){
-			String url = alertNetinsightUrl+"/alert/list?pageNo="+0+"&pageSize="+num+"&way="+way+"&source="+groupName+"&time="
-					+time+"&keywords="+keywords+"&userId="+userId+"&userName="+userName;
-	        String doGet = HttpUtil.doGet(url, null);
-	        if(StringUtil.isEmpty(doGet)){
-				return null;
-			}else if(doGet.contains("\"code\":500")){
-				Map<String,String> map = (Map<String,String>)JSON.parse(doGet);
-				String message = map.get("message");
-				throw new OperationException("预警导出失败,message:"+message ,new Exception());
-			}else{
-				Map<String,Object> map = (Map<String,Object>)JSON.parse(doGet);
-				Map<String,Object> object = (Map<String,Object>)map.get("list");
-				list = JSONObject.parseArray(((JSON) object.get("content")).toJSONString(), AlertEntity.class);
-			}
-		}else{
-			Page<AlertEntity> findAll = alertService.findAll(criteria,0,num);
-			list = findAll.getContent();
+		List<FtsDocumentAlert> list = new ArrayList<>();
+		PageAlert pageAlert = alertService.alertListHybase(0, num, way, groupName, time, null, null, null, keywords, null);
+		if (ObjectUtil.isNotEmpty(pageAlert) && ObjectUtil.isNotEmpty(pageAlert.getContent())){
+			list = pageAlert.getContent();
 		}
 
 		//导出
@@ -1001,7 +987,7 @@ public class ExcelServiceImpl implements IExcelService {
         ExcelData data = new ExcelData();
         data.setHead(headArray);
         for (int i = 0; i < list.size(); i++) {
-        	AlertEntity document =list.get(i);
+			FtsDocumentAlert document =list.get(i);
         	putData(englishArray, document, data, i);
         }
         return ExcelFactory.getInstance().export(data);
@@ -1044,32 +1030,17 @@ public class ExcelServiceImpl implements IExcelService {
 			//已发预警 我发给谁
 			criteria.add(Restrictions.eq("userId", userId));
 		}
-		List<AlertEntity> list = new ArrayList<>();
-		if(httpClient){
-			String url = alertNetinsightUrl+"/alert/list?pageNo="+0+"&pageSize="+num+"&way="+way+"&source="+groupName+"&time="
-					+time+"&keywords="+keywords+"&userId="+userId+"&userName="+userName;
-			String doGet = HttpUtil.doGet(url, null);
-			if(StringUtil.isEmpty(doGet)){
-				return null;
-			}else if(doGet.contains("\"code\":500")){
-				Map<String,String> map = (Map<String,String>)JSON.parse(doGet);
-				String message = map.get("message");
-				throw new OperationException("预警导出失败,message:"+message ,new Exception());
-			}else{
-				Map<String,Object> map = (Map<String,Object>)JSON.parse(doGet);
-				Map<String,Object> object = (Map<String,Object>)map.get("list");
-				list = JSONObject.parseArray(((JSON) object.get("content")).toJSONString(), AlertEntity.class);
-			}
-		}else{
-			Page<AlertEntity> findAll = alertService.findAll(criteria,0,num);
-			list = findAll.getContent();
+		List<FtsDocumentAlert> list = new ArrayList<>();
+		PageAlert pageAlert = alertService.alertListHybase(0, num, way, groupName, time, null, null, null, keywords, null);
+		if (ObjectUtil.isNotEmpty(pageAlert) && ObjectUtil.isNotEmpty(pageAlert.getContent())){
+			list = pageAlert.getContent();
 		}
 		String ids = "";
 		String groups = "";
 		String times = "";
 		SimpleDateFormat sdf1 =   new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
 		if (list.size()>0){
-			for (AlertEntity obj:list) {
+			for (FtsDocumentAlert obj:list) {
 				ids = ids + obj.getSid() + ";";
 				groups = groups + obj.getGroupName() + ";";
 				times = times + sdf1.format(obj.getTime()) + ";";
@@ -1415,27 +1386,14 @@ public class ExcelServiceImpl implements IExcelService {
 			if (ExportListType.SMSALERT.equals(exportListType)) {
 				way = "SMS";
 			}
-			List<AlertEntity> list = new ArrayList<>();
-			if (httpClient) {
-				String url = alertNetinsightUrl+"/alert/list?pageNo="+0+"&pageSize="+num+"&way="+way+"&source="+groupName+"&time="
-						+time+"&receivers="+receivers+"&invitationCard="+invitationCard+"&forwarPrimary="+forwarPrimary+"&keywords="
-						+keywords+"&userId="+user.getId()+"&userName="+user.getUserName();
-				String doGet = HttpUtil.doGet(url, null);
-				if (StringUtil.isEmpty(doGet)) {
-					return null;
-				} else if (doGet.contains("\"code\":500")) {
-					Map<String, String> map = (Map<String, String>) JSON.parse(doGet);
-					String message = map.get("message");
-					throw new OperationException("预警导出失败,message:" + message, new Exception());
-				} else {
-					Map<String, Object> map = (Map<String, Object>) JSON.parse(doGet);
-					Map<String, Object> object = (Map<String, Object>) map.get("list");
-					list = JSONObject.parseArray(((JSON) object.get("content")).toJSONString(), AlertEntity.class);
-				}
+			List<FtsDocumentAlert> list = new ArrayList<>();
+			PageAlert pageAlert = alertService.alertListHybase(0, num, way, groupName, time, null, null, null, keywords, null);
+			if (ObjectUtil.isNotEmpty(pageAlert) && ObjectUtil.isNotEmpty(pageAlert.getContent())){
+				list = pageAlert.getContent();
 			}
 			if(list.size() > 0){
 				resultNum = list.size();
-				for (AlertEntity ae : list) {
+				for (FtsDocumentAlert ae : list) {
 					if (ids.length() == 0) {
 						ids.append(ae.getSid());
 						groupNames.append(ae.getGroupName());

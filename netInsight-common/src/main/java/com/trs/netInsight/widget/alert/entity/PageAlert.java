@@ -1,20 +1,21 @@
 package com.trs.netInsight.widget.alert.entity;
 
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import lombok.Getter;
 import lombok.Setter;
-import com.trs.netInsight.support.fts.entity.FtsDocumentAlertType;
+
 import java.util.List;
 
+
 /**
- * 为app端查询页面分页 单写一个实体
- * @author 北京拓尔思信息技术股份有限公司
- * Created by yangyanyan on 2019/4/24 15:04.
- * @desc
+ * 只是为了 保留之前的返回格式，免得前端再做二次修改
+ *
  */
 @Getter
 @Setter
-public class PageAlertSend {
-    private List<FtsDocumentAlertType> content;//存储结果集
+public class PageAlert {
+
+    private List<FtsDocumentAlert> content;//存储结果集
 
     private boolean first;//是不是第一页
 
@@ -29,7 +30,5 @@ public class PageAlertSend {
     private int totalPages;//一共几页
 
     private int number;//从0开始 第几页  也就是pageNo
-
-    private String appDetail;
 
 }

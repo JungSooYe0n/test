@@ -9,8 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.trs.dev4.jdk16.dao.PagedList;
+import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.config.constant.FtsFieldConst;
+import com.trs.netInsight.support.fts.FullTextSearch;
+import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
+import com.trs.netInsight.widget.alert.entity.PageAlert;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +70,9 @@ public class AlertServiceImpl implements IAlertService {
 	private FavouritesRepository favouritesRepository;
 	@Autowired
 	private UserHelp userService;
-	
+	@Autowired
+	private FullTextSearch hybase8SearchServiceNew;
+
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
 
@@ -149,20 +159,19 @@ public class AlertServiceImpl implements IAlertService {
 	}
 
 	@Override
-	public List<AlertEntity> findbyIds(String listString) throws OperationException {
-		String userId = UserUtils.getUser().getId();
-		String url = alertNetinsightUrl+"/alert/getAlertByUserIdAndId";
-        String doPost = HttpUtil.sendPost(url, "userId="+userId+"&ids="+listString);
-        if(StringUtil.isEmpty(doPost)){
-			return null;
-		}else if(doPost.contains("\"code\":500")){
-			Map<String,String> map = (Map<String,String>)JSON.parse(doPost);
-			String message = map.get("message");
-			throw new OperationException("预警弹窗获取失败,message:"+message ,new Exception());
+	public List<FtsDocumentAlert> findbyIds(String userId, String listString) throws TRSException {
+		QueryBuilder builder = new QueryBuilder();
+		builder.setPageSize(-1);
+		builder.setPageNo(0);
+		builder.filterField(FtsFieldConst.FIELD_USER_ID,userId, Operator.Equal);
+		builder.filterField(FtsFieldConst.FIELD_ALERT_ID,listString.split(";"),Operator.Equal);
+		builder.setDatabase(Const.ALERT);
+		PagedList<FtsDocumentAlert> ftsDocumentAlertPagedList = hybase8SearchServiceNew.ftsAlertList(builder, FtsDocumentAlert.class);
+		if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())){
+			List<FtsDocumentAlert> pageItems = ftsDocumentAlertPagedList.getPageItems();
+			return pageItems;
 		}
-        //json转list
-        List<AlertEntity> list = JSONArray.parseObject(doPost, new TypeReference<ArrayList<AlertEntity>>() {});
-        return list;
+		return null;
 	}
 
 	@Override
@@ -332,29 +341,134 @@ public class AlertServiceImpl implements IAlertService {
 	 * @throws OperationException 
 	 */
 	@Override
-	public Object alertListHttp(int pageNo,int pageSize,String way,String source,String time,String receivers,String invitationCard,
-			String forwarPrimary,String keywords,String fuzzyValueScope) throws OperationException{
+	public Object alertListHttp(int pageNo, int pageSize, String way, String source, String time, String receivers, String invitationCard,
+								String forwarPrimary, String keywords, String fuzzyValueScope) throws OperationException {
 		User user = UserUtils.getUser();
 		String userId = user.getId();
 		String userName = user.getUserName();
-//		try {
-			log.error("开始转换map"+DateUtil.formatCurrentTime(DateUtil.yyyyMMdd));
-			String url = alertNetinsightUrl+"/alert/list?pageNo="+pageNo+"&pageSize="+pageSize+"&way="+way+"&source="+source+"&time="
-					+time+"&receivers="+receivers+"&invitationCard="+invitationCard+"&forwarPrimary="+forwarPrimary+"&keywords="
-					+keywords+"&fuzzyValueScope="+fuzzyValueScope+"&userId="+userId+"&userName="+userName;
-	        String doGet = HttpUtil.doGet(url, null);
-	        if(StringUtil.isEmpty(doGet)){
-				return null;
-			}else if(doGet.contains("\"code\":500")){
-				Map<String,String> map = (Map<String,String>)JSON.parse(doGet);
-				String message = map.get("message");
-				throw new OperationException("预警弹窗获取失败,message:"+message ,new Exception());
-			}
-	        Map<String,Object> map = (Map<String,Object>)JSON.parse(CommonListChartUtil.StringShowGroupName(doGet));
-			log.error("返回："+DateUtil.formatCurrentTime(DateUtil.yyyyMMdd));
-			return map;
+		log.error("开始转换map" + DateUtil.formatCurrentTime(DateUtil.yyyyMMdd));
+		String url = alertNetinsightUrl + "/alert/list?pageNo=" + pageNo + "&pageSize=" + pageSize + "&way=" + way + "&source=" + source + "&time="
+				+ time + "&receivers=" + receivers + "&invitationCard=" + invitationCard + "&forwarPrimary=" + forwarPrimary + "&keywords="
+				+ keywords + "&fuzzyValueScope=" + fuzzyValueScope + "&userId=" + userId + "&userName=" + userName;
+		String doGet = HttpUtil.doGet(url, null);
+		if (StringUtil.isEmpty(doGet)) {
+			return null;
+		} else if (doGet.contains("\"code\":500")) {
+			Map<String, String> map = (Map<String, String>) JSON.parse(doGet);
+			String message = map.get("message");
+			throw new OperationException("预警弹窗获取失败,message:" + message, new Exception());
+		}
+		Map<String, Object> map = (Map<String, Object>) JSON.parse(CommonListChartUtil.StringShowGroupName(doGet));
+		log.error("返回：" + DateUtil.formatCurrentTime(DateUtil.yyyyMMdd));
+		return map;
 	}
-	
+	@Override
+	public PageAlert alertListHybase(int pageNo,int pageSize,String way,String source,String time,String receivers,String invitationCard,
+									 String forwarPrimary,String keywords,String fuzzyValueScope) throws TRSException {
+		User user = UserUtils.getUser();
+		String userId = user.getId();
+		String userName = user.getUserName();
+		QueryBuilder queryBuilder = new QueryBuilder();
+		queryBuilder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
+
+		if ("SMS".equals(way)){ // 站内预警
+			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_WAY,SendWay.SMS.toString(), Operator.Equal);
+			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"receive",Operator.Equal);
+			queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER,userName,Operator.Equal);
+		}else {
+			if (!"ALL".equals(receivers)) {
+				queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER,receivers,Operator.Equal);
+			}
+			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
+		}
+		if ("微信".equals(source)){
+			source = "国内微信";
+		}
+		if (!"ALL".equals(source)){
+			queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,source.split(";"),Operator.Equal);
+		}
+//		时间  发预警的时间  这里应该是loadTime
+		queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange(time),Operator.Between);
+
+		if ("微博".equals(source)){
+			if ("primary".equals(forwarPrimary)){
+				//原发
+				queryBuilder.filterField(FtsFieldConst.FIELD_RETWEETED_MID,"0 OR \"\"",Operator.Equal);//IR_RETWEETED_MID这个字段为空就是原发
+			}else if ("forward".equals(forwarPrimary)){
+				//转发
+				queryBuilder.filterField(FtsFieldConst.FIELD_RETWEETED_MID,"0 OR \"\"",Operator.NotEqual);//IR_RETWEETED_MID这个字段为空就是原发
+			}
+		}else if ("国内论坛".equals(source)){
+			if ("0".equals(invitationCard)){// 主贴
+				//		主贴、回帖
+				queryBuilder.filterField(FtsFieldConst.FIELD_NRESERVED1,"0 OR \"\"",Operator.Equal);
+			}else if ("1".equals(invitationCard)){
+				queryBuilder.filterField(FtsFieldConst.FIELD_NRESERVED1,"1",Operator.Equal);
+			}
+		}
+		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)){
+			String[] split = keywords.split(",");
+			String splitNode = "";
+			for (int i = 0; i < split.length; i++) {
+				if (StringUtil.isNotEmpty(split[i])) {
+					splitNode += split[i] + ",";
+				}
+			}
+			keywords = splitNode.substring(0, splitNode.length() - 1);
+			if (keywords.endsWith(";") || keywords.endsWith(",") || keywords.endsWith("；")
+					|| keywords.endsWith("，")) {
+				keywords = keywords.substring(0, keywords.length() - 1);
+
+			}
+			StringBuilder fuzzyBuilder  = new StringBuilder();
+			String hybaseField = "fullText";
+			switch (fuzzyValueScope){
+				case "title":
+					hybaseField = FtsFieldConst.FIELD_URLTITLE;
+					break;
+				case "source":
+					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					break;
+				case "author":
+					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					break;
+			}
+			if("fullText".equals(hybaseField)){
+				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
+			}else {
+				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
+			}
+			queryBuilder.filterByTRSL(fuzzyBuilder.toString());
+
+		}
+		queryBuilder.setPageNo(pageNo);
+		queryBuilder.setPageSize(pageSize);
+		queryBuilder.setDatabase(Const.ALERT);
+		PagedList<FtsDocumentAlert> ftsDocumentAlertPagedList = hybase8SearchServiceNew.ftsAlertList(queryBuilder, FtsDocumentAlert.class);
+		if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())){
+			List<FtsDocumentAlert> pageItems = ftsDocumentAlertPagedList.getPageItems();
+			for (FtsDocumentAlert pageItem : pageItems) {
+				pageItem.setContent(pageItem.getContent().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
+				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
+				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
+			}
+			PageAlert pageAlert = new PageAlert();
+			pageAlert.setContent(ftsDocumentAlertPagedList.getPageItems());
+			pageAlert.setFirst(pageNo==0?true:false);
+			pageAlert.setLast(pageNo == ftsDocumentAlertPagedList.getTotalPageCount()-1?true:false);//pageno从0开始
+			pageAlert.setPageId(UUID.randomUUID().toString());
+			pageAlert.setSize(pageSize);
+			pageAlert.setTotalPages(ftsDocumentAlertPagedList.getTotalPageCount());
+			pageAlert.setTotalElements(ftsDocumentAlertPagedList.getTotalItemCount());
+			pageAlert.setNumber(pageNo);
+			return pageAlert;
+		}
+		return null;
+	}
+
 
 	/**
 	 * 站内预警 查别人发给我的站内预警  同时返回收藏和预警状态
@@ -362,8 +476,7 @@ public class AlertServiceImpl implements IAlertService {
 	 */
 	@Override
 	public Object findSMS(String userId, Criteria<AlertEntity> criteria, int pageNo, int pageSize) throws OperationException {
-//		Page<AlertEntity> findAll = alertRepository.findAll(criteria,
-//				new PageRequest(pageNo, pageSize, new Sort(Sort.Direction.DESC, "createdTime")));
+
 		Page<AlertEntity> findAll = findAll(criteria, pageNo, pageSize);
 		if(findAll!=null){
 			List<AlertEntity> content = findAll.getContent();
@@ -379,18 +492,12 @@ public class AlertServiceImpl implements IAlertService {
 				}
 				List<String> sidAlert = new ArrayList<>();
 				List<AlertEntity> alertList = alertRepository.findByUserIdAndSidIn(userId,sidList);
-				//查询收藏
-//				List<Favourites> favouriteList = favouritesRepository.findByUserIdAndSidIn(userId, sidList);
-//				List<String> sidFavour = new ArrayList<>();
-//				for(Favourites favour : favouriteList){
-//					sidFavour.add(favour.getSid());
-//				}
+
 				for(AlertEntity alert : alertList){
 					sidAlert.add(alert.getSid());
 				}
 				for (AlertEntity alertEntity : content) {
 					alertEntity.setSend(sidAlert.indexOf(alertEntity.getSid())<0?false:true);
-//					alertEntity.setFavourite(sidFavour.indexOf(alertEntity.getSid())<0?false:true);
 				}
 			}
 		}
@@ -424,31 +531,24 @@ public class AlertServiceImpl implements IAlertService {
 			throw new OperationException("预警删除失败,message:" + e,e);
 		}
 	}
-	
+
 	/**
 	 * 关联alert_netinsight的删除预警
 	 * @param id 要删除的id 多个时以分号分割
 	 * @return
-	 * @throws OperationException 
+	 * @throws OperationException
 	 */
 	@Override
-	public Object deleteHttp(String id,String createdTime) throws OperationException{
-		try {
-			String url = alertNetinsightUrl+"/alert/delete";
-//		 	String url = alertNetinsightUrl+"/alert/delete?id="+id+"&userId="+UserUtils.getUser().getId();
-		 	 String doPost = HttpUtil.sendPost(url, "id="+id+"&userId="+UserUtils.getUser().getId()+"&createdTime="+createdTime);
-//	        String doGet = HttpUtil.doGet(url, null);
-	        if(StringUtil.isEmpty(doPost)){
-				return null;
-			}else if(doPost.contains("\"code\":500")){
-				Map<String,String> map = (Map<String,String>)JSON.parse(doPost);
-				String message = map.get("message");
-				throw new OperationException("预警删除失败,message:"+message ,new Exception());
+	public Object deleteHttp(String id) throws OperationException{
+		if (StringUtil.isNotEmpty(id)){
+			try {
+                hybase8SearchServiceNew.delete(Const.ALERT,id.split(";"));
+			} catch (TRSException e) {
+				throw new OperationException("预警删除失败,message:" + e,e);
 			}
-	        return doPost;
-		} catch (Exception e) {
-			throw new OperationException("预警删除失败,message:" + e,e);
+			return "success";
 		}
+		return null;
 	}
 
 	@Override

@@ -187,7 +187,9 @@ public class HttpUtil {
 			while ((line = in.readLine()) != null) {
 				result += line;
 			}
+			log.error("发送url成功地址："+url);
 		} catch (Exception e) {
+			log.error("发送url失败地址："+url);
 			log.error("发送 POST 请求出现异常！" + e);
 			e.printStackTrace();
 		}
