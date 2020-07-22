@@ -47,9 +47,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -558,9 +563,34 @@ public class SubGroupController {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("column",columnNavs);
         //查询 该用户 下 的专题分析（一级或者二级分组下无专题则不返给前端）且带着层级关系
-        List list = selectSomeSpecials(userId);
+        List list = selectSomeSpecialsNew(userId);
         resultMap.put("special",list);
         return resultMap;
+    }
+    public List selectSomeSpecialsNew(String orgAdminId) throws TRSException {
+        //最终返回结果集
+        List resultList = new ArrayList();
+        Sort sort = new Sort(Sort.Direction.ASC,"sequence");
+        Specification<SpecialProject> criteria_tab_mapper = new Specification<SpecialProject>(){
+
+            @Override
+            public Predicate toPredicate(Root<SpecialProject> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                List<Predicate> predicate = new ArrayList<>();
+                    predicate.add(cb.equal(root.get("userId"),orgAdminId));
+//                predicate.add(cb.isNull(root.get("groupId")));
+//				predicate.add(cb.equal(root.get("groupId"),""));
+                Predicate[] pre = new Predicate[predicate.size()];
+                return query.where(predicate.toArray(pre)).getRestriction();
+            }
+        };
+        List<SpecialProject> oneIndexTab = null;
+
+        oneIndexTab = specialProjectRepository.findAll(criteria_tab_mapper,sort);
+        for (SpecialProject special : oneIndexTab) {
+                resultList.add(special);
+        }
+        return resultList;
+
     }
 
     public List selectSomeSpecials(String orgAdminId) throws TRSException {

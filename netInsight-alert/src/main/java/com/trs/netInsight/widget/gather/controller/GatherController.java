@@ -1074,7 +1074,7 @@ public class GatherController {
     @ApiOperation("获取任务名称")
     @FormatResult
     @RequestMapping(value = "/getTaskNameList", method = RequestMethod.GET)
-    public Object getTaskNameList(HttpServletRequest request) throws OperationException {
+    public Object getTaskNameList( @ApiParam("是否是审核/true/false") @RequestParam(value = "isGoAdopt", defaultValue = "false", required = false) boolean isGoAdopt,HttpServletRequest request) throws OperationException {
 
         try {
             User user = UserUtils.getUser();
@@ -1087,14 +1087,17 @@ public class GatherController {
                     if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                         List<Predicate> predicateOrg = new ArrayList<>();
                         predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
-                        Set<Organization> organizations = user.getOrganizations();
-                        if (organizations != null && organizations.size() > 0) {
-                            for (Organization organization : organizations) {
-                                predicateOrg.add(cb.equal(root.get("organizationId"), organization.getId()));
+                        if (isGoAdopt) {
+                            Set<Organization> organizations = user.getOrganizations();
+                            if (organizations != null && organizations.size() > 0) {
+                                for (Organization organization : organizations) {
+                                    predicateOrg.add(cb.equal(root.get("organizationId"), organization.getId()));
+                                }
                             }
                         }
                         predicates.add(cb.or(predicateOrg.toArray(new Predicate[predicateOrg.size()])));
-                        predicates.add(cb.or(cb.equal(root.get("status"), "已提交"), cb.equal(root.get("status"), "采集中")));
+                        if (isGoAdopt)
+                            predicates.add(cb.or(cb.equal(root.get("status"), "已提交"), cb.equal(root.get("status"), "采集中")));
                     }else if (UserUtils.ROLE_ADMIN.equals(user.getCheckRole())){
                         predicates.add(cb.equal(root.get("userId"), user.getId()));
                     }else {
@@ -1130,7 +1133,7 @@ public class GatherController {
     @ApiOperation("获取机构名称")
     @FormatResult
     @RequestMapping(value = "/getOrganizationNameList", method = RequestMethod.GET)
-    public Object getOrganizationNameList(HttpServletRequest request) throws OperationException {
+    public Object getOrganizationNameList( @ApiParam("是否是审核/true/false") @RequestParam(value = "isGoAdopt", defaultValue = "false", required = false) boolean isGoAdopt,HttpServletRequest request) throws OperationException {
 
         try {
             User user = UserUtils.getUser();
@@ -1143,14 +1146,16 @@ public class GatherController {
                     if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(user.getCheckRole())) {
                         List<Predicate> predicateOrg = new ArrayList<>();
                         predicateOrg.add(cb.equal(root.get("userId"), user.getId()));
-                        Set<Organization> organizations = user.getOrganizations();
-                        if (organizations != null && organizations.size() > 0) {
-                            for (Organization organization : organizations) {
-                                predicateOrg.add(cb.equal(root.get("organizationId"), organization.getId()));
+                        if (isGoAdopt) {
+                            Set<Organization> organizations = user.getOrganizations();
+                            if (organizations != null && organizations.size() > 0) {
+                                for (Organization organization : organizations) {
+                                    predicateOrg.add(cb.equal(root.get("organizationId"), organization.getId()));
+                                }
                             }
                         }
                         predicates.add(cb.or(predicateOrg.toArray(new Predicate[predicateOrg.size()])));
-                        predicates.add(cb.or(cb.equal(root.get("status"), "已提交"), cb.equal(root.get("status"), "采集中")));
+                        if (isGoAdopt) predicates.add(cb.or(cb.equal(root.get("status"), "已提交"), cb.equal(root.get("status"), "采集中")));
                     }else if (UserUtils.ROLE_ADMIN.equals(user.getCheckRole())){
                         predicates.add(cb.equal(root.get("userId"), user.getId()));
                     } else {
@@ -1162,20 +1167,20 @@ public class GatherController {
             };
 
             List<GatherPoint> findAll = gatherRepository.findAll(criteria);
-            List<String> taskNames = new ArrayList<>();
+            List<String> organizationNames = new ArrayList<>();
             for (GatherPoint gatherPoint : findAll) {
                 boolean isSame = false;
-                for (int i = 0; i < taskNames.size(); i++) {
-                    if (gatherPoint.getOrganizationName().equals(taskNames.get(i))) {
+                for (int i = 0; i < organizationNames.size(); i++) {
+                    if (gatherPoint.getOrganizationName().equals(organizationNames.get(i))) {
                         isSame = true;
                         continue;
                     }
                 }
                 if (!isSame) {
-                    taskNames.add(gatherPoint.getOrganizationName());
+                    organizationNames.add(gatherPoint.getOrganizationName());
                 }
             }
-            return taskNames;
+            return organizationNames;
 
         } catch (Exception e) {
             log.error("获取失败", e);

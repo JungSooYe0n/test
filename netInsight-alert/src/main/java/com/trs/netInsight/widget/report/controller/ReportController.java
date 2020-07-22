@@ -144,7 +144,7 @@ public class ReportController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "sids", value = "需要增加到收藏的sid集合，用分号（;）隔开", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "urltime", value = "发布时间  ;隔开", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "md5tag", value = " 需要增加到收藏的md5集合，用分号（;）隔开", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "md5tag", value = " 需要增加到收藏的md5集合，用分号（;）隔开", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "groupName", value = "来源 查库用 传多个的时候用（;）隔开", dataType = "String", paramType = "query", required = true) })
 	@RequestMapping(value = "/addFavourites", method = RequestMethod.POST)
 	public Object addFavourites(@RequestParam(value = "sids") String sids,
