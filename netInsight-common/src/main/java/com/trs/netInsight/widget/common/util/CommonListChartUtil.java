@@ -251,26 +251,26 @@ public class CommonListChartUtil {
                 map.put("time", vo.getUrlTime());
                 map.put("md5", vo.getMd5Tag());
                 String title= vo.getTitle();
-                map.put("title", title);
+                map.put("title", StringUtil.replaceImg(title));
                 if(StringUtil.isNotEmpty(title)){
                     title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
                 }
                 map.put("copyTitle", title); //前端复制功能需要用到
                 if("1".equals(wordIndex)){
                     //摘要
-                    map.put("abstracts", vo.getContent());
+                    map.put("abstracts", StringUtil.replaceImg(vo.getContent()));
                 }else{
                     if(StringUtil.isEmpty(wordIndex)){
                         if(StringUtil.isEmpty(vo.getAbstracts())){
                             //摘要
-                            map.put("abstracts", vo.getContent());
+                            map.put("abstracts", StringUtil.replaceImg(vo.getContent()));
                         }else{
                             //摘要
-                            map.put("abstracts", vo.getAbstracts());
+                            map.put("abstracts", StringUtil.replaceImg(vo.getAbstracts()));
                         }
                     }else{
                         //摘要
-                        map.put("abstracts", vo.getAbstracts());
+                        map.put("abstracts", StringUtil.replaceImg(vo.getAbstracts()));
                     }
                 }
                 if(vo.getKeywords() != null && vo.getKeywords().size() >3){
@@ -313,20 +313,20 @@ public class CommonListChartUtil {
                         fullContent = ReportUtil.calcuHit("",fullContent,true);
                         setContent = StringUtil.cutContentByFont(ocrContent, Const.CONTENT_LENGTH);
                     }
-                    map.put("title", setContent);
-                    map.put("abstracts", setContent);
+                    map.put("title", StringUtil.replaceImg(setContent));
+                    map.put("abstracts", StringUtil.replaceImg(setContent));
                     map.put("copyTitle", fullContent); //前端复制功能需要用到
                     map.put("author", vo.getScreenName());
                     map.put("srcName", vo.getRetweetedScreenName());
                 } else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
-                    map.put("title", vo.getContent());
-                    map.put("abstracts", vo.getContent());
+                    map.put("title", StringUtil.replaceImg(vo.getContent()));
+                    map.put("abstracts", StringUtil.replaceImg(vo.getContent()));
                     map.put("copyTitle", fullContent); //前端复制功能需要用到
                     map.put("author", vo.getAuthors());
                     map.put("srcName", vo.getRetweetedScreenName());
                 } else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
-                    map.put("title", vo.getContent());
-                    map.put("abstracts", vo.getContent());
+                    map.put("title", StringUtil.replaceImg(vo.getContent()));
+                    map.put("abstracts", StringUtil.replaceImg(vo.getContent()));
                     map.put("author", vo.getAuthors());
                     map.put("srcName", vo.getSrcName());
                     map.put("copyTitle", fullContent); //前端复制功能需要用到
