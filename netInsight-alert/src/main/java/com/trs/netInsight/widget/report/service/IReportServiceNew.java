@@ -109,7 +109,7 @@ public interface IReportServiceNew {
 	 * @return
 	 */
 	public Page<ReportNew> listAllReport(String reportType, String searchText,
-										 String groupName, Integer pageNum, Integer pageSize);
+										 String groupName, Integer pageNum, Integer pageSize,String time);
 
 
 	/**

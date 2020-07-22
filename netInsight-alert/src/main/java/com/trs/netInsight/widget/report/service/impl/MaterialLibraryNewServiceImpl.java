@@ -314,8 +314,10 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                         srcName = fav.getRetweetedScreenName();
                         newAdd.setAbstracts(content);
                     }else if(Const.GROUPNAME_DUANSHIPIN.equals(oneGroupName) || Const.GROUPNAME_CHANGSHIPIN.equals(oneGroupName)){
-                        newAdd.setTitle(content);
-                        newAdd.setUrlTitle(content);
+                        if(StringUtil.isEmpty(title)){
+                            newAdd.setTitle(content);
+                            newAdd.setUrlTitle(content);
+                        }
                         newAdd.setAbstracts(content);
                     }
                     screenName =  StringUtil.filterEmoji(StringUtil.replaceImg(screenName));

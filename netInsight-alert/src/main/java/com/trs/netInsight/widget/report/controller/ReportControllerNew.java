@@ -432,11 +432,11 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "groupName", value = "专报分组名称", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "pageNum", value = "分页第几页", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "pageSize", value = "分页每页显示多少条", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "time", value = "筛选时间", dataType = "String", paramType = "query", required = true)})
+			@ApiImplicitParam(name = "time", value = "筛选时间", dataType = "String", paramType = "query", required = false)})
 	@RequestMapping(value = "/listAllReport", method = RequestMethod.POST)
 	@FormatResult
-	public Object listAllReport(String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize){
-		return reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize);
+	public Object listAllReport(String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize,String time){
+		return reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize,time);
 	}
 	
 	/**

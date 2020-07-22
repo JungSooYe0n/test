@@ -110,6 +110,13 @@ public class ReportResource extends BaseEntity {
 	 * */
 	@Column(name = "title" , columnDefinition="TEXT")
 	private String title;
+	public String getTitle(){
+		if(StringUtil.isNotEmpty(this.title)){
+			return this.title;
+		}else{
+			return this.content;
+		}
+	}
 
 	/**
 	 * 摘要

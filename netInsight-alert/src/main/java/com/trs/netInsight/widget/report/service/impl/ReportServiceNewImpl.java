@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.report.service.impl;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -887,7 +888,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	}
 
 	@Override
-	public Page<ReportNew> listAllReport(String reportType,  String searchText, String groupName, Integer pageNum, Integer pageSize) {
+	public Page<ReportNew> listAllReport(String reportType,  String searchText, String groupName, Integer pageNum, Integer pageSize,String time) {
 		//Page<ReportNew> findByReportType ;
 		User loginUser = UserUtils.getUser();
 		//删除历史报告
@@ -896,35 +897,8 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		if("HistoryReport".equals(reportType)){
 			return findHistoryReports(searchText ,loginUser, pageNum, pageSize);
 		}else{
-			Page<ReportNew> pageList = findCurrentReports(loginUser, reportType, searchText, groupName, pageNum, pageSize);
-			/*if(pageList != null && pageList.getContent()!= null && pageList.getContent().size() >0){
-				List<ReportNew> list = pageList.getContent();
-				for(ReportNew reportNew :list){
-					List<TElementNew> elements = JSONArray.parseArray(reportNew.getTemplateList(), TElementNew.class);
-
-					Boolean flag = judgeTemplateChapter(reportType,elements); //判断当前模板是否是最新的模板数据，老的报告模板不对，不允许预览，只可以下载
-					reportNew.setPreviewFlag(flag);
-				}
-			}*/
-			return pageList;
+			return findCurrentReports(loginUser, reportType, searchText, groupName, pageNum, pageSize,time);
 		}
-		/*if(StringUtil.isNotEmpty(searchText)){
-			searchText = "%" + searchText + "%";
-			//报告列表，结果中搜索
-			if("专报".equals(reportType)){
-				findByReportType = reportNewRepository.findByReportTypeAndUserIdAndGroupNameAndReportNameLikeAndCreatedTimeGreaterThanAndDocPathNotNull(reportType, userId, groupName, searchText, getDeletedNodeTime(),new PageRequest(pageNum, pageSize, new Sort(Direction.DESC , "createdTime")));
-			}else{
-				findByReportType = reportNewRepository.findByReportTypeAndUserIdAndReportNameLikeAndDocPathNotNull(reportType, userId, searchText, new PageRequest(pageNum, pageSize, new Sort(Direction.DESC , "createdTime")));
-			}
-		}else{
-			//只是报告列表
-			if("专报".equals(reportType)){
-				findByReportType = reportNewRepository.findByReportTypeAndUserIdAndGroupNameAndDocPathNotNull(reportType, userId, groupName, new PageRequest(pageNum, pageSize, new Sort(Direction.DESC , "createdTime")));
-			}else{
-				findByReportType = reportNewRepository.findByReportTypeAndUserIdAndDocPathNotNull(reportType, userId, new PageRequest(pageNum, pageSize, new Sort(Direction.DESC , "createdTime")));
-			}
-		}
-		return findByReportType;*/
 	}
 
 	/***
@@ -936,7 +910,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	 * @param pageSize
 	 * @return				报告列表
 	 */
-	private Page<ReportNew> findCurrentReports(User user, String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize) {
+	private Page<ReportNew> findCurrentReports(User user, String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize,String time) {
 		if(StringUtil.isNotEmpty(searchText)){
 			searchText = "%" + searchText + "%";
 		}
@@ -945,6 +919,22 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		return  reportNewRepository.findAll((Root<ReportNew> root, CriteriaQuery<?> query, CriteriaBuilder cb) ->{
 			ArrayList<Predicate> allPredicates = new ArrayList<>();
 			Predicate reportTypePredicate = cb.equal(root.get("reportType").as(String.class), reportType);
+			if(StringUtil.isNotEmpty(time) && time.contains(";")){
+				String[] timeArr = time.split(";");
+				if(timeArr.length == 2 && DateUtil.isTimeFormatter(timeArr[0]) && DateUtil.isTimeFormatter(timeArr[1])){
+					SimpleDateFormat format = new SimpleDateFormat(DateUtil.yyyyMMdd);
+					Date startDate = null;
+					Date endDate = null;
+					try {
+						startDate = format.parse(timeArr[0]);
+						endDate = format.parse(timeArr[1]);
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}
+					Predicate reportDate = cb.between(root.get("createdTime"),startDate, endDate);
+					allPredicates.add(reportDate);
+				}
+			}
 			Predicate userPredicate = null;
 			if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
 				userPredicate = cb.equal(root.get("userId").as(String.class), user.getId());

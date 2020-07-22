@@ -623,7 +623,7 @@ public class CommonListServiceImpl implements ICommonListService {
 
                     searchBuilder.setPageSize(1);
 
-                    long ftsCount = commonListService.ftsCount(searchBuilder, sim, irSimflag, irSimflagAll, type);
+                    Long ftsCount = commonListService.ftsCount(searchBuilder, sim, irSimflag, irSimflagAll, type);
                     //现在计算相似文章数，默认按照减去自身
                     asyncDocument.setSimNum(ftsCount);
                 } else {
@@ -842,7 +842,7 @@ public class CommonListServiceImpl implements ICommonListService {
     @Override
     @HybaseRead
     public <T extends IQueryBuilder> Long ftsCount(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String type) throws TRSSearchException {
-        long count = 0L;
+        Long count = 0L;
         try {
             QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
             if (queryBuilder == null) {
