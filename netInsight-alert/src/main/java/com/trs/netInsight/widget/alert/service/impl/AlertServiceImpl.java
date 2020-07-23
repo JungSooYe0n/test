@@ -451,9 +451,12 @@ public class AlertServiceImpl implements IAlertService {
 		if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())){
 			List<FtsDocumentAlert> pageItems = ftsDocumentAlertPagedList.getPageItems();
 			for (FtsDocumentAlert pageItem : pageItems) {
-				pageItem.setContent(pageItem.getContent().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
+				if (ObjectUtil.isNotEmpty(pageItem.getContent())){
+					pageItem.setContent(pageItem.getContent().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
+				}
 				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
 				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
+			pageItem.setGroupName(CommonListChartUtil.formatPageShowGroupName(pageItem.getGroupName()));
 			}
 			PageAlert pageAlert = new PageAlert();
 			pageAlert.setContent(ftsDocumentAlertPagedList.getPageItems());

@@ -121,7 +121,8 @@ public class InfoListController {
 	 */
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
-
+	@Autowired
+	private FullTextSearch hybase8SearchServiceNew;
 	// @Autowired
 	// private LogPrintUtil loginpool;
 	/**
@@ -1196,16 +1197,29 @@ public class InfoListController {
 	@ApiOperation("文章详情查看是否预警的单独接口")
 	@FormatResult
 	@RequestMapping(value = "/hasAlert", method = RequestMethod.GET)
-	public Object hasAlert(@ApiParam("文章sid/hkey/mid") @RequestParam("sid") String sid) throws OperationException{
-          List<AlertEntity> alert = AlertUtil.getAlerts(UserUtils.getUser().getId(),sid,alertNetinsightUrl);
-		  Map<String,Boolean> map = new HashMap<>();
-		  if (ObjectUtil.isNotEmpty(alert)) {
-			  map.put("send", true);
-//				ftsDocument.setSend(true);
-			} else {
-//				ftsDocument.setSend(false);
+	public Object hasAlert(@ApiParam("文章sid/hkey/mid") @RequestParam("sid") String sid) throws TRSException {
+//          List<AlertEntity> alert = AlertUtil.getAlerts(UserUtils.getUser().getId(),sid,alertNetinsightUrl);
+		User user = UserUtils.getUser();
+		String userId = user.getId();
+		QueryBuilder queryBuilder = new QueryBuilder();
+		queryBuilder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
+		queryBuilder.setPageNo(0);
+		queryBuilder.setPageSize(1);
+		queryBuilder.setDatabase(Const.ALERT);
+		queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
+		queryBuilder.filterField(FtsFieldConst.FIELD_SID,sid,Operator.Equal);
+		PagedList<FtsDocumentAlert> ftsDocumentAlertPagedList = hybase8SearchServiceNew.ftsAlertList(queryBuilder, FtsDocumentAlert.class);
+		Map<String,Boolean> map = new HashMap<>();
+		if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())) {
+			List<FtsDocumentAlert> pageItems = ftsDocumentAlertPagedList.getPageItems();
+			if (ObjectUtil.isNotEmpty(pageItems)){
+				map.put("send", true);
+			}else {
 				map.put("send", false);
 			}
+		}else {
+			map.put("send", false);
+		}
 		return map;
 	}
 	/**
