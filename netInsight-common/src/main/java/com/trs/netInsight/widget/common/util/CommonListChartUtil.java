@@ -296,7 +296,10 @@ public class CommonListChartUtil {
                 map.put("favourite", vo.isFavourite());
                 String fullContent = vo.getExportContent();
                 if(StringUtil.isNotEmpty(fullContent)){
-                    fullContent = ReportUtil.calcuHit("",fullContent,true);
+                    if(fullContent.indexOf("<font color=red>") != -1){
+                        fullContent = ReportUtil.calcuHit("",fullContent,true);
+                    }
+                    fullContent = StringUtil.replaceImg(StringUtil.replaceFont(fullContent));
                 }
                 map.put("siteName", vo.getSiteName());
                 map.put("author", vo.getAuthors());
@@ -325,11 +328,9 @@ public class CommonListChartUtil {
                     map.put("author", vo.getAuthors());
                     map.put("srcName", vo.getRetweetedScreenName());
                 } else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
-                    map.put("title", StringUtil.replaceImg(vo.getContent()));
-                    map.put("abstracts", StringUtil.replaceImg(vo.getContent()));
+                    map.put("abstracts", vo.getContent());
                     map.put("author", vo.getAuthors());
                     map.put("srcName", vo.getSrcName());
-                    map.put("copyTitle", fullContent); //前端复制功能需要用到
                 }
                 map.put("trslk", trslk);
                 map.put("channel", vo.getChannel());
