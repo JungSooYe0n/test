@@ -21,12 +21,10 @@ import com.trs.netInsight.support.hybaseRedis.HybaseRead;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
-import com.trs.netInsight.widget.alert.entity.AlertRuleBackups;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
-import com.trs.netInsight.widget.alert.service.IAlertRuleBackupsService;
 import com.trs.netInsight.widget.alert.service.IAlertRuleService;
 import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -74,8 +72,6 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 	@Autowired
 	private INoticeSendService noticeSendService;
 
-	@Autowired
-	private IAlertRuleBackupsService alertRuleBackupsService;
 
 	@Autowired
 	private IAlertService alertService;
@@ -576,7 +572,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		// 存入数据库
 		alertRule = alertRuleRepository.saveAndFlush(alertRule);
 
-		alertRuleBackupsService.add(AlertRuleBackups.getAlertRuleBackups(alertRule));
+//		alertRuleBackupsService.add(AlertRuleBackups.getAlertRuleBackups(alertRule));
 		return alertRule;
 	}
 
@@ -641,7 +637,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		//删除该规则产生的预警结果
 		alertRuleRepository.delete(ruleId);
 		//删除该规则 对应的预警备份表记录
-		alertRuleBackupsService.deleteByAlertRuleId(ruleId);
+//		alertRuleBackupsService.deleteByAlertRuleId(ruleId);
 //		}
 	}
 
@@ -680,9 +676,9 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 	@Override
 	public AlertRule update(AlertRule alertRule, boolean choose) {
 		AlertRule rule = alertRuleRepository.save(alertRule);
-		if (choose) {
-			alertRuleBackupsService.add(AlertRuleBackups.getAlertRuleBackups(alertRule));
-		}
+//		if (choose) {
+//			alertRuleBackupsService.add(AlertRuleBackups.getAlertRuleBackups(alertRule));
+//		}
 		return rule;
 	}
 
@@ -2066,23 +2062,23 @@ private InfoListResult setInfoData(InfoListResult infoListResult){
 		System.err.println("预警规则结束~~~~~~~~~~~~~~~");
 
 
-		List<AlertRuleBackups> alertRuleBackups = alertRuleBackupsService.findSimple();
-		if (ObjectUtil.isNotEmpty(alertRuleBackups)){
-			System.err.println("预警备份表开始，共"+alertRuleBackups.size()+"条。");
-			for (AlertRuleBackups alertRuleBackup : alertRuleBackups) {
-				String anyKeyword = alertRuleBackup.getAnyKeyword();
-				if (StringUtil.isNotEmpty(anyKeyword)){
-					Map<String, Object> hashMap = new HashMap<>();
-					hashMap.put("wordSpace",0);
-					hashMap.put("wordOrder",false);
-					hashMap.put("keyWords",anyKeyword);
-					String toJSONString = JSONObject.toJSONString(hashMap);
-					alertRuleBackup.setAnyKeyword("["+toJSONString+"]");
-					alertRuleBackupsService.add(alertRuleBackup);
-				}
-			}
-		}
-		System.err.println("预警规则备份表结束~~~~~~~~~~~~~");
+//		List<AlertRuleBackups> alertRuleBackups = alertRuleBackupsService.findSimple();
+//		if (ObjectUtil.isNotEmpty(alertRuleBackups)){
+//			System.err.println("预警备份表开始，共"+alertRuleBackups.size()+"条。");
+//			for (AlertRuleBackups alertRuleBackup : alertRuleBackups) {
+//				String anyKeyword = alertRuleBackup.getAnyKeyword();
+//				if (StringUtil.isNotEmpty(anyKeyword)){
+//					Map<String, Object> hashMap = new HashMap<>();
+//					hashMap.put("wordSpace",0);
+//					hashMap.put("wordOrder",false);
+//					hashMap.put("keyWords",anyKeyword);
+//					String toJSONString = JSONObject.toJSONString(hashMap);
+//					alertRuleBackup.setAnyKeyword("["+toJSONString+"]");
+//					alertRuleBackupsService.add(alertRuleBackup);
+//				}
+//			}
+//		}
+//		System.err.println("预警规则备份表结束~~~~~~~~~~~~~");
 	}
 
 	/**
