@@ -59,7 +59,9 @@ public class ReportUtil {
 			return getMapComment(img_data);
 		} else if (ColumnConst.CHART_PIE_EMOTION.equals(imgType) || "moodStatistics".equals(imgType)) {
 			return String.format(getEmotion(img_data), chapter);
-		}else{
+		} else if ("gaugeChart".equals(imgType)) {
+			return getMapComment(img_data);
+		} else{
 			log.info("没有匹配到对应的图片类型 - "+imgType);
 		}
 		return null;
@@ -231,26 +233,22 @@ public class ReportUtil {
 			}
 		}
 		StringBuffer strResult = new StringBuffer();
-		strResult.append(startSpan).append("由图可知，传播数量居首位的是").append(endSpan);
-		strResult.append(startFontSpan);
+		strResult.append("由图可知，传播数量居首位的是");
 		for (String str : headStr) {
 			strResult.append(str);
 		}
-		strResult.append(endSpan);
-		strResult.append(startSpan).append("，为").append(endSpan);
-		strResult.append(startFontSpan).append(headCount.get(0)).append(endSpan);
+		strResult.append("，为");
+		strResult.append(headCount.get(0));
 		if (secStr.size() > 0) {
-			strResult.append(startSpan).append("篇，其次为").append(endSpan);
-			strResult.append(startFontSpan);
+			strResult.append("篇，其次为");
 			if(secStr.size()>2){
 				secStr = secStr.subList(0,2);
 			}
 			for (String str : secStr) {
 				strResult.append(str);
 			}
-			strResult.append(endSpan);
 		}
-		strResult.append(startSpan).append("。").append(endSpan);
+		strResult.append("。");
 		return strResult.toString();
 	}
 
@@ -328,23 +326,19 @@ public class ReportUtil {
 			}
 		}
 		StringBuffer strResult = new StringBuffer();
-		strResult.append(startSpan).append("由图可知，传播数量居首位的是").append(endSpan);
-		strResult.append(startFontSpan);
+		strResult.append("由图可知，传播数量居首位的是");
 		for (String str : headStr) {
 			strResult.append(str);
 		}
-		strResult.append(endSpan);
-		strResult.append(startSpan).append("，为").append(endSpan);
-		strResult.append(startFontSpan).append(headCount.get(0)).append(endSpan);
+		strResult.append("，为");
+		strResult.append(headCount.get(0));
 		if (secStr.size() > 0) {
-			strResult.append(startSpan).append("篇，其次为").append(endSpan);
-            strResult.append(startFontSpan);
+			strResult.append("篇，其次为");
 			for (String str : secStr) {
 				strResult.append(str);
 			}
-            strResult.append(endSpan);
 		}
-		strResult.append(startSpan).append("。").append(endSpan);
+		strResult.append("。");
 		return strResult.toString();
 	}
 
@@ -453,28 +447,22 @@ public class ReportUtil {
 			}
 		}
 		StringBuffer strResult = new StringBuffer();
-		strResult.append(startSpan).append("由图可知，%s居首位的是").append(endSpan);
-		strResult.append(startFontSpan);
+		strResult.append("由图可知，%s居首位的是");
 		for (String str : headStr) {
 			strResult.append(str);
 		}
-		strResult.append(endSpan);
-		strResult.append(startSpan).append("，为").append(endSpan);
-		strResult.append(startFontSpan).append(headCount.get(0)).append(endSpan);
+		strResult.append("，为");
+		strResult.append(headCount.get(0));
 		if (secStr.size() > 0) {
-			strResult.append(startSpan).append("篇，其次为").append(endSpan);
-            strResult.append(startFontSpan);
+			strResult.append("篇，其次为");
             if(secStr.size()>2){
             	secStr = secStr.subList(0,2);
 			}
 			for (String str : secStr) {
 				strResult.append(str);
 			}
-            strResult.append(endSpan);
 		}
-        strResult.append(startSpan);
 		strResult.append("。");
-        strResult.append(endSpan);
 		return strResult.toString();
 	}
 	private static String getEmotion(String imgData) {
@@ -546,25 +534,19 @@ public class ReportUtil {
 			}
 		}
 		StringBuffer strResult = new StringBuffer();
-		strResult.append(startSpan).append("由图可知，情感分析居首位的是").append(endSpan);
-		strResult.append(startFontSpan);
+		strResult.append("由图可知，情感分析居首位的是");
 		for (String str : headStr) {
 			strResult.append(str);
 		}
-		strResult.append(endSpan);
-		strResult.append(startSpan).append("，为").append(endSpan);
-		strResult.append(startFontSpan).append(headCount.get(0)).append(endSpan);
+		strResult.append("，为");
+		strResult.append(headCount.get(0));
 		if (secStr.size() > 0) {
-			strResult.append(startSpan).append("篇，其次为").append(endSpan);
-			strResult.append(startFontSpan);
+			strResult.append("篇，其次为");
 			for (String str : secStr) {
 				strResult.append(str);
 			}
-			strResult.append(endSpan);
 		}
-		strResult.append(startSpan);
 		strResult.append("。");
-		strResult.append(endSpan);
 		return strResult.toString();
 	}
 
@@ -633,14 +615,14 @@ public class ReportUtil {
 				str5 = parseArray.get(3).get(chartResultField.getContrastField()).toString();
 			}
 			StringBuffer strResult = new StringBuffer();
-			strResult.append(startSpan).append("由图可知，热点地域分布主要集中于：").append(endSpan)
-                    .append(startFontSpan).append(str1).append("、").append(str2).append("、").append(str3)
-					.append("、").append(str4).append("、").append(str5).append(endSpan)
-                    .append(startSpan).append("，关注度较高的前五个省信息量分别是：").append(endSpan)
-					.append(startFontSpan).append(arrayList.get(arrayList.size() - 1)).append("、").append(arrayList.get(arrayList.size() - 2))
+			strResult.append("由图可知，热点地域分布主要集中于：")
+                    .append(str1).append("、").append(str2).append("、").append(str3)
+					.append("、").append(str4).append("、").append(str5)
+                    .append("，关注度较高的前五个省信息量分别是：")
+					.append(arrayList.get(arrayList.size() - 1)).append("、").append(arrayList.get(arrayList.size() - 2))
 					.append("、").append(arrayList.get(arrayList.size() - 3)).append("、")
-					.append(arrayList.get(arrayList.size() - 4)).append("、").append(arrayList.get(arrayList.size() - 5)).append(endSpan)
-					.append(startSpan).append("。").append(endSpan);
+					.append(arrayList.get(arrayList.size() - 4)).append("、").append(arrayList.get(arrayList.size() - 5))
+					.append("。");
 
 			return strResult.toString();
 		}
@@ -1001,12 +983,6 @@ public class ReportUtil {
 				}
 			}
 		}
-
-		// tElements.stream().filter(te ->
-		// te.getChapterType().equals("SingleResource")).filter(te ->
-		// te.getChapterType().equals("chart")).forEach(te ->{
-		// te.getChapaterContent().stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
-		// });
 		List<TElementNew> tElementsResult = tElements.stream()
 				.sorted(Comparator.comparing(TElementNew::getChapterPosition)).collect(Collectors.toList());
 		return tElementsResult;
@@ -1063,77 +1039,6 @@ public class ReportUtil {
 		list.add(1, "2");
 		System.out.println(list);
 	}
-
-	// public static List<TElementNew> setResourceInElements(List<TElementNew>
-	// elementList , List<ReportResource> reportResources){
-	// List<TElementNew> tElements = new ArrayList<>();
-	// for (ReportResource reportResource : reportResources) {
-	// switch (reportResource.getChapter()){
-	// case REPORTINTRO:
-	//
-	// }
-	// }
-	// elementList.stream().forEach(e ->{
-	// //遍历模板中各模块的时候需要判断该模块是否被选中
-	// if(e.getSelected() == 1){
-	// String jsonData = null;
-	// try {
-	// // Object jsonObject =
-	// reportData.getClass().getDeclaredMethod(CHAPTERS2METHOD.get(e.getChapterName())).invoke(reportData);
-	//
-	// Object jsonObject =
-	// reportData.getClass().getDeclaredMethod(CHAPTERS2METHODNEW.get(e.getChapterDetail())).invoke(reportData);
-	// jsonData = jsonObject == null ? null :jsonObject.toString();
-	// } catch (Exception e1) {
-	// e1.printStackTrace();
-	// }
-	// TElementNew tElement = new TElementNew(e.getChapterName(), 1,
-	// e.getChapterPosition());
-	// tElement.setChapterDetail(e.getChapterDetail());
-	// tElement.setChapterType(e.getChapterType());
-	// if ("报告简介".equals(e.getChapterName())) {
-	// List<ReportResource> common = new ArrayList<>();
-	// ReportResource resource = new ReportResource();
-	// resource.setImgComment(jsonData);
-	// common.add(resource);
-	// tElement.setChapaterContent(common);
-	// }else if("数据统计概述".equals(e.getChapterName()) && jsonData!= null){
-	// List<ReportResource> common = new ArrayList<>();
-	// ReportResource resource = new ReportResource();
-	// resource.setImgComment(jsonData);
-	// common.add(resource);
-	// tElement.setChapaterContent(common);
-	// }else{
-	// tElement.setChapaterContent(JSONObject.parseObject(jsonData,new
-	// TypeReference<List<ReportResource>>(){}));
-	// }
-	// tElements.add(tElement);
-	// }
-	// } );
-	// //专报按位置信息排序，列表信息才能排序即： ListResources "SingleResource", "chart"不能
-	// for (TElementNew tElementNew : tElements) {
-	// List<ReportResource> list = new ArrayList<ReportResource>();
-	// if(!tElementNew.getChapterType().equals("SingleResource") &&
-	// !tElementNew.getChapterType().equals("chart")){
-	// list = tElementNew.getChapaterContent();
-	// if(ObjectUtil.isNotEmpty(list)){
-	// List<ReportResource> list2 =
-	// list.stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
-	// tElementNew.setChapaterContent(list2);
-	// }
-	// }
-	// }
-	//
-	//// tElements.stream().filter(te ->
-	// te.getChapterType().equals("SingleResource")).filter(te ->
-	// te.getChapterType().equals("chart")).forEach(te ->{
-	//// te.getChapaterContent().stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
-	//// });
-	// List<TElementNew> tElementsResult =
-	// tElements.stream().sorted(Comparator.comparing(TElementNew ::
-	// getChapterPosition)).collect(Collectors.toList());
-	// return tElementsResult;
-	// }
 	public static String statisticsTimeRestore(String primaryStatisticsTime) {
 		// TODO 需要把经过预览之后的时间格式还原
 		return "7d";

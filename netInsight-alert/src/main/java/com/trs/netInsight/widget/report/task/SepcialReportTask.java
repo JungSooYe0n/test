@@ -18,6 +18,7 @@ import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.service.impl.CommonChartServiceImpl;
 import com.trs.netInsight.widget.common.service.impl.CommonListServiceImpl;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.report.util.SpecialReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import org.apache.commons.lang.StringUtils;
@@ -136,8 +137,8 @@ public class SepcialReportTask implements Runnable {
         } catch (Exception e) {
             log.error("专题分析专报生成 时间格式转换失败", e);
         }
-        final String rangeTime= majorRangeTime;
-        final String[] timeArray= majorTimeArray;
+        final String rangeTime = majorRangeTime;
+        final String[] timeArray = majorTimeArray;
         // 单一数据源排重
         boolean irSimflag = specialProject.isIrSimflag();
         //全网排重
@@ -194,14 +195,17 @@ public class SepcialReportTask implements Runnable {
                                     Object object = specialChartAnalyzeService.getSituationAssessment(searchBuilder, specialProject);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OVERVIEWOFDATA, (endMillis - startMillis)));
-                                    ReportResource situationAccess = new ReportResource();
-                                    situationAccess.setImg_data(object.toString());
-                                    situationAccess.setImgType("gaugeChart");
-                                    situationAccess.setImgComment("暂定");
-                                    situationAccess.setId(UUID.randomUUID().toString().replace("-", ""));
-                                    reportData.setSituationAccessment(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(situationAccess))));
+                                    if (ObjectUtil.isNotEmpty(object)) {
+                                        ReportResource situationAccess = new ReportResource();
+                                        situationAccess.setImg_data(object.toString());
+                                        situationAccess.setImgType("gaugeChart");
+                                        // 数据、图类型、图名字
+                                        situationAccess.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(object), "gaugeChart", "态势评估"));
+                                        situationAccess.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setSituationAccessment(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(situationAccess))));
+                                    }
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, SITUATIONACCESSMENTkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, SITUATIONACCESSMENTkey);
                                     log.error(SITUATIONACCESSMENTkey, e);
                                 }
                                 reportDataNewRepository.saveSituationAccessment(reportData.getSituationAccessment(), reportData.getId());
@@ -214,21 +218,23 @@ public class SepcialReportTask implements Runnable {
                                 try {
                                     Object dayTrendResult = specialChartAnalyzeService.getWebCountLine(specialProject, rangeTime, "day");
                                     Object hourTrendResult = specialChartAnalyzeService.getWebCountLine(specialProject, rangeTime, "hour");
-                                    Map<String, Object> dataTrendResult = new HashMap<>();
-                                    dataTrendResult.put("day", dayTrendResult);
-                                    dataTrendResult.put("hour", hourTrendResult);
+                                    if (ObjectUtil.isNotEmpty(dayTrendResult) || ObjectUtil.isNotEmpty(hourTrendResult)) {
+                                        Map<String, Object> dataTrendResult = new HashMap<>();
+                                        dataTrendResult.put("day", dayTrendResult);
+                                        dataTrendResult.put("hour", hourTrendResult);
+                                        ReportResource dataTrendRR = new ReportResource();
+                                        dataTrendRR.setImg_data(JSON.toJSONString(dataTrendResult));
+                                        dataTrendRR.setImgType("brokenLineChart");
+                                        // 数据、图类型、图名字
+                                        dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(dayTrendResult), "brokenLineChart", "各舆论场趋势分析"));
+                                        dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+
+                                        reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                    }
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, DATATRENDANALYSIS, (endMillis - startMillis)));
-
-                                    ReportResource dataTrendRR = new ReportResource();
-                                    dataTrendRR.setImg_data(JSON.toJSONString(dataTrendResult));
-                                    dataTrendRR.setImgType("brokenLineChart");
-                                    dataTrendRR.setImgComment("暂定！");
-                                    dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
-
-                                    reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, DATATRENDANALYSISkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, DATATRENDANALYSISkey);
                                     log.error(DATATRENDANALYSIS, e);
                                 }
                                 reportDataNewRepository.saveDataTrendAnalysis(reportData.getDataTrendAnalysis(), reportData.getId());
@@ -247,15 +253,17 @@ public class SepcialReportTask implements Runnable {
 
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, DATASOURCEANALYSIS, (endMillis - startMillis)));
-
-                                    ReportResource dataSourceRR = new ReportResource();
-                                    dataSourceRR.setImg_data(JSON.toJSONString(list));
-                                    dataSourceRR.setImgType("pieGraphChartMeta");
-                                    dataSourceRR.setImgComment("暂定");
-                                    dataSourceRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                    reportData.setDataSourceAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataSourceRR))));
+                                    if (ObjectUtil.isNotEmpty(list)) {
+                                        ReportResource dataSourceRR = new ReportResource();
+                                        dataSourceRR.setImg_data(JSON.toJSONString(list));
+                                        dataSourceRR.setImgType("pieChart");
+                                        // 数据、图类型、图名字
+                                        dataSourceRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(list), "pieChart", null));
+                                        dataSourceRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setDataSourceAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataSourceRR))));
+                                    }
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, DATASOURCEANALYSISkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, DATASOURCEANALYSISkey);
                                     log.error(DATASOURCEANALYSIS, e);
                                 }
                                 reportDataNewRepository.saveDataSourceAnalysis(reportData.getDataSourceAnalysis(), reportData.getId());
@@ -273,26 +281,30 @@ public class SepcialReportTask implements Runnable {
                                     Object exportResult = specialChartAnalyzeService.getSentimentAnalysis(specialProject, rangeTime, "EXPORT_VIEW");
                                     //网民观点
                                     Object netizenResult = specialChartAnalyzeService.getSentimentAnalysis(specialProject, rangeTime, "NETIZEN_VIEW");
-                                    Map<String, Object> opinionResult = new HashMap<>();
-                                    opinionResult.put("OFFICIAL_VIEW", officialResult);
-                                    opinionResult.put("MEDIA_VIEW", mediaResult);
-                                    opinionResult.put("EXPORT_VIEW", exportResult);
-                                    opinionResult.put("NETIZEN_VIEW", netizenResult);
-                                    endMillis = System.currentTimeMillis();
-                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OPININOANALYSIS, (endMillis - startMillis)));
+                                    if (ObjectUtil.isNotEmpty(officialResult) || ObjectUtil.isNotEmpty(mediaResult)
+                                           || ObjectUtil.isNotEmpty(exportResult)|| ObjectUtil.isNotEmpty(netizenResult)) {
 
-                                    ReportResource dataTrendRR = new ReportResource();
-                                    dataTrendRR.setImg_data(JSON.toJSONString(opinionResult));
-                                    dataTrendRR.setImgType("statisticBox");
-                                    dataTrendRR.setImgComment("暂定！");
-                                    dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        Map<String, Object> opinionResult = new HashMap<>();
+                                        opinionResult.put("OFFICIAL_VIEW", officialResult);
+                                        opinionResult.put("MEDIA_VIEW", mediaResult);
+                                        opinionResult.put("EXPORT_VIEW", exportResult);
+                                        opinionResult.put("NETIZEN_VIEW", netizenResult);
+                                        endMillis = System.currentTimeMillis();
+                                        log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OPININOANALYSIS, (endMillis - startMillis)));
 
-                                    reportData.setOpinionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                        ReportResource dataTrendRR = new ReportResource();
+                                        dataTrendRR.setImg_data(JSON.toJSONString(opinionResult));
+                                        dataTrendRR.setImgType("statisticBox");
+                                        dataTrendRR.setImgComment("暂定！");
+                                        dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+
+                                        reportData.setOpinionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                    }
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, OPINIONANALYSISkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, OPINIONANALYSISkey);
                                     log.error(OPININOANALYSIS, e);
                                 }
-                                reportDataNewRepository.saveOpinionAnalysis(reportData.getOpinionAnalysis(), reportData.getId());
+                                reportDataNewRepository.saveOpinionAnalysis(StringUtil.filterEmoji(reportData.getOpinionAnalysis().replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")), reportData.getId());
                                 break;
 
                             case EMOTIONANALYSISkey:
@@ -305,15 +317,17 @@ public class SepcialReportTask implements Runnable {
                                     List<Map<String, String>> list = specialChartAnalyzeService.emotionOption(searchBuilder, specialProject);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, EMOTIONANALYSIS, (endMillis - startMillis)));
-
-                                    ReportResource emotionRR = new ReportResource();
-                                    emotionRR.setImg_data(JSON.toJSONString(list));
-                                    emotionRR.setImgType("pieGraphChartMeta");
-                                    emotionRR.setImgComment("暂定！");
-                                    emotionRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                    reportData.setEmotionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(emotionRR))));
+                                    if (ObjectUtil.isNotEmpty(list)) {
+                                        ReportResource emotionRR = new ReportResource();
+                                        emotionRR.setImg_data(JSON.toJSONString(list));
+                                        emotionRR.setImgType("emotionPieChart");
+                                        // 数据、图类型、图名字
+                                        emotionRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(list), "emotionPieChart", null));
+                                        emotionRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setEmotionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(emotionRR))));
+                                    }
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, EMOTIONANALYSISkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, EMOTIONANALYSISkey);
                                     log.error(EMOTIONANALYSIS, e);
                                 }
                                 reportDataNewRepository.saveEmotionAnalysis(reportData.getEmotionAnalysis(), reportData.getId());
@@ -326,15 +340,18 @@ public class SepcialReportTask implements Runnable {
                                     Object list = specialChartAnalyzeService.getMoodStatistics(specialProject, rangeTime);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, MOODSTATISTICS, (endMillis - startMillis)));
+                                    if (ObjectUtil.isNotEmpty(list)) {
+                                        ReportResource moodRR = new ReportResource();
+                                        moodRR.setImg_data(JSON.toJSONString(list));
+                                        moodRR.setImgType("moodStatistics");
+                                        // 数据、图类型、图名字
+                                        moodRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(list), "moodStatistics", null));
+                                        moodRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setMoodStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(moodRR))));
+                                    }
 
-                                    ReportResource moodRR = new ReportResource();
-                                    moodRR.setImg_data(JSON.toJSONString(list));
-                                    moodRR.setImgType("pieGraphChartMeta");
-                                    moodRR.setImgComment("暂定！");
-                                    moodRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                    reportData.setMoodStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(moodRR))));
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, MOODSTATISTICSkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, MOODSTATISTICSkey);
                                     log.error(MOODSTATISTICS, e);
                                 }
                                 reportDataNewRepository.saveMoodStatistics(reportData.getMoodStatistics(), reportData.getId());
@@ -373,21 +390,25 @@ public class SepcialReportTask implements Runnable {
                                         locationWordCloud = specialChartAnalyzeService.getWordCloudNew(searchBuilder, isSimilar, irSimflag, irSimflagAll, "location", "special");
                                         agencyWordCloud = specialChartAnalyzeService.getWordCloudNew(searchBuilder, isSimilar, irSimflag, irSimflagAll, "agency", "special");
                                     }
-                                    Map<String, Object> wordCloudResult = new HashMap<>();
-                                    wordCloudResult.put("people", peopleWordCloud);
-                                    wordCloudResult.put("keywords", keywordWordCloud);
-                                    wordCloudResult.put("location", locationWordCloud);
-                                    wordCloudResult.put("agency", agencyWordCloud);
-                                    endMillis = System.currentTimeMillis();
-                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, MOODSTATISTICS, (endMillis - startMillis)));
-                                    ReportResource wordCloudRR = new ReportResource();
-                                    wordCloudRR.setImg_data(JSON.toJSONString(wordCloudResult));
-                                    wordCloudRR.setImgType("wordCloud");
-                                    wordCloudRR.setImgComment("暂定！");
-                                    wordCloudRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                    reportData.setWordCloudStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(wordCloudRR))));
+                                    if (ObjectUtil.isNotEmpty(peopleWordCloud) || ObjectUtil.isNotEmpty(locationWordCloud)
+                                            || ObjectUtil.isNotEmpty(locationWordCloud ) || ObjectUtil.isNotEmpty(agencyWordCloud)) {
+                                        Map<String, Object> wordCloudResult = new HashMap<>();
+                                        wordCloudResult.put("people", peopleWordCloud);
+                                        wordCloudResult.put("keywords", keywordWordCloud);
+                                        wordCloudResult.put("location", locationWordCloud);
+                                        wordCloudResult.put("agency", agencyWordCloud);
+                                        endMillis = System.currentTimeMillis();
+                                        log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, MOODSTATISTICS, (endMillis - startMillis)));
+                                        ReportResource wordCloudRR = new ReportResource();
+                                        wordCloudRR.setImg_data(JSON.toJSONString(wordCloudResult));
+                                        wordCloudRR.setImgType("wordCloud");
+                                        wordCloudRR.setImgComment("暂定！");
+                                        wordCloudRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setWordCloudStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(wordCloudRR))));
+                                    }
+
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, WORDCLOUDSTATISTICSkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, WORDCLOUDSTATISTICSkey);
                                     log.error(WORDCLOUDSTATISTICS, e);
                                 }
                                 reportDataNewRepository.saveWordCloudStatistics(reportData.getWordCloudStatistics(), reportData.getId());
@@ -411,22 +432,31 @@ public class SepcialReportTask implements Runnable {
                                     searchBuilder.setGroupName(groupNames);
                                     List<Map<String, Object>> catalogResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
                                             irSimflag, irSimflagAll, "catalogArea");
+
                                     List<Map<String, Object>> mediaResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
                                             irSimflag, irSimflagAll, "mediaArea");
-                                    Map<String, Object> result = new HashMap<>();
-                                    result.put("catalogArea", catalogResult);
-                                    result.put("mediaArea", mediaResult);
-                                    endMillis = System.currentTimeMillis();
-                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, AREA, (endMillis - startMillis)));
+                                    if (ObjectUtil.isNotEmpty(catalogResult) ||ObjectUtil.isNotEmpty(catalogResult)) {
+                                        catalogResult = MapUtil.sortByValue(catalogResult, "area_count");
 
-                                    ReportResource areaRR = new ReportResource();
-                                    areaRR.setImg_data(JSON.toJSONString(result));
-                                    areaRR.setImgType("mapChart");
-                                    areaRR.setImgComment("暂定！");
-                                    areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                    reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
+                                        mediaResult = MapUtil.sortByValue(catalogResult, "area_count");
+
+                                        Map<String, Object> result = new HashMap<>();
+                                        result.put("catalogArea", catalogResult);
+                                        result.put("mediaArea", mediaResult);
+                                        endMillis = System.currentTimeMillis();
+                                        log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, AREA, (endMillis - startMillis)));
+
+                                        ReportResource areaRR = new ReportResource();
+                                        areaRR.setImg_data(JSON.toJSONString(result));
+                                        areaRR.setImgType("mapChart");
+                                        // 数据、图类型、图名字
+                                        areaRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(catalogResult), "mapChart", null));
+                                        areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
+                                    }
+
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, AREAkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, AREAkey);
                                     log.error(AREA, e);
                                 }
                                 reportDataNewRepository.saveArea(reportData.getArea(), reportData.getId());
@@ -442,13 +472,15 @@ public class SepcialReportTask implements Runnable {
                                             specialProject, rangeTime, 8);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, NEWSHOTTOP10, (endMillis - startMillis)));
+                                    if (ObjectUtil.isNotEmpty(result)) {
+                                        reportData.setNewsHotTopics(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), NEWSHOTTOP10))));
 
-                                    reportData.setNewsHotTopics(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), NEWSHOTTOP10))));
+                                    }
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, NEWSHOTTOP10key);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, NEWSHOTTOP10key);
                                     log.error(NEWSHOTTOP10, e);
                                 }
-                                reportDataNewRepository.saveNewsHotTopics(reportData.getNewsHotTopics(), reportData.getId());
+                                reportDataNewRepository.saveNewsHotTopics(StringUtil.filterEmoji(reportData.getNewsHotTopics()), reportData.getId());
                                 break;
                             case WEIBOHOTTOP10key://（专题报 改造 20191121）
                                 //列表，微博热点TOP10
@@ -460,16 +492,17 @@ public class SepcialReportTask implements Runnable {
                                             specialProject, rangeTime, 8);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEIBOHOTTOP10, (endMillis - startMillis)));
-
-                                    reportData.setWeiboTop10(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WEIBOHOTTOP10))));
+                                    if (ObjectUtil.isNotEmpty(result)) {
+                                        reportData.setWeiboTop10(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WEIBOHOTTOP10))));
+                                    }
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEIBOHOTTOP10key);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEIBOHOTTOP10key);
                                     log.error(WEIBOHOTTOP10, e);
                                 }
-                                reportDataNewRepository.saveWeiboTop10(reportData.getWeiboTop10(), reportData.getId());
+                                reportDataNewRepository.saveWeiboTop10(StringUtil.filterEmoji(reportData.getWeiboTop10()), reportData.getId());
                                 break;
                             case WECHATHOTTOP10key://（专题报 改造 20191121）
-                                //列表，微博热点TOP10
+                                //列表，微信热点TOP10
                                 log.info(String.format(SPECILAREPORTLOG, WECHATHOTTOP10));
                                 startMillis = System.currentTimeMillis();
                                 try {
@@ -478,12 +511,14 @@ public class SepcialReportTask implements Runnable {
                                             specialProject, rangeTime, 8);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WECHATHOTTOP10, (endMillis - startMillis)));
-                                    reportData.setWechatHotTop10(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WECHATHOTTOP10))));
+                                    if (ObjectUtil.isNotEmpty(result)) {
+                                        reportData.setWechatHotTop10(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WECHATHOTTOP10))));
+                                    }
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WECHATHOTTOP10key);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WECHATHOTTOP10key);
                                     log.error(WECHATHOTTOP10, e);
                                 }
-                                reportDataNewRepository.saveWechatHotTop10(reportData.getWechatHotTop10(), reportData.getId());
+                                reportDataNewRepository.saveWechatHotTop10(StringUtil.filterEmoji(reportData.getWechatHotTop10()), reportData.getId());
                                 break;
                             case WEMEDIAkey:
                                 //列表，自媒体报热点
@@ -495,12 +530,15 @@ public class SepcialReportTask implements Runnable {
                                             specialProject, rangeTime, 8);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEMEDIA, (endMillis - startMillis)));
-                                    reportData.setWeMediaHot(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WEMEDIA))));
+                                    if (ObjectUtil.isNotEmpty(result)) {
+                                        reportData.setWeMediaHot(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WEMEDIA))));
+
+                                    }
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEMEDIAkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEMEDIAkey);
                                     log.error(WEMEDIA, e);
                                 }
-                                reportDataNewRepository.saveWeMediaHot(reportData.getWeMediaHot(), reportData.getId());
+                                reportDataNewRepository.saveWeMediaHot(StringUtil.filterEmoji(reportData.getWeMediaHot()), reportData.getId());
                                 break;
                             case NEWSEVENTCONTEXTkey:
                                 //列表，新闻网站事件脉络
@@ -515,40 +553,42 @@ public class SepcialReportTask implements Runnable {
                                     queryFts.setPageSize(10);
                                     queryFts.orderBy(FtsFieldConst.FIELD_URLTIME, false);
                                     GroupResult categoryChuan = commonListService.categoryQuery(queryFts, isSimilar, irSimflag, irSimflagAll, FtsFieldConst.FIELD_MD5TAG, "special", Const.TYPE_NEWS);
-                                    List<GroupInfo> groupList = categoryChuan.getGroupList();
-                                    if (groupList != null && groupList.size() > 0) {
-                                        for (GroupInfo groupInfo : groupList) {
-                                            QueryBuilder queryMd5 = new QueryBuilder();
-                                            // 小时间段里MD5分类统计 时间排序取第一个结果 去查
-                                            queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
-                                            queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-                                            queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-                                            queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
-                                            log.info(queryMd5.asTRSL());
-                                            final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
-                                            String trslk = "redisKey" + pageId;
-                                            RedisUtil.setString(trslk, queryMd5.asTRSL());
-                                            InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5, isSimilar, irSimflag, irSimflagAll, Const.TYPE_NEWS, "special", UserUtils.getUser(), true);
-                                            PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
-                                            List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
-                                            // 再取第一个MD5结果集的第一个数据
-                                            if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
-                                                ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
-                                                ftsQueryChuan.get(0).setTrslk(trslk);
-                                                listChuan.add(ftsQueryChuan.get(0));
+                                    if (ObjectUtil.isNotEmpty(categoryChuan)) {
+                                        List<GroupInfo> groupList = categoryChuan.getGroupList();
+                                        if (groupList != null && groupList.size() > 0) {
+                                            for (GroupInfo groupInfo : groupList) {
+                                                QueryBuilder queryMd5 = new QueryBuilder();
+                                                // 小时间段里MD5分类统计 时间排序取第一个结果 去查
+                                                queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
+                                                queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+                                                queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+                                                queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
+                                                log.info(queryMd5.asTRSL());
+                                                final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
+                                                String trslk = "redisKey" + pageId;
+                                                RedisUtil.setString(trslk, queryMd5.asTRSL());
+                                                InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5, isSimilar, irSimflag, irSimflagAll, Const.TYPE_NEWS, "special", UserUtils.getUser(), true);
+                                                PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+                                                List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
+                                                // 再取第一个MD5结果集的第一个数据
+                                                if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
+                                                    ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
+                                                    ftsQueryChuan.get(0).setTrslk(trslk);
+                                                    listChuan.add(ftsQueryChuan.get(0));
+                                                }
                                             }
                                         }
+                                        SortListAll sort = new SortListAll();
+                                        Collections.sort(listChuan, sort);
+                                        endMillis = System.currentTimeMillis();
+                                        log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, NEWSEVENTCONTEXT, (endMillis - startMillis)));
+                                        reportData.setNewsEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listChuan), NEWSEVENTCONTEXT))));
                                     }
-                                    SortListAll sort = new SortListAll();
-                                    Collections.sort(listChuan, sort);
-                                    endMillis = System.currentTimeMillis();
-                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, NEWSEVENTCONTEXT, (endMillis - startMillis)));
-                                    reportData.setNewsEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listChuan), NEWSEVENTCONTEXT))));
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, NEWSEVENTCONTEXTkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, NEWSEVENTCONTEXTkey);
                                     log.error(NEWSEVENTCONTEXT, e);
                                 }
-                                reportDataNewRepository.saveNewsEventContex(reportData.getNewsEventContext(), reportData.getId());
+                                reportDataNewRepository.saveNewsEventContex(StringUtil.filterEmoji(reportData.getNewsEventContext()), reportData.getId());
                                 break;
 
                             case WEIBOEVENTCONTEXTkey:
@@ -560,23 +600,26 @@ public class SepcialReportTask implements Runnable {
                                     statBuilder.filterField(FtsFieldConst.FIELD_CREATED_AT, timeArray, Operator.Between);
                                     statBuilder.setPageSize(10);
                                     PagedList<FtsDocumentCommonVO> content = commonListService.queryPageListForHotNoFormat(statBuilder, "special", Const.GROUPNAME_WEIBO);
-                                    List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
-                                    SortListAll sortListWeiBo = new SortListAll();
-                                    //按时间排序
-                                    Collections.sort(ftsQueryWeiBo, sortListWeiBo);
-                                    // 防止这个的第一条和时间的那一条重复
-                                    //微博走势 不走special/chart/trendTime接口，不需要去掉第一条数据
-                                    for (FtsDocumentCommonVO ftsStatus : ftsQueryWeiBo) {
-                                        ftsStatus.setSiteName(ftsStatus.getScreenName());
+                                    if (ObjectUtil.isNotEmpty(content)) {
+                                        List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
+                                        SortListAll sortListWeiBo = new SortListAll();
+                                        //按时间排序
+                                        Collections.sort(ftsQueryWeiBo, sortListWeiBo);
+                                        // 防止这个的第一条和时间的那一条重复
+                                        //微博走势 不走special/chart/trendTime接口，不需要去掉第一条数据
+                                        for (FtsDocumentCommonVO ftsStatus : ftsQueryWeiBo) {
+                                            ftsStatus.setSiteName(ftsStatus.getScreenName());
+                                        }
+                                        endMillis = System.currentTimeMillis();
+                                        log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEIBOEVENTCONTEXT, (endMillis - startMillis)));
+                                        reportData.setWeiboEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(ftsQueryWeiBo), WEIBOEVENTCONTEXT))));
+
                                     }
-                                    endMillis = System.currentTimeMillis();
-                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEIBOEVENTCONTEXT, (endMillis - startMillis)));
-                                    reportData.setWeiboEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(ftsQueryWeiBo), WEIBOEVENTCONTEXT))));
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEIBOEVENTCONTEXTkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEIBOEVENTCONTEXTkey);
                                     log.error(WEIBOEVENTCONTEXT, e);
                                 }
-                                reportDataNewRepository.saveWeiboEventContex(reportData.getWeiboEventContext(), reportData.getId());
+                                reportDataNewRepository.saveWeiboEventContex(StringUtil.filterEmoji(reportData.getWeiboEventContext()), reportData.getId());
                                 break;
 
                             case WECHATEVENTCONTEXTkey:
@@ -593,38 +636,41 @@ public class SepcialReportTask implements Runnable {
                                     queryFts2.setPageSize(10);
                                     queryFts2.orderBy(FtsFieldConst.FIELD_URLTIME, false);
                                     GroupResult categoryweixin = commonListService.categoryQuery(queryFts2, isSimilar, irSimflag, irSimflagAll, FtsFieldConst.FIELD_MD5TAG, "special", Const.GROUPNAME_WEIXIN);
-                                    List<GroupInfo> groupListweixin = categoryweixin.getGroupList();
-                                    if (groupListweixin != null && groupListweixin.size() > 0) {
-                                        for (GroupInfo groupInfo : groupListweixin) {
-                                            QueryBuilder queryMd5 = new QueryBuilder();
-                                            // 小时间段里MD5分类统计 时间排序取第一个结果 去查
-                                            queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
-                                            queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-                                            queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-                                            queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
-                                            if (StringUtil.isNotEmpty(groName)) {
-                                                queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, groName.replace(";", " OR ")
-                                                        .replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"), Operator.Equal);
-                                            }
-                                            InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5, isSimilar, irSimflag, irSimflagAll, Const.TYPE_WEIXIN_GROUP, "special", UserUtils.getUser(), true);
-                                            PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
-                                            List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
-                                            // 再取第一个MD5结果集的第一个数据
-                                            if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
-                                                ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
-                                                listweixin.add(ftsQueryChuan.get(0));
+                                    if (ObjectUtil.isNotEmpty(categoryweixin )) {
+                                        List<GroupInfo> groupListweixin = categoryweixin.getGroupList();
+                                        if (groupListweixin != null && groupListweixin.size() > 0) {
+                                            for (GroupInfo groupInfo : groupListweixin) {
+                                                QueryBuilder queryMd5 = new QueryBuilder();
+                                                // 小时间段里MD5分类统计 时间排序取第一个结果 去查
+                                                queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
+                                                queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+                                                queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+                                                queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
+                                                if (StringUtil.isNotEmpty(groName)) {
+                                                    queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, groName.replace(";", " OR ")
+                                                            .replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"), Operator.Equal);
+                                                }
+                                                InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5, isSimilar, irSimflag, irSimflagAll, Const.TYPE_WEIXIN_GROUP, "special", UserUtils.getUser(), true);
+                                                PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+                                                List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
+                                                // 再取第一个MD5结果集的第一个数据
+                                                if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
+                                                    ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
+                                                    listweixin.add(ftsQueryChuan.get(0));
+                                                }
                                             }
                                         }
+
+                                        endMillis = System.currentTimeMillis();
+                                        log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WECHATEVENTCONTEXT, (endMillis - startMillis)));
+                                        reportData.setWechatEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listweixin), WECHATEVENTCONTEXT))));
                                     }
 
-                                    endMillis = System.currentTimeMillis();
-                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WECHATEVENTCONTEXT, (endMillis - startMillis)));
-                                    reportData.setWechatEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listweixin), WECHATEVENTCONTEXT))));
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WECHATEVENTCONTEXTkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WECHATEVENTCONTEXTkey);
                                     log.error(WECHATEVENTCONTEXT, e);
                                 }
-                                reportDataNewRepository.saveWechatEventContex(reportData.getWechatEventContext(), reportData.getId());
+                                reportDataNewRepository.saveWechatEventContex(StringUtil.filterEmoji(reportData.getWechatEventContext()), reportData.getId());
                                 break;
 
                             case WEMEDIAEVENTCONTEXTkey:
@@ -641,39 +687,42 @@ public class SepcialReportTask implements Runnable {
                                     queryFts3.setPageSize(10);
                                     queryFts3.orderBy(FtsFieldConst.FIELD_URLTIME, false);
                                     GroupResult category = commonListService.categoryQuery(queryFts3, isSimilar, irSimflag, irSimflagAll, FtsFieldConst.FIELD_MD5TAG, "special", Const.GROUPNAME_ZIMEITI);
-                                    List<GroupInfo> groupListzi = category.getGroupList();
-                                    if (groupListzi != null && groupListzi.size() > 0) {
-                                        for (GroupInfo groupInfo : groupListzi) {
-                                            QueryBuilder queryMd5 = new QueryBuilder();
-                                            // 小时间段里MD5分类统计 时间排序取第一个结果 去查
-                                            queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
-                                            queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-                                            queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-                                            queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
-                                            if (StringUtil.isNotEmpty(groName)) {
-                                                queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, groName.replace(";", " OR ")
-                                                        .replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"), Operator.Equal);
-                                            }
-                                            InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5, isSimilar, irSimflag, irSimflagAll, Const.GROUPNAME_ZIMEITI, "special", UserUtils.getUser(), true);
-                                            PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
-                                            List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
-                                            // 再取第一个MD5结果集的第一个数据
-                                            if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
-                                                ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
+                                    if (ObjectUtil.isNotEmpty(category )) {
+                                        List<GroupInfo> groupListzi = category.getGroupList();
+                                        if (groupListzi != null && groupListzi.size() > 0) {
+                                            for (GroupInfo groupInfo : groupListzi) {
+                                                QueryBuilder queryMd5 = new QueryBuilder();
+                                                // 小时间段里MD5分类统计 时间排序取第一个结果 去查
+                                                queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
+                                                queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+                                                queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+                                                queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
+                                                if (StringUtil.isNotEmpty(groName)) {
+                                                    queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME, groName.replace(";", " OR ")
+                                                            .replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"), Operator.Equal);
+                                                }
+                                                InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5, isSimilar, irSimflag, irSimflagAll, Const.GROUPNAME_ZIMEITI, "special", UserUtils.getUser(), true);
+                                                PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+                                                List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
+                                                // 再取第一个MD5结果集的第一个数据
+                                                if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
+                                                    ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
+                                                }
                                             }
                                         }
+                                        // 按urltime降序
+                                        SortListAll sort3 = new SortListAll();
+                                        Collections.sort(listzimeiti, sort3);
+                                        endMillis = System.currentTimeMillis();
+                                        log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEMEDIAEVENTCONTEXT, (endMillis - startMillis)));
+                                        reportData.setWemediaEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listzimeiti), WEMEDIAEVENTCONTEXT))));
                                     }
-                                    // 按urltime降序
-                                    SortListAll sort3 = new SortListAll();
-                                    Collections.sort(listzimeiti, sort3);
-                                    endMillis = System.currentTimeMillis();
-                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEMEDIAEVENTCONTEXT, (endMillis - startMillis)));
-                                    reportData.setWemediaEventContext(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(listzimeiti), WEMEDIAEVENTCONTEXT))));
+
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEMEDIAEVENTCONTEXTkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.LISTRESOURCES, WEMEDIAEVENTCONTEXTkey);
                                     log.error(WEMEDIAEVENTCONTEXT, e);
                                 }
-                                reportDataNewRepository.saveWemediaEventContex(reportData.getWemediaEventContext(), reportData.getId());
+                                reportDataNewRepository.saveWemediaEventContex(StringUtil.filterEmoji(reportData.getWemediaEventContext()), reportData.getId());
                                 break;
 
                             case ACTIVEACCOUNTkey:
@@ -688,17 +737,102 @@ public class SepcialReportTask implements Runnable {
                                             irSimflag, irSimflagAll);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, AREA, (endMillis - startMillis)));
-                                    ReportResource accountRR = new ReportResource();
-                                    accountRR.setImg_data(JSON.toJSONString(mediaActiveAccount));
-                                    accountRR.setImgType("activeAccount");
-                                    accountRR.setImgComment("暂定！");
-                                    accountRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                    reportData.setActiveAccount(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(accountRR)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")));
+                                    if (ObjectUtil.isNotEmpty(mediaActiveAccount)) {
+                                        ReportResource accountRR = new ReportResource();
+                                        accountRR.setImg_data(JSON.toJSONString(mediaActiveAccount));
+                                        accountRR.setImgType("activeAccount");
+                                        // 数据、图类型、图名字
+
+                                        accountRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(mediaActiveAccount), "activeAccount", null));
+                                        accountRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setActiveAccount(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(accountRR)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")));
+                                    }
+
                                 } catch (Exception e) {
-                                    ReportUtil.setEmptyData(reportData, ReportConst.CHART, ACTIVEACCOUNTkey);
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, ACTIVEACCOUNTkey);
                                     log.error(ACTIVEACCOUNT, e);
                                 }
-                                reportDataNewRepository.saveActiveAccount(reportData.getActiveAccount(), reportData.getId());
+                                reportDataNewRepository.saveActiveAccount(StringUtil.filterEmoji(reportData.getActiveAccount()), reportData.getId());
+                                break;
+                            case PROPAFATIONANALYSISkey:
+                                //传播分析
+                                log.info(String.format(SPECILAREPORTLOG, PROPAFATIONANALYSIS));
+                                startMillis = System.currentTimeMillis();
+                                try {
+                                    QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
+                                    Object spreadAnalysisSiteName = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
+                                    endMillis = System.currentTimeMillis();
+                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, PROPAFATIONANALYSIS, (endMillis - startMillis)));
+                                    if (ObjectUtil.isNotEmpty(spreadAnalysisSiteName )) {
+                                        ReportResource spreadAnalysisRR = new ReportResource();
+                                        spreadAnalysisRR.setImg_data(JSON.toJSONString(spreadAnalysisSiteName));
+                                        spreadAnalysisRR.setImgType("newsSiteAnalysisSiteName");
+                                        spreadAnalysisRR.setImgComment("暂定！");
+                                        spreadAnalysisRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setSpreadAnalysisSiteName(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(spreadAnalysisRR)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")));
+
+                                    }
+                                } catch (Exception e) {
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, PROPAFATIONANALYSISkey);
+                                    log.error(PROPAFATIONANALYSIS, e);
+                                }
+                                reportDataNewRepository.saveSpreadAnalysisSiteName(StringUtil.filterEmoji(reportData.getSpreadAnalysisSiteName()), reportData.getId());
+                                break;
+                            case NEWSPROPAFATIONANALYSISTIMELISTkey:
+                                //新闻传播分析时间轴
+                                log.info(String.format(SPECILAREPORTLOG, NEWSPROPAFATIONANALYSISTIMELIST));
+                                startMillis = System.currentTimeMillis();
+                                try {
+                                    // 根据时间升序,只要第一条
+                                    QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, true);
+                                    searchBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+                                    searchBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
+                                    Object newsTimeList = specialChartAnalyzeService.spreadAnalysis(searchBuilder, timeArray, isSimilar, irSimflag, irSimflagAll, false, Const.PAGE_SHOW_XINWEN);
+
+                                    endMillis = System.currentTimeMillis();
+                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, NEWSPROPAFATIONANALYSISTIMELIST, (endMillis - startMillis)));
+                                    if (ObjectUtil.isNotEmpty(newsTimeList)) {
+                                        ReportResource newsTimeListRR = new ReportResource();
+                                        newsTimeListRR.setImg_data(JSON.toJSONString(newsTimeList));
+                                        newsTimeListRR.setImgType("newsSiteAnalysis");
+                                        newsTimeListRR.setImgComment("暂定！");
+                                        newsTimeListRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setNewsSpreadAnalysisTimeList(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(newsTimeListRR)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")));
+
+                                    }
+                                } catch (Exception e) {
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, NEWSPROPAFATIONANALYSISTIMELISTkey);
+                                    log.error(NEWSPROPAFATIONANALYSISTIMELIST, e);
+                                }
+                                reportDataNewRepository.saveNewsSpreadAnalysisTimeList(StringUtil.filterEmoji(reportData.getNewsSpreadAnalysisTimeList()), reportData.getId());
+                                break;
+                            case WEMEDIAPROPAFATIONANALYSISTIMELISTkey:
+                                //自媒体传播分析时间轴
+                                log.info(String.format(SPECILAREPORTLOG, WEMEDIAPROPAFATIONANALYSISTIMELIST));
+                                startMillis = System.currentTimeMillis();
+                                try {
+                                    // 根据时间升序,只要第一条
+                                    QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, true);
+                                    searchBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+                                    searchBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
+                                    Object wemediaTimeList = specialChartAnalyzeService.spreadAnalysis(searchBuilder, timeArray, isSimilar, irSimflag, irSimflagAll, false, Const.PAGE_SHOW_ZIMEITI);
+
+                                    endMillis = System.currentTimeMillis();
+                                    log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEMEDIAPROPAFATIONANALYSISTIMELIST, (endMillis - startMillis)));
+                                    if (ObjectUtil.isNotEmpty(wemediaTimeList)) {
+                                        ReportResource wemediaTimeListRR = new ReportResource();
+                                        wemediaTimeListRR.setImg_data(JSON.toJSONString(wemediaTimeList));
+                                        wemediaTimeListRR.setImgType("newsSiteAnalysis");
+                                        wemediaTimeListRR.setImgComment("暂定！");
+                                        wemediaTimeListRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setWemediaSpreadAnalysisTimeList(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(wemediaTimeListRR)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")));
+
+                                    }
+                                } catch (Exception e) {
+                                    //ReportUtil.setEmptyData(reportData, ReportConst.CHART, WEMEDIAPROPAFATIONANALYSISTIMELISTkey);
+                                    log.error(WEMEDIAPROPAFATIONANALYSISTIMELIST, e);
+                                }
+                                reportDataNewRepository.saveWemediaSpreadAnalysisTimeList(StringUtil.filterEmoji(reportData.getWemediaSpreadAnalysisTimeList()), reportData.getId());
                                 break;
                             default:
                                 break;
@@ -867,7 +1001,7 @@ public class SepcialReportTask implements Runnable {
         //TODO read preciseFilter 为空字符串 两个字段之间 传 tab.get 对应字段
         config.initSection(indexTab, indexTab.getTimeRange(), 0, maxSize, null, null, "keywords", "", "", "desc",
                 "", "", "", "", "", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(),
-                indexTab.getMediaArea(), "","");
+                indexTab.getMediaArea(), "", "");
         column.setDistrictInfoService(districtInfoService);
         column.setCommonChartService(commonChartService);
         column.setCommonListService(commonListService);

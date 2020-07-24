@@ -79,7 +79,7 @@ public class ReportDataNew extends BaseEntity{
 	private String wechatActiveTop10;
 
 	/**
-	 * 自媒体号
+	 * 自媒体号用户TOP10
 	 * */
 	@Column(name = "we_media_hot", columnDefinition = "mediumtext")
 	private String weMediaHot;
@@ -171,6 +171,18 @@ public class ReportDataNew extends BaseEntity{
 	 */
 	@Column(name = "spread_analysis_sitename", columnDefinition = "mediumtext")
 	private String spreadAnalysisSiteName;
+
+	/**
+	 * 新闻传播分析时间轴
+	 */
+	@Column(name = "news_spread_analysis_time_list", columnDefinition = "mediumtext")
+	private String newsSpreadAnalysisTimeList;
+
+	/**
+	 * 自媒体传播分析时间轴
+	 */
+	@Column(name = "wemedia_spread_analysis_time_list", columnDefinition = "mediumtext")
+	private String wemediaSpreadAnalysisTimeList;
 
 	/**
 	 * 极简模式  自定义模块

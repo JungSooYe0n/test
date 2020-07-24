@@ -51,6 +51,9 @@ public class ReportConst {
 
     //传播分析
     public static final String PROPAFATIONANALYSIS = "传播分析";
+    public static final String NEWSPROPAFATIONANALYSISTIMELIST = "新闻传播分析时间轴";
+    public static final String WEMEDIAPROPAFATIONANALYSISTIMELIST = "自媒体传播分析时间轴";
+
 
     public static final String REPORTINTRONew = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATANew = "OVERVIEWOFDATA"; // 数据统计概述
@@ -111,6 +114,9 @@ public class ReportConst {
 
     //传播分析
     public static final String PROPAFATIONANALYSISkey = "PROPAFATIONANALYSIS";
+    //传播分析 时间轴，新闻和自媒体
+    public static final String NEWSPROPAFATIONANALYSISTIMELISTkey = "NEWSPROPAFATIONANALYSISTIMELIST";
+    public static final String WEMEDIAPROPAFATIONANALYSISTIMELISTkey = "WEMEDIAPROPAFATIONANALYSISTIMELIST";
     //专题报 改造 20191121
     public static final String NEWSHOTTOP10key = "NEWSHOTTOP10"; // 新闻热点TOP10
     public static final String WEIBOHOTTOP10key = "WEIBOHOTTOP10"; // 微博热点TOP10
@@ -294,6 +300,11 @@ public class ReportConst {
         CHAPTERS.add("NEWSHOTTOPICS");
         CHAPTERS.add("WEIBOHOTTOPICS");
 
+        //传播分析
+        CHAPTERS.add(PROPAFATIONANALYSISkey);
+        CHAPTERS.add(NEWSPROPAFATIONANALYSISTIMELISTkey);
+        CHAPTERS.add(WEMEDIAPROPAFATIONANALYSISTIMELISTkey);
+
 
         CHAPTERS4SPECIAL = new ArrayList<>();
         CHAPTERS4SPECIAL.add("REPORTINTRO");
@@ -382,7 +393,9 @@ public class ReportConst {
         //配合历史数据 （专题报  改造 20191121）
         CHAPTERS2METHODSETNEW.put("NEWSHOTTOP10", "setNewsHotTopics");
         CHAPTERS2METHODSETNEW.put("WEIBOHOTTOP10", "setWeiboHotTopics");
-        CHAPTERS2METHODSETNEW.put("PROPAFATIONANALYSIS", "setSpreadAnalysisSiteName");
+        CHAPTERS2METHODSETNEW.put(PROPAFATIONANALYSISkey, "setSpreadAnalysisSiteName");
+        CHAPTERS2METHODSETNEW.put(NEWSPROPAFATIONANALYSISTIMELISTkey, "setNewsSpreadAnalysisTimeList");
+        CHAPTERS2METHODSETNEW.put(WEMEDIAPROPAFATIONANALYSISTIMELISTkey, "setWemediaSpreadAnalysisTimeList");
 
         CHAPTERS2METHODNEW = new HashMap<>();
         CHAPTERS2METHODNEW.put("REPORTINTRO", "getReportIntro");
@@ -416,9 +429,9 @@ public class ReportConst {
         CHAPTERS2METHODNEW.put(NEWSEVENTCONTEXTkey, "getNewsEventContext");
         CHAPTERS2METHODNEW.put(ACTIVEACCOUNTkey, "getActiveAccount");
         CHAPTERS2METHODNEW.put(WORDCLOUDSTATISTICSkey, "getWordCloudStatistics");
-        CHAPTERS2METHODNEW.put(PROPAFATIONANALYSIS, "getWordCloudStatistics");
-        CHAPTERS2METHODNEW.put("PROPAFATIONANALYSIS", "getSpreadAnalysisSiteName");
-
+        CHAPTERS2METHODNEW.put(PROPAFATIONANALYSISkey, "getSpreadAnalysisSiteName");
+        CHAPTERS2METHODNEW.put(NEWSPROPAFATIONANALYSISTIMELISTkey, "getNewsSpreadAnalysisTimeList");
+        CHAPTERS2METHODNEW.put(WEMEDIAPROPAFATIONANALYSISTIMELISTkey, "getWemediaSpreadAnalysisTimeList");
     }
 
     //handmade

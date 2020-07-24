@@ -17,6 +17,7 @@ import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.widget.report.constant.Chapter;
+import com.trs.netInsight.widget.report.constant.ReportConst;
 import com.trs.netInsight.widget.report.entity.*;
 import com.trs.netInsight.widget.report.service.ISpecialReportService;
 import com.trs.netInsight.widget.report.util.ReportUtil;
@@ -733,12 +734,13 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			
 			templateNew4Page.setTemplatePosition(templateNew.getTemplatePosition());
 			templateNew4Page.setGroupName(templateNew.getGroupName());
-			ReportNew header = JSON.parseObject(templateNew.getTemplateHeader(), ReportNew.class);
-			if(StringUtil.isEmpty(header.getReportName())){
-				header.setReportName(templateNew.getTemplateName());
+			templateNew4Page.setTemplateHeader(JSON.parseObject(templateNew.getTemplateHeader(), ReportNew.class));
+			if(StringUtil.isNotEmpty(templateNew.getTemplateHeader())){
+				ReportNew header = JSON.parseObject(templateNew.getTemplateHeader(), ReportNew.class);
+				if(  StringUtil.isEmpty(header.getReportName())){
+					header.setReportName(templateNew.getTemplateName());
+				}
 			}
-			templateNew4Page.setTemplateHeader(header);
-
 			templateNew4Page.setTemplateActive(false);
 			templateNew4Page.setIsDefault(templateNew.getIsDefault());
 			templateNew4PageList.add(templateNew4Page);

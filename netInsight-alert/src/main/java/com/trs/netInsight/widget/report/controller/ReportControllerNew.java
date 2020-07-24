@@ -243,7 +243,7 @@ public class ReportControllerNew {
 	@FormatResult
 	@RequestMapping(value = "/delReportResource", method = RequestMethod.POST)
 	public Object deleteReportResource(
-			@RequestParam(value = "resourceId") String resourceId) throws OperationException {
+			@RequestParam(value = "resourceId") String resourceId,@RequestParam(value = "reportId") String reportId) throws OperationException {
 		try {
 			return reportServiceNew.delReportResource(resourceId);
 		} catch (Exception e) {
@@ -628,21 +628,19 @@ public class ReportControllerNew {
 	 * @param reportId
 	 * @param chapterDetail
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@ApiOperation("删除专报列表数据中的1条数据")
 	@Log(systemLogOperation = SystemLogOperation.REPORT_DEL_SPECIAL_RESOURCE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "chapterDetail", value = "章节名称", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "resourceId", value = "章节中资源ID", dataType = "String", paramType = "query", required = true)})
+			@ApiImplicitParam(name = "chapterDetail", value = "章节名称", dataType = "String", paramType = "query", required = true)})
 	@RequestMapping(value = "/delSpecialResource", method = RequestMethod.POST)
 	@FormatResult
-	public Object deleteReportResource(
-			@ApiParam("专报id")@RequestParam(value = "reportId", required = false)String reportId, 
-			@ApiParam("模块类型")@RequestParam(value = "chapterDetail", required = true)String chapterDetail, 
-			@ApiParam("该条资源的id（不是sid）")@RequestParam(value = "resourceId", required = false)String resourceId) throws Exception{
-		sepcialReportService.delReportResource(reportId, chapterDetail, resourceId);
+	public Object delSpecialResource(
+			@ApiParam("专报id")@RequestParam(value = "reportId", required = false)String reportId,
+			@ApiParam("模块类型")@RequestParam(value = "chapterDetail", required = true)String chapterDetail) throws Exception{
+		sepcialReportService.delReportResource(reportId, chapterDetail);
 		return Const.SUCCESS;
 	}
 
