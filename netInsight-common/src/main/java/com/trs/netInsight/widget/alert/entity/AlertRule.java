@@ -282,6 +282,9 @@ public class AlertRule extends BaseEntity {
 			if(SearchScope.TITLE_CONTENT.equals(this.scope)){
 				keywordIndex = "1";//标题+正文
 			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.scope)){
+				keywordIndex = "2";//标题+摘要
+			}
 			//关键词
 			searchBuilder = WordSpacingUtil.handleKeyWords(this.anyKeyword,keywordIndex,this.weight);
 			searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
@@ -426,6 +429,9 @@ public class AlertRule extends BaseEntity {
 			if(SearchScope.TITLE_CONTENT.equals(this.scope)){
 				keywordIndex = "1";//标题+正文
 			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.scope)){
+				keywordIndex = "2";//标题+摘要
+			}
 			searchBuilder = WordSpacingUtil.handleKeyWords(this.anyKeyword,keywordIndex,this.weight);
 			searchBuilder.setDatabase(Const.WECHAT);
 			//拼接排除词
@@ -495,6 +501,9 @@ public class AlertRule extends BaseEntity {
 				String keywordIndex = "0";//仅标题
 				if(SearchScope.TITLE_CONTENT.equals(this.scope)){
 					keywordIndex = "1";//标题+正文
+				}
+				if(SearchScope.TITLE_ABSTRACT.equals(this.scope)){
+					keywordIndex = "2";//标题+摘要
 				}
 				//关键词
 				QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeyword,keywordIndex,this.weight);

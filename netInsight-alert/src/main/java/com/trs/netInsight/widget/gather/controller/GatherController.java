@@ -1441,7 +1441,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                                 }
                             } else if (i == 1) {
                                 //新闻App
-                                dataType = "新闻App";
+                                dataType = Const.PAGE_SHOW_KEHUDUAN;
                                 for (HashMap<String, String> hashMap : list.get(i)) {
                                     String siteName = hashMap.get("站点名*\n" +
                                             "【站点名后增加“客户端”字样】");

@@ -6776,58 +6776,64 @@ public class InfoListServiceImpl implements IInfoListService {
 				builderOne.filterByTRSL(idTrsl);
 //				List<FtsDocument> ftsQuery = hybase8SearchService.ftsQuery(builderOne, FtsDocument.class, false, false,false,null);
 				InfoListResult infoListResult2 = commonListService.queryPageList(builderOne,false,false,false,groupName,null,UserUtils.getUser(),false);
-				PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
-				List<FtsDocumentCommonVO> ftsQuery = content2.getPageItems();
-				String channelIndustry = ftsQuery.get(0).getChannelIndustry();
-				String siteName = ftsQuery.get(0).getSiteName();
-				String groupNameInResult = ftsQuery.get(0).getGroupName();
-				if (StringUtil.isNotEmpty(channelIndustry)) {//优先查channelIndustry
-					String[] split = channelIndustry.split(";");
-					StringBuilder stringBuilder = new StringBuilder();
-					for(String s:split){
-						String[] splitInner = s.split("\\\\");
-						if(null!=splitInner && splitInner.length>0){
-							stringBuilder.append(splitInner[0]).append("*").append(" AND ");
-						}else{
-							stringBuilder.append(s).append(" AND ");
+				if (ObjectUtil.isNotEmpty(infoListResult2) && ObjectUtil.isNotEmpty(infoListResult2.getContent())) {
+					PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
+					List<FtsDocumentCommonVO> ftsQuery = content2.getPageItems();
+					if (ObjectUtil.isEmpty(ftsQuery)) return null;
+					String channelIndustry = ftsQuery.get(0).getChannelIndustry();
+					String siteName = ftsQuery.get(0).getSiteName();
+					String groupNameInResult = ftsQuery.get(0).getGroupName();
+					if (StringUtil.isNotEmpty(channelIndustry)) {//优先查channelIndustry
+						String[] split = channelIndustry.split(";");
+						StringBuilder stringBuilder = new StringBuilder();
+						for (String s : split) {
+							String[] splitInner = s.split("\\\\");
+							if (null != splitInner && splitInner.length > 0) {
+								stringBuilder.append(splitInner[0]).append("*").append(" AND ");
+							} else {
+								stringBuilder.append(s).append(" AND ");
+							}
 						}
-					}
-					String channelString = stringBuilder.toString();
-					if(StringUtil.isNotEmpty(channelString)){
-						if(channelString.endsWith(" AND ")){
-							channelString = channelString.substring(0, channelString.length()-5);
+						String channelString = stringBuilder.toString();
+						if (StringUtil.isNotEmpty(channelString)) {
+							if (channelString.endsWith(" AND ")) {
+								channelString = channelString.substring(0, channelString.length() - 5);
+							}
+							channelBuilder.filterField(FtsFieldConst.FIELD_CHANNEL_INDUSTRY, channelString, Operator.Equal);
 						}
-						channelBuilder.filterField(FtsFieldConst.FIELD_CHANNEL_INDUSTRY, channelString, Operator.Equal);
+						//在channel的基础上再加上groupName
+						channelBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupNameInResult, Operator.Equal);
+					} else if (StringUtil.isNotEmpty(siteName)) {//channelIndustry为空时查同sitename下最新五篇
+						channelBuilder.filterField(FtsFieldConst.FIELD_SITENAME, siteName, Operator.Equal);
 					}
-					//在channel的基础上再加上groupName
-					channelBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupNameInResult, Operator.Equal);
-				}else if(StringUtil.isNotEmpty(siteName)){//channelIndustry为空时查同sitename下最新五篇
-					channelBuilder.filterField(FtsFieldConst.FIELD_SITENAME, siteName, Operator.Equal);
-				}
-				//排除自己
-				channelBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.NotEqual);
-				InfoListResult infoListResult = commonListService.queryPageList(channelBuilder,false,true,false,groupName,null,UserUtils.getUser(),false);
-				PagedList<FtsDocumentCommonVO> content3 = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
-				List<FtsDocumentCommonVO> channelList = content3.getPageItems();
+					//排除自己
+					channelBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.NotEqual);
+					InfoListResult infoListResult = commonListService.queryPageList(channelBuilder, false, false, false, groupName, null, UserUtils.getUser(), false);
+					if (ObjectUtil.isEmpty(infoListResult)) return null;
+					PagedList<FtsDocumentCommonVO> content3 = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+					List<FtsDocumentCommonVO> channelList = content3.getPageItems();
 //				List<FtsDocument> channelList = hybase8SearchService.ftsQuery(channelBuilder, FtsDocument.class, false, true,false,null);
-				for (FtsDocumentCommonVO document : channelList) {
-					String content = document.getContent();
-					List<String> imgSrcList = StringUtil.getImgStr(content);
-					if(imgSrcList!=null && imgSrcList.size()>0){
-						if(imgSrcList.size()>1){
-							document.setImgSrc(imgSrcList.get(1));
-						}else{
-							document.setImgSrc(imgSrcList.get(0));
+					for (FtsDocumentCommonVO document : channelList) {
+						String content = document.getContent();
+						List<String> imgSrcList = StringUtil.getImgStr(content);
+						if (imgSrcList != null && imgSrcList.size() > 0) {
+							if (imgSrcList.size() > 1) {
+								document.setImgSrc(imgSrcList.get(1));
+							} else {
+								document.setImgSrc(imgSrcList.get(0));
+							}
 						}
+						content = StringUtil.replaceImg(document.getContent());
+						//document.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
+						document.setContent(StringUtil.cutContent(StringUtil.replaceImg(document.getContent()), 160));
+						document.setTitle(document.getTitle().replace("&amp;nbsp;", ""));
 					}
-					content = StringUtil.replaceImg(document.getContent());
-					//document.setContent(StringUtil.substringRed(content, Const.CONTENT_LENGTH));
-					document.setContent(StringUtil.cutContent(StringUtil.replaceImg(document.getContent()), 160));
-					document.setTitle(document.getTitle().replace("&amp;nbsp;", ""));
+					map.put("simCount", 5);
+					map.put("simuList", channelList);
+					return map;
+				}else {
+					return null;
 				}
-				map.put("simCount", 5);
-				map.put("simuList", channelList);
-				return map;
 			}
 		}
 		if (Const.MEDIA_TYPE_WEIBO.contains(source)) {

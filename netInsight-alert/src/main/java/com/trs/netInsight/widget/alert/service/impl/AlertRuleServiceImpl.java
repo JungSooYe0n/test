@@ -694,6 +694,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		User loginUser = UserUtils.getUser();
 		boolean irSimflag = false;
 		boolean irSimflagAll = false;
+		String wordIndex = "0";
 		if (alertRule!=null) {
 			irSimflag = alertRule.isIrSimflag();
 			irSimflagAll = alertRule.isIrSimflagAll();
@@ -703,7 +704,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			builder.setPageSize(pageSize);
 			countBuilder.setPageNo(pageNo);
 			countBuilder.setPageSize(pageSize);
-
+			if(SearchScope.TITLE_CONTENT.equals(alertRule.getScope())){
+				wordIndex = "1";//标题+正文
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(alertRule.getScope())){
+				wordIndex = "2";//标题+摘要
+			}
 		} else {
 			// 时间
 			builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
@@ -798,7 +804,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				break;
 			case "hot":
-				return setInfoData(commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIXIN,loginUser,"alert",false));
+				return setInfoData(commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIXIN,loginUser,"alert",false),wordIndex);
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 			default:
@@ -821,7 +827,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		Date parseEnd = sdf.parse(formatTimeRange[1]);
 		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.GROUPNAME_WEIXIN,"alert",loginUser,false);
 		List<FtsDocumentWeChat> pageItems = null;
-		return setInfoData(infoListResult);
+		return setInfoData(infoListResult,wordIndex);
 	}
 
 	@Override
@@ -838,6 +844,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		User loginUser = UserUtils.getUser();
 		boolean irSimflag = false;
 		boolean irSimflagAll = false;
+		String keywordIndex = "0";
 		if (alertRule != null) {
 			irSimflag = alertRule.isIrSimflag();
 			irSimflagAll = alertRule.isIrSimflagAll();
@@ -847,7 +854,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			builder.setPageSize(pageSize);
 			countBuilder.setPageNo(pageNo);
 			countBuilder.setPageSize(pageSize);
-
+			if(SearchScope.TITLE_CONTENT.equals(alertRule.getScope())){
+				keywordIndex = "1";//标题+正文
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(alertRule.getScope())){
+				keywordIndex = "2";//标题+摘要
+			}
 		} else {
 			// 时间
 			builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
@@ -974,7 +986,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				break;
 			case "hot":
-				return setInfoData(commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIBO,loginUser,"alert",false));
+				return setInfoData(commonListService.queryPageListForHot(builder,Const.GROUPNAME_WEIBO,loginUser,"alert",false),keywordIndex);
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 			default:
@@ -990,7 +1002,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				break;
 		}
 		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,"alert",loginUser,false);
-		return setInfoData(infoListResult);
+		return setInfoData(infoListResult,keywordIndex);
 	}
 
 	@Override
@@ -1007,6 +1019,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		boolean simflag = true;
 		boolean irSimflag = true;
 		boolean irSimflagAll = true;
+		String wordIndex = "0";
 		if (alertRule != null) {
 			simflag = alertRule.isRepetition();
 			irSimflag = alertRule.isIrSimflag();
@@ -1017,6 +1030,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			builder.setPageSize(pageSize);
 			countBuilder.setPageNo(pageNo);
 			countBuilder.setPageSize(pageSize);
+			if(SearchScope.TITLE_CONTENT.equals(alertRule.getScope())){
+				wordIndex = "1";//标题+正文
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(alertRule.getScope())){
+				wordIndex = "2";//标题+摘要
+			}
 		} else {
 			// 时间
 			builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
@@ -1139,7 +1158,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				break;
 			case "hot":
-				return setInfoData(commonListService.queryPageListForHot(builder,source,loginUser,"alert",false));
+				return setInfoData(commonListService.queryPageListForHot(builder,source,loginUser,"alert",false),wordIndex);
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 			default:
@@ -1159,7 +1178,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		InfoListResult infoListResult = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,source,"alert",loginUser,false);
 		log.error("查询完成:" + System.currentTimeMillis());
 		log.error("方法返回:" + System.currentTimeMillis());
-		return setInfoData(infoListResult);
+		return setInfoData(infoListResult,wordIndex);
 	}
 
 	@Override
@@ -1175,6 +1194,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		boolean simflag = true;
 		boolean irsimflag = false;
 		boolean irSimflagAll = false;
+		String wordIndex = "0";
 		if (null!=alertRule) {
 			simflag = alertRule.isRepetition();
 			irsimflag = alertRule.isIrSimflag();
@@ -1185,6 +1205,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			builder.setPageSize(pageSize);
 			countBuilder.setPageNo(pageNo);
 			countBuilder.setPageSize(pageSize);
+			if(SearchScope.TITLE_CONTENT.equals(alertRule.getScope())){
+				wordIndex = "1";//标题+正文
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(alertRule.getScope())){
+				wordIndex = "2";//标题+摘要
+			}
 		} else {
 			// 时间
 			builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
@@ -1282,7 +1308,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				break;
 		}
 		InfoListResult docList = commonListService.queryPageList(builder,simflag,irsimflag,irSimflagAll,Const.GROUPNAME_TWITTER,"alert",loginUser,false);
-		return setInfoData(docList);
+		return setInfoData(docList,wordIndex);
 	}
 	@Override
 	public Object documentCommonSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
@@ -1297,6 +1323,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		boolean simflag = true;
 		boolean irSimflag = true;
 		boolean irSimflagAll = true;
+		String keywordIndex = "0";//仅标题
 		if (alertRule != null) {
 			simflag = alertRule.isRepetition();
 			irSimflag = alertRule.isIrSimflag();
@@ -1307,6 +1334,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			builder.setPageSize(pageSize);
 			countBuilder.setPageNo(pageNo);
 			countBuilder.setPageSize(pageSize);
+			if(SearchScope.TITLE_CONTENT.equals(alertRule.getScope())){
+				keywordIndex = "1";//标题+正文
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(alertRule.getScope())){
+				keywordIndex = "2";//标题+摘要
+			}
 		} else {
 			// 时间
 			builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
@@ -1495,7 +1528,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				if (ObjectUtil.isNotEmpty(database)){
 					hotCountBuilder.setDatabase(StringUtil.join(database,";"));
 				}
-				return setInfoData(commonListService.queryPageListForHot(hotBuilder,Const.ALL_GROUP,loginUser,"alert",false));
+				return setInfoData(commonListService.queryPageListForHot(hotBuilder,Const.ALL_GROUP,loginUser,"alert",false),keywordIndex);
 			case "relevance"://相关性排序
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 			default:
@@ -1515,13 +1548,13 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		InfoListResult list = commonListService.queryPageList(builder,alertRule.isRepetition(),irSimflag,irSimflagAll,Const.ALL_GROUP,"alert",loginUser,false);
 		log.error("查询完成:" + System.currentTimeMillis());
 		log.error("方法返回:" + System.currentTimeMillis());
-		return setInfoData(list);
+		return setInfoData(list,keywordIndex);
 	}
-private InfoListResult setInfoData(InfoListResult infoListResult){
+private InfoListResult setInfoData(InfoListResult infoListResult,String keywordIndex){
 	if (infoListResult != null) {
 		if (infoListResult.getContent() != null) {
 			String trslk = infoListResult.getTrslk();
-			PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslk,null);
+			PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslk,keywordIndex);
 			infoListResult.setContent(resultContent);
 		}
 	}
