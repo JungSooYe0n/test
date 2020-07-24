@@ -5079,9 +5079,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 						exportWordCloud(array, content);
 					} else if (SpecialChartType.MAP.equals(specialChartType)) {
 						exportMap(array, content);
-					} else if (SpecialChartType.CHART_BAR.equals(specialChartType) || SpecialChartType.CHART_PIE.equals(specialChartType)) {
+					} else if (SpecialChartType.CHART_BAR.equals(specialChartType) || SpecialChartType.CHART_PIE.equals(specialChartType) || SpecialChartType.CHART_PIE_OPINION.equals(specialChartType)) {
 						exportData(array, content,ExcelConst.HEAD_PIE_BAR);
-					}else if (SpecialChartType.CHART_PIE_EMOTION.equals(specialChartType)) {
+					}else if (SpecialChartType.CHART_PIE_EMOTION.equals(specialChartType) || SpecialChartType.CHART_PIE_MOOD.equals(specialChartType)) {
 						exportData(array, content,ExcelConst.EMOTION_DATA);
 					}  else if (SpecialChartType.CHART_BAR_CROSS.equals(specialChartType)) {
 						exportDataBarCross(array, content);
