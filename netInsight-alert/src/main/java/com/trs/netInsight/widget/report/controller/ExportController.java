@@ -840,7 +840,7 @@ public class ExportController {
 	 * @return
 	 * @throws TRSException
 	 */
-	@Log(systemLogOperation = SystemLogOperation.EXPORT_EXCEL_SELECT_DATA, systemLogType = SystemLogType.EXPORT_EXCEL,systemLogOperationPosition="---",methodDescription = "导出当前列表的前N条数据到excel")
+	@Log(systemLogOperation = SystemLogOperation.EXPORT_EXCEL_SELECT_DATA, systemLogType = SystemLogType.EXPORT_EXCEL, systemLogOperationPosition = "---", methodDescription = "导出当前列表的前N条数据到excel")
 	@PostMapping("/exportForNum")
 	@ApiOperation("导出当前列表的前N条数据到excel")
 	@FormatResult
@@ -854,7 +854,7 @@ public class ExportController {
 							   @ApiParam("素材库id 只有素材库导出时需要") @RequestParam(value = "libraryId", required = false) String libraryId,
 							   @ApiParam("time 检索时间 针对已发预警和素材库 这两个都是在页面上选择时间") @RequestParam(value = "time", defaultValue = "0d") String time,
 							   @ApiParam("在结果中搜索") @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
-							   @ApiParam("在结果中搜索de范围") @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText",required = false) String fuzzyValueScope,
+							   @ApiParam("在结果中搜索de范围") @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
 							   @ApiParam("接收者 已发预警和站内预警使用，针对用账号筛选") @RequestParam(value = "receivers", defaultValue = "ALL") String receivers,
 							   @ApiParam("论坛主贴回帖 针对收藏、已发预警和素材库") @RequestParam(value = "invitationCard", required = false) String invitationCard,
 							   @ApiParam("微博转发原发 针对收藏、已发预警和素材库") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary) throws TRSException {
@@ -869,7 +869,9 @@ public class ExportController {
 		}
 		ExportListType exportListType = ExportListType.valueOf(type);
 		String trs = "";
-		if (ExportListType.COMMON.equals(exportListType)|| ExportListType.ORDINARYSEARCH.equals(exportListType) || ExportListType.ALERT.equals(exportListType) || ExportListType.SIM.equals(exportListType)|| ExportListType.CHART2LIST.equals(exportListType)) {
+		if (ExportListType.COMMON.equals(exportListType) || ExportListType.ORDINARYSEARCH.equals(exportListType)
+				|| ExportListType.ADVANCEDSEARCH.equals(exportListType) || ExportListType.ALERT.equals(exportListType)
+				|| ExportListType.SIM.equals(exportListType) || ExportListType.CHART2LIST.equals(exportListType)) {
 			if (StringUtil.isEmpty(trslk)) {
 				throw new OperationException("普通数据列表，trslk为空，无法准确获取数据列表，请刷新");
 			}
@@ -890,12 +892,14 @@ public class ExportController {
 			}
 		}
 		Object key = null;
-		if (ExportListType.COMMON.equals(exportListType) || ExportListType.ORDINARYSEARCH.equals(exportListType) ||ExportListType.ADVANCEDSEARCH.equals(exportListType) || ExportListType.ALERT.equals(exportListType) || ExportListType.SIM.equals(exportListType) || ExportListType.CHART2LIST.equals(exportListType)) {
+		if (ExportListType.COMMON.equals(exportListType) || ExportListType.ORDINARYSEARCH.equals(exportListType)
+				|| ExportListType.ADVANCEDSEARCH.equals(exportListType) || ExportListType.ALERT.equals(exportListType)
+				|| ExportListType.SIM.equals(exportListType) || ExportListType.CHART2LIST.equals(exportListType)) {
 			//都是直接从hybase拿取数据
 			//预警列表查询时间用hybase_loadtime，相似文章和专题分析图表 则是默认排序方式不同
-			key = excelService.queryByNum(exportListType, trs, sort, num, source,weight);
+			key = excelService.queryByNum(exportListType, trs, sort, num, source, weight);
 		} else {
-			key = excelService.queryByNumOfOther(exportListType,num,source,time,libraryId,invitationCard,forwarPrimary,fuzzyValue,fuzzyValueScope,receivers);
+			key = excelService.queryByNumOfOther(exportListType, num, source, time, libraryId, invitationCard, forwarPrimary, fuzzyValue, fuzzyValueScope, receivers);
 		}
 		return key;
 	}
