@@ -55,6 +55,7 @@ public class DateUtil {
 	/**
 	 * 长时间格式
 	 */
+	public static final String yyyyMMdd_5 = "yyyyMMdd";
 	public static final String yyyyMMddHH = "yyyyMMddHH";
 	public static final String yyyyMMddHH2 = "yyyy-MM-dd HH";
 	public static final String yyyyMMdd2 = "yyyyMMdd";
@@ -67,6 +68,12 @@ public class DateUtil {
 	 * 全格式,至毫秒级
 	 */
 	public static final String yyyyMMddHHmmssSSS = "yyyyMMddHHmmssSSS";
+
+
+	public static final String YMD_PAGE = "yyyy年MM月dd日";
+
+
+	public static final String YMDH_PAGE = "yyyy年MM月dd日HH时";
 
 	/**
 	 * 一天的总秒数
@@ -651,6 +658,18 @@ public class DateUtil {
 			return sdf.parse(date).getTime();
 		} catch (ParseException e) {
 			return 0;
+		}
+	}
+
+
+	public static String formatDateToString(String date,String oldFormat, String newFormat) {
+		try {
+			SimpleDateFormat old_sdf = new SimpleDateFormat(oldFormat);
+			SimpleDateFormat new_sdf = new SimpleDateFormat(newFormat);
+			Date time = old_sdf.parse(date);
+			return new_sdf.format(time);
+		} catch (ParseException e) {
+			return null;
 		}
 	}
 

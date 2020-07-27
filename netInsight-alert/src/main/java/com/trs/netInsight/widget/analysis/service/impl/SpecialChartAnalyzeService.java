@@ -2306,90 +2306,99 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			builder.filterByTRSL(sb.toString());
 		}
 		List<String> sourceList = CommonListChartUtil.formatGroupName(source);
-		//精准筛选 与上面论坛的主回帖和微博的原转发类似 ，都需要在数据源的基础上进行修改
-		if(StringUtil.isNotEmpty(preciseFilter )) {
-			String[] arr = preciseFilter.split(";");
-			if (arr != null && arr.length > 0) {
-				List<String> preciseFilterList = new ArrayList<>();
-				for (String filter : arr) {
-					preciseFilterList.add(filter);
-				}
-				StringBuffer buffer = new StringBuffer();
-				// 新闻筛选  --- 屏蔽新闻转发 就是新闻 不要新闻不为空的时候，也就是要新闻原发
-				if (sourceList.contains(Const.GROUPNAME_XINWEN) && preciseFilterList.contains("notNewsForward")) {
-
-					buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_XINWEN + ")");
-					buffer.append(" AND (").append(Const.SRCNAME_XINWEN).append(")");
-					buffer.append(")");
-					sourceList.remove(Const.GROUPNAME_XINWEN);
-				}
-
-				//论坛筛选  ---  屏蔽论坛主贴  -  为回帖  、屏蔽论坛回帖为主贴
-				if (sourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
-					if (buffer.length() > 0) {
-						buffer.append(" OR ");
+		// 精准筛选
+		if (StringUtils.isNoneBlank(preciseFilter) && !"ALL".equals(preciseFilter)) {
+			//精准筛选 与上面论坛的主回帖和微博的原转发类似 ，都需要在数据源的基础上进行修改
+			if (sourceList.contains(Const.GROUPNAME_XINWEN) || sourceList.contains(Const.GROUPNAME_WEIBO) || sourceList.contains(Const.GROUPNAME_LUNTAN)) {
+				String[] arr = preciseFilter.split(";");
+				if (arr != null && arr.length > 0) {
+					List<String> preciseFilterList = new ArrayList<>();
+					for (String filter : arr) {
+						preciseFilterList.add(filter);
 					}
-					buffer.append("(");
-					buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
-					if (preciseFilterList.contains("notLuntanForward")) { //屏蔽论坛回帖 -- 主贴
-						buffer.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
-					}
-					if (preciseFilterList.contains("notLuntanPrimary")) { //屏蔽论坛主贴
-						buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
-					}
-					buffer.append(")");
-					sourceList.remove(Const.GROUPNAME_LUNTAN);
-				}
+					StringBuffer buffer = new StringBuffer();
+					// 新闻筛选  --- 屏蔽新闻转发 就是新闻 不要新闻不为空的时候，也就是要新闻原发
+					if (sourceList.contains(Const.GROUPNAME_XINWEN) && preciseFilterList.contains("notNewsForward")) {
 
-				//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
-				if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
+						buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_XINWEN + ")");
+						buffer.append(" AND (").append(Const.SRCNAME_XINWEN).append(")");
+						buffer.append(")");
+						sourceList.remove(Const.GROUPNAME_XINWEN);
+					}
+
+					//论坛筛选  ---  屏蔽论坛主贴  -  为回帖  、屏蔽论坛回帖为主贴
+					if (sourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
+						//不同时包含 屏蔽主贴回帖
+						// - 如果同时屏蔽主贴回帖，等同于不查论坛  能进来判断则代表一定选择了屏蔽中的一项
+						if (!(preciseFilterList.contains("notLuntanForward") && preciseFilterList.contains("notLuntanPrimary"))) {
+							if (buffer.length() > 0) {
+								buffer.append(" OR ");
+							}
+							buffer.append("(");
+							buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+							if (preciseFilterList.contains("notLuntanForward")) { //屏蔽论坛回帖 -- 主贴
+								buffer.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+							}
+							if (preciseFilterList.contains("notLuntanPrimary")) { //屏蔽论坛主贴
+								buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
+							}
+							buffer.append(")");
+						}
+						sourceList.remove(Const.GROUPNAME_LUNTAN);
+					}
+
+					//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
+					if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
 						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
 						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
 						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
-				)) {
-					if (buffer.length() > 0) {
-						buffer.append(" OR ");
-					}
-					buffer.append("(");
-					buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
-					if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
-						buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
-					}
-					if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
-						buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
-					}
-					if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
+					)) {
+						//不同时包含 屏蔽原发转发
+						// - 如果同时屏蔽原发转发，等同于不查微博  能进来判断则代表一定选择了屏蔽中的一项
+						if (!(preciseFilterList.contains("notWeiboForward") && preciseFilterList.contains("notWeiboPrimary"))) {
+							if (buffer.length() > 0) {
+								buffer.append(" OR ");
+							}
+							buffer.append("(");
+							buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+							if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
+								buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
+							}
+							if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
+								buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
+							}
+							if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
 
-					}
-					if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
+							}
+							if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
 
-					}
-					if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
+							}
+							if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
 
-					}
-					if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+							}
+							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
 
-					}
-					if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+							}
+							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
 
-					}
-					if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+							}
+							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
 
+							}
+							buffer.append(")");
+						}
+						sourceList.remove(Const.GROUPNAME_WEIBO);
 					}
-					buffer.append(")");
-					sourceList.remove(Const.GROUPNAME_WEIBO);
+					if (sourceList.size() > 0) {
+						if (buffer.length() > 0) {
+							buffer.append(" OR ");
+						}
+						buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+					}
+					builder.filterByTRSL(buffer.toString());
 				}
-				if (sourceList.size() > 0) {
-					if (buffer.length() > 0) {
-						buffer.append(" OR ");
-					}
-					buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
-				}
-				builder.filterByTRSL(buffer.toString());
-
 			}
 		}
-
 
 		if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
 			addFieldFilter(FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE,builder);

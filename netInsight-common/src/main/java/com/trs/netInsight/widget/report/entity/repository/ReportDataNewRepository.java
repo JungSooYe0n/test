@@ -131,6 +131,21 @@ public interface ReportDataNewRepository extends PagingAndSortingRepository<Repo
 	@Transactional
 	@Modifying
 	public void saveActiveAccount(String activeAccount, String id);
+
+	@Query(value = "update report_data_new set spread_analysis_sitename=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveSpreadAnalysisSiteName(String spreadAnalysisSiteName, String id);
+
+	@Query(value = "update report_data_new set news_spread_analysis_time_list=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveNewsSpreadAnalysisTimeList(String newsSpreadAnalysisTimeList, String id);
+
+	@Query(value = "update report_data_new set wemedia_spread_analysis_time_list=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveWemediaSpreadAnalysisTimeList(String wemediaSpreadAnalysisTimeList, String id);
 	
 	@Query(value = "update report_data_new set done_flag=?1 where id=?2 ", nativeQuery = true)
 	@Transactional

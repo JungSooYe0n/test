@@ -1131,7 +1131,7 @@ public class ReportServiceImpl implements IReportService {
 						newAdd.setAbstracts(abstracts);
 						String fullContent = fav.getExportContent();
 						if (StringUtil.isNotEmpty(fullContent)) {
-							fullContent = StringUtil.filterEmoji(StringUtil.replaceImg(fullContent));
+							fullContent = StringUtil.filterEmoji(StringUtil.replaceImg(fullContent)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "");
 						}
 						newAdd.setFullContent(fullContent);
 						newAdd.setHkey(null);
@@ -2654,7 +2654,10 @@ if (isExport){
 			map.put("favourite", item.isFavourite());
 			String fullContent = item.getFullContent();
 			if (StringUtil.isNotEmpty(fullContent)) {
-				fullContent = ReportUtil.calcuHit("", fullContent, true);
+				if(fullContent.indexOf("<font color=red>") != -1){
+					fullContent = ReportUtil.calcuHit("",fullContent,true);
+				}
+				fullContent = StringUtil.replaceImg(StringUtil.replaceFont(fullContent));
 			}
 			map.put("siteName", item.getSiteName());
 			map.put("authors", item.getAuthors());
