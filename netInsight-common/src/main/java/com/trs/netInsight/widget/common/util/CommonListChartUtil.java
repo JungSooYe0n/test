@@ -313,7 +313,10 @@ public class CommonListChartUtil {
                         map.put("imgOcr",true);
                         ocrContent = StringUtil.replaceImg(ocrContent);
                         fullContent = ocrContent;
-                        fullContent = ReportUtil.calcuHit("",fullContent,true);
+                        if(fullContent.indexOf("<font color=red>") != -1){
+                            fullContent = ReportUtil.calcuHit("",fullContent,true);
+                        }
+                        fullContent = StringUtil.replaceImg(StringUtil.replaceFont(fullContent));
                         setContent = StringUtil.cutContentByFont(ocrContent, Const.CONTENT_LENGTH);
                     }
                     map.put("title", StringUtil.replaceImg(setContent));

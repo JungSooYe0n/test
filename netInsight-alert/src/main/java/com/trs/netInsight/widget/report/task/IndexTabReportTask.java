@@ -130,7 +130,7 @@ public class IndexTabReportTask implements Runnable {
                                         column.setConfig(config);
                                         Object object = column.getColumnData(timerange);
                                         dayTrendResult = object;
-                                        if(ObjectUtil.isNotEmpty(object)){
+                                        if(ObjectUtil.isNotEmpty(object)&& "day".equals(type)){
                                             mapRet.put(type, object);
                                         }
                                     }
@@ -224,7 +224,7 @@ public class IndexTabReportTask implements Runnable {
                                 if(ObjectUtil.isNotEmpty(wordCloudRtn)){
                                     dataTrendRR.setImg_data(JSON.toJSONString(wordCloudRtn));
                                     dataTrendRR.setImgType("wordCloud");
-                                    dataTrendRR.setImgComment("暂定！");
+                                    dataTrendRR.setImgComment("");
                                     dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
                                     reportData.setWordCloudStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
                                 }
@@ -246,7 +246,7 @@ public class IndexTabReportTask implements Runnable {
                                             indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                     column.setConfig(config);
                                     Object areaRtn = column.getColumnData(timerange);
-                                    if(i ==0){
+                                    if(i !=0){
                                         comment = areaRtn;
                                     }
                                     if(ObjectUtil.isNotEmpty(areaRtn)){

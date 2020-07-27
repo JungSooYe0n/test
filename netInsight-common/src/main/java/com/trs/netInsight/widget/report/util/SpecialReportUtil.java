@@ -70,8 +70,6 @@ public class SpecialReportUtil {
             if (totalArr == null || totalArr.size() ==0) {
                 return "";
             }
-
-
             int index = 0;
             int num = 0;
             for(int i =0;i<totalArr.size();i++){
@@ -88,12 +86,12 @@ public class SpecialReportUtil {
             resultSb.append("由图可知，信息量于");
             //时间
             if(time.length() ==10 &&  DateUtil.isTimeFormatterYMD(time)){
-                time = time.replaceAll("/","-");
-                String date = DateUtil.formatDateToString(time,DateUtil.yyyyMMdd_5,DateUtil.YMD_PAGE);
+                //time = time.replaceAll("/","").replaceAll(" ","");
+                String date = DateUtil.formatDateToString(time,DateUtil.yyyyMMdd4,DateUtil.YMD_PAGE);
                 resultSb.append(date);
             }else if(time.length() ==16 && DateUtil.isTimeFormatterYMDH(time)){
-                time = time.replaceAll("/","-");
-                String date = DateUtil.formatDateToString(time,DateUtil.yyyyMMddHH,DateUtil.YMDH_PAGE);
+                //time = time.replaceAll("/","").replaceAll(" ","").replaceAll(":","");
+                String date = DateUtil.formatDateToString(time,DateUtil.yyyyMMddHHmmss_Line2,DateUtil.YMDH_PAGE);
                 resultSb.append(date);
             }
             resultSb.append("达到最高峰，信息量为").append(num).append("篇。");
@@ -113,18 +111,18 @@ public class SpecialReportUtil {
             Collections.sort(parseArray, new Comparator<Map<String, Object>>() {
                 @Override
                 public int compare(Map<String, Object> m1, Map<String, Object> m2) {
-                    Object count1 = m1.get("value");
-                    Object count2 = m2.get("value");
-                    if ((Integer) count1 == (Integer) count2) {
+                    Integer count1 = Integer.valueOf(m1.get("value").toString());
+                    Integer count2 = Integer.valueOf(m2.get("value").toString());
+                    if (count1 ==  count2) {
                         return 0;
                     } else {
-                        return (Integer) count1 > (Integer) count2 ? 1 : -1;
+                        return count2 >  count1 ? 1 : -1;
                     }
                 }
             });
             Integer total = 0;
             for (Map<String, Object> oneMap : parseArray) {
-                Integer num = (Integer) oneMap.get("value");
+                Integer num = Integer.valueOf( oneMap.get("value").toString());
                 total += num;
             }
             DecimalFormat df = new DecimalFormat("0.00");//格式化小数
@@ -132,7 +130,7 @@ public class SpecialReportUtil {
             resultSb.append("由图可知，");
             for(int i = 0;i <parseArray.size(); i++){
                 Map<String, Object> oneData = parseArray.get(i);
-                Integer value = (Integer) oneData.get("value");
+                Integer value = Integer.valueOf(oneData.get("value").toString());
 
                 String num = df.format((float)value*100/total);
                 if( i == 0){
@@ -170,18 +168,18 @@ public class SpecialReportUtil {
             Collections.sort(parseArray, new Comparator<Map<String, Object>>() {
                 @Override
                 public int compare(Map<String, Object> m1, Map<String, Object> m2) {
-                    Object count1 = m1.get("value");
-                    Object count2 = m2.get("value");
-                    if ((Integer) count1 == (Integer) count2) {
+                    Integer count1 = Integer.valueOf(m1.get("value").toString());
+                    Integer count2 = Integer.valueOf(m2.get("value").toString());
+                    if (count1 ==  count2) {
                         return 0;
                     } else {
-                        return (Integer) count1 > (Integer) count2 ? 1 : -1;
+                        return  count2 >  count1 ? 1 : -1;
                     }
                 }
             });
             Integer total = 0;
             for (Map<String, Object> oneMap : parseArray) {
-                Integer num = (Integer) oneMap.get("value");
+                Integer num = Integer.valueOf( oneMap.get("value").toString());
                 total += num;
             }
             DecimalFormat df = new DecimalFormat("0.00");//格式化小数
@@ -189,7 +187,7 @@ public class SpecialReportUtil {
             resultSb.append("由图可知，");
             for(int i = 0;i <parseArray.size(); i++){
                 Map<String, Object> oneData = parseArray.get(i);
-                Integer value = (Integer) oneData.get("value");
+                Integer value = Integer.valueOf( oneData.get("value").toString());
 
                 String num = df.format((float)value*100/total);
 
@@ -229,14 +227,14 @@ public class SpecialReportUtil {
             Integer maxNum = -1;
             for(Map<String, Object> infoMap :info){
                 String sitename = (String)infoMap.get("name");
-                Integer value = (Integer)infoMap.get("value");
+                Integer value = Integer.valueOf(infoMap.get("value").toString());
                 if(value >maxNum){
                     maxName = sitename;
                     maxNum = value;
                 }
                 resultSb.append(sitename).append("、");
             }
-            resultSb.substring(0,resultSb.length()-1);
+            resultSb.substring(0,resultSb.length()-2);
             resultSb.append("。其中，").append(maxName).append("发布的信息量最大，共")
                     .append(maxNum).append("篇。");
 
@@ -245,7 +243,7 @@ public class SpecialReportUtil {
         return null;
     }
 
-    // 日常监测 专题分析报告的 活跃账号
+    // 日常监测 专题分析报告的 地图
     private static String getArea(String imgData) {
         if(StringUtil.isNotEmpty(imgData)){
             StringBuilder resultSb = new StringBuilder();
@@ -262,7 +260,7 @@ public class SpecialReportUtil {
                     break;
                 }
             }
-            resultSb.substring(0,resultSb.length()-1);
+            resultSb.substring(0,resultSb.length()-2);
             Map<String, Object> oneMap = (Map<String, Object>)parseArray.get(0);
             resultSb.append("等地。其中，提及").append(oneMap.get("name")).append("的信息量最大，共")
                     .append(oneMap.get("value")).append("篇。");

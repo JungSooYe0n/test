@@ -402,7 +402,7 @@ public class SepcialReportTask implements Runnable {
                                         ReportResource wordCloudRR = new ReportResource();
                                         wordCloudRR.setImg_data(JSON.toJSONString(wordCloudResult));
                                         wordCloudRR.setImgType("wordCloud");
-                                        wordCloudRR.setImgComment("暂定！");
+                                        wordCloudRR.setImgComment("");
                                         wordCloudRR.setId(UUID.randomUUID().toString().replace("-", ""));
                                         reportData.setWordCloudStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(wordCloudRR))));
                                     }
@@ -432,13 +432,13 @@ public class SepcialReportTask implements Runnable {
                                     searchBuilder.setGroupName(groupNames);
                                     List<Map<String, Object>> catalogResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
                                             irSimflag, irSimflagAll, "catalogArea");
-
                                     List<Map<String, Object>> mediaResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
                                             irSimflag, irSimflagAll, "mediaArea");
-                                    if (ObjectUtil.isNotEmpty(catalogResult) ||ObjectUtil.isNotEmpty(catalogResult)) {
-                                        catalogResult = MapUtil.sortByValue(catalogResult, "area_count");
 
-                                        mediaResult = MapUtil.sortByValue(catalogResult, "area_count");
+                                    if (ObjectUtil.isNotEmpty(catalogResult) ||ObjectUtil.isNotEmpty(catalogResult)) {
+                                        catalogResult = MapUtil.sortByValue(catalogResult, "value");
+
+                                        mediaResult = MapUtil.sortByValue(mediaResult, "value");
 
                                         Map<String, Object> result = new HashMap<>();
                                         result.put("catalogArea", catalogResult);
@@ -450,7 +450,7 @@ public class SepcialReportTask implements Runnable {
                                         areaRR.setImg_data(JSON.toJSONString(result));
                                         areaRR.setImgType("mapChart");
                                         // 数据、图类型、图名字
-                                        areaRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(catalogResult), "mapChart", null));
+                                        areaRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(mediaResult), "mapChart", null));
                                         areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
                                         reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
                                     }

@@ -238,12 +238,13 @@ public class ReportControllerNew {
 	 */
 	@ApiOperation("删除资源池中的资源")
 	@ApiImplicitParams({
-	@ApiImplicitParam(name = "resourceId", value = "需要删除的报告资源id，多选时用 ; 分隔", dataType = "String", paramType = "query", required = false) })
+	@ApiImplicitParam(name = "resourceId", value = "需要删除的报告资源id，多选时用 ; 分隔", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "reportId", value = "报告id", dataType = "String", paramType = "query", required = false)})
 	@Log(systemLogOperation = SystemLogOperation.REPORT_DELETE_REPORT_RESOURCE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@FormatResult
 	@RequestMapping(value = "/delReportResource", method = RequestMethod.POST)
 	public Object deleteReportResource(
-			@RequestParam(value = "resourceId") String resourceId,@RequestParam(value = "reportId") String reportId) throws OperationException {
+			@RequestParam(value = "resourceId") String resourceId,@RequestParam(value = "reportId",required = false) String reportId) throws OperationException {
 		try {
 			return reportServiceNew.delReportResource(resourceId);
 		} catch (Exception e) {
