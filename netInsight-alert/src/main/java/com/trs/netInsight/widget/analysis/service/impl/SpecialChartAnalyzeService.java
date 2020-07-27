@@ -5366,7 +5366,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			//用queryCommonBuilder和QueryBuilder 是一样的的
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
 			builder.setPageSize(pageSize);
-			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(builder, "special", source);
+			InfoListResult infoListResult = null;
+			infoListResult = commonListService.queryPageListForHot(builder,source,UserUtils.getUser(),"special",true);
+			String trslk = null;
+			if (ObjectUtil.isEmpty(infoListResult) || ObjectUtil.isEmpty(infoListResult.getContent())) return null;
+			trslk = infoListResult.getTrslk();
+			PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+//			PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(builder, "special", source);
 			if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
 				return null;
 			}
@@ -5381,6 +5387,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				map.put("groupName", groupName);
 				map.put("time", vo.getUrlTime());
 				map.put("md5", vo.getMd5Tag());
+				map.put("trslk",trslk);
 				String title = vo.getTitle();
 				if (StringUtil.isNotEmpty(title)) {
 					title = StringUtil.replacePartOfHtml(StringUtil.cutContentByFont(StringUtil.replaceImg(title), Const.CONTENT_LENGTH));
