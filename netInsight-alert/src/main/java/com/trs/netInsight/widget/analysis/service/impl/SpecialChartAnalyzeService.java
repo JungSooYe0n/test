@@ -942,7 +942,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
 			if (ObjectUtil.isNotEmpty(vo.getTitle())) {
 				map.put("name", StringUtil.replaceFont(vo.getTitle()));
-				map.put("value", String.valueOf(vo.getSimCount()+1));
+				map.put("value", String.valueOf(vo.getSimCount()));
 				map.put("sid", vo.getSid());
 				map.put("md5", vo.getMd5Tag());
 				map.put("groupName", CommonListChartUtil.formatPageShowGroupName(vo.getGroupName()));
@@ -5358,7 +5358,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
 			builder.setPageSize(pageSize);
 			InfoListResult infoListResult = null;
-			infoListResult = commonListService.queryPageListForHot(builder,source,UserUtils.getUser(),"special",true);
+			infoListResult = commonListService.queryPageListForHot(builder,source,UserUtils.getUser(),"special",false);
 			String trslk = null;
 			if (ObjectUtil.isEmpty(infoListResult) || ObjectUtil.isEmpty(infoListResult.getContent())) return null;
 			trslk = infoListResult.getTrslk();
@@ -5439,7 +5439,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				}
 				map.put("commtCount", vo.getCommtCount());
 				map.put("rttCount", vo.getRttCount());
-				map.put("simNum", String.valueOf(vo.getSimCount()));
+				map.put("simNum", String.valueOf(vo.getSimCount()-1 > 0 ? vo.getSimCount()-1 : 0));
 				// 获得时间差,三天内显示时间差,剩下消失urltime
 				Map<String, String> timeDifference = DateUtil.timeDifference(vo);
 				boolean isNew = false;
