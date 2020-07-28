@@ -20,6 +20,7 @@ import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
 import com.trs.netInsight.widget.alert.entity.PageAlert;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.report.service.IFavouritesService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,6 +73,8 @@ public class AlertServiceImpl implements IAlertService {
 	private UserHelp userService;
 	@Autowired
 	private FullTextSearch hybase8SearchServiceNew;
+	@Autowired
+	private IFavouritesService favouritesService;
 
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
@@ -368,6 +371,7 @@ public class AlertServiceImpl implements IAlertService {
 		User user = UserUtils.getUser();
 		String userId = user.getId();
 		String userName = user.getUserName();
+		List<Favourites> favouritesList = favouritesService.findAll(user);
 		QueryBuilder queryBuilder = new QueryBuilder();
 		queryBuilder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
 
@@ -454,6 +458,8 @@ public class AlertServiceImpl implements IAlertService {
 				if (ObjectUtil.isNotEmpty(pageItem.getContent())){
 					pageItem.setContent(pageItem.getContent().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
 				}
+					// 检验收藏
+				pageItem.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(pageItem.getSid())));
 				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
 				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
 			pageItem.setGroupName(CommonListChartUtil.formatPageShowGroupName(pageItem.getGroupName()));

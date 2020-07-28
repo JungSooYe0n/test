@@ -990,10 +990,12 @@ public class InfoListController {
                 if (null != nreserved1) {
                     QueryBuilder builder = new QueryBuilder();
                     HashMap<String, Object> returnMap = new HashMap<>();
-                    builder.filterField(FtsFieldConst.FIELD_HKEY, ftsDocument.getHkey(), Operator.Equal);
+                    builder.setPageSize(20);
+//                    builder.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.Equal);
+					builder.filterField(FtsFieldConst.FIELD_HKEY, ftsDocument.getHkey(), Operator.Equal);
                     if ("1".equals(nreserved1)) {
                         //直接查回帖的详情 加trsl
-                        builder.filterByTRSL(trsl);//不加trsl,导致前端直接取主贴标题，关键词不描红问题
+//                        builder.filterByTRSL(trsl);//不加trsl,导致前端直接取主贴标题，关键词不描红问题
                         //若查主贴的详情，下面仅用来查询该主贴的回帖数，为和/getreplyCards保持一致，也与实际值保持一致，不许加trsl
                     }
 //                ftsDocuments = hybase8SearchService.ftsPageList(builder, FtsDocument.class, false, false,false,null);
@@ -1012,14 +1014,30 @@ public class InfoListController {
                                 }
                             }
                         }
-                        list.add(ftsDocument);
+						list.add(ftsDocument);
                         returnMap.put("replyCard", list);
                         return returnMap;
                     } else if ("0".equals(nreserved1)) {// 主贴
-                        ftsDocument.setReplyCount(content2.getTotalItemCount() - 1);// 回帖个数
-                        // 把主贴刨去
-                        returnMap.put("mainCard", ftsDocument);
-                        return returnMap;
+						List list = new ArrayList<>();
+						if (null != ftsDocuments && ftsDocuments.size() > 0) {
+							for (FtsDocumentCommonVO document : ftsDocuments) {
+								log.info(document.getNreserved1() + "主回帖");
+								if ("0".equals(document.getNreserved1())) {// 说明这个是回帖对应的主贴
+									document.setReplyCount(content2.getTotalItemCount() - 1);// 回帖个数
+									// 把主贴刨去
+									returnMap.put("mainCard", document);
+								}else {
+									list.add(document);
+								}
+							}
+						}
+
+						returnMap.put("replyCard", list);
+						return returnMap;
+//                        ftsDocument.setReplyCount(content2.getTotalItemCount() - 1);// 回帖个数
+//                        // 把主贴刨去
+//                        returnMap.put("mainCard", ftsDocument);
+//                        return returnMap;
                     }
                 }
             }
