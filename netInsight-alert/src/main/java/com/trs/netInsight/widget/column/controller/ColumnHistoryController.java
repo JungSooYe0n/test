@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -90,8 +91,19 @@ public class ColumnHistoryController {
     @ApiOperation("修改日常监测数据栏目的数据 - 字段修改")
     public Object updateHistortColumnField() {
         System.out.println("修改字段------------");
-        Object result = indexTabService.updateHistortColumnField();
+        Object result = indexTabService.updateHistortColumnField(null);
         return result;
     }
 
+    /**
+     * 修改日常监测数据栏目的数据
+     */
+    @FormatResult
+    @GetMapping(value = "/updateHistortColumnFieldForOrganization")
+    @ApiOperation("修改日常监测数据栏目的数据，根据机构信息 - 字段修改")
+    public Object updateHistortColumnFieldForOrganization(@RequestParam("orgId") String orgId) {
+        System.out.println("修改字段------------");
+        Object result = indexTabService.updateHistortColumnField(orgId);
+        return result;
+    }
 }

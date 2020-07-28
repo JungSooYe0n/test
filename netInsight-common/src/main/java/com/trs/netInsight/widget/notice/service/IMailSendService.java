@@ -32,7 +32,7 @@ public interface IMailSendService {
 	 * @Author 谷泽昊
 	 * @param template
 	 * @param subject
-	 * @param json
+	 * @param
 	 * @param receivers
 	 * @return
 	 * @throws TRSException
@@ -41,7 +41,7 @@ public interface IMailSendService {
 	public Message sendEmail(String template, String subject, Map<String, Object> map, String receivers) ;
 	
 	boolean sendMail(String subject, String text, String[] receivers) throws Exception;
-	boolean sendOneMail(String subject, String text, String fromAddress) throws Exception;
+	boolean sendOneMail(String subject, String text) throws Exception;
 }
 
 /**

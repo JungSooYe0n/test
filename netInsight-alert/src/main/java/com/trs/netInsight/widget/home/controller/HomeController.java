@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.home.controller;
 
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +10,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+import com.trs.netInsight.widget.apply.entity.Apply;
+import com.trs.netInsight.widget.apply.entity.enums.AccountType;
+import com.trs.netInsight.widget.apply.entity.enums.ApplyUserType;
+import com.trs.netInsight.widget.apply.service.IApplyService;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +88,8 @@ public class HomeController {
 
 	@Autowired
 	private IMailSendService mailSendService;
+	@Autowired
+	private IApplyService applyService;
 
 	/**
 	 * 获取用户首页配置的栏目信息
@@ -187,7 +194,7 @@ public class HomeController {
 	 * @param request
 	 * @return
 	 * @throws TRSException
-	 * @throws SearchException
+	 * @throws
 	 */
 	// @EnableRedis(cacheMinutes=60, poolId = "userId")
 	@FormatResult
@@ -329,7 +336,7 @@ public class HomeController {
 	 * @param columnId
 	 * @return
 	 * @throws TRSException
-	 * @throws SearchException
+	 * @throws
 	 */
 	@EnableRedis(cacheMinutes = 3)
 	@FormatResult
@@ -369,7 +376,7 @@ public class HomeController {
 	 * 
 	 * @date Created at 2018年8月3日 下午3:52:11
 	 * @Author 谷泽昊
-	 * @param applyTryConpanyName
+	 * @param
 	 * @param applyTryName
 	 * @param applyTryPhone
 	 * @param applyTryTel
@@ -399,7 +406,93 @@ public class HomeController {
 				+ "。<br> 手机号码：" + applyTryTel + "。<br> 邮件：" + applyTryEmail + "。<br>申请时间："
 				+ DateUtil.formatDateAfter(new Date(), DateUtil.FMT_TRS_yMdhms, 0) + "。";
 		String subject = "政企用户("+applyTryName+")申请试用";
-		boolean b = mailSendService.sendOneMail(subject, text, applyTryEmail);
+		boolean b = mailSendService.sendOneMail(subject, text);
 		return b;
 	}
+
+
+	/**
+	 * 广告页申请使用
+	 *
+	 *
+	 */
+	@FormatResult
+	@ApiOperation("4.0广告宣传 申请试用")
+	@RequestMapping(value = "/applyForAdvertising", method = RequestMethod.POST)
+	public Object applyForAdvertising(
+			@ApiParam("申请用户类型，老用户、新用户") @RequestParam(value = "applyUserType") String applyUserType,
+
+			@ApiParam("单位名称") @RequestParam(value = "unitName",required = false) String unitName,
+			@ApiParam("姓名") @RequestParam(value = "name",required = false) String name,
+			@ApiParam("手机号") @RequestParam(value = "phone",required = false) String phone,
+			@ApiParam("工作电话") @RequestParam(value = "workPhone",required = false) String workPhone,
+			@ApiParam("工作邮箱") @RequestParam(value = "email") String email,
+			@ApiParam("来源渠道") @RequestParam(value = "sourceWay",required = false) String sourceWay,
+			@ApiParam("原有账号") @RequestParam(value = "originalAccount",required = false) String originalAccount,
+			@ApiParam("用户类型：正式formal，试用trial") @RequestParam(value = "accountType",required = false) String accountType
+
+	) throws Exception {
+		// 判断邮件是否正确
+		if (!RegexUtils.checkEmail(email)) {
+			throw new TRSException(CodeUtils.EMAIL_FALSE, "邮箱格式不正确！");
+		}
+		// 验证手机号
+		if (StringUtils.isNotBlank(phone) && !RegexUtils.checkMobile(phone)) {
+			throw new TRSException(CodeUtils.PHONE_FAIL, "手机号填写错误！");
+		}
+		String text = "";
+		String subject = "";
+		ApplyUserType userType = ApplyUserType.valueOf(applyUserType);
+		if(ApplyUserType.newUser.equals(userType)){
+
+			if(StringUtil.isEmpty(unitName)){
+				throw new TRSException(CodeUtils.FAIL, "新用户申请单位名称不能为空");
+			}
+			if(StringUtil.isEmpty(name)){
+				throw new TRSException(CodeUtils.FAIL, "新用户申请姓名不能为空");
+			}
+			if(StringUtil.isEmpty(phone)){
+				throw new TRSException(CodeUtils.FAIL, "新用户申请手机号码不能为空");
+			}
+			if(StringUtil.isEmpty(sourceWay)){
+				throw new TRSException(CodeUtils.FAIL, "新用户申请来源渠道不能为空");
+			}
+
+			text = MessageFormat.format(newEmailTemplate, unitName,name,phone,workPhone,email,sourceWay);
+			subject = MessageFormat.format(newEmailTitle, name);
+		}else if(ApplyUserType.oldUser.equals(userType)){
+			if(StringUtil.isEmpty(originalAccount)){
+				throw new TRSException(CodeUtils.FAIL, "老用户申请原有账号不能为为空");
+			}
+			if(StringUtil.isEmpty(accountType)){
+				throw new TRSException(CodeUtils.FAIL, "老用户申请用户类型不能为空");
+			}
+			AccountType accountType1=AccountType.valueOf(accountType);
+
+			text = MessageFormat.format(oldEmailTemplate, originalAccount,name,phone,workPhone,email,accountType1.getName());
+			subject = MessageFormat.format(oldEmailTitle, name);
+		}else{
+			throw new TRSException(CodeUtils.FAIL, "未能识别用户类型");
+		}
+		Apply apply = new Apply(applyUserType,unitName,name,phone,workPhone,email,sourceWay,originalAccount,accountType);
+		applyService.updateApply(apply);
+		boolean b = mailSendService.sendOneMail(subject, text);
+		return b;
+	}
+	public static final String newEmailTitle = "新用户{0}申请网察免费试用";
+	public static final String newEmailTemplate = "单位名称：{0}<br>" +
+			"姓名：{1}<br>" +
+			"手机号码：{2}<br>" +
+			"工作电话：{3}<br>" +
+			"工作邮箱：{4}<br>" +
+			"来源渠道：{5}<br>";
+
+	public static final String oldEmailTitle = "老用户{0}申请网察免费试用";
+	public static final String oldEmailTemplate = "原有账号：{0}<br>" +
+			"姓名：{1}<br>" +
+			"手机号码：{2}<br>" +
+			"工作电话：{3}<br>" +
+			"工作邮箱：{4}<br>" +
+			"用户类型：{5}<br>";
+
 }

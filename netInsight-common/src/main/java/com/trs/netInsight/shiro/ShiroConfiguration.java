@@ -389,6 +389,10 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/home/netSearch", "anon");
 		// 登录页 政企申请试用
 		filterChainDefinitionMap.put("/home/applyForTry", "anon");
+		// 广告页申请试用
+		filterChainDefinitionMap.put("/home/applyForAdvertising", "anon");
+		// 申请信息入库
+		filterChainDefinitionMap.put("/apply/addApplyUser", "anon");
 		//返乡日记
 		filterChainDefinitionMap.put("/homecoming/**", "anon");
 
