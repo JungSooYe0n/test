@@ -331,9 +331,15 @@ public class CommonListChartUtil {
                     map.put("author", vo.getAuthors());
                     map.put("srcName", vo.getRetweetedScreenName());
                 } else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
+                    if(StringUtil.isEmpty(title)){
+                        map.put("title", vo.getContent());
+                    }
                     map.put("abstracts", vo.getContent());
                     map.put("author", vo.getAuthors());
                     map.put("srcName", vo.getSrcName());
+                    if(StringUtil.isEmpty(title)){
+                        map.put("copyTitle", fullContent); //前端复制功能需要用到
+                    }
                 }
                 map.put("trslk", trslk);
                 map.put("channel", vo.getChannel());

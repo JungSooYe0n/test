@@ -385,9 +385,7 @@ public class AlertServiceImpl implements IAlertService {
 			}
 			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
 		}
-		if ("微信".equals(source)){
-			source = "国内微信";
-		}
+
 		if (!"ALL".equals(source)){
 			queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,source.split(";"),Operator.Equal);
 		}
@@ -452,22 +450,28 @@ public class AlertServiceImpl implements IAlertService {
 		queryBuilder.setPageSize(pageSize);
 		queryBuilder.setDatabase(Const.ALERT);
 		PagedList<FtsDocumentAlert> ftsDocumentAlertPagedList = hybase8SearchServiceNew.ftsAlertList(queryBuilder, FtsDocumentAlert.class);
-		if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())){
+		if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())
+				&& ftsDocumentAlertPagedList.getPageItems().size() > 0) {
 			List<FtsDocumentAlert> pageItems = ftsDocumentAlertPagedList.getPageItems();
 			for (FtsDocumentAlert pageItem : pageItems) {
-				if (ObjectUtil.isNotEmpty(pageItem.getContent())){
-					pageItem.setContent(pageItem.getContent().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
+				if (ObjectUtil.isNotEmpty(pageItem.getContent())) {
+					pageItem.setContent(pageItem.getContent().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
 				}
-					// 检验收藏
+				// 检验收藏
 				pageItem.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(pageItem.getSid())));
-				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
-				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
-			pageItem.setGroupName(CommonListChartUtil.formatPageShowGroupName(pageItem.getGroupName()));
+				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+				pageItem.setGroupName(CommonListChartUtil.formatPageShowGroupName(pageItem.getGroupName()));
+				String copyTitle = pageItem.getTitleWhole();
+				if(StringUtil.isNotEmpty(copyTitle)){
+					copyTitle = copyTitle.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+					pageItem.setCopyTitle(copyTitle);
+				}
 			}
 			PageAlert pageAlert = new PageAlert();
 			pageAlert.setContent(ftsDocumentAlertPagedList.getPageItems());
-			pageAlert.setFirst(pageNo==0?true:false);
-			pageAlert.setLast(pageNo == ftsDocumentAlertPagedList.getTotalPageCount()-1?true:false);//pageno从0开始
+			pageAlert.setFirst(pageNo == 0 ? true : false);
+			pageAlert.setLast(pageNo == ftsDocumentAlertPagedList.getTotalPageCount() - 1 ? true : false);//pageno从0开始
 			pageAlert.setPageId(UUID.randomUUID().toString());
 			pageAlert.setSize(pageSize);
 			pageAlert.setTotalPages(ftsDocumentAlertPagedList.getTotalPageCount());

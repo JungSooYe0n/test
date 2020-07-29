@@ -1750,7 +1750,11 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 							"other",imaUrl,"",0,"");
 					result.add(alert);
 				}else if(Const.MEDIA_TYPE_VIDEO.contains(vo.getGroupName())){
-					alert = new FtsDocumentAlert(vo.getSid(),vo.getContent(),vo.getContent(),vo.getContent(),
+					String title = vo.getTitle();
+					if(StringUtil.isEmpty(title)){
+						title = vo.getContent();
+					}
+					alert = new FtsDocumentAlert(vo.getSid(),title,title,vo.getContent(),
 							vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(), vo.getGroupName(),vo.getCommtCount(),vo.getRttCount(),
 							vo.getAuthors(),vo.getAppraise(),"",null,"other",vo.getMd5Tag(),
 							"other",imaUrl,"",0,"");
