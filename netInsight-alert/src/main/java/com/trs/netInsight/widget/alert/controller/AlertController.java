@@ -45,7 +45,7 @@ public class AlertController {
 	public Object list(@ApiParam("从0开始 第几页") @RequestParam("pageNo") int pageNo,
 			@ApiParam("第几条") @RequestParam("pageSize") int pageSize,
 			@ApiParam("站内SMS 还是已发送SEND") @RequestParam("way") String way,
-			@ApiParam("来源") @RequestParam(value = "source", defaultValue = "国内新闻") String source,
+			@ApiParam("来源") @RequestParam(value = "source", defaultValue = "新闻") String source,
 			@ApiParam("时间") @RequestParam(value = "time", defaultValue = "0d") String time,
 			@ApiParam("接收者 ") @RequestParam(value = "receivers", defaultValue = "ALL") String receivers,
 			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
@@ -59,9 +59,12 @@ public class AlertController {
 			return null;
 		}
 		PageAlert pageAlert = alertService.alertListHybase(pageNo, pageSize, way, source, time, receivers, invitationCard, forwarPrimary, keywords, fuzzyValueScope);
-		String uuid = UUID.randomUUID().toString();
-		Map<String, Object> putValue = MapUtil.putValue(new String[] { "pageId", "list" }, uuid, pageAlert);
-		return putValue;
+		if(pageAlert!= null){
+			String uuid = UUID.randomUUID().toString();
+			Map<String, Object> putValue = MapUtil.putValue(new String[] { "pageId", "list" }, uuid, pageAlert);
+			return putValue;
+		}
+		return null;
 	}
 
 	/**

@@ -179,6 +179,12 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
     private Boolean favourite;
 
     /**
+     * 收藏Boolean型( true 表示已收藏)
+     */
+    @Transient
+    private String copyTitle;
+
+    /**
      * 热度值预警时相似文章数
      */
     @Transient

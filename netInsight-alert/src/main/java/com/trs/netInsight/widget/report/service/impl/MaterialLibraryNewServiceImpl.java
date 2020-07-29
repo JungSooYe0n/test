@@ -1213,20 +1213,20 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
     }
 
     public Object findMaterialSourceByCondition(String libraryId, int pageNo, int pageSize,
-                                          List<String> groupNameList, String keyword,String fuzzyValueScope, String invitationCard,
-                                          String forwarPrimary,String time,Boolean isExport) throws TRSException{
+                                                List<String> groupNameList, String keyword, String fuzzyValueScope, String invitationCard,
+                                                String forwarPrimary, String time, Boolean isExport) throws TRSException {
         User loginUer = UserUtils.getUser();
         String start = DateUtil.formatTimeRange(time)[0];
         String end = DateUtil.formatTimeRange(time)[1];
-        Date startTime = time == null?new Date():DateUtil.stringToDate(start,DateUtil.yyyyMMddHHmmss);
-        Date endTime = time == null?new Date():DateUtil.stringToDate(end,DateUtil.yyyyMMddHHmmss);
+        Date startTime = time == null ? new Date() : DateUtil.stringToDate(start, DateUtil.yyyyMMddHHmmss);
+        Date endTime = time == null ? new Date() : DateUtil.stringToDate(end, DateUtil.yyyyMMddHHmmss);
         //获取用户可查询的数据源
-        String groupNames = StringUtils.join(groupNameList,";");
+        String groupNames = StringUtils.join(groupNameList, ";");
         List<String> groupName = SourceUtil.getGroupNameList(groupNames);
-        if(groupName == null || groupName.size() ==0){
+        if (groupName == null || groupName.size() == 0) {
             return null;
         }
-        String source = StringUtils.join(groupName,";");
+        String source = StringUtils.join(groupName, ";");
         Sort sort = new Sort(Sort.Direction.DESC, "urltime");
         PageRequest pageable = new PageRequest(pageNo, pageSize, sort);
         Page<Favourites> list = null;
@@ -1235,76 +1235,76 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             public Predicate toPredicate(Root<Favourites> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 List<Predicate> predicate = new ArrayList<>();
                 predicate.add(cb.equal(root.get("libraryId"), libraryId));
-                predicate.add(cb.between(root.get("createdTime"),startTime,endTime));
-                if(StringUtil.isNotEmpty(keyword) && StringUtil.isNotEmpty(fuzzyValueScope)){
+                predicate.add(cb.between(root.get("createdTime"), startTime, endTime));
+                if (StringUtil.isNotEmpty(keyword) && StringUtil.isNotEmpty(fuzzyValueScope)) {
                     List<Predicate> predicateKeyWord = new ArrayList<>();
 
-                    switch (fuzzyValueScope){
+                    switch (fuzzyValueScope) {
                         case "title":
-                            predicateKeyWord.add(cb.like(root.get("title"),"%"+keyword+"%"));
+                            predicateKeyWord.add(cb.like(root.get("title"), "%" + keyword + "%"));
                             break;
                         case "source":
-                            predicateKeyWord.add(cb.like(root.get("siteName"),"%"+keyword+"%"));
+                            predicateKeyWord.add(cb.like(root.get("siteName"), "%" + keyword + "%"));
                             break;
                         case "author":
-                            predicateKeyWord.add(cb.like(root.get("authors"),"%"+keyword+"%"));
+                            predicateKeyWord.add(cb.like(root.get("authors"), "%" + keyword + "%"));
                             break;
                         case "fullText":
-                            predicateKeyWord.add(cb.like(root.get("title"),"%"+keyword+"%"));
-                            predicateKeyWord.add(cb.like(root.get("content"),"%"+keyword+"%"));
+                            predicateKeyWord.add(cb.like(root.get("title"), "%" + keyword + "%"));
+                            predicateKeyWord.add(cb.like(root.get("content"), "%" + keyword + "%"));
                             break;
                     }
 
                     predicate.add(cb.or(predicateKeyWord.toArray(new Predicate[predicateKeyWord.size()])));
                 }
-                if( (StringUtil.isNotEmpty(forwarPrimary) && source.contains("微博")) ||
-                        StringUtil.isNotEmpty(invitationCard) && source.contains("国内论坛")){
+                if ((StringUtil.isNotEmpty(forwarPrimary) && source.contains("微博")) ||
+                        StringUtil.isNotEmpty(invitationCard) && source.contains("国内论坛")) {
                     List<Predicate> predicateGroupName = new ArrayList<>();
 
-                    if(StringUtil.isNotEmpty(forwarPrimary) && source.contains("微博")){
+                    if (StringUtil.isNotEmpty(forwarPrimary) && source.contains("微博")) {
                         List<Predicate> predicateWeibo = new ArrayList<>();
                         predicateWeibo.add(cb.equal(root.get("groupName"), "微博"));
                         if ("primary".equals(forwarPrimary)) {
                             // 原发
                             predicateWeibo.add(cb.isNull(root.get("retweetedMid")));
-                        }else  if ("forward".equals(forwarPrimary)){
+                        } else if ("forward".equals(forwarPrimary)) {
                             //转发
                             predicateWeibo.add(cb.isNotNull(root.get("retweetedMid")));
                         }
-                        for(int i = 0;i < groupName.size() ;i++){
-                            if("微博".equals(groupName.get(i))){
+                        for (int i = 0; i < groupName.size(); i++) {
+                            if ("微博".equals(groupName.get(i))) {
                                 groupName.remove(i);
                             }
                         }
                         predicateGroupName.add(cb.and(predicateWeibo.toArray(new Predicate[predicateWeibo.size()])));
                     }
 
-                    if(StringUtil.isNotEmpty(invitationCard)  && source.contains("国内论坛")){
+                    if (StringUtil.isNotEmpty(invitationCard) && source.contains("国内论坛")) {
                         List<Predicate> predicateLuntan = new ArrayList<>();
                         predicateLuntan.add(cb.equal(root.get("groupName"), "国内论坛"));
                         if ("0".equals(invitationCard)) {
                             // 主贴
                             List<Predicate> predicateLuntan_zhutie = new ArrayList<>();
                             predicateLuntan_zhutie.add(cb.isNull(root.get("nreserved1")));
-                            predicateLuntan_zhutie.add(cb.equal(root.get("nreserved1"),"0"));
-                            predicateLuntan_zhutie.add(cb.equal(root.get("nreserved1"),""));
+                            predicateLuntan_zhutie.add(cb.equal(root.get("nreserved1"), "0"));
+                            predicateLuntan_zhutie.add(cb.equal(root.get("nreserved1"), ""));
                             predicateLuntan.add(cb.or(predicateLuntan_zhutie.toArray(new Predicate[predicateLuntan_zhutie.size()])));
-                        }else  if ("1".equals(invitationCard)){
+                        } else if ("1".equals(invitationCard)) {
                             //回帖
-                            predicateLuntan.add(cb.equal(root.get("nreserved1"),"1"));
+                            predicateLuntan.add(cb.equal(root.get("nreserved1"), "1"));
                         }
-                        for(int i = 0;i < groupName.size() ;i++){
-                            if("国内论坛".equals(groupName.get(i))){
+                        for (int i = 0; i < groupName.size(); i++) {
+                            if ("国内论坛".equals(groupName.get(i))) {
                                 groupName.remove(i);
                             }
                         }
                         predicateGroupName.add(cb.and(predicateLuntan.toArray(new Predicate[predicateLuntan.size()])));
                     }
 
-                    if(groupName.size() > 0){
+                    if (groupName.size() > 0) {
                         List<Predicate> predicatOtherGroupName = new ArrayList<>();
                         CriteriaBuilder.In<String> in = cb.in(root.get("groupName").as(String.class));
-                        for(int i = 0; i<groupName.size();i++){
+                        for (int i = 0; i < groupName.size(); i++) {
                             in.value(groupName.get(i));
                         }
                         predicatOtherGroupName.add(in);
@@ -1312,9 +1312,9 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     }
                     predicate.add(cb.or(predicateGroupName.toArray(new Predicate[predicateGroupName.size()])));
 
-                }else{
+                } else {
                     CriteriaBuilder.In<String> in = cb.in(root.get("groupName").as(String.class));
-                    for(int i = 0; i<groupName.size();i++){
+                    for (int i = 0; i < groupName.size(); i++) {
                         in.value(groupName.get(i));
                     }
                     predicate.add(in);
@@ -1324,7 +1324,7 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             }
         };
 
-        list = favouritesRepository.findAll(criteria,pageable);
+        list = favouritesRepository.findAll(criteria, pageable);
         if (isExport) {
             if (ObjectUtil.isNotEmpty(list)) {
                 list.forEach(item -> {
@@ -1341,7 +1341,7 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             }
 
             return new InfoListResult<>(list.getContent(), (int) list.getTotalElements(), list.getTotalPages());
-        }else {
+        } else {
             if (ObjectUtil.isNotEmpty(list)) {
                 List<Object> resultList = new ArrayList<>();
                 list.forEach(item -> {
@@ -1388,8 +1388,8 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     map.put("favourite", item.isFavourite());
                     String fullContent = item.getFullContent();
                     if (StringUtil.isNotEmpty(fullContent)) {
-                        if(fullContent.indexOf("<font color=red>") != -1){
-                            fullContent = ReportUtil.calcuHit("",fullContent,true);
+                        if (fullContent.indexOf("<font color=red>") != -1) {
+                            fullContent = ReportUtil.calcuHit("", fullContent, true);
                         }
                         fullContent = StringUtil.replaceImg(StringUtil.replaceFont(fullContent));
                     }
@@ -1409,7 +1409,9 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                         map.put("copyTitle", fullContent); //前端复制功能需要用到
                         map.put("author", item.getAuthors());
                     } else if (Const.PAGE_SHOW_DUANSHIPIN.equals(oneGroup) || Const.PAGE_SHOW_CHANGSHIPIN.equals(oneGroup)) {
-                        map.put("title", item.getContent());
+                        if(StringUtil.isEmpty(title)){
+                            map.put("title", item.getContent());
+                        }
                         map.put("abstracts", item.getContent());
                         map.put("author", item.getAuthors());
                         map.put("copyTitle", fullContent); //前端复制功能需要用到
