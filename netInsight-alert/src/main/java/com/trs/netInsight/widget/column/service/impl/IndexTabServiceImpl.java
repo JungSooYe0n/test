@@ -219,7 +219,7 @@ public class IndexTabServiceImpl implements IIndexTabService {
 		}
 
 	}
-	public Object updateHistortColumnField() {
+	public Object updateHistortColumnField(String orgId) {
 		try {
 			/*
 			需要去掉多余的字段，主要是需要合并
@@ -238,7 +238,13 @@ public class IndexTabServiceImpl implements IIndexTabService {
 
 			 3、将trsl 和其他的表达式合并，保留一份
 			 */
-			List<IndexTab> list = indexTabRepository.findAll();
+			List<IndexTab> list = null;
+			if(StringUtil.isEmpty(orgId)){
+				list = indexTabRepository.findAll();
+			}else{
+				list = indexTabRepository.findByOrganizationId(orgId);
+			}
+
 			if (list != null && list.size() > 0) {
 				int n = 0;
 				for (IndexTab indexTab : list) {
@@ -314,7 +320,6 @@ public class IndexTabServiceImpl implements IIndexTabService {
 						}
 						List<String> sourceList = formatGroupName(source);
 						indexTab.setGroupName(StringUtils.join(sourceList, ";"));
-						indexTab.setTradition(indexTab.getGroupName());
 
 						if (StringUtil.isEmpty(indexTab.getTrsl())) {
 							if (StringUtil.isNotEmpty(indexTab.getStatusTrsl())) {

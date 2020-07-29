@@ -56,6 +56,10 @@ public enum NavigationEnum {
 	/**
 	 * 数据订阅
 	 */
-	datasubscription;
+	datasubscription,
+	/**
+	 * 试用管理
+	 */
+	trialManagement;
 
 }

@@ -131,7 +131,7 @@ public class MailSendServiceImpl implements IMailSendService {
 	}
 
 	@Override
-	public boolean sendOneMail(String subject, String text, String fromAddress) throws Exception {
+	public boolean sendOneMail(String subject, String text) throws Exception {
 		try {
 			MimeMessage mimeMessage = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
