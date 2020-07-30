@@ -1739,17 +1739,17 @@ public class SpecialChartAnalyzeController {
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 			}
+			// url排重
 			ObjectUtil.assertNull(specialProject, "专题ID");
-			if (StringUtils.isBlank(timeRange)) {
-				timeRange = specialProject.getTimeRange();
-				if (StringUtils.isBlank(timeRange)) {
-					timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
-					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
-				}
-			}
-
+            if (timeRange != null) {
+                String[] timeArray = DateUtil.formatTimeRange(timeRange);
+                if (timeArray != null && timeArray.length == 2) {
+                    specialProject.setStart(timeArray[0]);
+                    specialProject.setEnd(timeArray[1]);
+                }
+            }
 			QueryBuilder statBuilder = null;
-			statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
+            statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
 			statBuilder.page(0, pageSize);
 			type = CommonListChartUtil.formatPageShowGroupName(type);
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
