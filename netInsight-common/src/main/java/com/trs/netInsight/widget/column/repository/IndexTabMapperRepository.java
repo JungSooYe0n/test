@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.column.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.domain.Sort;
@@ -208,4 +209,6 @@ public interface IndexTabMapperRepository extends JpaRepository<IndexTabMapper, 
 	 * @return
 	 */
 	List<IndexTabMapper> findByTypeId(String typeId);
+	List<IndexTabMapper> findByIdIn(Collection<String> ids);
+
 }

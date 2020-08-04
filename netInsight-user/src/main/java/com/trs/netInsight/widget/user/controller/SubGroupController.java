@@ -1,7 +1,10 @@
 package com.trs.netInsight.widget.user.controller;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.trs.jpa.utils.Criteria;
 import com.trs.jpa.utils.Restrictions;
+import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.util.*;
@@ -14,10 +17,14 @@ import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.entity.NavigationConfig;
 import com.trs.netInsight.widget.column.entity.NavigationEnum;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
+import com.trs.netInsight.widget.column.entity.emuns.SpecialFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.repository.IndexPageRepository;
+import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabRepository;
 import com.trs.netInsight.widget.column.repository.NavigationRepository;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.config.entity.SystemConfig;
 import com.trs.netInsight.widget.config.service.ISystemConfigService;
 import com.trs.netInsight.widget.microblog.entity.SingleMicroblogData;
@@ -88,6 +95,8 @@ public class SubGroupController {
 
     @Autowired
     private IndexPageRepository indexPageRepository;
+    @Autowired
+    private IndexTabMapperRepository tabMapperRepository;
 
     @Autowired
     private NavigationRepository navigationRepository;
@@ -195,8 +204,9 @@ public class SubGroupController {
                               @ApiParam(name = "数量限制——预警主题") @RequestParam(value = "alertNum",  defaultValue = "10") int alertNum,
                               @ApiParam(name = "数量限制——预警账号") @RequestParam(value = "alertAccountNum", defaultValue = "5") int alertAccountNum,
                               @ApiParam("有效期，默认永久2050-01-01 00:00:00") @RequestParam(value = "expireAt", defaultValue = "2050-01-01 00:00:00") String expireAt,
-                              @ApiParam("同步数据，同步日常监测") @RequestParam(value = "columnSync",required = false) String columnSync,
-                              @ApiParam("同步数据，同步专题分析(带级别)") @RequestParam(value = "specialSyncLevel",required = false) String specialSyncLevel,
+                              @ApiParam("同步数据，同步日常监测") @RequestParam(value = "columnSync",required = false) String[] columnSync,
+                              @ApiParam("同步数据，同步日常监测") @RequestParam(value = "columnSyncLevel",required = false) String[] columnSyncLevel,
+                              @ApiParam("同步数据，同步专题分析(带级别)") @RequestParam(value = "specialSyncLevel",required = false) String[] specialSyncLevel,
                               @ApiParam("同步数据，同步专题分析(不带级别)") @RequestParam(value = "specialSync",required = false) String[] specialSync,
                               @ApiParam(name = "机构用户限制（登录账号个数）") @RequestParam(value = "userLimit", defaultValue = "5") int userLimit,
                               @ApiParam(name = "批量添加用户json") @RequestParam(value = "userJson",required = false) String userJson) throws TRSException{
@@ -285,7 +295,7 @@ public class SubGroupController {
             throw new TRSException(CodeUtils.FAIL, "可绑定预警账号数已超出当前可绑定数 ！");
         }
 
-       return subGroupService.save(0,organizationId,name,filePicture,roleIds,columnNum,specialNum,alertNum,alertAccountNum,expireAt,columnSync,specialSyncLevel,specialSync,userLimit,userJson);
+       return subGroupService.save(0,organizationId,name,filePicture,roleIds,columnNum,specialNum,alertNum,alertAccountNum,expireAt,columnSync,columnSyncLevel,specialSyncLevel,specialSync,userLimit,userJson);
     }
 
     /**
@@ -545,6 +555,7 @@ public class SubGroupController {
         // 判断权限
         User loginUser = UserUtils.getUser();
         String userId = loginUser.getId();
+        User user= null;
         if (!UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())) {
             throw new TRSException(CodeUtils.FORBIDDEN_FAIL, "该账号没有权限同步数据！");
         }
@@ -557,42 +568,217 @@ public class SubGroupController {
 
             userId = orgAdminId;
         }
+        user = userService.findById(orgAdminId);
 
         //查询该用户下的日常监测（包括自定义的）以及包含的栏目组
-        List<Map<String, Object>> columnNavs = findByOrgAdminId(userId);
+//        List<Map<String, Object>> columnNavs = findByOrgAdminId(userId);
         Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("column",columnNavs);
+        resultMap.put("column",selectColumn(user,""));
         //查询 该用户 下 的专题分析（一级或者二级分组下无专题则不返给前端）且带着层级关系
-        List list = selectSomeSpecialsNew(userId);
-        resultMap.put("special",list);
+        resultMap.put("special",selectSomeSpecialsNew(user));
         return resultMap;
     }
-    public List selectSomeSpecialsNew(String orgAdminId) throws TRSException {
+    public List selectSomeSpecialsNew(User user) throws TRSException {
         //最终返回结果集
-        List resultList = new ArrayList();
-        Sort sort = new Sort(Sort.Direction.ASC,"sequence");
-        Specification<SpecialProject> criteria_tab_mapper = new Specification<SpecialProject>(){
+
+        List<SpecialSubject> oneIndexSubject = null;
+        List<SpecialProject> oneIndexProject = null;
+        Map<String,Object> oneSpecial = this.getOneLevelSpecialForMap(user);
+        if (oneSpecial.containsKey("page")) {
+            oneIndexSubject = (List<SpecialSubject>) oneSpecial.get("page");
+        }
+        if (oneSpecial.containsKey("tab")) {
+            oneIndexProject = (List<SpecialProject>) oneSpecial.get("tab");
+        }
+        //获取到了第一层的栏目和分组信息，现在对信息进行排序
+        List<Object> result =  sortSpecial(oneIndexProject,oneIndexSubject,true,false);
+        List<Boolean> isGetOne = new ArrayList<>();
+        isGetOne.add(false);
+        return formatResultSpecial(result,0,isGetOne,false);
+//        return resultList;
+
+    }
+    public Object selectColumn(User user,String typeId) throws OperationException {
+        List<IndexPage> oneIndexPage = null;
+        List<IndexTabMapper> oneIndexTab = null;
+        Map<String,Object> oneColumn = this.getOneLevelColumnForMap(typeId,user);
+        if (oneColumn.containsKey("page")) {
+            oneIndexPage = (List<IndexPage>) oneColumn.get("page");
+        }
+        if (oneColumn.containsKey("tab")) {
+            oneIndexTab = (List<IndexTabMapper>) oneColumn.get("tab");
+        }
+        //获取到了第一层的栏目和分组信息，现在对信息进行排序
+        List<Object> column =  sortColumn(oneIndexTab,oneIndexPage,true,false);
+        List<Boolean> isGetOne = new ArrayList<>();
+        isGetOne.add(false);
+        Object result = formatResultColumn(column,0,isGetOne,null);
+        return result;
+    }
+    public Map<String,Object> getOneLevelColumnForMap(String typeId,User loginUser){
+        List<Sort.Order> orders=new ArrayList<Sort.Order>();
+        orders.add( new Sort.Order(Sort.Direction.ASC, "sequence"));
+        orders.add( new Sort.Order(Sort.Direction.ASC, "createdTime"));
+        Specification<IndexPage> criteria_page = new Specification<IndexPage>(){
 
             @Override
-            public Predicate toPredicate(Root<SpecialProject> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+            public Predicate toPredicate(Root<IndexPage> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 List<Predicate> predicate = new ArrayList<>();
-                    predicate.add(cb.equal(root.get("userId"),orgAdminId));
-//                predicate.add(cb.isNull(root.get("groupId")));
-//				predicate.add(cb.equal(root.get("groupId"),""));
+                if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+                    predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+                    predicate.add(cb.isNull(root.get("subGroupId")));
+                }else {
+                    predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
+                }
+                //predicate.add(cb.equal(root.get("typeId"),typeId));
+                List<Predicate> predicateParent = new ArrayList<>();
+                predicateParent.add(cb.isNull(root.get("parentId")));
+                predicateParent.add(cb.equal(root.get("parentId"),""));
+
+                predicate.add(cb.or(predicateParent.toArray(new Predicate[predicateParent.size()])));
                 Predicate[] pre = new Predicate[predicate.size()];
                 return query.where(predicate.toArray(pre)).getRestriction();
             }
         };
-        List<SpecialProject> oneIndexTab = null;
+        Specification<IndexTabMapper> criteria_tab_mapper = new Specification<IndexTabMapper>(){
 
-        oneIndexTab = specialProjectRepository.findAll(criteria_tab_mapper,sort);
-        for (SpecialProject special : oneIndexTab) {
-                resultList.add(special);
+            @Override
+            public Predicate toPredicate(Root<IndexTabMapper> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                List<Predicate> predicate = new ArrayList<>();
+                if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+                    predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+                    predicate.add(cb.isNull(root.get("subGroupId")));
+                }else {
+                    predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
+                }
+                //predicate.add(cb.equal(root.get("typeId"),typeId));
+                predicate.add(cb.isNull(root.get("indexPage")));
+                Predicate[] pre = new Predicate[predicate.size()];
+                return query.where(predicate.toArray(pre)).getRestriction();
+            }
+        };
+
+        Map<String,Object> result = new HashMap<>();
+        //获取当前用户一层分组内的所有内容
+        List<IndexPage> oneIndexPage = null;
+        List<IndexTabMapper> oneIndexTab = null;
+
+        oneIndexPage = indexPageRepository.findAll(criteria_page,new Sort(orders));
+        oneIndexTab = tabMapperRepository.findAll(criteria_tab_mapper,new Sort(orders));
+        if(oneIndexPage != null && oneIndexPage.size() >0){
+            result.put("page",oneIndexPage);
         }
-        return resultList;
-
+        if(oneIndexTab != null && oneIndexTab.size() >0){
+            result.put("tab",oneIndexTab);
+        }
+        return  result;
     }
+    public List<Object> sortColumn(List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
+        List<Object> result = new ArrayList<>();
 
+        List<Map<String,Object>> sortList = new ArrayList<>();
+        if(!onlySortPage){
+            if(mapperList != null && mapperList.size() >0){
+                for(int i =0;i<mapperList.size();i++){
+                    Map<String,Object> map = new HashMap<>();
+                    map.put("id",mapperList.get(i).getId());
+                    map.put("sequence",mapperList.get(i).getSequence());
+                    map.put("index",i);
+                    //栏目类型为1
+                    map.put("flag",ColumnFlag.IndexTabFlag);
+                    sortList.add(map);
+                }
+            }
+        }
+        if(indexPageList != null && indexPageList.size() > 0){
+            for(int i =0;i<indexPageList.size();i++){
+                Map<String,Object> map = new HashMap<>();
+                map.put("id",indexPageList.get(i).getId());
+                map.put("sequence",indexPageList.get(i).getSequence());
+                map.put("index",i);
+                //分组类型为0
+                map.put("flag", ColumnFlag.IndexPageFlag);
+                sortList.add(map);
+            }
+        }
+        if(sortList.size() >0){
+            Collections.sort(sortList, (o1, o2) -> {
+                Integer seq1 = (Integer) o1.get("sequence");
+                Integer seq2 = (Integer) o2.get("sequence");
+                return seq1.compareTo(seq2);
+            });
+            //sortList 排序过后的数据
+            //只排序当前层，排序过后的数据，按顺序取出并返回
+            for(Map<String,Object> map : sortList){
+                ColumnFlag flag = (ColumnFlag) map.get("flag");
+                Integer index = (Integer) map.get("index");
+                if(flag.equals(ColumnFlag.IndexPageFlag)){
+                    IndexPage indexPage = indexPageList.get(index);
+                    if(sortAll){
+                        //获取子类的数据进行排序
+                        List<IndexPage> child_page = indexPage.getChildrenPage();
+                        List<IndexTabMapper> child_mapper = null;
+                        if(!onlySortPage){
+                            child_mapper = indexPage.getIndexTabMappers();
+                        }
+                        if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
+                            indexPage.setColumnList(sortColumn(child_mapper,child_page,sortAll,onlySortPage));
+                        }
+                    }
+                    result.add(indexPage);
+                }else if(flag.equals(ColumnFlag.IndexTabFlag)){
+                    IndexTabMapper mapper = mapperList.get(index);
+                    //栏目只有一层，直接添加就行
+                    result.add(mapper);
+                }
+            }
+        }
+
+        return result;
+    }
+    private Object formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne ,Object returnResult) {
+        Map<String,Object> topMap = new HashMap<>();
+        if(returnResult != null){
+            topMap= (Map<String,Object>) returnResult;
+        }
+        List<Object> result = new ArrayList<>();
+        Map<String, Object> map = null;
+        if (list != null && list.size() > 0) {
+            for (Object obj : list) {
+                map = new HashMap<>();
+                if (obj instanceof IndexTabMapper) {
+                    IndexTabMapper mapper = (IndexTabMapper) obj;
+                    IndexTab tab = mapper.getIndexTab();
+                    map.put("id", mapper.getId());
+                    map.put("name", tab.getName());
+                    map.put("parentId",tab.getParentId());
+                    map.put("flag", ColumnFlag.IndexTabFlag.ordinal());
+                    result.add(map);
+                }
+
+            }
+            for (Object obj : list) {
+                map = new HashMap<>();
+            if (obj instanceof IndexPage) {
+                    IndexPage page = (IndexPage) obj;
+                    map.put("id", page.getId());
+                    map.put("name", page.getName());
+                map.put("parentId",page.getParentId());
+                    map.put("flag", ColumnFlag.IndexPageFlag.ordinal());
+                    List<Object> childColumn = page.getColumnList();
+                    Object child = null;
+                    map.put("children", child);
+                    if (childColumn != null && childColumn.size() > 0) {
+                        child = this.formatResultColumn(childColumn,level+1,isGetOne,map);
+                        map.put("children", child);
+                    }
+                result.add(map);
+                }
+
+            }
+        }
+        return result;
+    }
     public List selectSomeSpecials(String orgAdminId) throws TRSException {
         //最终返回结果集
         List resultList = new ArrayList();
@@ -697,11 +883,13 @@ public class SubGroupController {
                     List<Map<String, Object>> list = new ArrayList<>();
                     if (CollectionsUtil.isNotEmpty(indexPages)) {
                         for (IndexPage indexPage : indexPages) {
-                            Map<String, Object> datalist = new HashMap<>();
-                            datalist.put("indexPageName", indexPage.getParentName());
-                            datalist.put("id", indexPage.getId());
-                            datalist.put("definedself", 999);// 前端忽略改值
-                            list.add(datalist);
+                            if (StringUtil.isEmpty(indexPage.getParentId())) {
+                                Map<String, Object> datalist = new HashMap<>();
+                                datalist.put("indexPageName", indexPage.getName());
+                                datalist.put("id", indexPage.getId());
+                                datalist.put("definedself", 999);// 前端忽略改值
+                                list.add(datalist);
+                            }
                         }
                     }
                     data.put("list", list);
@@ -803,7 +991,176 @@ public class SubGroupController {
         }
         System.err.println("用户分组修改成功！");
     }
+    public Map<String,Object> getOneLevelSpecialForMap(User loginUser){
+        Sort sort = new Sort(Sort.Direction.ASC,"sequence");
+        Specification<SpecialSubject> criteria_page = new Specification<SpecialSubject>(){
 
+            @Override
+            public Predicate toPredicate(Root<SpecialSubject> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                List<Predicate> predicate = new ArrayList<>();
+                if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+                    predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+                }else {
+                    predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
+                }
+//				predicate.add(cb.equal(root.get("typeId"),typeId));
+                List<Predicate> predicateParent = new ArrayList<>();
+//				predicateParent.add(cb.isNull(root.get("parentId")));
+//				predicateParent.add(cb.equal(root.get("parentId"),""));
+                predicateParent.add(cb.isNull(root.get("subjectId")));
+                predicateParent.add(cb.equal(root.get("subjectId"),""));
+
+                predicate.add(cb.or(predicateParent.toArray(new Predicate[predicateParent.size()])));
+                Predicate[] pre = new Predicate[predicate.size()];
+                return query.where(predicate.toArray(pre)).getRestriction();
+            }
+        };
+        Specification<SpecialProject> criteria_tab_mapper = new Specification<SpecialProject>(){
+
+            @Override
+            public Predicate toPredicate(Root<SpecialProject> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                List<Predicate> predicate = new ArrayList<>();
+                if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+                    predicate.add(cb.equal(root.get("userId"),loginUser.getId()));
+                }else {
+                    predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
+                }
+//				predicate.add(cb.equal(root.get("typeId"),typeId));
+//				predicate.add(cb.isNull(root.get("specialSubject")));
+                predicate.add(cb.isNull(root.get("groupId")));
+//				predicate.add(cb.equal(root.get("groupId"),""));
+                Predicate[] pre = new Predicate[predicate.size()];
+                return query.where(predicate.toArray(pre)).getRestriction();
+            }
+        };
+
+        Map<String,Object> result = new HashMap<>();
+        //获取当前用户一层分组内的所有内容
+        List<SpecialSubject> oneIndexPage = null;
+        List<SpecialProject> oneIndexTab = null;
+
+        oneIndexPage = specialSubjectRepository.findAll(criteria_page,sort);
+        oneIndexTab = specialProjectRepository.findAll(criteria_tab_mapper,sort);
+        if(oneIndexPage != null && oneIndexPage.size() >0){
+            result.put("page",oneIndexPage);
+        }
+        if(oneIndexTab != null && oneIndexTab.size() >0){
+            result.put("tab",oneIndexTab);
+        }
+        return  result;
+    }
+    public List<Object> sortSpecial(List<SpecialProject> mapperList,List<SpecialSubject> indexPageList,Boolean sortAll,Boolean onlySortPage){
+        List<Object> result = new ArrayList<>();
+
+        List<Map<String,Object>> sortList = new ArrayList<>();
+        if(!onlySortPage){
+            if(mapperList != null && mapperList.size() >0){
+                for(int i =0;i<mapperList.size();i++){
+                    Map<String,Object> map = new HashMap<>();
+                    map.put("id",mapperList.get(i).getId());
+                    map.put("sequence",mapperList.get(i).getSequence());
+                    map.put("index",i);
+                    //栏目类型为1
+                    map.put("flag",SpecialFlag.SpecialProjectFlag);
+                    sortList.add(map);
+                }
+            }
+        }
+        if(indexPageList != null && indexPageList.size() > 0){
+            for(int i =0;i<indexPageList.size();i++){
+                Map<String,Object> map = new HashMap<>();
+                map.put("id",indexPageList.get(i).getId());
+                map.put("sequence",indexPageList.get(i).getSequence());
+                map.put("index",i);
+                //分组类型为0
+                map.put("flag", SpecialFlag.SpecialSubjectFlag);
+                sortList.add(map);
+            }
+        }
+        if(sortList.size() >0){
+            Collections.sort(sortList, (o1, o2) -> {
+                Integer seq1 = (Integer) o1.get("sequence");
+                Integer seq2 = (Integer) o2.get("sequence");
+                return seq1.compareTo(seq2);
+            });
+            //sortList 排序过后的数据
+            //只排序当前层，排序过后的数据，按顺序取出并返回
+            for(Map<String,Object> map : sortList){
+                SpecialFlag flag = (SpecialFlag) map.get("flag");
+                Integer index = (Integer) map.get("index");
+                if(flag.equals(SpecialFlag.SpecialSubjectFlag)){
+                    SpecialSubject indexPage = indexPageList.get(index);
+                    if(sortAll){
+                        //获取子类的数据进行排序
+                        List<SpecialSubject> child_page = indexPage.getChildrenPage();
+                        List<SpecialProject> child_mapper = null;
+                        if(!onlySortPage){
+                            child_mapper = indexPage.getIndexTabMappers();
+                        }
+                        if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
+                            indexPage.setColumnList(sortSpecial(child_mapper,child_page,sortAll,onlySortPage));
+                        }
+                    }
+                    result.add(indexPage);
+                }else if(flag.equals(SpecialFlag.SpecialProjectFlag)){
+                    SpecialProject mapper = mapperList.get(index);
+                    //栏目只有一层，直接添加就行
+                    result.add(mapper);
+                }
+            }
+        }
+
+        return result;
+    }
+    private List<Object> formatResultSpecial(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
+        List<Object> result = new ArrayList<>();
+        Map<String, Object> map = null;
+        if (list != null && list.size() > 0) {
+            for (Object obj : list) {
+                map = new HashMap<>();
+                if (obj instanceof SpecialProject) {
+                    SpecialProject tab = (SpecialProject) obj;
+                    map.put("id",  tab.getId());
+                    map.put("parentId",tab.getGroupId());
+                    map.put("name", tab.getSpecialName());
+                    map.put("flag", SpecialFlag.SpecialProjectFlag.ordinal());
+//                    if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
+//                        //要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
+//                        map.put("active", true);
+//                        isGetOne.set(0,true);
+//                    }
+                    result.add(map);
+                }
+
+            }
+            for (Object obj : list) {
+                map = new HashMap<>();
+                if (obj instanceof SpecialSubject) {
+                    SpecialSubject page = (SpecialSubject) obj;
+                    map.put("id", page.getId());
+                    map.put("name", page.getName());
+                    map.put("flag", SpecialFlag.SpecialSubjectFlag.ordinal());
+                    map.put("parentId",page.getSubjectId());
+                    List<Object> childColumn = page.getColumnList();
+                    List<Object> child = new ArrayList<>();
+                    //如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值
+                    //如果父级没被隐藏，当前级被隐藏，则用当前级的隐藏值
+                    //如果父级没隐藏，当前级没隐藏，用没隐藏，父级则可
+                    if(!parentHide){
+                        parentHide = true;
+                    }
+                    //如果分组被隐藏了，前端不会显示，所以这里不查询了
+                    if (childColumn != null && childColumn.size() > 0) {
+                        child = this.formatResultSpecial(childColumn,level+1,isGetOne,parentHide);
+                    }
+                    map.put("children", child);
+                    result.add(map);
+                }
+
+            }
+        }
+        return result;
+    }
     /**
      * 修改历史数据  用户分组权限
      * @param request

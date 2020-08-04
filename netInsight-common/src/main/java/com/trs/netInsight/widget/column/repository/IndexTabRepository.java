@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -89,6 +90,7 @@ public interface IndexTabRepository
 	public List<IndexTab> findByKeyWordIsNotNullAndKeyWordIndexIsNotNullAndTrslIsNull();
 
 	public List<IndexTab> findByKeyWordNotLikeAndKeyWordIsNotNull(String keyWord);
+	public List<IndexTab> findByIdIn(Collection<String> ids);
 
 
 }

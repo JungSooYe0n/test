@@ -15,6 +15,7 @@ import com.trs.netInsight.widget.column.repository.IndexPageRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabRepository;
 import com.trs.netInsight.widget.column.repository.NavigationRepository;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
+import com.trs.netInsight.widget.special.entity.SpecialSubject;
 import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
 import com.trs.netInsight.widget.special.entity.repository.SpecialSubjectRepository;
 import com.trs.netInsight.widget.user.entity.*;
@@ -90,6 +91,9 @@ public class SubGroupServiceImpl implements ISubGroupService {
 
     @Autowired
     private IOrganizationService organizationService;
+
+    private int projectNum = 0;
+    private int cloumCutentNum = 0;
 
     @Override
     public Page<SubGroup> findByOrgId( String orgId,int pageNo,int pageSize,String surplusDateSort,
@@ -214,8 +218,8 @@ public class SubGroupServiceImpl implements ISubGroupService {
         return page;
     }
     @Override
-    public boolean save(int isAutoadd,String orgId,String name, MultipartFile picture, String[] roleIds, int columnNum, int specialNum, int alertNum, int alertAccount, String expireAt, String columnSync,
-                        String specialSyncLevel,String[] specialSync, int userLimit, String userJson) throws TRSException {
+    public boolean save(int isAutoadd,String orgId,String name, MultipartFile picture, String[] roleIds, int columnNum, int specialNum, int alertNum, int alertAccount, String expireAt, String[] columnSync,String[] columnSyncLevel,
+                        String[] specialSyncLevel,String[] specialSync, int userLimit, String userJson) throws TRSException {
         /*List<SubGroup> subGroupList = subGroupRepository.findByOrganizationId(orgId);
         if(subGroupList!= null && subGroupList.size()>0){
             for(SubGroup subGroup:subGroupList){
@@ -224,57 +228,51 @@ public class SubGroupServiceImpl implements ISubGroupService {
                 }
             }
         }*/
-        if (StringUtil.isNotEmpty(columnSync)){
-            List<DataSyncColumn> columnData = JSONArray.parseArray(columnSync, DataSyncColumn.class);
-            if (ObjectUtil.isNotEmpty(columnData)){
-                int columnJsonNums = 0;
-                for (DataSyncColumn columnDatum : columnData) {
-                    columnJsonNums += columnDatum.getList().size();
-                }
-                if (columnJsonNums > columnNum){
-                    throw new TRSException(CodeUtils.FAIL,"当前同步栏目总数 大于 栏目限制数！");
-                }
-            }
+        if (ObjectUtil.isNotEmpty(columnSync)){
+//            List<DataSyncColumn> columnData = JSONArray.parseArray(columnSync, DataSyncColumn.class);
+//            if (ObjectUtil.isNotEmpty(columnData)){
+//                int columnJsonNums = 0;
+//                for (DataSyncColumn columnDatum : columnData) {
+//                    columnJsonNums += columnDatum.getList().size();
+//                }
+//                if (columnJsonNums > columnNum){
+//                    throw new TRSException(CodeUtils.FAIL,"当前同步栏目总数 大于 栏目限制数！");
+//                }
+//            }
         }
 
-
-        if (ObjectUtil.isNotEmpty(specialSync) || StringUtil.isNotEmpty(specialSyncLevel)){
-            List<DataSyncSpecial> specialData = JSONArray.parseArray(specialSyncLevel, DataSyncSpecial.class);
-            if (ObjectUtil.isNotEmpty(specialData)) {
-                int specialJsonNums = 0;
-                if (ObjectUtil.isNotEmpty(specialSync)){
-                    specialJsonNums += specialSync.length;
-                }
-                for (DataSyncSpecial specialDatum : specialData) {
-                    //一级
-                    if (StringUtil.isNotEmpty(specialDatum.getId())){
-                        List<DataSyncSpecial> childs = specialDatum.getZhuantiDetail();
-                        if (ObjectUtil.isNotEmpty(childs)){
-                            //二级
-                            specialDatum.setZhuantiDetail(childs);
-                            for (DataSyncSpecial child : childs) {
-                                if (StringUtil.isNotEmpty(child.getId())){
-                                    specialJsonNums += 1;
-                                }
-                                List<DataSyncSpecial> zhuantiDetail = child.getZhuantiDetail();
-                                //三级
-                                if (ObjectUtil.isNotEmpty(zhuantiDetail)){
-                                    for (DataSyncSpecial dataSyncSpecial : zhuantiDetail) {
-                                        if (StringUtil.isNotEmpty(dataSyncSpecial.getId())){
-                                            specialJsonNums += 1;
-                                        }
-                                    }
-                                }
-                            }
-                        }else {
-                            specialJsonNums += 1;
-                        }
+        if (ObjectUtil.isNotEmpty(columnSync) || ObjectUtil.isNotEmpty(columnSyncLevel)){
+            int columJsonNums = 0;
+            cloumCutentNum = 0;
+            List<IndexPage> dataSyncSpecials = indexPageRepository.findByIdIn(Arrays.asList(columnSyncLevel));
+            if (ObjectUtil.isNotEmpty(dataSyncSpecials)){
+                for (IndexPage dataSyncSpecial : dataSyncSpecials) {
+                    if (0 == dataSyncSpecial.getFlag() && StringUtil.isNotEmpty(dataSyncSpecial.getId())) {
+                        //分组
+                        setCloumNum(dataSyncSpecial.getId());
                     }
-
                 }
-                if (specialJsonNums > specialNum){
-                    throw new TRSException(CodeUtils.FAIL,"当前同步专题总数 大于 专题限制数！");
+            }
+            columJsonNums += columnSync.length + cloumCutentNum;
+            if (columJsonNums > columnNum){
+                throw new TRSException(CodeUtils.FAIL,"当前同步栏目总数 大于 栏目限制数！");
+            }
+        }
+        if (ObjectUtil.isNotEmpty(specialSync) || ObjectUtil.isNotEmpty(specialSyncLevel)){
+            int specialJsonNums = 0;
+            projectNum = 0;
+            List<SpecialSubject> dataSyncSpecials = specialSubjectRepository.findByIdIn(Arrays.asList(specialSyncLevel));
+            if (ObjectUtil.isNotEmpty(dataSyncSpecials)){
+                for (SpecialSubject dataSyncSpecial : dataSyncSpecials) {
+                    if (0 == dataSyncSpecial.getFlag() && StringUtil.isNotEmpty(dataSyncSpecial.getId())) {
+                        //分组
+                        setProjectNum(dataSyncSpecial.getId());
+                    }
                 }
+            }
+            specialJsonNums += specialSync.length + projectNum;
+            if (specialJsonNums > specialNum){
+                throw new TRSException(CodeUtils.FAIL,"当前同步专题总数 大于 专题限制数！");
             }
         }
 
@@ -310,7 +308,7 @@ public class SubGroupServiceImpl implements ISubGroupService {
             subGroup.setRoles(new HashSet<>(roles));
         }
         //添加当前分组 并获取当前分组的id
-        String subGroupId = this.save(subGroup,columnSync,specialSync,specialSyncLevel);
+        String subGroupId = this.save(subGroup,columnSync,columnSyncLevel,specialSync,specialSyncLevel);
 
         if (StringUtil.isNotEmpty(userJson)){
             List<User> users = JSONArray.parseArray(userJson, User.class);
@@ -435,41 +433,67 @@ public class SubGroupServiceImpl implements ISubGroupService {
 
         return true;
     }
-
+    public void setProjectNum(String id){
+        SpecialSubject subject = specialSubjectRepository.findOne(id);
+        if (ObjectUtil.isNotEmpty(subject.getIndexTabMappers())){
+            projectNum += subject.getIndexTabMappers().size();
+        }
+        if (ObjectUtil.isNotEmpty(subject.getChildrenPage())){
+            for (SpecialSubject specialSubject : subject.getChildrenPage()){
+                setProjectNum(specialSubject.getId());
+            }
+        }
+    }
+    public void setCloumNum(String id){
+        IndexPage indexPage = indexPageRepository.findOne(id);
+        if (ObjectUtil.isNotEmpty(indexPage.getIndexTabMappers())){
+            cloumCutentNum += indexPage.getIndexTabMappers().size();
+        }
+        if (ObjectUtil.isNotEmpty(indexPage.getChildrenPage())){
+            for (IndexPage page : indexPage.getChildrenPage()){
+                setCloumNum(page.getId());
+            }
+        }
+    }
     @Override
-    public String save(SubGroup subGroup,String columnSync, String[] specialSync,String specialSyncLevel) throws TRSException {
+    public String save(SubGroup subGroup,String[] columnSync,String[] columnSyncLevel,String[] specialSync,String[] specialSyncLevel) throws TRSException {
         SubGroup group = subGroupRepository.save(subGroup);
         if (null == group){
             return null;
         }
-        if (StringUtils.isNotBlank(columnSync)){
-            //同步选中的日常监测数据
-            List<DataSyncColumn> columnData = JSONArray.parseArray(columnSync, DataSyncColumn.class);
-            if (ObjectUtil.isNotEmpty(columnData)){
-                List<String> navIds = new ArrayList<>();
-                List<String> pageIds = new ArrayList<>();
-                for (DataSyncColumn dataSyncColumn : columnData) {
-                    //oneId对应导航
-                    navIds.add(dataSyncColumn.getId());
-                    List<DataSyncColumn> list = dataSyncColumn.getList();
-                    if (ObjectUtil.isNotEmpty(list)){
-                        for (DataSyncColumn dataSyncColumn1 : list) {
-                            pageIds.add(dataSyncColumn1.getId());
-                        }
-                    }
-                }
-                try {
-                    //同步导航 到 该用户分组下
-                    helpService.copySomeNavigationToUserGroup(navIds,subGroup);
-                    //同步栏目组及栏目  到 该用户分组下
-                    helpService.copySomePageAndTabToUserGroup(pageIds,subGroup);
-                } catch (Exception e) {
-                    this.delete(subGroup.getId());
-                    throw new TRSException(CodeUtils.FAIL,"同步栏目数据出错！");
-                }
-            }
+//        if (StringUtils.isNotBlank(columnSync)){
+//            //同步选中的日常监测数据
+//            List<DataSyncColumn> columnData = JSONArray.parseArray(columnSync, DataSyncColumn.class);
+//            if (ObjectUtil.isNotEmpty(columnData)){
+//                List<String> navIds = new ArrayList<>();
+//                List<String> pageIds = new ArrayList<>();
+//                for (DataSyncColumn dataSyncColumn : columnData) {
+//                    //oneId对应导航
+//                    navIds.add(dataSyncColumn.getId());
+//                    List<DataSyncColumn> list = dataSyncColumn.getList();
+//                    if (ObjectUtil.isNotEmpty(list)){
+//                        for (DataSyncColumn dataSyncColumn1 : list) {
+//                            pageIds.add(dataSyncColumn1.getId());
+//                        }
+//                    }
+//                }
+//                try {
+//                    //同步导航 到 该用户分组下
+//                    helpService.copySomeNavigationToUserGroup(navIds,subGroup);
+//                    //同步栏目组及栏目  到 该用户分组下
+//                    helpService.copySomePageAndTabToUserGroup(pageIds,subGroup);
+//                } catch (Exception e) {
+//                    this.delete(subGroup.getId());
+//                    throw new TRSException(CodeUtils.FAIL,"同步栏目数据出错！");
+//                }
+//            }
+//        }
+        try {
+            helpService.copySomePageAndTabToUserGroupNew(columnSync,columnSyncLevel,subGroup);
+        } catch (Exception e) {
+            this.delete(subGroup.getId());
+            throw new TRSException(CodeUtils.FAIL,"同步日常监测数据出错！");
         }
-
         //同步专题分析
         try {
             helpService.copySomeSpecialToUserGroup(specialSync,specialSyncLevel,subGroup);

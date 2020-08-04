@@ -378,7 +378,7 @@ public class SpecialProject extends BaseEntity {
 	public SpecialProject(String userId, SpecialType specialType, String specialName,
 						  String anyKeywords, String excludeWords, String trsl,
 						  SearchScope searchScope, Date startTime, Date endTime, String source, String groupName,
-						  String groupId,String timeRange,int sequence,boolean isSimilar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb) {
+						  String groupId,String timeRange,int sequence,boolean similar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb) {
 		this.setUserId(userId);
 		this.specialType = specialType;
 		this.specialName = specialName;
@@ -394,7 +394,7 @@ public class SpecialProject extends BaseEntity {
 		this.currentTheme = false;
 		this.timeRange=timeRange;
 		this.sequence = sequence;
-		this.similar = isSimilar;
+		this.similar = similar;
 		this.irSimflag = irSimflag;
 		this.weight = weight;
 		this.server = server;
@@ -403,6 +403,48 @@ public class SpecialProject extends BaseEntity {
 		super.setCreatedTime(new Date());
 		super.setLastModifiedTime(new Date());
 	}
+    /**
+     * 构造函数
+     */
+    public SpecialProject(String userId,String subGroupId, SpecialType specialType, String specialName,
+                          String anyKeywords, String excludeWords, String trsl,
+                          SearchScope searchScope, Date startTime, Date endTime, String source, String groupName,
+                          String groupId,String timeRange,int sequence,boolean similar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb,
+                          String imgUrl,String monitorSite,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,String mediaArea,String contentArea) {
+
+        this.setUserId(userId);
+        this.setSubGroupId(subGroupId);
+        this.specialType = specialType;
+        this.specialName = specialName;
+        this.anyKeywords = anyKeywords;
+        this.excludeWords = excludeWords;
+        this.trsl = trsl;
+        this.searchScope = searchScope;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.source = source;
+        this.groupName = groupName;
+        this.groupId = groupId;
+        this.currentTheme = false;
+        this.timeRange=timeRange;
+        this.sequence = sequence;
+        this.similar = similar;
+        this.irSimflag = irSimflag;
+        this.weight = weight;
+        this.server = server;
+        this.irSimflagAll = irSimflagAll;
+        this.excludeWeb =excludeWeb;
+        super.setCreatedTime(new Date());
+        super.setLastModifiedTime(new Date());
+        this.imgUrl = imgUrl;
+        this.monitorSite = monitorSite;
+        this.mediaLevel = mediaLevel;
+        this.mediaIndustry = mediaIndustry;
+        this.contentIndustry = contentIndustry;
+        this.filterInfo = filterInfo;
+        this.mediaArea = mediaArea;
+        this.contentArea = contentArea;
+    }
 	/**
 	 * 构造函数
 	 */
@@ -1025,7 +1067,14 @@ public class SpecialProject extends BaseEntity {
 				subjectId, timeRange,similar,irSimflag,weight,server,irSimflagAll,excludeWeb);
 		return project;
 	}
+	public SpecialProject copyForSubGroup(String commonSubGroupId) {
+		SpecialProject project = new SpecialProject( null, commonSubGroupId, specialType,  specialName,
+				 anyKeywords,  excludeWords,  trsl,
+				 searchScope,  startTime,  endTime,  source,  groupName,
+				 null, timeRange, sequence, similar, irSimflag, weight, server, irSimflagAll, excludeWeb,  imgUrl, monitorSite, mediaLevel, mediaIndustry, contentIndustry, filterInfo, mediaArea, contentArea);
 
+		return project;
+	}
 	/**
 	 * 构造新实例
 	 * @param commonSubGroupId
@@ -1035,6 +1084,7 @@ public class SpecialProject extends BaseEntity {
 		SpecialProject project = new SpecialProject(null,commonSubGroupId, specialType, specialName, allKeywords, anyKeywords,
 				excludeWords, trsl, statusTrsl, weChatTrsl, searchScope, startTime, endTime, source, groupName,
 				groupId, timeRange,similar,irSimflag,weight,server,irSimflagAll,excludeWeb);
+
 		return project;
 	}
 	public QueryCommonBuilder toCommonBuilder(int pageNo, int pageSize, boolean withTime) {
