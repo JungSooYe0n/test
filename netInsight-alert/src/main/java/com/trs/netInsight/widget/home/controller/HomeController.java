@@ -448,6 +448,10 @@ public class HomeController {
 			if(StringUtil.isEmpty(unitName)){
 				throw new TRSException(CodeUtils.FAIL, "新用户申请单位名称不能为空");
 			}
+			Apply apply = applyService.findByUnitName(unitName);
+			if(apply != null ){
+				throw new TRSException(CodeUtils.FAIL, "当前单位已经提交申请");
+			}
 			if(StringUtil.isEmpty(name)){
 				throw new TRSException(CodeUtils.FAIL, "新用户申请姓名不能为空");
 			}
@@ -463,6 +467,10 @@ public class HomeController {
 		}else if(ApplyUserType.oldUser.equals(userType)){
 			if(StringUtil.isEmpty(originalAccount)){
 				throw new TRSException(CodeUtils.FAIL, "老用户申请原有账号不能为为空");
+			}
+			Apply apply = applyService.findByOriginalAccount(originalAccount);
+			if(apply != null ){
+				throw new TRSException(CodeUtils.FAIL, "当前账号已提交申请");
 			}
 			if(StringUtil.isEmpty(accountType)){
 				throw new TRSException(CodeUtils.FAIL, "老用户申请用户类型不能为空");

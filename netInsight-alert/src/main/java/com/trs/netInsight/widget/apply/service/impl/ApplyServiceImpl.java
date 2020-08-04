@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.apply.service.impl;
 
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.apply.entity.Apply;
 import com.trs.netInsight.widget.apply.entity.enums.ApplyUserType;
@@ -55,5 +56,26 @@ public class ApplyServiceImpl implements IApplyService {
         return applyRepository.findOne(id);
    }
 
+    public Apply findByOriginalAccount(String originalAccount){
+        if(StringUtil.isEmpty(originalAccount)){
+            return null;
+        }
+        List<Apply> list = applyRepository.findByOriginalAccount(originalAccount);
+        if(list == null || list.size() ==0){
+            return null;
+        }
+        return list.get(0);
+    }
+
+    public Apply findByUnitName(String unitName){
+        if(StringUtil.isEmpty(unitName)){
+            return null;
+        }
+        List<Apply> list = applyRepository.findByUnitName(unitName);
+        if(list == null || list.size() ==0){
+            return null;
+        }
+        return list.get(0);
+    }
 
 }

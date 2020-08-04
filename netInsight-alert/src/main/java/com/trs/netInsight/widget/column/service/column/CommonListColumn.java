@@ -114,8 +114,14 @@ public class CommonListColumn extends AbstractColumn {
 				map.put("author", vo.getAuthors());
 				//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
 				if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
-					map.put("title", content);
-					map.put("abstracts", content);
+					String setContent = vo.getContent();
+					String ocrContent = vo.getOcrContent();
+					if (StringUtil.isNotEmpty(ocrContent)) {
+						ocrContent = StringUtil.replaceImg(ocrContent);
+						setContent = StringUtil.cutContentByFont(ocrContent, Const.CONTENT_LENGTH);
+					}
+					map.put("title", StringUtil.replaceImg(setContent));
+					map.put("abstracts", StringUtil.replaceImg(setContent));
 
 					map.put("siteName", vo.getScreenName());
 				} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
@@ -123,7 +129,9 @@ public class CommonListColumn extends AbstractColumn {
 					map.put("abstracts", content);
 					map.put("siteName", vo.getAuthors());
 				} else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
-					map.put("title", content);
+					if(StringUtil.isEmpty(title)){
+						map.put("title", vo.getContent());
+					}
 					map.put("abstracts", content);
 					map.put("siteName", vo.getAuthors());
 				}

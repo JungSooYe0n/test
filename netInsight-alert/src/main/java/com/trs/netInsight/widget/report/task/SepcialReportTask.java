@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.trs.netInsight.config.constant.ESFieldConst;
+import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
@@ -225,8 +226,12 @@ public class SepcialReportTask implements Runnable {
                                         ReportResource dataTrendRR = new ReportResource();
                                         dataTrendRR.setImg_data(JSON.toJSONString(dataTrendResult));
                                         dataTrendRR.setImgType("brokenLineChart");
+                                        Object imgComment = dayTrendResult;
+                                        if(DateUtil.judgeTime24Or48(timeArray[0], timeArray[1], "50") <= 1){
+                                            imgComment = hourTrendResult;
+                                        }
                                         // 数据、图类型、图名字
-                                        dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(dayTrendResult), "brokenLineChart", "各舆论场趋势分析"));
+                                        dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(imgComment), "brokenLineChart", "各舆论场趋势分析"));
                                         dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
 
                                         reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));

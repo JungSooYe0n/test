@@ -227,14 +227,17 @@ public class SpecialReportUtil {
             Integer maxNum = -1;
             for(Map<String, Object> infoMap :info){
                 String sitename = (String)infoMap.get("name");
-                Integer value = Integer.valueOf(infoMap.get("value").toString());
-                if(value >maxNum){
-                    maxName = sitename;
-                    maxNum = value;
+                if(StringUtil.isNotEmpty(sitename)){
+                    Integer value = Integer.valueOf(infoMap.get("value").toString());
+                    if(value >maxNum){
+                        maxName = sitename;
+                        maxNum = value;
+                    }
+                    resultSb.append(sitename).append("、");
                 }
-                resultSb.append(sitename).append("、");
             }
-            resultSb.substring(0,resultSb.length()-2);
+            String str = resultSb.toString().substring(0,resultSb.length()-1);
+            resultSb = new StringBuilder(str);
             resultSb.append("。其中，").append(maxName).append("发布的信息量最大，共")
                     .append(maxNum).append("篇。");
 
@@ -260,13 +263,11 @@ public class SpecialReportUtil {
                     break;
                 }
             }
-            resultSb.substring(0,resultSb.length()-2);
+            String str = resultSb.toString().substring(0,resultSb.length()-1);
+            resultSb = new StringBuilder(str);
             Map<String, Object> oneMap = (Map<String, Object>)parseArray.get(0);
             resultSb.append("等地。其中，提及").append(oneMap.get("name")).append("的信息量最大，共")
                     .append(oneMap.get("value")).append("篇。");
-
-
-
             return resultSb.toString();
         }
         return null;

@@ -7,4 +7,6 @@ public interface IApplyService {
     Object list(ApplyUserType applyUserType, int pageNo, int pageSize);
     void updateApply(Apply apply);
     Apply findOne(String id);
+    Apply findByOriginalAccount(String originalAccount);
+    Apply findByUnitName(String unitName);
 }

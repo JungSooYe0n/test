@@ -1409,6 +1409,10 @@ public class Const {
             "河南", "湖北", "湖南", "广东", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "台湾", "内蒙古", "广西", "西藏", "宁夏", "新疆", "香港", "澳门","其他");
 
     /**
+     * 信息不过滤  当等于这个值的时候，代表信息不过滤
+     */
+    public static final String NOT_FILTER_INFO ="notFilter";
+    /**
      * 信息过滤
      */
     public static final List<String> FILTER_INFO = Arrays.asList("明星娱乐","影视剧场","婚恋交友","股票推荐","游戏广告","赌博彩票","涉黄信息","母婴广告","招生招聘",

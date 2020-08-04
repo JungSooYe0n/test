@@ -6,6 +6,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
+import com.trs.netInsight.handler.exception.TRSSearchException;
+import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.template.ObjectContainer;
 import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
@@ -120,7 +122,17 @@ public class IndexTabReportTask implements Runnable {
                                 break;
                             case DATATRENDANALYSISkey:
                                 if (StringUtil.isNotEmpty(showTypes)) {
-                                    Object dayTrendResult = null;
+                                    String[] timeArray = null;
+                                    try {
+                                        timeArray = DateUtil.formatTimeRangeMinus1(timerange);//修改时间格式 时间戳
+                                    } catch (OperationException e) {
+                                        throw new TRSSearchException(e);
+                                    }
+                                    String imgCommentType = "day";
+                                    if(DateUtil.judgeTime24Or48(timeArray[0], timeArray[1], "50") <= 1){
+                                        imgCommentType = "hour";
+                                    }
+                                    Object imgComment = null;
                                     String[] typeArr = showTypes.split(";");
                                     for (String type : typeArr) {
                                         config.setShowType(type);
@@ -129,15 +141,17 @@ public class IndexTabReportTask implements Runnable {
                                                 indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                         column.setConfig(config);
                                         Object object = column.getColumnData(timerange);
-                                        dayTrendResult = object;
-                                        if(ObjectUtil.isNotEmpty(object)&& "day".equals(type)){
+                                        if(ObjectUtil.isNotEmpty(object)){
                                             mapRet.put(type, object);
+                                            if( imgCommentType.equals(type)){
+                                                imgComment = object;
+                                            }
                                         }
                                     }
                                     if(ObjectUtil.isNotEmpty(mapRet)){
                                         dataTrendRR.setImg_data(JSON.toJSONString(mapRet));
                                         dataTrendRR.setImgType("brokenLineChart");
-                                        dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(dayTrendResult), "brokenLineChart", "各舆论场趋势分析"));
+                                        dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(imgComment), "brokenLineChart", "各舆论场趋势分析"));
                                         dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
                                         reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
                                     }

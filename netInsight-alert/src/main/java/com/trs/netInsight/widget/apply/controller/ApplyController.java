@@ -80,5 +80,21 @@ public class ApplyController {
         applyService.updateApply(apply);
         return "success";
     }
+    /**
+     *
+     */
+    @FormatResult
+    @GetMapping(value = "/updateMoved")
+    @ApiOperation("刚加载页面时查询所有导航栏")
+    public Object updateMoved(@ApiParam("当前条信息的id") @RequestParam(value = "id") String id,
+                              @ApiParam("数据迁移状态") @RequestParam(value = "moveStatus",defaultValue = "moved",required = false) String moveStatus) {
+
+        Apply apply = applyService.findOne(id);
+        apply.setMoveStatus(moveStatus);
+        applyService.updateApply(apply);
+        return "success";
+    }
+
+
 
 }
