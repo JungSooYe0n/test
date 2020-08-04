@@ -196,6 +196,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                         oneColumnChart.put("chartPage", ChartPageInfo.TabChart);
                         oneColumnChart.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
                         oneColumnChart.put("contrast", tab.getContrast());
+                        oneColumnChart.put("pointToId", mapper.getId());
                         addTypeSeq(oneColumnChart,tab.getType());
                         result.add(oneColumnChart);
                         this.getTopColumnChartForTab(result,mapper);
@@ -271,6 +272,9 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                         || StatisticalChartInfo.CHART_LINE.equals(statisticalChartInfo)){
                     oneScInfo.put("tabWidth", 100);
                 }
+                //pointToId
+                oneScInfo.put("pointToId", mapper.getId());
+
                 addTypeSeq(oneScInfo,statisticalChartInfo.getChartType());
                 //拿到统计分析图的基本数据
                 columnChartList.add(oneScInfo);
@@ -293,6 +297,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
                     oneCcInfo.put("timeRange", oneCc.getTimeRange());
                     oneCcInfo.put("contrast", oneCc.getContrast());
                     oneCcInfo.put("groupName", CommonListChartUtil.formatPageShowGroupName(oneCc.getGroupName()));
+                    oneCcInfo.put("pointToId", mapper.getId());
                     addTypeSeq(oneCcInfo,oneCc.getType());
                     //拿到基本数据
                     columnChartList.add(oneCcInfo);

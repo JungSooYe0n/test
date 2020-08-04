@@ -1480,20 +1480,12 @@ public class ColumnController {
 			indexTab.setTimeRange(timeRange);
 		}
 		indexTab.setType(ColumnConst.LIST_NO_SIM);
-		//排重
-		if ("netRemove".equals(simflag)) { //单一媒体排重
-			indexTab.setSimilar(true);
-			indexTab.setIrSimflag(false);
-			indexTab.setIrSimflagAll(false);
-		} else if ("urlRemove".equals(simflag)) { //站内排重
-			indexTab.setSimilar(false);
-			indexTab.setIrSimflag(true);
-			indexTab.setIrSimflagAll(false);
-		} else if ("sourceRemove".equals(simflag)) { //全网排重
-			indexTab.setSimilar(false);
-			indexTab.setIrSimflag(false);
-			indexTab.setIrSimflagAll(true);
-		}
+
+		//排重  -- 信息列表的统计改为 固定按站内排重
+		indexTab.setSimilar(false);
+		indexTab.setIrSimflag(true);
+		indexTab.setIrSimflagAll(false);
+
 		//命中规则
 		if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
 			indexTab.setKeyWordIndex(wordIndex);

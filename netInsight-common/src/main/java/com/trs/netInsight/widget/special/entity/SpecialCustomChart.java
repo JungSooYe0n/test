@@ -343,7 +343,7 @@ public class SpecialCustomChart extends BaseEntity{
                     addAreaFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_AREA,this.mediaArea);
                 }
                 //信息过滤
-                if(StringUtil.isNotEmpty(this.filterInfo )){
+                if(StringUtil.isNotEmpty(this.filterInfo )&& !filterInfo.equals(Const.NOT_FILTER_INFO)){
                     String trsl = queryBuilder.asTRSL();
                     StringBuilder sb = new StringBuilder(trsl);
                     String[] valueArr = this.filterInfo.split(";");
@@ -353,7 +353,7 @@ public class SpecialCustomChart extends BaseEntity{
                             valueArrList.add(v);
                         }
                     }
-                    if (valueArrList.size() > 0 && valueArrList.size() < Const.FILTER_INFO.size()) {
+                    if (valueArrList.size() > 0 /*&& valueArrList.size() < Const.FILTER_INFO.size()*/) {
                         sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
                         queryBuilder = new QueryBuilder();
                         queryBuilder.filterByTRSL(sb.toString());

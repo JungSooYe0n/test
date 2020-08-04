@@ -418,6 +418,8 @@ public class ShiroConfiguration {
 		//舆情智库详情
 		filterChainDefinitionMap.put("/thinkTank/pdf/*", "anon");
 		filterChainDefinitionMap.put("/thinkTank/png/*", "anon");
+		// 日常监测修改数据
+		filterChainDefinitionMap.put("/column/history/*", "anon");
 		//filterChainDefinitionMap.put("/index.html/**", "anon");
 		//知识库录入
 		filterChainDefinitionMap.put("/knowledgeBase/saveKnowledge", "anon");
