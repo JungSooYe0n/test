@@ -4792,17 +4792,17 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					oneInfo.put("children", mapList);
 					infoList.add(oneInfo);
 				}else{
-					List<String> siteName = Arrays.asList("人民网","新华社办公室");
-					for (int i = 0; i < 2; i++) {
-						HashMap<String, String> hashMap = new HashMap<>();
-//						String siteName = "人民网";
-						hashMap.put("name", siteName.get(i) + "-" + name);
-						mapList.add(hashMap);
-					}
-					Map<String, Object> oneInfo = new HashMap<>();
-					oneInfo.put("name", mediaLevel + "-" + name);
-					oneInfo.put("children", mapList);
-					infoList.add(oneInfo);
+//					List<String> siteName = Arrays.asList("人民网","新华社办公室");
+//					for (int i = 0; i < 2; i++) {
+//						HashMap<String, String> hashMap = new HashMap<>();
+////						String siteName = "人民网";
+//						hashMap.put("name", siteName.get(i) + "-" + name);
+//						mapList.add(hashMap);
+//					}
+//					Map<String, Object> oneInfo = new HashMap<>();
+//					oneInfo.put("name", mediaLevel + "-" + name);
+//					oneInfo.put("children", mapList);
+//					infoList.add(oneInfo);
 				}
 
 			}

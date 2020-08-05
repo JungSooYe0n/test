@@ -80,6 +80,10 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 Long count = commonListService.ftsCount(specialBuilder, sim, irSimflag, irSimflagAll, type);
                 groupResult.addGroup(categoryBean.getKey(), count);
             }
+
+
+
+
         } else {
             QueryBuilder ordinaryBuilder = new QueryBuilder();
             ordinaryBuilder.filterByTRSL(trsl);
@@ -129,21 +133,26 @@ public class CommonChartServiceImpl implements ICommonChartService {
                     if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
                         List<GroupInfo> groupList = groupInfos.getGroupList();
                         if (FtsFieldConst.FIELD_GROUPNAME.equals(contrastField)) {
-                            List<String> allList = Const.ALL_GROUPNAME_SORT;
-                            for (String oneGroupName : allList) {
-                                if (sourceList.contains(oneGroupName)) {
-                                    Map<String, Object> putValue = new HashMap<>();
-                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
-                                    putValue.put(resultKey.getContrastField(), pageGroupName);
-                                    putValue.put(resultKey.getCountField(), 0);
-                                    for (GroupInfo groupInfo : groupList) {
-                                        if (oneGroupName.equals(groupInfo.getFieldValue())) {
-                                            putValue.put(resultKey.getCountField(), groupInfo.getCount());
-                                            break;
-                                        }
-                                    }
-                                    list.add(putValue);
-                                }
+//                            List<String> allList = Const.ALL_GROUPNAME_SORT;
+//                            for (String oneGroupName : allList) {
+//                                if (sourceList.contains(oneGroupName)) {
+//                                    Map<String, Object> putValue = new HashMap<>();
+//                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
+//                                    putValue.put(resultKey.getContrastField(), pageGroupName);
+//                                    putValue.put(resultKey.getCountField(), 0);
+//                                    for (GroupInfo groupInfo : groupList) {
+//                                        if (oneGroupName.equals(groupInfo.getFieldValue())) {
+//                                            putValue.put(resultKey.getCountField(), groupInfo.getCount());
+//                                            break;
+//                                        }
+//                                    }
+//                                    list.add(putValue);
+//                                }
+//                            }
+                            for (GroupInfo groupInfo : groupList) {
+                                Map<String, Object> putValue = MapUtil.putValue(new String[]{resultKey.getContrastField(), resultKey.getCountField()},
+                                        Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()),  String.valueOf(groupInfo.getCount()));
+                                list.add(putValue);
                             }
                         } else {
                             for (GroupInfo groupInfo : groupList) {
