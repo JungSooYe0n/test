@@ -416,7 +416,7 @@ public class OrganAutoRegisterController {
         String userjson = jrAll.toString();
         log.info("自动添加json--->"+userjson);
         subGroupService.save(isAutoAdd,organizationId,name,null,roleIds,50,10,10,5,
-                expireAt,null,null,null,1,userjson);
+                expireAt,null,null,null,null,1,userjson);
     }
     //添加管理员格式化参数
     public User addUser(String userName,String displayName,String organizationId){

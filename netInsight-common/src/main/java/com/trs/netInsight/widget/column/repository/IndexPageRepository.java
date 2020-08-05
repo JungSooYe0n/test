@@ -145,4 +145,5 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 	 * @return
 	 */
 	public List<IndexPage> findByIdIn(Collection<String> ids,Sort sort);
+	public List<IndexPage> findByIdIn(Collection<String> ids);
 }
