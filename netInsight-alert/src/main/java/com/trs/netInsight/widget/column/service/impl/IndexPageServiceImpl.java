@@ -505,6 +505,75 @@ public class IndexPageServiceImpl implements IIndexPageService {
 			return "修改失败了哦" +e.getMessage();
 		}
 	}
+	@Override
+	@Transactional
+	public Object updateHistortIndexPageForOrganization(String orgId){
+		try {
+			List<IndexPage> list =indexPageRepository.findByOrganizationId(orgId);
+
+			int n =0;
+			if(list != null && list.size() > 0){
+				System.out.println("根据机构信息找到分组数"+list.size());
+				for(IndexPage indexPage : list){
+					if(StringUtil.isEmpty(indexPage.getName())){
+						indexPage.setName(indexPage.getParentName());
+						indexPage.setParentName(null);
+					}
+					//添加层级，现在的
+					List<IndexTabMapper> indexTabList = tabMapperRepository.findByIndexPage(indexPage);
+					// 判断当前的大栏目有没有被排序过
+					if (indexPage.getOrderBefore() == null || !"after".equals(indexPage.getOrderBefore())) {
+						List<IndexTabMapper> nohideList = new ArrayList<>();// 展示的
+						List<IndexTabMapper> hideList = new ArrayList<>();// 隐藏的
+						for (IndexTabMapper indextab : indexTabList) {
+							if (indextab.isHide()) {
+								hideList.add(indextab);
+							} else {
+								nohideList.add(indextab);
+							}
+						}
+						indexTabList = new ArrayList<>();
+						indexTabList.addAll(nohideList);
+						indexTabList.addAll(hideList);
+						// 根据各自隐藏展示的顺序排序
+						for (int i = 0; i < hideList.size(); i++) {
+							IndexTabMapper index = hideList.get(i);
+							index.setSequence(i + 1);
+							// tabMapperRepository.save(index);
+						}
+						tabMapperRepository.save(hideList);
+						for (int j = 0; j < nohideList.size(); j++) {
+							IndexTabMapper index = nohideList.get(j);
+							index.setSequence(j + 1);
+						}
+						tabMapperRepository.save(nohideList);
+						// 排序之后 存标示为已排序
+						indexPage.setOrderBefore("after");
+					}
+					//修改原来的indepage  ，原来有parent_id，都是虚假的，没用，直接全部删掉
+					indexPage.setParentId(null);
+					if(StringUtil.isNotEmpty(indexPage.getTypeId()) && StringUtil.isEmpty(indexPage.getParentId())){
+						IndexPage parent = indexPageRepository.findOne(indexPage.getTypeId());
+						if(parent != null ){
+							indexPage.setParentId(parent.getId());
+							indexPage.setTypeId("");
+						}
+					}
+					indexPage.setChildrenPage(null);
+					indexPageRepository.save(indexPage);
+					n++;
+					System.out.println("修改分组 - --当前执行为第"+n + "个，名字为："+indexPage.getName());
+				}
+				indexPageRepository.flush();
+			}
+
+			return "没毛病，你就放心吧";
+		}catch (Exception e){
+
+			return "修改失败了哦" +e.getMessage();
+		}
+	}
+
 }
 
 /**

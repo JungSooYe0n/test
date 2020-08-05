@@ -57,6 +57,18 @@ public class ColumnHistoryController {
         return result;
     }
 
+    /**
+     * 修改日常监测分组栏目的历史数据
+     */
+    @FormatResult
+    @GetMapping(value = "/updateHistortIndexPageForOrganization")
+    @ApiOperation("修改日常监测分组栏目的历史数据，根据机构信息 - 字段修改")
+    public Object updateHistortIndexPageForOrganization(@RequestParam("orgId") String orgId) {
+        System.out.println("开始根据机构信息修改分组------------");
+        Object result = indexPageService.updateHistortIndexPageForOrganization(orgId);
+        return result;
+    }
+
 
   /**
      * 修改日常监测数据栏目的数据
@@ -102,7 +114,7 @@ public class ColumnHistoryController {
     @GetMapping(value = "/updateHistortColumnFieldForOrganization")
     @ApiOperation("修改日常监测数据栏目的数据，根据机构信息 - 字段修改")
     public Object updateHistortColumnFieldForOrganization(@RequestParam("orgId") String orgId) {
-        System.out.println("修改字段------------");
+        System.out.println("根据机构信息修改字段------------");
         Object result = indexTabService.updateHistortColumnField(orgId);
         return result;
     }

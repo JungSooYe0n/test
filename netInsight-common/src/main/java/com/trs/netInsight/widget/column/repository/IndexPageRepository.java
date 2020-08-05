@@ -72,7 +72,16 @@ public interface IndexPageRepository extends JpaRepository<IndexPage, String>,
 	 * @return
 	 */
 	List<IndexPage> findByOrganizationId(String organizationId, Sort sort);
-
+	/**
+	 * 根据机构id查询
+	 *
+	 * @date Created at 2017年12月28日 下午2:18:34
+	 * @Author 谷泽昊
+	 * @param organizationId
+	 * @param
+	 * @return
+	 */
+	List<IndexPage> findByOrganizationId(String organizationId);
 	/**
 	 * 通过自定义栏目id查询以及栏目
 	 *
