@@ -245,8 +245,10 @@ public class IndexTabServiceImpl implements IIndexTabService {
 				list = indexTabRepository.findByOrganizationId(orgId);
 			}
 
+
 			if (list != null && list.size() > 0) {
 				int n = 0;
+				System.out.println("根据机构信息找到分组数"+list.size());
 				for (IndexTab indexTab : list) {
 					try {
 						String source = indexTab.getGroupName();
@@ -355,9 +357,9 @@ public class IndexTabServiceImpl implements IIndexTabService {
 						indexTab.setType(typeNew);
 						indexTabRepository.save(indexTab);
 						n++;
-						System.out.println("当前执行为第" + n + "个，名字为：" + indexTab.getName());
+						System.out.println("修改具体日常监测栏目信息当前执行为第" + n + "个，名字为：" + indexTab.getName());
 					}catch(Exception e){
-						System.out.println("第" + n + "个错误了，名字为：" + indexTab.getName()+",id:"+indexTab.getId());
+						System.out.println("日常监测栏目信息第" + n + "个错误了，名字为：" + indexTab.getName()+",id:"+indexTab.getId());
 					}
 				}
 				indexTabRepository.flush();

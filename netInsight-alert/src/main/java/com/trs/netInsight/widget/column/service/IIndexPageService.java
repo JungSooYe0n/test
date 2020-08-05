@@ -167,6 +167,7 @@ public interface IIndexPageService {
 	 * @return
 	 */
 	Object updateHistoryIndexPage();
+	Object updateHistortIndexPageForOrganization(String orgId);
 	IndexPage addIndexPage(String parentId, String name, String typeId, User user);
 }
 
