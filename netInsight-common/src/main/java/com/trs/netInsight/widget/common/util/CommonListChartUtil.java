@@ -161,6 +161,13 @@ public class CommonListChartUtil {
         QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
         QueryCommonBuilder queryCommonBuilder = CommonListChartUtil.formatQueryCommonBuilder(builder);
         List<String> commonSource = CommonListChartUtil.formatGroupName(allGroupName);
+//        if (!Const.GROUPNAME_ZIMEITI.equals(allGroupName) && commonSource.size() == 1){
+//            //单数据源
+//            queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
+//                    "大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+//            queryCommonBuilder.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
+//                    "大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+//        }
         if(commonSource.size() >0){
             String[] groupArray = commonSource.toArray(new String[commonSource.size()]);
             String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";

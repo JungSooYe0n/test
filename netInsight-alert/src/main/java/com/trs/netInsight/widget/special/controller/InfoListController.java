@@ -1701,19 +1701,21 @@ public class InfoListController {
 		//查询微博用户信息
 //		List<StatusUser> statusUsers = hybase8SearchService.ftsQuery(queryStatusUser, StatusUser.class, false, false,false,null);
 		PagedList<StatusUser> infoListResult = commonListService.queryPageListForClass(queryStatusUser, StatusUser.class, false, false,false,null);
-		List<StatusUser> statusUsers = infoListResult.getPageItems();
-		if (ObjectUtil.isEmpty(statusUsers)){
-			QueryBuilder queryStatusUser1 = new QueryBuilder();
-			queryStatusUser1.filterField(FtsFieldConst.FIELD_UID,"\""+uid+"\"",Operator.Equal);
-			queryStatusUser1.setDatabase(Const.SINAUSERS);
-			//查询微博用户信息
+		if (ObjectUtil.isNotEmpty(infoListResult)) {
+			List<StatusUser> statusUsers = infoListResult.getPageItems();
+			if (ObjectUtil.isEmpty(statusUsers)) {
+				QueryBuilder queryStatusUser1 = new QueryBuilder();
+				queryStatusUser1.filterField(FtsFieldConst.FIELD_UID, "\"" + uid + "\"", Operator.Equal);
+				queryStatusUser1.setDatabase(Const.SINAUSERS);
+				//查询微博用户信息
 //			statusUsers = hybase8SearchService.ftsQuery(queryStatusUser1, StatusUser.class, false, false,false,null);
-			PagedList<StatusUser> infoListResult1 = commonListService.queryPageListForClass(queryStatusUser1, StatusUser.class, false, false,false,null);
-			statusUsers = infoListResult1.getPageItems();
-		}
-		if (ObjectUtil.isNotEmpty(statusUsers)){
-			//放入该条微博对应的 发布人信息
-			return statusUsers.get(0);
+				PagedList<StatusUser> infoListResult1 = commonListService.queryPageListForClass(queryStatusUser1, StatusUser.class, false, false, false, null);
+				statusUsers = infoListResult1.getPageItems();
+			}
+			if (ObjectUtil.isNotEmpty(statusUsers)) {
+				//放入该条微博对应的 发布人信息
+				return statusUsers.get(0);
+			}
 		}
 		return null;
 
