@@ -95,6 +95,10 @@ public class CommonListServiceImpl implements ICommonListService {
             for (FtsDocumentCommonVO document : list) {
                 String content = "";
                 if (StringUtil.isNotEmpty(document.getContent())) {
+                    List<String> imgSrcList = StringUtil.getImgStr(document.getContent());
+                    if (imgSrcList != null && imgSrcList.size() > 0) {
+                        document.setImgSrc(imgSrcList.get(0));
+                    }
                     document.setExportContent(document.getContent());
                     content = StringUtil.replaceImg(document.getContent());
                     document.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));

@@ -343,9 +343,9 @@ public class CommonListChartUtil {
                 }
                 map.put("trslk", trslk);
                 map.put("channel", vo.getChannel());
-                map.put("img", null);
+                map.put("img", vo.getImgSrc());
                 //前端页面显示需要，与后端无关
-                map.put("isImg", false);
+                map.put("isImg", /*StringUtil.isEmpty(vo.getImgSrc())? false:true*/false);
                 map.put("simNum", 0);
 
                 resultList.add(map);

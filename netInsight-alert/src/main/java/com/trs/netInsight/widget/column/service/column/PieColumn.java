@@ -63,6 +63,9 @@ public class PieColumn extends AbstractColumn {
 					}
 					if(list != null){
 						if(list.size() == 0){
+							if(ftsCount == 0){
+								return null;
+							}
 							list.add(midMap);
 						}else{
 							Boolean containsMid = false;

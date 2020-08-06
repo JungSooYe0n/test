@@ -201,6 +201,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		List<Object> result = new ArrayList<>();
 		List<String> sourceList = CommonListChartUtil.formatGroupName(source);
 		ChartResultField resultField = new ChartResultField("name", "value");
+		Boolean resultFlag = true;
+		Integer active = 0;
 		for(String oneGroupName : allList){
 
 			//只显示选择的数据源
@@ -214,21 +216,21 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				Map<String,Object> oneInfo = new HashMap<>();
 				Object list = commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"special",resultField);
 				List<Map<String, Object>> changeList = new ArrayList<>();
-				if(list != null ){
-					changeList = (List<Map<String, Object>>)list;
-					if(changeList.size() <10){
-						for(int i = changeList.size();i <10;i++){
-							Map<String, Object> addInfo = new HashMap<>();
-							addInfo.put("name","");
-							addInfo.put("value",0);
-							changeList.add(addInfo);
-						}
+				if (list != null) {
+					changeList = (List<Map<String, Object>>) list;
+					if (changeList.size() > 0) {
+						resultFlag = false;
+						active++;
 					}
 				}
 				oneInfo.put("name", Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));
-				oneInfo.put("info",changeList);
+				oneInfo.put("info", list);
+				oneInfo.put("active", active == 1 ? true : false);
 				result.add(oneInfo);
 			}
+		}
+		if (resultFlag) {
+			return null;
 		}
 		return result;
 	}
@@ -4753,6 +4755,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		HashMap xinweiAndWeibo = new HashMap();
 		List<Object> nameListweixin = new ArrayList<>();
 		List<Object> nameListweibo = new ArrayList<>();
+		Boolean resultFlag = true;
 		for (String name : groupNames) {
 			HashMap mapName = new HashMap();
 
@@ -4781,6 +4784,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				if (ObjectUtil.isNotEmpty(infoListResult)) {
 					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 					List<FtsDocumentCommonVO> list = content.getPageItems();
+					if(list != null && list.size() >0){
+						resultFlag = false;
+					}
 					for (int i = 0; i < list.size(); i++) {
 						HashMap<String, String> hashMap = new HashMap<>();
 						String siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
@@ -4814,6 +4820,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				nameListweibo.add(mapName);
 			}
 		}
+		if (resultFlag) {
+			return null;
+		}
 		weixinAndZiMeiTi.put("children",nameListweixin);
 		weixinAndZiMeiTiList.add(weixinAndZiMeiTi);
 		xinweiAndWeibo.put("children",nameListweibo);
@@ -4836,6 +4845,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}else if(Const.MEDIA_TYPE_TF.contains(groupName)){
 			contrastField = FtsFieldConst.FIELD_AUTHORS;
 		}
+		Boolean resultFlag = true;
 		if (list != null) {
 			List<Map<String, Object>> listMapData = new ArrayList<>();
 			int size = list.size();
@@ -4883,10 +4893,15 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 						listData = listData.subList(0, maxLength);
 					}
 				}
-
+				if(listData != null &&listData.size()>0){
+					resultFlag = false;
+				}
 				mapData.put("time", time);
 				mapData.put("data", listData);
 				listMapData.add(mapData);
+			}
+			if (resultFlag) {
+				return null;
 			}
 			return listMapData;
 		}
@@ -5840,24 +5855,30 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 				}
 			}
 		}
+		Integer resultFlag = 0;
 		if (!keys.contains("正面")) {
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "正面");
 			hashMap.put("value", "0");
 			list.add(hashMap);
+			resultFlag++;
 		}
 		if (!keys.contains("负面")) {
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "负面");
 			hashMap.put("value", "0");
 			list.add(hashMap);
+			resultFlag++;
 		}
 		if(!keys.contains("中性")){
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "中性");
 			hashMap.put("value", String.valueOf(ftsCount));
 			list.add(hashMap);
-
+			resultFlag++;
+		}
+		if(resultFlag == 3){
+			return null;
 		}
 		return list;
 	}
