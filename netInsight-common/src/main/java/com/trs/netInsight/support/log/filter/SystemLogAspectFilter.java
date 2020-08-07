@@ -149,6 +149,7 @@ public class SystemLogAspectFilter {
 					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					ResultCode.SUCCESS, simpleStatus, null, osInfo, browserInfo, sessionId, operationPosition,
 					user.getUserName() == null ? UserUtils.getUser().getUserName():user.getUserName(), trsl,num,0);
+			addUserInfo(systemLog);
 			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,log.depositPattern(),currentUser);
 			singleThreadExecutor.execute(runnableThreadTest);
 
@@ -276,6 +277,7 @@ public class SystemLogAspectFilter {
 					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					t.getCode(), simpleStatus, StringUtils.substring(t.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
 					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
+			addUserInfo(systemLog);
 			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern,user);
 			singleThreadExecutor.execute(runnableThreadTest);
 			try {
@@ -291,6 +293,7 @@ public class SystemLogAspectFilter {
 					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					ResultCode.OPERATION_EXCEPTION, simpleStatus, StringUtils.substring(throwable.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
 					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
+			addUserInfo(systemLog);
 			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern,user);
 			singleThreadExecutor.execute(runnableThreadTest);
 			try {
@@ -302,6 +305,26 @@ public class SystemLogAspectFilter {
 				e.printStackTrace();
 			}
 			throw new TRSException("处理controller结果出错,message:" + throwable, ResultCode.OPERATION_EXCEPTION, throwable);
+		}
+	}
+
+	private void addUserInfo(SystemLog systemLog){
+// 用户
+		User user = UserUtils.getUser();
+		if(StringUtils.isNotBlank(user.getId())){
+			systemLog.setCreatedUserId(user.getId());
+		}
+		if(StringUtils.isNotBlank(user.getUserName())){
+			systemLog.setCreatedUserName(user.getUserName());
+		}
+		if(StringUtils.isNotBlank(user.getDisplayName())){
+			systemLog.setDisplayName(user.getDisplayName());
+		}
+		if (StringUtils.isNotBlank(user.getOrganizationId())) {
+			systemLog.setOrganizationId(user.getOrganizationId());
+		}
+		if (StringUtils.isNotBlank(user.getSubGroupId())){
+			systemLog.setSubGroupId(user.getSubGroupId());
 		}
 	}
 
