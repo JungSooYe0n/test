@@ -5885,30 +5885,24 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 				}
 			}
 		}
-		Integer resultFlag = 0;
 		if (!keys.contains("正面")) {
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "正面");
 			hashMap.put("value", "0");
 			list.add(hashMap);
-			resultFlag++;
 		}
 		if (!keys.contains("负面")) {
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "负面");
 			hashMap.put("value", "0");
 			list.add(hashMap);
-			resultFlag++;
 		}
 		if(!keys.contains("中性")){
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "中性");
 			hashMap.put("value", String.valueOf(ftsCount));
 			list.add(hashMap);
-			resultFlag++;
-		}
-		if(resultFlag == 3){
-			return null;
+
 		}
 		return list;
 	}

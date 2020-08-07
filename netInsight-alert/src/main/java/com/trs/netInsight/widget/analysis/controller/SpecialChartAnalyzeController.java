@@ -25,9 +25,11 @@ import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.*;
@@ -52,8 +54,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -86,6 +92,8 @@ public class SpecialChartAnalyzeController {
 	private ICommonListService commonListService;
 	@Autowired
 	private ICommonChartService commonChartService;
+	@Autowired
+	private RequestTimeLogRepository requestTimeLogRepository;
 
 
 
@@ -123,6 +131,7 @@ public class SpecialChartAnalyzeController {
 							   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		Date startDate = new Date();
 		long start = new Date().getTime();
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
@@ -143,7 +152,16 @@ public class SpecialChartAnalyzeController {
 			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
 		log.info("【舆论场趋势分析折线】随机数： "+randomNum);
-		return specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
+		Date hyStartDate = new Date();
+		Object object = specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(startDate);
+		requestTimeLog.setEndTime(new Date());
+		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLogRepository.save(requestTimeLog);
+		return object;
 
 	}
 	@EnableRedis
@@ -173,6 +191,7 @@ public class SpecialChartAnalyzeController {
 									  @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 									  @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 									  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+									  @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 									  @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
@@ -859,6 +878,7 @@ public class SpecialChartAnalyzeController {
 								   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	) throws TRSException {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
@@ -893,11 +913,19 @@ public class SpecialChartAnalyzeController {
 			String[] range = DateUtil.formatTimeRange(timeRange);
 			String source = specialProject.getSource();
 			log.info("【活跃账号】随机数："+randomNum);
+			Date hyStartDate = new Date();
 			Object mediaActiveAccount = specialChartAnalyzeService.mediaActiveAccount(builder,source, range, sim,
 					irSimflag,irSimflagAll);
 			long end = new Date().getTime();
 			long time = end - start;
 			log.info("活跃账号查询所需时间" + time);
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			requestTimeLog.setRandomNum(randomNum);
+			requestTimeLogRepository.save(requestTimeLog);
 //			log.info("媒体活跃等级图后台所需时间" + time);
 //			SpecialParam specParam = getSpecParam(specialProject);
 //			ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area,
@@ -3482,6 +3510,17 @@ public class SpecialChartAnalyzeController {
 		}
 
 	}
-
+	private void systemLogRandom(String randomNum) {
+		try {
+			RequestAttributes ras = RequestContextHolder.getRequestAttributes();
+			if (ras == null)
+				return;
+			HttpServletRequest request = ((ServletRequestAttributes) ras).getRequest();
+			request.setAttribute("randomNum", randomNum);
+		} catch (Exception e) {
+			log.error("获取当前HttpServletRequest失败！");
+			e.printStackTrace();
+		}
+	}
 
 }
