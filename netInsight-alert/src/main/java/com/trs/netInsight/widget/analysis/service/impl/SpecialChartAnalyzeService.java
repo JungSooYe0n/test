@@ -958,7 +958,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 		long end2 = new Date().getTime();
 		long time2 = end2 - start;
-		log.info("观点分析后台查询所需时间" + time);
+		log.info("观点分析后台查询所需时间" + time2);
 		return list;
 	}
 
@@ -4765,7 +4765,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			List<Object> infoList = new ArrayList<>();
 			for (String mediaLevel : MEDIA_LEVEL) {
 				QueryBuilder queryBuilder = new QueryBuilder();
-				queryBuilder.setPageSize(2);
+				queryBuilder.setPageSize(10);
 				queryBuilder.filterByTRSL(searchBuilder.asTRSL());
 				if (mediaLevel.equals("其它媒体")){
 					queryBuilder.filterField("中央党媒", mediaLevel, Operator.NotEqual);
@@ -4790,11 +4790,24 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				if (ObjectUtil.isNotEmpty(infoListResult)) {
 					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 					List<FtsDocumentCommonVO> list = content.getPageItems();
+					String siteName = null;
 					for (int i = 0; i < list.size(); i++) {
-						HashMap<String, String> hashMap = new HashMap<>();
-						String siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-						hashMap.put("name", siteName + "-" + name);
-						mapList.add(hashMap);
+						//取出两个不重复的sitename
+						if(i == 0) {
+							HashMap<String, String> hashMap = new HashMap<>();
+							siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
+							hashMap.put("name", siteName + "-" + name);
+							mapList.add(hashMap);
+						}else {
+							String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
+							if (!newSiteName.equals(siteName)){
+								HashMap<String, String> hashMap = new HashMap<>();
+								hashMap.put("name", newSiteName + "-" + name);
+								mapList.add(hashMap);
+								break;
+							}
+
+						}
 					}
 					Map<String, Object> oneInfo = new HashMap<>();
 					oneInfo.put("name", mediaLevel + "-" + name);

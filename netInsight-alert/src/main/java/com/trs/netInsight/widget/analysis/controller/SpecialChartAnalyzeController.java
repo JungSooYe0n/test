@@ -897,6 +897,7 @@ public class SpecialChartAnalyzeController {
 					irSimflag,irSimflagAll);
 			long end = new Date().getTime();
 			long time = end - start;
+			log.info("活跃账号查询所需时间" + time);
 //			log.info("媒体活跃等级图后台所需时间" + time);
 //			SpecialParam specParam = getSpecParam(specialProject);
 //			ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area,
@@ -3176,9 +3177,11 @@ public class SpecialChartAnalyzeController {
 										 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
 										 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws OperationException {
 		try {
+
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			if (specialProject != null) {
 				// url排重
+				long start = new Date().getTime();
 
 				if (StringUtils.isBlank(timeRange)) {
 					timeRange = specialProject.getTimeRange();
@@ -3199,7 +3202,11 @@ public class SpecialChartAnalyzeController {
 				}
 				// 根据时间升序,只要第一条
 				QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
-				return specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
+				Object object = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
+				long end = new Date().getTime();
+				long time = end - start;
+				log.info("传播分析站点查询所需时间" + time);
+				return object;
 			}
 			return null;
 		} catch (Exception e) {
@@ -3271,7 +3278,11 @@ public class SpecialChartAnalyzeController {
 				QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, true);
 				searchBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				searchBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
-				return specialChartAnalyzeService.spreadAnalysis(searchBuilder, timeArray, similar, irSimflag,irSimflagAll,false,groupName);
+				Object object = specialChartAnalyzeService.spreadAnalysis(searchBuilder, timeArray, similar, irSimflag,irSimflagAll,false,groupName);
+				long end = new Date().getTime();
+				long time = end - start;
+				log.info("传播分析查询所需时间" + time);
+				return object;
 			}
 			return null;
 		} catch (Exception e) {
