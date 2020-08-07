@@ -69,7 +69,8 @@ public class ColumnChartController {
     @RequestMapping(value = "/selectTabChartList", method = RequestMethod.GET)
     @ApiOperation("查找当前栏目对应的图表 - 统计分析图表+自定义图表")
     public Object selectTabChartList(HttpServletRequest request,
-                                     @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id)
+                                     @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id,
+                                     @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
             throws TRSException {
         User user = UserUtils.getUser();
         IndexTabMapper mapper = indexTabMapperService.findOne(id);
@@ -93,7 +94,8 @@ public class ColumnChartController {
     @RequestMapping(value = "/selectPageTopChartList", method = RequestMethod.GET)
     @ApiOperation("查找当前分组下所要显示的豆腐块缩略图 - 栏目+统计分析+自定义图表被置顶的数据")
     public Object selectPageTopChartList(HttpServletRequest request,
-                                         @ApiParam("栏目分组id") @RequestParam(value = "id") String id)
+                                         @ApiParam("栏目分组id") @RequestParam(value = "id") String id,
+                                         @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
             throws TRSException {
         User user = UserUtils.getUser();
         // 需要排序
@@ -121,10 +123,12 @@ public class ColumnChartController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "自定义图表或统计分析图表的id", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "chartPage", value = "图表类型：自定义图表或统计分析图表", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "isTop", value = "true:置顶、false:取消置顶", dataType = "String", paramType = "query")})
+            @ApiImplicitParam(name = "isTop", value = "true:置顶、false:取消置顶", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})
     public Object topColumnChart(@RequestParam("id") String id,
                                  @RequestParam("chartPage") String chartPage,
-                                 @RequestParam("isTop") Boolean isTop, HttpServletRequest request)
+                                 @RequestParam("isTop") Boolean isTop,
+                                 @RequestParam("randomNum") String randomNum, HttpServletRequest request)
             throws TRSException {
         ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
         Integer topSeq = 0;
@@ -255,6 +259,7 @@ public class ColumnChartController {
                                  @RequestParam(value = "filterInfo", required = false) String filterInfo,
                                  @RequestParam(value = "contentArea", required = false) String contentArea,
                                  @RequestParam(value = "mediaArea", required = false) String mediaArea,
+                                 @RequestParam(value = "randomNum", required = false) String randomNum,
                                  HttpServletRequest request)
             throws TRSException {
         String[] typeArr = type.split(";");
@@ -430,6 +435,7 @@ public class ColumnChartController {
                                     @RequestParam(value = "filterInfo", required = false) String filterInfo,
                                     @RequestParam(value = "contentArea", required = false) String contentArea,
                                     @RequestParam(value = "mediaArea", required = false) String mediaArea,
+                                    @RequestParam(value = "randomNum", required = false) String randomNum,
                                     HttpServletRequest request)
             throws TRSException {
 
