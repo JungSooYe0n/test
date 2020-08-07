@@ -348,11 +348,19 @@ public class CommonListChartUtil {
                         map.put("copyTitle", fullContent); //前端复制功能需要用到
                     }
                 }
+
+                if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
+                    map.put("img", null);
+                    //前端页面显示需要，与后端无关
+                    map.put("isImg", false);
+                }else{
+                    map.put("img", vo.getImgSrc());
+                    //前端页面显示需要，与后端无关
+                    map.put("isImg", StringUtil.isEmpty(vo.getImgSrc())? false:true);
+                }
                 map.put("trslk", trslk);
                 map.put("channel", vo.getChannel());
-                map.put("img", null);
-                //前端页面显示需要，与后端无关
-                map.put("isImg", false);
+
                 map.put("simNum", 0);
 
                 resultList.add(map);

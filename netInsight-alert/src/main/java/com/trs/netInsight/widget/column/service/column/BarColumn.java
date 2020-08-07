@@ -61,14 +61,15 @@ public class BarColumn extends AbstractColumn {
 
 					List<String> allList = Const.ALL_GROUPNAME_SORT;
 					List<Object> result = new ArrayList<>();
-
-					for(String oneGroupName : allList){
+					Boolean resultFlag = true;
+					Integer active = 0;
+					for (String oneGroupName : allList) {
 						//只显示选择的数据源
-						if(sourceList.contains(oneGroupName)){
+						if (sourceList.contains(oneGroupName)) {
 							String contrastField = FtsFieldConst.FIELD_SITENAME;
-							if(Const.GROUPNAME_WEIBO.equals(oneGroupName)){
+							if (Const.GROUPNAME_WEIBO.equals(oneGroupName)) {
 								contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
-							}else if(Const.MEDIA_TYPE_TF.contains(oneGroupName)){
+							} else if (Const.MEDIA_TYPE_TF.contains(oneGroupName)) {
 								contrastField = FtsFieldConst.FIELD_AUTHORS;
 							}
 							QueryBuilder queryBuilder = new QueryBuilder();
@@ -80,22 +81,22 @@ public class BarColumn extends AbstractColumn {
 							}
 							Map<String,Object> oneInfo = new HashMap<>();
 							Object list = commonChartService.getBarColumnData(queryBuilder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"column",resultField);
-							List<Map<String, Object>> changeList = new ArrayList<>();
-							if(list != null ){
-								changeList = (List<Map<String, Object>>)list;
-								if(changeList.size() <10){
-									for(int i = changeList.size();i <10;i++){
-										Map<String, Object> addInfo = new HashMap<>();
-										addInfo.put("name","");
-										addInfo.put("value",0);
-										changeList.add(addInfo);
-									}
+                            List<Map<String, Object>> changeList = new ArrayList<>();
+							if (list != null) {
+								changeList = (List<Map<String, Object>>) list;
+								if (changeList.size() > 0) {
+									resultFlag = false;
+									active++;
 								}
 							}
 							oneInfo.put("name", Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));
-							oneInfo.put("info",changeList);
+							oneInfo.put("info", list);
+							oneInfo.put("active", active == 1 ? true : false);
 							result.add(oneInfo);
 						}
+					}
+					if (resultFlag) {
+						return null;
 					}
 					return result;
 				}
