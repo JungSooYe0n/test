@@ -160,6 +160,7 @@ public class SpecialChartAnalyzeController {
 		requestTimeLog.setStartTime(startDate);
 		requestTimeLog.setEndTime(new Date());
 		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("各舆论场趋势分析");
 		requestTimeLogRepository.save(requestTimeLog);
 		return object;
 
@@ -246,10 +247,12 @@ public class SpecialChartAnalyzeController {
 									@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 									@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 									@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                    @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 									@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
@@ -268,7 +271,17 @@ public class SpecialChartAnalyzeController {
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 		}
-		return specialChartAnalyzeService.getSentimentAnalysis(specialProject,timeRange,viewType);
+		Date hyStartDate = new Date();
+		Object object =specialChartAnalyzeService.getSentimentAnalysis(specialProject,timeRange,viewType);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+        requestTimeLog.setStartHybaseTime(hyStartDate);
+        requestTimeLog.setEndHybaseTime(new Date());
+        requestTimeLog.setStartTime(startDate);
+        requestTimeLog.setEndTime(new Date());
+        requestTimeLog.setRandomNum(randomNum);
+        requestTimeLog.setOperation("观点分析");
+        requestTimeLogRepository.save(requestTimeLog);
+		return object;
 
 	}
 	/**
@@ -722,9 +735,11 @@ public class SpecialChartAnalyzeController {
 					   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 					   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 					   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                       @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 					   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 					   ) throws Exception {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		if (specialProject != null) {
 
@@ -755,8 +770,17 @@ public class SpecialChartAnalyzeController {
 			}
 			QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
 			searchBuilder.setGroupName(groupName);
+			Date hyStartDate = new Date();
 			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
 					irSimflag,irSimflagAll,areaType);
+            RequestTimeLog requestTimeLog = new RequestTimeLog();
+            requestTimeLog.setStartHybaseTime(hyStartDate);
+            requestTimeLog.setEndHybaseTime(new Date());
+            requestTimeLog.setStartTime(startDate);
+            requestTimeLog.setEndTime(new Date());
+            requestTimeLog.setRandomNum(randomNum);
+            requestTimeLog.setOperation("地域统计");
+            requestTimeLogRepository.save(requestTimeLog);
 //			List<Map<String, Object>> sortByValue = MapUtil.sortByValue(resultMap, "value");
 //			long end = new Date().getTime();
 //			long time = end - start;
@@ -925,6 +949,7 @@ public class SpecialChartAnalyzeController {
 			requestTimeLog.setStartTime(startDate);
 			requestTimeLog.setEndTime(new Date());
 			requestTimeLog.setRandomNum(randomNum);
+            requestTimeLog.setOperation("活跃账号");
 			requestTimeLogRepository.save(requestTimeLog);
 //			log.info("媒体活跃等级图后台所需时间" + time);
 //			SpecialParam specParam = getSpecParam(specialProject);
@@ -1100,6 +1125,7 @@ public class SpecialChartAnalyzeController {
 							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 			) throws Exception {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
@@ -1146,6 +1172,7 @@ public class SpecialChartAnalyzeController {
 		Object wordCloud = null;
 		String[] timeArr = com.trs.netInsight.util.DateUtil.formatTimeRange(timeRange);
 		String time0 = timeArr[0];
+		Date hyStartDate = new Date();
 		if (!com.trs.netInsight.util.DateUtil.isExpire("2019-10-01 00:00:00",time0)){
 			ChartResultField resultField = new ChartResultField("name", "value","entityType");
 			wordCloud = commonChartService.getWordCloudColumnData(searchBuilder,sim, irSimflag,irSimflagAll,specialProject.getSource(),entityType,"special",resultField);
@@ -1153,6 +1180,14 @@ public class SpecialChartAnalyzeController {
 			wordCloud = specialChartAnalyzeService.getWordCloudNew(searchBuilder,sim, irSimflag,irSimflagAll, entityType,"special");
 
 		}
+//        RequestTimeLog requestTimeLog = new RequestTimeLog();
+//        requestTimeLog.setStartHybaseTime(hyStartDate);
+//        requestTimeLog.setEndHybaseTime(new Date());
+//        requestTimeLog.setStartTime(startDate);
+//        requestTimeLog.setEndTime(new Date());
+//        requestTimeLog.setRandomNum(randomNum);
+//        requestTimeLog.setOperation("词云");
+//        requestTimeLogRepository.save(requestTimeLog);
 		if(ObjectUtil.isEmpty(wordCloud)){
 			return null;
 		}
@@ -1752,10 +1787,12 @@ public class SpecialChartAnalyzeController {
 								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                 @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	) throws TRSException {
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
@@ -1784,6 +1821,7 @@ public class SpecialChartAnalyzeController {
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
 			builder.setPageSize(pageSize);
 			InfoListResult infoListResult = null;
+			Date hyStartDate = new Date();
 			infoListResult = commonListService.queryPageListForHot(builder,CommonListChartUtil.changeGroupName(type),UserUtils.getUser(),"special",false);
 			String trslkall = null;
 			if (ObjectUtil.isEmpty(infoListResult) || ObjectUtil.isEmpty(infoListResult.getContent())) return null;
@@ -1800,6 +1838,14 @@ public class SpecialChartAnalyzeController {
 				ftsDocument.setTrslk(trslkall);
 				ftsDocument.setSimCount(ftsDocument.getSimCount()-1 > 0 ? ftsDocument.getSimCount()-1 : 0);
 			}
+            RequestTimeLog requestTimeLog = new RequestTimeLog();
+            requestTimeLog.setStartHybaseTime(hyStartDate);
+            requestTimeLog.setEndHybaseTime(new Date());
+            requestTimeLog.setStartTime(startDate);
+            requestTimeLog.setEndTime(new Date());
+            requestTimeLog.setRandomNum(randomNum);
+            requestTimeLog.setOperation("事件脉络");
+            requestTimeLogRepository.save(requestTimeLog);
 			return voList;
 		} catch (Exception e) {
 			throw new OperationException("走势计算错误,message: " + e);
@@ -1846,9 +1892,11 @@ public class SpecialChartAnalyzeController {
 							 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 							 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                             @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	)
 			throws TRSException {
+	    Date startDate = new Date();
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
@@ -1873,8 +1921,17 @@ public class SpecialChartAnalyzeController {
 		}
 		// 跟统计表格一样 如果来源没选 就不查数据
 		groupName = CommonListChartUtil.changeGroupName(groupName);
+		Date hyStartDate = new Date();
 		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(groupName,
 				specialProject, timeRange,pageSize);
+        RequestTimeLog requestTimeLog = new RequestTimeLog();
+        requestTimeLog.setStartHybaseTime(hyStartDate);
+        requestTimeLog.setEndHybaseTime(new Date());
+        requestTimeLog.setStartTime(startDate);
+        requestTimeLog.setEndTime(new Date());
+        requestTimeLog.setRandomNum(randomNum);
+        requestTimeLog.setOperation("热点信息");
+        requestTimeLogRepository.save(requestTimeLog);
 		return result;
 	}
 	/**
@@ -2391,9 +2448,11 @@ public class SpecialChartAnalyzeController {
 								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                 @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 	) throws Exception {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
@@ -2405,7 +2464,17 @@ public class SpecialChartAnalyzeController {
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 			}
-			return specialChartAnalyzeService.getMoodStatistics(specialProject, timeRange);
+			Date hyStartDate = new Date();
+			Object object = specialChartAnalyzeService.getMoodStatistics(specialProject, timeRange);
+            RequestTimeLog requestTimeLog = new RequestTimeLog();
+            requestTimeLog.setStartHybaseTime(hyStartDate);
+            requestTimeLog.setEndHybaseTime(new Date());
+            requestTimeLog.setStartTime(startDate);
+            requestTimeLog.setEndTime(new Date());
+            requestTimeLog.setRandomNum(randomNum);
+            requestTimeLog.setOperation("情绪统计");
+            requestTimeLogRepository.save(requestTimeLog);
+			return object;
 		} catch (Exception e) {
 			throw new OperationException("查询出错：" + e);
 		} finally {
@@ -3203,9 +3272,10 @@ public class SpecialChartAnalyzeController {
 										 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 										 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 										 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                         @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 										 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws OperationException {
 		try {
-
+Date startDate = new Date();
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			if (specialProject != null) {
 				// url排重
@@ -3230,10 +3300,19 @@ public class SpecialChartAnalyzeController {
 				}
 				// 根据时间升序,只要第一条
 				QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
+				Date hyStartDate = new Date();
 				Object object = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
 				long end = new Date().getTime();
 				long time = end - start;
 				log.info("传播分析站点查询所需时间" + time);
+                RequestTimeLog requestTimeLog = new RequestTimeLog();
+                requestTimeLog.setStartHybaseTime(hyStartDate);
+                requestTimeLog.setEndHybaseTime(new Date());
+                requestTimeLog.setStartTime(startDate);
+                requestTimeLog.setEndTime(new Date());
+                requestTimeLog.setRandomNum(randomNum);
+                requestTimeLog.setOperation("传播分析站点");
+                requestTimeLogRepository.save(requestTimeLog);
 				return object;
 			}
 			return null;
@@ -3269,8 +3348,10 @@ public class SpecialChartAnalyzeController {
 								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                 @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr) throws OperationException {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
@@ -3306,10 +3387,19 @@ public class SpecialChartAnalyzeController {
 				QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, true);
 				searchBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				searchBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
+				Date hyStartDate = new Date();
 				Object object = specialChartAnalyzeService.spreadAnalysis(searchBuilder, timeArray, similar, irSimflag,irSimflagAll,false,groupName);
 				long end = new Date().getTime();
 				long time = end - start;
 				log.info("传播分析查询所需时间" + time);
+                RequestTimeLog requestTimeLog = new RequestTimeLog();
+                requestTimeLog.setStartHybaseTime(hyStartDate);
+                requestTimeLog.setEndHybaseTime(new Date());
+                requestTimeLog.setStartTime(startDate);
+                requestTimeLog.setEndTime(new Date());
+                requestTimeLog.setRandomNum(randomNum);
+                requestTimeLog.setOperation("传播分析站点");
+                requestTimeLogRepository.save(requestTimeLog);
 				return object;
 			}
 			return null;
