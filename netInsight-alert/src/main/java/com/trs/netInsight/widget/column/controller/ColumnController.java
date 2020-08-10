@@ -644,7 +644,7 @@ public class ColumnController {
 							  @RequestParam(value = "mediaArea", required = false) String mediaArea,
 							  @RequestParam(value = "share", defaultValue = "false") boolean share,
 							  @RequestParam(value = "copy", defaultValue = "false") boolean copy,
-							  @RequestParam(value = "randomNum", defaultValue = "false") boolean randomNum,HttpServletRequest request)
+							  @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
 			throws TRSException {
 
 		User loginUser = UserUtils.getUser();
