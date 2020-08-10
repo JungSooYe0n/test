@@ -321,9 +321,20 @@ public class SpecialProject extends BaseEntity {
 	private String filterInfo;
 	public String getFilterInfo(){
 		if(StringUtil.isNotEmpty(this.filterInfo)){
-			return this.filterInfo.replaceAll("其他","其它");
+			if(this.filterInfo.contains("其他") || this.filterInfo.contains("其它")){
+				this.filterInfo = this.filterInfo.replaceAll(";其他","").replaceAll(";其它","")
+						.replaceAll("其他;","").replaceAll("其它;","")
+						.replaceAll("其他","").replaceAll("其它","");
+				if(StringUtil.isEmpty(this.filterInfo)){
+					return Const.NOT_FILTER_INFO;
+				}else{
+					return this.filterInfo;
+				}
+			}else{
+				return this.filterInfo;
+			}
 		}else{
-			return StringUtils.join(Const.FILTER_INFO,";")+";其它";
+			return StringUtils.join(Const.FILTER_INFO,";");
 		}
 	}
 	/**
