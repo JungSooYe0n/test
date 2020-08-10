@@ -18,6 +18,7 @@ import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.gather.entity.GatherPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -80,9 +81,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 Long count = commonListService.ftsCount(specialBuilder, sim, irSimflag, irSimflagAll, type);
                 groupResult.addGroup(categoryBean.getKey(), count);
             }
-
-
-
+            groupResult.sort();
 
         } else {
             QueryBuilder ordinaryBuilder = new QueryBuilder();
