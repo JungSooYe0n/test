@@ -114,7 +114,7 @@ public class HybaseShardContrller {
 
     @FormatResult
     @GetMapping(value = "/getSysDataBase")
-    @ApiOperation("获取hybase库列表")
+    @ApiOperation("获取可选专享库")
     public Object getSysDataBase() throws TRSException {
         TRSConnection connection = HybaseFactory.getClient();
         try {
@@ -125,15 +125,15 @@ public class HybaseShardContrller {
             List<String> oversea = new ArrayList<>();
             List<String> video = new ArrayList<>();
             for (TRSDatabase hyBase : list) {
-                if (hyBase.getName().contains("system2.traditionalmedia")) {
+                if (hyBase.getName().contains("system2.traditionalmedia") && !hyBase.getName().equals(Const.HYBASE_NI_INDEX)) {
                     tradition.add(hyBase.getName());
-                } else if (hyBase.getName().contains("system2.weibo")) {
+                } else if (hyBase.getName().contains("system2.weibo") &&  !hyBase.getName().equals(Const.WEIBO)) {
                     weibo.add(hyBase.getName());
-                } else if (hyBase.getName().contains("system2.weixin")) {
+                } else if (hyBase.getName().contains("system2.weixin") && !hyBase.getName().equals(Const.WECHAT)) {
                     weixin.add(hyBase.getName());
-                } else if (hyBase.getName().contains("system2.overseasMedia")) {
+                } else if (hyBase.getName().contains("system2.overseasMedia") && !hyBase.getName().equals(Const.HYBASE_OVERSEAS)) {
                     oversea.add(hyBase.getName());
-                }else if (hyBase.getName().contains("system2.media")) {
+                }else if (hyBase.getName().contains("system2.media") && !hyBase.getName().equals(Const.HYBASE_VIDEO)) {
                     video.add(hyBase.getName());
                 }
             }

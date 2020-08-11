@@ -1512,55 +1512,45 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         //log.debug("------>" + !indices.contains(Const.SINAUSERS));
         if (StringUtil.isNotEmpty(indices) && !indices.contains(Const.SINAUSERS))
             indices = indices + ";" + Const.INSERT;
-        String ownerId = user.getId();
-        if (StringUtil.isNotEmpty(user.getSubGroupId())) {
-            ownerId = user.getSubGroupId();
-        }
-        HybaseShard trsHybaseShard = null;
-        if (UserUtils.isRolePlatform()) {
-            //运维
-            String valueFromRedis = "";
-            valueFromRedis = RedisFactory.getValueFromRedis(ownerId + "xiaoku");
-            if (StringUtil.isNotEmpty(valueFromRedis)) {
-                trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
-            } else {
-                trsHybaseShard = hybaseShardService.findByOwnerUserId(ownerId);
-                if(ObjectUtil.isNotEmpty(trsHybaseShard)){
-                    RedisFactory.setValueToRedis(ownerId + "xiaoku",trsHybaseShard);
+
+        if (UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(user)){
+            Organization org = organizationRepository.findOne(user.getOrganizationId());
+            if (ObjectUtil.isNotEmpty(org) && org.isExclusiveHybase()){
+                HybaseShard trsHybaseShard = null;
+                String valueFromRedis = "";
+                valueFromRedis = RedisFactory.getValueFromRedis(user.getOrganizationId() + "xiaoku");
+                if (StringUtil.isNotEmpty(valueFromRedis)) {
+                    trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
+                } else {
+                    if (StringUtil.isNotEmpty(user.getOrganizationId())){
+                        trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+                        if(ObjectUtil.isNotEmpty(trsHybaseShard)){
+                            RedisFactory.setValueToRedis(user.getOrganizationId() + "xiaoku",trsHybaseShard);
+                        }
+                    }
                 }
-            }
-        } else {
-            String valueFromRedis = "";
-            valueFromRedis = RedisFactory.getValueFromRedis(user.getOrganizationId() + "xiaoku");
-            if (StringUtil.isNotEmpty(valueFromRedis)) {
-                trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
-            } else {
-                if (StringUtil.isNotEmpty(user.getOrganizationId())){
-                    trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
-                    if(ObjectUtil.isNotEmpty(trsHybaseShard)){
-                        RedisFactory.setValueToRedis(user.getOrganizationId() + "xiaoku",trsHybaseShard);
+                if (ObjectUtil.isNotEmpty(trsHybaseShard)) {
+
+                    if (indices.contains(Const.HYBASE_NI_INDEX) && StringUtil.isNotEmpty(trsHybaseShard.getTradition())) {
+                        indices = indices.replaceAll(Const.HYBASE_NI_INDEX, trsHybaseShard.getTradition());
+                    }
+                    if (indices.contains(Const.WEIBO) && StringUtil.isNotEmpty(trsHybaseShard.getWeiBo())) {
+                        indices = indices.replaceAll(Const.WEIBO, trsHybaseShard.getWeiBo());
+                    }
+                    if (indices.contains(Const.WECHAT) && StringUtil.isNotEmpty(trsHybaseShard.getWeiXin())) {
+                        indices = indices.replaceAll(Const.WECHAT, trsHybaseShard.getWeiXin());
+                    }
+                    if (indices.contains(Const.HYBASE_OVERSEAS) && StringUtil.isNotEmpty(trsHybaseShard.getOverseas())) {
+                        indices = indices.replaceAll(Const.HYBASE_OVERSEAS, trsHybaseShard.getOverseas());
+                    }
+                    if (indices.contains(Const.HYBASE_VIDEO) && StringUtil.isNotEmpty(trsHybaseShard.getVideo())) {
+                        indices = indices.replaceAll(Const.HYBASE_VIDEO, trsHybaseShard.getVideo());
                     }
                 }
             }
-        }
-        if (ObjectUtil.isNotEmpty(trsHybaseShard)) {
 
-            if (indices.contains(Const.HYBASE_NI_INDEX) && StringUtil.isNotEmpty(trsHybaseShard.getTradition())) {
-                indices = indices.replaceAll(Const.HYBASE_NI_INDEX, trsHybaseShard.getTradition());
-            }
-            if (indices.contains(Const.WEIBO) && StringUtil.isNotEmpty(trsHybaseShard.getWeiBo())) {
-                indices = indices.replaceAll(Const.WEIBO, trsHybaseShard.getWeiBo());
-            }
-            if (indices.contains(Const.WECHAT) && StringUtil.isNotEmpty(trsHybaseShard.getWeiXin())) {
-                indices = indices.replaceAll(Const.WECHAT, trsHybaseShard.getWeiXin());
-            }
-            if (indices.contains(Const.HYBASE_OVERSEAS) && StringUtil.isNotEmpty(trsHybaseShard.getOverseas())) {
-                indices = indices.replaceAll(Const.HYBASE_OVERSEAS, trsHybaseShard.getOverseas());
-            }
-            if (indices.contains(Const.HYBASE_VIDEO) && StringUtil.isNotEmpty(trsHybaseShard.getVideo())) {
-                indices = indices.replaceAll(Const.HYBASE_VIDEO, trsHybaseShard.getVideo());
-            }
         }
+
         return indices;
     }
 

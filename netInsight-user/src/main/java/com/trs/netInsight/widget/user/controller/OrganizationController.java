@@ -180,7 +180,8 @@ public class OrganizationController {
 			@ApiParam(name = "机构登录页配置是否显示轮播图", required = false) @RequestParam(value = "isShowCarousel",required = false) Boolean isShowCarousel,
 			@ApiParam(name = "机构登录页配置是否屏蔽申请试用", required = false) @RequestParam(value = "isShieldRegister",required = false) Boolean isShieldRegister,
 			@ApiParam(name = "机构登录页配置底部二维码", required = false) @RequestParam(value = "loginPageQRCode", required = false) MultipartFile loginPageQRCode,
- 			@ApiParam("传统库表名") @RequestParam(value = "tradition",required = false)String tradition,
+			@ApiParam("是否给机构开启专享库") @RequestParam(value = "isExclusiveHybase",required = false)boolean isExclusiveHybase,
+			@ApiParam("传统库表名") @RequestParam(value = "tradition",required = false)String tradition,
 			@ApiParam("微博库表名") @RequestParam(value = "weiBo",required = false)String weiBo,
 			@ApiParam("微信库表名") @RequestParam(value = "weiXin",required = false)String weiXin,
 			@ApiParam("海外库表名") @RequestParam(value = "overseas",required = false)String overseas,
@@ -392,7 +393,7 @@ public class OrganizationController {
 		organizationService.add(organizationType, organizationName,pictureName, userName,password, displayName, email, phone,
 				expireAt, customerSource, headOfSales, rolePlatforms,descriptions, userLimit, columnNum, specialNum,alertNum,alertAccountNum,keyWordsNum, dataSources, columnDateLimit
 				,specialDateLimit,aSearchDateLimit,suffix,pageTitle,companyName,applyTel,loginLogoPic,QRCodePic,isShieldRegister,isShowCarousel,1,0,null,
-				tradition,weiBo,weiXin,overseas,video);
+				isExclusiveHybase,tradition,weiBo,weiXin,overseas,video);
 		return "添加成功！";
 	}
 
@@ -554,6 +555,7 @@ public class OrganizationController {
 									 @ApiParam(name = "机构登录页配置是否屏蔽申请试用", required = false) @RequestParam(value = "isShieldRegister",required = false) Boolean isShieldRegister,
 									 @ApiParam(name = "机构登录页配置底部二维码", required = false) @RequestParam(value = "loginPageQRCode", required = false) MultipartFile loginPageQRCode,
 									 @ApiParam(name="机构登录页配置底部二维码",required = false) @RequestParam(value = "QRCodePictureName", required = false) String QRCodePictureName,
+									 @ApiParam("是否给机构开启专享库") @RequestParam(value = "isExclusiveHybase",required = false)boolean isExclusiveHybase,
 									 @ApiParam("传统库表名") @RequestParam(value = "tradition",required = false)String tradition,
 									 @ApiParam("微博库表名") @RequestParam(value = "weiBo",required = false)String weiBo,
 									 @ApiParam("微信库表名") @RequestParam(value = "weiXin",required = false)String weiXin,
@@ -804,12 +806,13 @@ public class OrganizationController {
 					// 此时 若pictureName也是null 说明该机构需要换回原有默认网察logo
 					fileName = pictureName;
 				}
-
-				hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,video,null,id);
+				if (isExclusiveHybase){
+					hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,video,null,id);
+				}
 				organizationService.updateOrganization(id, organizationType, organizationName,fileName,userName,password, displayName, email,
 						phone, expireAt, customerSource, headOfSales, rolePlatforms, descriptions, userLimit,columnNum,specialNum,alertNum,alertAccountNum,
 						keyWordsNum,dataSources,columnDateLimit,specialDateLimit,asearchDateLimit,suffix,pageTitle,
-						companyName,applyTel,loginLogoPic,QRCodePic,isShieldRegister,isShowCarousel,loginPagePictureName,QRCodePictureName);
+						companyName,applyTel,loginLogoPic,QRCodePic,isShieldRegister,isShowCarousel,loginPagePictureName,QRCodePictureName,isExclusiveHybase);
 				return "修改机构成功！";
 			}
 			return "未找到该机构";

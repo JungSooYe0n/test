@@ -201,6 +201,10 @@ public class User extends BaseEntity {
 	@Transient
 	private int loginCount;
 
+	@Transient
+	private boolean exclusiveHybase = false;
+
+
 	/**
 	 * 到期提示是否标红
 	 */
