@@ -5962,13 +5962,15 @@ public class InfoListServiceImpl implements IInfoListService {
 							}
 							sourceList.remove(Const.GROUPNAME_WEIBO);
 						}
-						if (sourceList.size() > 0) {
-							if (buffer.length() > 0) {
-								buffer.append(" OR ");
+						if (buffer.length() > 0) {
+							if (sourceList.size() > 0) {
+								if (buffer.length() > 0) {
+									buffer.append(" OR ");
+								}
+								buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
 							}
-							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+							queryBuilder.filterByTRSL(buffer.toString());
 						}
-						queryBuilder.filterByTRSL(buffer.toString());
 					}
 				}
 			}
@@ -6180,24 +6182,24 @@ public class InfoListServiceImpl implements IInfoListService {
 	@Override
 	public Object documentCommonSearch(SpecialProject specialProject, int pageNo, int pageSize, String source, String time, String emotion, String sort,
 									   String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
-									   String type,String read,String preciseFilter,String imgOcr) throws TRSException {
+									   String type, String read, String preciseFilter, String imgOcr) throws TRSException {
 		try {
 			User loginUser = UserUtils.getUser();
 
 			QueryBuilder builder = null;
-			if(StringUtil.isNotEmpty(time)){
+			if (StringUtil.isNotEmpty(time)) {
 				builder = specialProject.toSearchBuilder(pageNo, pageSize, false);
 				// 时间
 				builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
-			}else{
+			} else {
 				builder = specialProject.toSearchBuilder(pageNo, pageSize, true);
 			}
 
 			//查看OCR - 图片
-			if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
-				if("img".equals(imgOcr)){ // 看有ocr的
+			if (StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)) {
+				if ("img".equals(imgOcr)) { // 看有ocr的
 					builder.filterByTRSL(Const.OCR_INCLUDE);
-				}else if("noimg".equals(imgOcr)){  // 不看有ocr的
+				} else if ("noimg".equals(imgOcr)) {  // 不看有ocr的
 					builder.filterByTRSL(Const.OCR_NOT_INCLUDE);
 				}
 			}
@@ -6330,21 +6332,22 @@ public class InfoListServiceImpl implements IInfoListService {
 							}
 							sourceList.remove(Const.GROUPNAME_WEIBO);
 						}
-						if (sourceList.size() > 0) {
-							if (buffer.length() > 0) {
-								buffer.append(" OR ");
+						if (buffer.length() > 0) {
+							if (sourceList.size() > 0) {
+								if (buffer.length() > 0) {
+									buffer.append(" OR ");
+								}
+								buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
 							}
-							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+							builder.filterByTRSL(buffer.toString());
 						}
-						builder.filterByTRSL(buffer.toString());
 					}
 				}
 			}
 
-
-				if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
-					addFieldFilter(FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE,builder);
-				}
+			if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
+				addFieldFilter(FtsFieldConst.FIELD_APPRAISE, emotion, Const.ARRAY_APPRAISE, builder);
+			}
 
 			// 结果中搜索
 			if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)) {
@@ -6361,9 +6364,9 @@ public class InfoListServiceImpl implements IInfoListService {
 					keywords = keywords.substring(0, keywords.length() - 1);
 
 				}
-				StringBuilder fuzzyBuilder  = new StringBuilder();
+				StringBuilder fuzzyBuilder = new StringBuilder();
 				String hybaseField = "fullText";
-				switch (fuzzyValueScope){
+				switch (fuzzyValueScope) {
 					case "title":
 						hybaseField = FtsFieldConst.FIELD_URLTITLE;
 						break;
@@ -6374,21 +6377,21 @@ public class InfoListServiceImpl implements IInfoListService {
 						hybaseField = FtsFieldConst.FIELD_AUTHORS;
 						break;
 				}
-				if("fullText".equals(hybaseField)){
-					fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
-							.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
-							.replaceAll("[;|；]+","\" OR \"")).append("\"))");
-				}else {
-					fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
-							.replaceAll("[;|；]+","\" OR \"")).append("\"))");
+				if ("fullText".equals(hybaseField)) {
+					fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+", "\") AND (\"")
+							.replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+", "\") AND (\"")
+							.replaceAll("[;|；]+", "\" OR \"")).append("\"))");
+				} else {
+					fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+", "\") AND (\"")
+							.replaceAll("[;|；]+", "\" OR \"")).append("\"))");
 				}
 				builder.filterByTRSL(fuzzyBuilder.toString());
 				log.info(builder.asTRSL());
 			}
 			InfoListResult infoListResult = null;
-			if("hot".equals(sort)){
-				infoListResult = commonListService.queryPageListForHot(builder,source,loginUser,type,true);
-			}else{
+			if ("hot".equals(sort)) {
+				infoListResult = commonListService.queryPageListForHot(builder, source, loginUser, type, true);
+			} else {
 				switch (sort) { // 排序
 					case "asc":
 						builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
@@ -6408,7 +6411,7 @@ public class InfoListServiceImpl implements IInfoListService {
 
 						break;
 				}
-				infoListResult = commonListService.queryPageList(builder,sim,irSimflag,irSimflagAll,source,type,loginUser,true);
+				infoListResult = commonListService.queryPageList(builder, sim, irSimflag, irSimflagAll, source, type, loginUser, true);
 			}
 
 			/*
@@ -6419,7 +6422,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				if (infoListResult.getContent() != null) {
 					String trslk = infoListResult.getTrslk();
 					String wordIndex = String.valueOf(specialProject.getSearchScope().ordinal());
-					PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslk,wordIndex);
+					PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult, trslk, wordIndex);
 					infoListResult.setContent(resultContent);
 				}
 			}
@@ -7336,13 +7339,15 @@ public class InfoListServiceImpl implements IInfoListService {
 							}
 							sourceList.remove(Const.GROUPNAME_WEIBO);
 						}
-						if (sourceList.size() > 0) {
-							if (buffer.length() > 0) {
-								buffer.append(" OR ");
+						if (buffer.length() > 0) {
+							if (sourceList.size() > 0) {
+								if (buffer.length() > 0) {
+									buffer.append(" OR ");
+								}
+								buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
 							}
-							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+							queryBuilder.filterByTRSL(buffer.toString());
 						}
-						queryBuilder.filterByTRSL(buffer.toString());
 					}
 				}
 			}

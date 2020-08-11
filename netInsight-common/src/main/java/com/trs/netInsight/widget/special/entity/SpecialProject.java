@@ -804,13 +804,15 @@ public class SpecialProject extends BaseEntity {
 							}
 							sourceList.remove(Const.GROUPNAME_WEIBO);
 						}
-						if (sourceList.size() > 0) {
-							if (buffer.length() > 0) {
-								buffer.append(" OR ");
+						if (buffer.length() > 0) {
+							if (sourceList.size() > 0) {
+								if (buffer.length() > 0) {
+									buffer.append(" OR ");
+								}
+								buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
 							}
-							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+							queryBuilder.filterByTRSL(buffer.toString());
 						}
-						queryBuilder.filterByTRSL(buffer.toString());
 					}
 				}
 			}
