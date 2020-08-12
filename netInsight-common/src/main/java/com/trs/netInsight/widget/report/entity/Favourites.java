@@ -210,12 +210,10 @@ public class Favourites extends BaseEntity {
 	private String channel;
 
 	/**
-	 * material 素材库
-	 * collection  收藏
+	 * 文章中图片路径
 	 */
-//	@Column(name = "data_type")
-//	private String dataType;
-//
+	@Column(name = "img_src")
+	private String imgSrc;
 	/**
 	 * 来源 查库用
 	 */

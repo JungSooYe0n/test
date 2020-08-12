@@ -295,6 +295,11 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     newAdd.setAppraise(StringUtil.isEmpty(fav.getAppraise()) ? "中性":fav.getAppraise());
                     newAdd.setKeywords(fav.getKeywords());
                     newAdd.setChannel(fav.getChannel());
+                    if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
+                        newAdd.setImgSrc(null);
+                    }else{
+                        newAdd.setImgSrc(fav.getImgSrc());
+                    }
 
                     String authors = fav.getAuthors();
                     newAdd.setAuthors(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
@@ -1416,10 +1421,12 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                         map.put("author", item.getAuthors());
                         map.put("copyTitle", fullContent); //前端复制功能需要用到
                     }
-                    map.put("img", null);
+
                     map.put("channel", item.getChannel());
                     //前端页面显示需要，与后端无关
-                    map.put("isImg", false);
+                    map.put("img", item.getImgSrc());
+                    //前端页面显示需要，与后端无关
+                    map.put("isImg", StringUtil.isEmpty(item.getImgSrc())? false:true);
                     map.put("simNum", 0);
                     resultList.add(map);
                 });
