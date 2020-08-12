@@ -219,7 +219,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 					if(columnMap.containsKey("page")){
 						indexPages = (List<IndexPage>)columnMap.get("page");
 					}
-					List<Object> pageList = columnService.sortColumn(null,indexPages,true,true);
+					List<Object> pageList = columnService.sortColumn(new ArrayList<>(),null,indexPages,true,true);
 
 					List<Object> list = new ArrayList<>();
 					list.add(pageList);

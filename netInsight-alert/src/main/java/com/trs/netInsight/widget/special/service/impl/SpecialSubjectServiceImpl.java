@@ -292,11 +292,9 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 		int seq = 0;
 		seq = specialService.getMaxSequenceForSpecial(parentId,loginUser);
 		if(StringUtil.isNotEmpty(parentId)){
-
 			List<SpecialSubject> parentList = specialSubjectRepository.findById(parentId);
 			if(parentList!= null && parentList.size() >0){
 				SpecialSubject parent = parentList.get(0);
-//				indexPage.setParentId(parent.getId());
 				indexPage.setSubjectId(parent.getId());
 			}
 		}

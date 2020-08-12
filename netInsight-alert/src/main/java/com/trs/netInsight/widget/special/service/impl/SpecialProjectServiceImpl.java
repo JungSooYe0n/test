@@ -79,14 +79,14 @@ public class SpecialProjectServiceImpl implements ISpecialProjectService {
 
 	@Override
 	public void save(SpecialProject findOne) {
-		specialProjectRepository.save(findOne);
+		specialProjectRepository.saveAndFlush(findOne);
 	}
 
 	@Override
 	public void delete(String id) {
 		SpecialProject findOne = findOne(id);
 		//删除这个专项之前要把他同级后边的都往前挪
-		beforeDelete(findOne);
+		//beforeDelete(findOne);
 		specialProjectRepository.delete(id);
 	}
 
@@ -110,7 +110,6 @@ public class SpecialProjectServiceImpl implements ISpecialProjectService {
 				Criteria<SpecialProject> criteria = new Criteria<>();
 				criteria.add(Restrictions.eq("groupId", subject.getId()));
 				criteria.add(Restrictions.gt("sequence", findOne.getSequence()));
-//				criteria.add(Restrictions.eq("topFlag", ""));
 				List<SpecialProject> findAll = findAll(criteria);
 				for(SpecialProject special:findAll){
 					if(StringUtil.isEmpty(special.getTopFlag())){
@@ -130,7 +129,6 @@ public class SpecialProjectServiceImpl implements ISpecialProjectService {
 				Criteria<SpecialProject> criteriaSpecial = new Criteria<>();
 				criteriaSpecial.add(Restrictions.eq("groupId", subject.getId()));
 				criteriaSpecial.add(Restrictions.gt("sequence", findOne.getSequence()));
-//				criteriaSpecial.add(Restrictions.eq("topFlag", ""));
 				List<SpecialProject> specialList = findAll(criteriaSpecial);
 				for(SpecialProject special:specialList){
 					if(StringUtil.isEmpty(special.getTopFlag())){
@@ -142,10 +140,9 @@ public class SpecialProjectServiceImpl implements ISpecialProjectService {
 		}else if(UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
 			//查当前用户有多少个一级的专项和多少个一级栏目
 			Criteria<SpecialProject> criteria = new Criteria<>();
-			criteria.add(Restrictions.eq("groupId", ""));
+			criteria.add(Restrictions.eq("groupId",null));
 			criteria.add(Restrictions.eq("userId", loginUser.getId()));
 			criteria.add(Restrictions.gt("sequence", findOne.getSequence()));
-//			criteria.add(Restrictions.eq("topFlag", ""));
 			List<SpecialProject> findAll = findAll(criteria);
 			for(SpecialProject special:findAll){
 				if(StringUtil.isEmpty(special.getTopFlag())){
@@ -215,6 +212,10 @@ public class SpecialProjectServiceImpl implements ISpecialProjectService {
 	@Override
 	public List<SpecialProject> findAll(Criteria<SpecialProject> criteria2) {
 		return specialProjectRepository.findAll(criteria2);
+	}
+	@Override
+	public List<SpecialProject> findAll(Criteria<SpecialProject> criteria2,Sort sort) {
+		return specialProjectRepository.findAll(criteria2,sort);
 	}
 	@Override
 	public List<SpecialProject> findBySpecialType(SpecialType specialType) {

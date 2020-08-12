@@ -160,7 +160,8 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         if(ObjectUtil.isNotEmpty(indexPage)){
             List<IndexPage> childrenPage = indexPage.getChildrenPage();
             List<IndexTabMapper> childrenMapper = indexPage.getIndexTabMappers();
-            List<Object> columnList = columnService.sortColumn(childrenMapper,childrenPage,true,false);
+            //因为这个是分组下的栏目，top的东西不会在分组下，
+            List<Object> columnList = columnService.sortColumn(new ArrayList<>(),childrenMapper,childrenPage,true,false);
             if(columnList == null || columnList.size() ==0){
                 //当前分组下无数据，直接返回NULL
                 return result;

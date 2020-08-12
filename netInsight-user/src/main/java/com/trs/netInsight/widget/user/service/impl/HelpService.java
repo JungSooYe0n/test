@@ -201,6 +201,8 @@ public class HelpService {
                 IndexTab save = indexTabRepository.save(indexTab);
                 // 保存映射表
                 IndexTabMapper mapper = save.mapper(false);
+                mapper.setSequence(indexTabMapper.getSequence());
+                mapper.setTopFlag(indexTabMapper.getTopFlag());
                 if(StringUtil.isNotEmpty(save.getParentId())){
                     IndexPage indexPage2 = indexPageRepository.findOne(save.getParentId());
                     mapper.setIndexPage(indexPage2);
@@ -230,7 +232,6 @@ public class HelpService {
             //同步无分组专题
             List<SpecialProject> projects = specialProjectRepository.findByIdIn(Arrays.asList(specialSync));
             for (SpecialProject project : projects) {
-//                SpecialProject newSpecial = project.newInstanceForSubGroup(subGroup.getId());
                 SpecialProject newSpecial = project.copyForSubGroup(subGroup.getId());
                 newSpecial.setOrganizationId(subGroup.getOrganizationId());
                 newSpecial.setUserId("dataSync");
@@ -239,7 +240,6 @@ public class HelpService {
         }
         if (ObjectUtil.isNotEmpty(specialSyncLevel)){
             //只有专题分组
-//            List<DataSyncSpecial> dataSyncSpecials = JSONArray.parseArray(specialSyncLevel, DataSyncSpecial.class);
             List<SpecialSubject> dataSyncSpecials = specialSubjectRepository.findByIdIn(Arrays.asList(specialSyncLevel));
             if (ObjectUtil.isNotEmpty(dataSyncSpecials)){
                 for (SpecialSubject dataSyncSpecial : dataSyncSpecials) {
