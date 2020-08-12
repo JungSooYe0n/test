@@ -25,9 +25,10 @@ public class KafkaUtil {
 
 	public static void send(Object object) {
 		@SuppressWarnings("unchecked")
-		KafkaTemplate<String, Object> kafkaTemplate = SpringUtil.getBean(KafkaTemplate.class);
-		ListenableFuture<SendResult<String, Object>> listenableFuture = kafkaTemplate.send(KafkaConst.KAFKA_TOPIC,
-				object);
+		String jsonData = JSONObject.toJSONString(object);
+		KafkaTemplate<String, String> kafkaTemplate = SpringUtil.getBean(KafkaTemplate.class);
+		ListenableFuture<SendResult<String, String>> listenableFuture = kafkaTemplate.send(KafkaConst.KAFKA_TOPIC,
+				jsonData);
 		sendCallBack(listenableFuture);
 	}
 
@@ -38,9 +39,9 @@ public class KafkaUtil {
 	 * @author 谷泽昊
 	 * @param listenableFuture
 	 */
-	private static void sendCallBack(ListenableFuture<SendResult<String, Object>> listenableFuture) {
+	private static void sendCallBack(ListenableFuture<SendResult<String, String>> listenableFuture) {
 		try {
-			SendResult<String, Object> sendResult = listenableFuture.get();
+			SendResult<String, String> sendResult = listenableFuture.get();
 			listenableFuture.addCallback(SuccessCallback -> {
 				log.info("kafka Producer发送消息成功！topic=" + sendResult.getRecordMetadata().topic() + ",partition"
 						+ sendResult.getRecordMetadata().partition() + ",offset="

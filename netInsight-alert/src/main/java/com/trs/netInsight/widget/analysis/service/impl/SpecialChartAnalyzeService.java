@@ -960,7 +960,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 		long end2 = new Date().getTime();
 		long time2 = end2 - start;
-		log.info("观点分析后台查询所需时间" + time);
+		log.info("观点分析后台查询所需时间" + time2);
 		return list;
 	}
 
@@ -2397,13 +2397,15 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 						}
 						sourceList.remove(Const.GROUPNAME_WEIBO);
 					}
-					if (sourceList.size() > 0) {
-						if (buffer.length() > 0) {
-							buffer.append(" OR ");
+					if (buffer.length() > 0) {
+						if (sourceList.size() > 0) {
+							if (buffer.length() > 0) {
+								buffer.append(" OR ");
+							}
+							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
 						}
-						buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+						builder.filterByTRSL(buffer.toString());
 					}
-					builder.filterByTRSL(buffer.toString());
 				}
 			}
 		}
@@ -4768,7 +4770,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			List<Object> infoList = new ArrayList<>();
 			for (String mediaLevel : MEDIA_LEVEL) {
 				QueryBuilder queryBuilder = new QueryBuilder();
-				queryBuilder.setPageSize(2);
+				queryBuilder.setPageSize(10);
 				queryBuilder.filterByTRSL(searchBuilder.asTRSL());
 				if (mediaLevel.equals("其它媒体")){
 					queryBuilder.filterField("中央党媒", mediaLevel, Operator.NotEqual);
@@ -4793,14 +4795,27 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				if (ObjectUtil.isNotEmpty(infoListResult)) {
 					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 					List<FtsDocumentCommonVO> list = content.getPageItems();
+					String siteName = null;
 					if(list != null && list.size() >0){
 						resultFlag = false;
 					}
 					for (int i = 0; i < list.size(); i++) {
-						HashMap<String, String> hashMap = new HashMap<>();
-						String siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-						hashMap.put("name", siteName + "-" + name);
-						mapList.add(hashMap);
+						//取出两个不重复的sitename
+						if(i == 0) {
+							HashMap<String, String> hashMap = new HashMap<>();
+							siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
+							hashMap.put("name", siteName + "-" + name);
+							mapList.add(hashMap);
+						}else {
+							String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
+							if (!newSiteName.equals(siteName)){
+								HashMap<String, String> hashMap = new HashMap<>();
+								hashMap.put("name", newSiteName + "-" + name);
+								mapList.add(hashMap);
+								break;
+							}
+
+						}
 					}
 					Map<String, Object> oneInfo = new HashMap<>();
 					oneInfo.put("name", mediaLevel + "-" + name);
@@ -5872,30 +5887,24 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 				}
 			}
 		}
-		Integer resultFlag = 0;
 		if (!keys.contains("正面")) {
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "正面");
 			hashMap.put("value", "0");
 			list.add(hashMap);
-			resultFlag++;
 		}
 		if (!keys.contains("负面")) {
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "负面");
 			hashMap.put("value", "0");
 			list.add(hashMap);
-			resultFlag++;
 		}
 		if(!keys.contains("中性")){
 			Map<String, String> hashMap = new HashMap<String, String>();
 			hashMap.put("name", "中性");
 			hashMap.put("value", String.valueOf(ftsCount));
 			list.add(hashMap);
-			resultFlag++;
-		}
-		if(resultFlag == 3){
-			return null;
+
 		}
 		return list;
 	}
