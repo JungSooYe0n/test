@@ -426,7 +426,7 @@ public class ApiController {
         }
         return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"",
                 "","","","",false,0,false,"","",
-                "","","","","","","");
+                "","","","","","","","");
     }
 
     /**

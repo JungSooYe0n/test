@@ -274,6 +274,8 @@ public class SpecialChartAnalyzeController {
 		Date hyStartDate = new Date();
 		Object object =specialChartAnalyzeService.getSentimentAnalysis(specialProject,timeRange,viewType);
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
         requestTimeLog.setStartHybaseTime(hyStartDate);
         requestTimeLog.setEndHybaseTime(new Date());
         requestTimeLog.setStartTime(startDate);
@@ -774,6 +776,8 @@ public class SpecialChartAnalyzeController {
 			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
 					irSimflag,irSimflagAll,areaType);
             RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
             requestTimeLog.setStartHybaseTime(hyStartDate);
             requestTimeLog.setEndHybaseTime(new Date());
             requestTimeLog.setStartTime(startDate);
@@ -944,6 +948,8 @@ public class SpecialChartAnalyzeController {
 			long time = end - start;
 			log.info("活跃账号查询所需时间" + time);
 			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
 			requestTimeLog.setStartHybaseTime(hyStartDate);
 			requestTimeLog.setEndHybaseTime(new Date());
 			requestTimeLog.setStartTime(startDate);
@@ -1839,6 +1845,8 @@ public class SpecialChartAnalyzeController {
 				ftsDocument.setSimCount(ftsDocument.getSimCount()-1 > 0 ? ftsDocument.getSimCount()-1 : 0);
 			}
             RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
             requestTimeLog.setStartHybaseTime(hyStartDate);
             requestTimeLog.setEndHybaseTime(new Date());
             requestTimeLog.setStartTime(startDate);
@@ -1925,6 +1933,8 @@ public class SpecialChartAnalyzeController {
 		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(groupName,
 				specialProject, timeRange,pageSize);
         RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
         requestTimeLog.setStartHybaseTime(hyStartDate);
         requestTimeLog.setEndHybaseTime(new Date());
         requestTimeLog.setStartTime(startDate);
@@ -2467,6 +2477,8 @@ public class SpecialChartAnalyzeController {
 			Date hyStartDate = new Date();
 			Object object = specialChartAnalyzeService.getMoodStatistics(specialProject, timeRange);
             RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
             requestTimeLog.setStartHybaseTime(hyStartDate);
             requestTimeLog.setEndHybaseTime(new Date());
             requestTimeLog.setStartTime(startDate);
@@ -2949,9 +2961,11 @@ public class SpecialChartAnalyzeController {
 								   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 								   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 								   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 								   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws TRSException {
 		log.warn("图表分析统计表格stattotal接口开始调用");
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		try {
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			ObjectUtil.assertNull(specialProject, "专题ID");
@@ -2966,11 +2980,22 @@ public class SpecialChartAnalyzeController {
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 			// 跟统计表格一样 如果来源没选 就不查数据
+			Date hyStartDate = new Date();
 			Object total = specialChartAnalyzeService.getSpecialStattotal(specialProject,groupName,
 					timeRange, emotion, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
 					"special", read,  preciseFilter,imgOcr);
 			long end = new Date().getTime();
 			long time = end - start;
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			requestTimeLog.setRandomNum(randomNum);
+			requestTimeLog.setOperation("专题分析-信息列表-数据统计");
+			requestTimeLogRepository.save(requestTimeLog);
 			log.info("专题监测统计后台所需时间" + time);
 			return total;
 		} catch (Exception e) {
@@ -3306,6 +3331,8 @@ Date startDate = new Date();
 				long time = end - start;
 				log.info("传播分析站点查询所需时间" + time);
                 RequestTimeLog requestTimeLog = new RequestTimeLog();
+				requestTimeLog.setTabId(specialId);
+				requestTimeLog.setTabName(specialProject.getSpecialName());
                 requestTimeLog.setStartHybaseTime(hyStartDate);
                 requestTimeLog.setEndHybaseTime(new Date());
                 requestTimeLog.setStartTime(startDate);
@@ -3393,6 +3420,8 @@ Date startDate = new Date();
 				long time = end - start;
 				log.info("传播分析查询所需时间" + time);
                 RequestTimeLog requestTimeLog = new RequestTimeLog();
+				requestTimeLog.setTabId(specialId);
+				requestTimeLog.setTabName(specialProject.getSpecialName());
                 requestTimeLog.setStartHybaseTime(hyStartDate);
                 requestTimeLog.setEndHybaseTime(new Date());
                 requestTimeLog.setStartTime(startDate);

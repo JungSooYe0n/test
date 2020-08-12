@@ -26,6 +26,16 @@ public class RequestTimeLog {
     @Column(name = "`id`")
     private String id;
     /**
+     * 栏目或专题id
+     */
+    @Column(name = "`tab_id`")
+    private String tabId;
+    /**
+     * 栏目或专题名称
+     */
+    @Column(name = "`tab_name`")
+    private String tabName;
+    /**
      * 请求开始时间
      */
     @Column(name = "`start_time`")
