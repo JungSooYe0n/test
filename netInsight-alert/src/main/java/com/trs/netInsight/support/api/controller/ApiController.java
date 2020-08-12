@@ -512,7 +512,7 @@ public class ApiController {
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
         return specialChartAnalyzeController.weiboOption(specialId, "", false,null,null,null,null,
                 null,null,null,null,null,null,
-                null,null,null,null,null,null,null,null,null,null);
+                null,null,null,null,null,null,null,null,null,null,null);
     }
 
 
@@ -648,7 +648,7 @@ public class ApiController {
                                @RequestParam(value = "entityType") String entityType) throws Exception {
         return specialChartAnalyzeController.getWordYun(specialId, "",entityType,"all",false,null,null,null,null,
                 null,null,null,null,null,null,
-                null,null,null,null,null,null,null,null,null,null);
+                null,null,null,null,null,null,null,null,null,null,null);
     }
 
     /**
