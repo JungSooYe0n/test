@@ -18,9 +18,11 @@ import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.util.alert.AlertUtil;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
@@ -111,6 +113,8 @@ public class InfoListController {
 	private ICommonListService commonListService;
 	@Autowired
 	private SingleMicroblogDataRepository singleMicroblogDataRepository;
+	@Autowired
+	private RequestTimeLogRepository requestTimeLogRepository;
 	/**
 	 * 是否走独立预警服务
 	 */
@@ -196,9 +200,11 @@ public class InfoListController {
 						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+						   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
 						   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws TRSException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
+		Date startDate = new Date();
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -230,12 +236,22 @@ public class InfoListController {
 			}else{
 				source = StringUtils.join(specialSource,";");
 			}
-
+			Date hyStartDate = new Date();
 			Object documentCommonSearch =  infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
 						timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
 						"special", read, preciseFilter,imgOcr);
 				long endTime = System.currentTimeMillis();
 				log.warn("间隔时间："+(endTime - startTime));
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			requestTimeLog.setRandomNum(randomNum);
+			requestTimeLog.setOperation("专题分析-信息列表-列表查询");
+			requestTimeLogRepository.save(requestTimeLog);
 				return documentCommonSearch;
 
 

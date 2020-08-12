@@ -1063,7 +1063,7 @@ public class ColumnController {
 			}
 			//待写， 需要通过自定义图表的类生成一个indextab
 			indexTab = customChart.indexTab();
-			operation = "日常监测 图表查询 - 自定义图表";
+			operation = "日常监测 - 自定义图表-"+customChart.getName();
 		}else if(ChartPageInfo.StatisticalChart.equals(chartPageInfo)){
 			StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
 			if(ObjectUtil.isEmpty(statisticalChart)){
@@ -1077,7 +1077,7 @@ public class ColumnController {
 			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
 				indexTab.setTabWidth(100);
 			}
-			operation = "日常监测 图表查询 - 统计分析图表";
+			operation = "日常监测 - 统计分析 - "+statisticalChartInfo.getChartName();
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
@@ -1167,6 +1167,8 @@ public class ColumnController {
 		//因折线图 关系 需要将时间参数往后传
 		Object object =  column.getColumnData(timerange);
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
 		requestTimeLog.setStartHybaseTime(hyStartDate);
 		requestTimeLog.setEndHybaseTime(new Date());
 		requestTimeLog.setStartTime(startDate);
@@ -1526,6 +1528,8 @@ public class ColumnController {
 				sort, "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
 				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
 		requestTimeLog.setStartHybaseTime(hyStartDate);
 		requestTimeLog.setEndHybaseTime(new Date());
 		requestTimeLog.setStartTime(startDate);
@@ -1628,6 +1632,8 @@ public class ColumnController {
 		Date hyStartDate = new Date();
 		Object object = column.getListStattotal();
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
 		requestTimeLog.setStartHybaseTime(hyStartDate);
 		requestTimeLog.setEndHybaseTime(new Date());
 		requestTimeLog.setStartTime(startDate);

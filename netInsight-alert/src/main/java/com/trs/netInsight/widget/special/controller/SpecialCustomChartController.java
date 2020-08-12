@@ -6,9 +6,11 @@ import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
@@ -34,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -50,6 +53,8 @@ public class SpecialCustomChartController {
     private ISpecialProjectService specialProjectService;
     @Autowired
     private OrganizationRepository organizationRepository;
+    @Autowired
+    private RequestTimeLogRepository requestTimeLogRepository;
 
 
     /**
@@ -454,14 +459,32 @@ public class SpecialCustomChartController {
                               @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
                               @ApiParam("折线图展示类型") @RequestParam(value = "showType", required = false) String showType,
                               @ApiParam("词云的类型") @RequestParam(value = "entityType", defaultValue = "keywords", required = false) String entityType,
+                              @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
                               @ApiParam("对比类型主要是针对地图") @RequestParam(value = "contrast", required = false) String contrast)
             throws TRSException {
+        Date startDate = new Date();
         User user = UserUtils.getUser();
+        Date sqlStartDate = new Date();
         SpecialCustomChart customChart = specialCustomChartService.findOneSpecialCustomChart(id);
         if (ObjectUtil.isEmpty(customChart)) {
             throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
         }
+        String operation = "专题分析 - 自定义分析-"+customChart.getName();
+        Date sqlEndDate = new Date();
+        Date hyStartDate = new Date();
         Object result = specialCustomChartService.selectChartData(customChart, timeRange,showType, entityType, contrast);
+        RequestTimeLog requestTimeLog = new RequestTimeLog();
+        requestTimeLog.setTabId(id);
+        requestTimeLog.setTabName(customChart.getName());
+        requestTimeLog.setStartMysqlTime(sqlStartDate);
+        requestTimeLog.setEndMsqlTime(sqlEndDate);
+        requestTimeLog.setStartHybaseTime(hyStartDate);
+        requestTimeLog.setEndHybaseTime(new Date());
+        requestTimeLog.setStartTime(startDate);
+        requestTimeLog.setEndTime(new Date());
+        requestTimeLog.setRandomNum(randomNum);
+        requestTimeLog.setOperation(operation);
+        requestTimeLogRepository.save(requestTimeLog);
         return result;
     }
 

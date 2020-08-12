@@ -3,8 +3,11 @@ package com.trs.netInsight.widget.alert.controller;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.alert.entity.AlertTime;
 import com.trs.netInsight.widget.alert.entity.PageAlert;
+import com.trs.netInsight.widget.alert.entity.repository.AlertTimeRepository;
 import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.user.entity.User;
 import io.swagger.annotations.Api;
@@ -15,10 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 预警过信息查询
@@ -37,6 +37,8 @@ public class AlertController {
 	
 	@Autowired
 	private IAlertService alertService;
+	@Autowired
+	private AlertTimeRepository alertTimeRepository;
 
 
 	@ApiOperation("已发送和站内的列表法展示接口")
@@ -111,6 +113,38 @@ public class AlertController {
 
 			if (ObjectUtil.isEmpty(pageAlert)) {
 				return null;
+			}
+			User loginUser = UserUtils.getUser();
+			List<AlertTime> alertTimeList = null;
+			alertTimeList = alertTimeRepository.findByUserId(loginUser.getId());
+//			if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(loginUser.getCheckRole())) {
+//				alertTimeList = alertTimeRepository.findByUserId(loginUser.getId());
+//			} else if (UserUtils.ROLE_ADMIN.equals(loginUser.getCheckRole())){
+//				alertTimeList = alertTimeRepository.findByUserId(loginUser.getId());
+//			}else {
+//				alertTimeList = alertTimeRepository.findBySubGroupIdAndUserAccount(loginUser.getSubGroupId(),loginUser.getUserAccount());
+//			}
+			if (ObjectUtil.isNotEmpty(alertTimeList)){
+				Date alertTime = alertTimeList.get(0).getAlertTime();
+				List<FtsDocumentAlert> ftsDocumentAlertList = new ArrayList<>();
+				for (FtsDocumentAlert fts:pageAlert.getContent()) {
+					if (fts.getLoadTime().after(alertTime)){
+						ftsDocumentAlertList.add(fts);
+					}
+				}
+				pageAlert.setContent(ftsDocumentAlertList);
+			}
+			if (ObjectUtil.isEmpty(pageAlert.getContent())){
+				return null;
+			}
+			if (ObjectUtil.isNotEmpty(alertTimeList)) {
+				AlertTime alertTime = alertTimeList.get(0);
+				alertTime.setAlertTime(pageAlert.getContent().get(0).getLoadTime());
+				alertTimeRepository.save(alertTime);
+			}else {
+				AlertTime alertTime = new AlertTime();
+				alertTime.setAlertTime(pageAlert.getContent().get(0).getLoadTime());
+				alertTimeRepository.save(alertTime);
 			}
 			String uuid = UUID.randomUUID().toString();
 			Map<String, Object> putValue = MapUtil.putValue(new String[] { "pageId", "list" }, uuid, pageAlert);

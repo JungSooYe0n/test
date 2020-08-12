@@ -18,6 +18,7 @@ import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.gather.entity.GatherPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -80,10 +81,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 Long count = commonListService.ftsCount(specialBuilder, sim, irSimflag, irSimflagAll, type);
                 groupResult.addGroup(categoryBean.getKey(), count);
             }
-
-
-
-
+          groupResult.sort();
         } else {
             QueryBuilder ordinaryBuilder = new QueryBuilder();
             ordinaryBuilder.filterByTRSL(trsl);
@@ -153,6 +151,22 @@ public class CommonChartServiceImpl implements ICommonChartService {
                                 Map<String, Object> putValue = MapUtil.putValue(new String[]{resultKey.getContrastField(), resultKey.getCountField()},
                                         Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()),  String.valueOf(groupInfo.getCount()));
                                 list.add(putValue);
+                            }
+                            for (String oneGroupName:sourceList) {
+                                int isIn = 0;
+                                for (GroupInfo groupInfo : groupList) {
+                                    if (oneGroupName.equals(groupInfo.getFieldValue())) {
+                                        isIn = 1;
+                                        break;
+                                    }
+                                }
+                                if (isIn == 0){
+                                    Map<String, Object> putValue = new HashMap<>();
+                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
+                                    putValue.put(resultKey.getContrastField(), pageGroupName);
+                                    putValue.put(resultKey.getCountField(), 0);
+                                    list.add(putValue);
+                                }
                             }
                         } else {
                             for (GroupInfo groupInfo : groupList) {
@@ -226,6 +240,22 @@ public class CommonChartServiceImpl implements ICommonChartService {
                                 Map<String, Object> putValue = MapUtil.putValue(new String[]{resultKey.getContrastField(), resultKey.getCountField()},
                                         Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()),  String.valueOf(groupInfo.getCount()));
                                 list.add(putValue);
+                            }
+                            for (String oneGroupName:sourceList) {
+                                int isIn = 0;
+                                for (GroupInfo groupInfo : groupList) {
+                                    if (oneGroupName.equals(groupInfo.getFieldValue())) {
+                                        isIn = 1;
+                                        break;
+                                    }
+                                }
+                                if (isIn == 0){
+                                    Map<String, Object> putValue = new HashMap<>();
+                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
+                                    putValue.put(resultKey.getContrastField(), pageGroupName);
+                                    putValue.put(resultKey.getCountField(), 0);
+                                    list.add(putValue);
+                                }
                             }
                         } else {
                             for (GroupInfo groupInfo : groupList) {
