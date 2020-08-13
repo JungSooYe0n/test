@@ -747,19 +747,21 @@ public class GenerateReportImpl implements IGenerateReport {
 		setCellTitle(xdoc, getCellHight(xTable, 0, 0), "序号", bgColor, 700);	//1000
 		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 4300);
 		int indexHead = 2;
-		if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail) || WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail))){
-			if (WEIBOHOTTOP10key.equals(chapterDetail)){
+		if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail)
+				|| WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail)
+				|| Chapter.Hot_Weibo.equals(Chapter.valueOf(chapterDetail))|| Chapter.Hot_News.equals(Chapter.valueOf(chapterDetail))
+		)){
+			/*if (WEIBOHOTTOP10key.equals(chapterDetail)){
 				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "转发", bgColor, 1200);	//2000
 				indexHead += 1;
-			}else {
+			}else {*/
 				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "热度", bgColor, 1200);	//2000
 				indexHead += 1;
-			}
+			//}
 		}
 		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 1200);	//2000
 		indexHead += 1;
 		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 2150);	//3000
-
 
 			for(int i = 0; i < chapaterContent.size(); i++){
 				//序号
@@ -767,12 +769,15 @@ public class GenerateReportImpl implements IGenerateReport {
 				//标题
 				setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 4300);
 				int index = 2;
-				if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail) || WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail))){
-					if (WEIBOHOTTOP10key.equals(chapterDetail)){
+				if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail)
+						|| WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail)
+						|| Chapter.Hot_Weibo.equals(Chapter.valueOf(chapterDetail))|| Chapter.Hot_News.equals(Chapter.valueOf(chapterDetail))
+				)){
+					/*if (WEIBOHOTTOP10key.equals(chapterDetail)){
 						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getRttCount()==null?"0":chapaterContent.get(i).getRttCount().toString(),bgColor, 1200);
-					}else {
+					}else {*/
 						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1200);
-					}
+					//}
 					index += 1;
 				}
 				//来源

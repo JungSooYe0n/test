@@ -151,6 +151,7 @@ public class HelpService {
                     subject1.setSubGroupId(subGroup.getId());
                     subject1.setSubjectId(parentId);
                     subject1.setUserId("dataSync");
+                    subject1.setOrganizationId(subGroup.getOrganizationId());
                     this.specialSubjectRepository.save(subject1);
 
                     addSpecialSubjectAndProject(specialSubject.getId(),subGroup,subject1.getId());
@@ -175,6 +176,8 @@ public class HelpService {
                 }
                 mapper.setTypeId(indexTab.getTypeId());
                 mapper.setSubGroupId(subGroup.getId());
+                mapper.setUserId("dataSync");
+                mapper.setOrganizationId(subGroup.getOrganizationId());
                 indexTabMapperRepository.save(mapper);
             }
         }
@@ -182,6 +185,9 @@ public class HelpService {
             for (IndexPage indexPage1 : indexPage.getChildrenPage()){
                 IndexPage indexPage2 = indexPage1.pageCopy();
                 indexPage2.setSubGroupId(subGroup.getId());
+                indexPage2.setSubGroupId(subGroup.getId());
+                indexPage2.setUserId("dataSync");
+                indexPage2.setOrganizationId(subGroup.getOrganizationId());
                 indexPage2.setParentId(parentId);
                 this.indexPageRepository.save(indexPage2);
                 addCloumPageAndTab(indexPage1.getId(),subGroup,indexPage2.getId());
@@ -191,7 +197,6 @@ public class HelpService {
     public void copySomePageAndTabToUserGroupNew(String[] columnSync,String[] columnSyncLevel, SubGroup subGroup) {
         if (ObjectUtil.isNotEmpty(columnSync)){
             //同步无分组专题
-//            List<IndexTab> projects = indexTabRepository.findByIdIn(Arrays.asList(columnSync));
             List<IndexTabMapper> mappers = indexTabMapperRepository.findByIdIn(Arrays.asList(columnSync));
             for (IndexTabMapper indexTabMapper : mappers){
                 IndexTab indexTab = indexTabMapper.getIndexTab().tabCopy();
@@ -203,12 +208,12 @@ public class HelpService {
                 IndexTabMapper mapper = save.mapper(false);
                 mapper.setSequence(indexTabMapper.getSequence());
                 mapper.setTopFlag(indexTabMapper.getTopFlag());
-                if(StringUtil.isNotEmpty(save.getParentId())){
-                    IndexPage indexPage2 = indexPageRepository.findOne(save.getParentId());
-                    mapper.setIndexPage(indexPage2);
+                if(indexTabMapper.getIndexPage() != null){
+                    mapper.setIndexPage(indexTabMapper.getIndexPage());
                 }
                 mapper.setTypeId(indexTab.getTypeId());
                 mapper.setSubGroupId(subGroup.getId());
+                mapper.setOrganizationId(subGroup.getOrganizationId());
                 indexTabMapperRepository.save(mapper);
             }
         }
@@ -220,6 +225,8 @@ public class HelpService {
                         //分组
                         IndexPage indexPage2 = indexPage.pageCopy();
                         indexPage2.setSubGroupId(subGroup.getId());
+                        indexPage2.setUserId("dataSync");
+                        indexPage2.setOrganizationId(subGroup.getOrganizationId());
                         this.indexPageRepository.save(indexPage2);
                         addCloumPageAndTab(indexPage.getId(),subGroup,indexPage2.getId());
                     }
@@ -246,6 +253,7 @@ public class HelpService {
                     if (0 == dataSyncSpecial.getFlag() && StringUtil.isNotEmpty(dataSyncSpecial.getId())) {
                         SpecialSubject subject1 = dataSyncSpecial.pageCopy();
                         subject1.setSubGroupId(subGroup.getId());
+                        subject1.setOrganizationId(subGroup.getOrganizationId());
                         subject1.setUserId("dataSync");
                         this.specialSubjectRepository.save(subject1);
                         //分组
