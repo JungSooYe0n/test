@@ -2450,6 +2450,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 		ChartResultField resultField = new ChartResultField("name", "value");
 		List<Map<String, Object>> cateqoryQuery = (List<Map<String, Object>>) commonListService.queryListGroupNameStattotal(builder,sim,irSimflag,irSimflagAll,source,"special",resultField);
+		if (ObjectUtil.isEmpty(cateqoryQuery)) {
+			return null;
+		}
 		Long count = 0L;
 		for(Map<String, Object> map :cateqoryQuery){
 			count += (Long)map.get(resultField.getCountField());

@@ -155,6 +155,8 @@ public class SpecialChartAnalyzeController {
 		Date hyStartDate = new Date();
 		Object object = specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
 		requestTimeLog.setStartHybaseTime(hyStartDate);
 		requestTimeLog.setEndHybaseTime(new Date());
 		requestTimeLog.setStartTime(startDate);
