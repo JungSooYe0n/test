@@ -223,6 +223,12 @@ public class SpecialProject extends BaseEntity {
 	private String topFlag;
 
 	/**
+	 * 上级id备份，主要是为了置顶存在，置顶元素取消置顶时回到原来分组下
+	 */
+	@Column(name = "bak_parent_id")
+	private String bakParentId;
+
+	/**
 	 * 是否排重
 	 */
 	@Column(name = "similar")
