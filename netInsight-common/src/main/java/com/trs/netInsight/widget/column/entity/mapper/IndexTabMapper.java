@@ -96,6 +96,11 @@ public class IndexTabMapper extends BaseEntity {
 	 */
 	@Column(name = "type_id")
 	private String typeId;
+	/**
+	 * 置顶标识
+	 */
+	@Column(name = "top_flag")
+	private String topFlag;
 
 	/**
 	 * 标识是分组还是栏目  -  前端使用

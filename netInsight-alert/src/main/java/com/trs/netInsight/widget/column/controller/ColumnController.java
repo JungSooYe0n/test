@@ -15,6 +15,8 @@ package com.trs.netInsight.widget.column.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.trs.jpa.utils.Criteria;
+import com.trs.jpa.utils.Restrictions;
 import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
@@ -47,6 +49,7 @@ import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
+import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -57,6 +60,7 @@ import com.trs.netInsight.widget.user.repository.SubGroupRepository;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.search.SearchException;
@@ -342,6 +346,38 @@ public class ColumnController {
 		return "success";
 	}
 
+	/**
+	 * 新提出置顶接口
+	 */
+	@FormatResult
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_MOVE_ONE, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "栏目置顶：${id}")
+	@RequestMapping(value = "/topFlag", method = RequestMethod.GET)
+	public Object topFlag(@ApiParam("栏目id") @RequestParam(value = "id") String id) throws TRSException {
+		try {
+			// 查这个用户或用户分组下有多少个已经置顶的专题 新置顶的排前边 查找专题列表的时候按照sequence正序排
+			User loginUser = UserUtils.getUser();
+			return columnService.topColumn(id,loginUser);
+		} catch (Exception e) {
+			throw new OperationException(String.format("[id=%s]置顶失败,message: %s", id, e));
+		}
+	}
+
+	/**
+	 * 取消置顶
+	 *
+	 */
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_MOVE_ONE, systemLogType = SystemLogType.COLUMN,  systemLogOperationPosition = "取消栏目置顶：${id}")
+	@FormatResult
+	@RequestMapping(value = "/noTopFlag", method = RequestMethod.GET)
+	public Object noTopFlag(@ApiParam("栏目id") @RequestParam(value = "id") String id) throws TRSException {
+		try {
+			User user = UserUtils.getUser();
+
+			return columnService.noTopColumn(id,user);
+		} catch (Exception e) {
+			throw new OperationException(String.format("获取[id=%s]取消置顶失败,message: %s", id, e));
+		}
+	}
 
 	/**
 	 * 三级栏目（图表）添加接口（分组）
@@ -1027,7 +1063,7 @@ public class ColumnController {
 			}
 			//待写， 需要通过自定义图表的类生成一个indextab
 			indexTab = customChart.indexTab();
-			operation = "日常监测 图表查询 - 自定义图表";
+			operation = "日常监测 - 自定义图表-"+customChart.getName();
 		}else if(ChartPageInfo.StatisticalChart.equals(chartPageInfo)){
 			StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
 			if(ObjectUtil.isEmpty(statisticalChart)){
@@ -1041,7 +1077,7 @@ public class ColumnController {
 			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
 				indexTab.setTabWidth(100);
 			}
-			operation = "日常监测 图表查询 - 统计分析图表";
+			operation = "日常监测 - 统计分析 - "+statisticalChartInfo.getChartName();
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
@@ -1131,6 +1167,8 @@ public class ColumnController {
 		//因折线图 关系 需要将时间参数往后传
 		Object object =  column.getColumnData(timerange);
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
 		requestTimeLog.setStartHybaseTime(hyStartDate);
 		requestTimeLog.setEndHybaseTime(new Date());
 		requestTimeLog.setStartTime(startDate);
@@ -1490,6 +1528,8 @@ public class ColumnController {
 				sort, "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
 				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
 		requestTimeLog.setStartHybaseTime(hyStartDate);
 		requestTimeLog.setEndHybaseTime(new Date());
 		requestTimeLog.setStartTime(startDate);
@@ -1592,6 +1632,8 @@ public class ColumnController {
 		Date hyStartDate = new Date();
 		Object object = column.getListStattotal();
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
 		requestTimeLog.setStartHybaseTime(hyStartDate);
 		requestTimeLog.setEndHybaseTime(new Date());
 		requestTimeLog.setStartTime(startDate);

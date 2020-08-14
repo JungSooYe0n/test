@@ -419,10 +419,10 @@ public class SpecialProject extends BaseEntity {
      * 构造函数
      */
     public SpecialProject(String userId,String subGroupId, SpecialType specialType, String specialName,
-                          String anyKeywords, String excludeWords, String trsl,
+                          String anyKeywords, String excludeWords,String excludeWordIndex, String trsl,
                           SearchScope searchScope, Date startTime, Date endTime, String source, String groupName,
                           String groupId,String timeRange,int sequence,boolean similar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb,
-                          String imgUrl,String monitorSite,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,String mediaArea,String contentArea) {
+                          String imgUrl,String monitorSite,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,String mediaArea,String contentArea,String topFlag) {
 
         this.setUserId(userId);
         this.setSubGroupId(subGroupId);
@@ -430,6 +430,7 @@ public class SpecialProject extends BaseEntity {
         this.specialName = specialName;
         this.anyKeywords = anyKeywords;
         this.excludeWords = excludeWords;
+        this.excludeWordIndex = excludeWordIndex;
         this.trsl = trsl;
         this.searchScope = searchScope;
         this.startTime = startTime;
@@ -456,6 +457,7 @@ public class SpecialProject extends BaseEntity {
         this.filterInfo = filterInfo;
         this.mediaArea = mediaArea;
         this.contentArea = contentArea;
+		this.topFlag = topFlag;
     }
 	/**
 	 * 构造函数
@@ -1085,9 +1087,10 @@ public class SpecialProject extends BaseEntity {
 	}
 	public SpecialProject copyForSubGroup(String commonSubGroupId) {
 		SpecialProject project = new SpecialProject( null, commonSubGroupId, specialType,  specialName,
-				 anyKeywords,  excludeWords,  trsl,
+				 anyKeywords,  excludeWords,excludeWordIndex,  trsl,
 				 searchScope,  startTime,  endTime,  source,  groupName,
-				 null, timeRange, sequence, similar, irSimflag, weight, server, irSimflagAll, excludeWeb,  imgUrl, monitorSite, mediaLevel, mediaIndustry, contentIndustry, filterInfo, mediaArea, contentArea);
+				 null, timeRange, sequence, similar, irSimflag, weight, server, irSimflagAll, excludeWeb,  imgUrl,
+				monitorSite, mediaLevel, mediaIndustry, contentIndustry, filterInfo, mediaArea, contentArea,topFlag);
 
 		return project;
 	}
