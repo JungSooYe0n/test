@@ -122,6 +122,7 @@ public class SpecialController {
 			SpecialProject findOne = specialProjectService.findOne(specialId);
 			//这里要做一步操作，把置顶的专题信息原来的东西重新排序
 			//specialService.moveSequenceForSpecial(findOne.getId(), SpecialFlag.SpecialProjectFlag, loginUser);
+			findOne.setBakParentId(findOne.getGroupId());
 			findOne.setGroupId(null);
 			findOne.setSpecialSubject(null);
 			findOne.setSequence(1);
@@ -151,7 +152,16 @@ public class SpecialController {
 			User user = UserUtils.getUser();
 			SpecialProject findOne = specialProjectService.findOne(specialId);
 			findOne.setTopFlag(null);
-			Integer  seq = specialService.getMaxSequenceForSpecial(null,user) +1;
+			String parentId = null;
+			if(StringUtil.isNotEmpty(findOne.getBakParentId())){
+				SpecialSubject parent = specialSubjectService.findOne(findOne.getBakParentId());
+				if(parent != null && StringUtil.isNotEmpty(parent.getId())){
+					parentId = parent.getId();
+					findOne.setGroupId(parentId);
+				}
+			}
+
+			Integer  seq = specialService.getMaxSequenceForSpecial(parentId,user) +1;
 			findOne.setSequence(seq);
 			// 放在原来列表最后一个 查找时按照sequence排列
 			specialProjectService.save(findOne);
