@@ -86,6 +86,7 @@ public interface ISpecialProjectService {
 	 * @return
 	 */
 	public List<SpecialProject> findAll(Criteria<SpecialProject> criteria2);
+	List<SpecialProject> findAll(Criteria<SpecialProject> criteria2,Sort sort);
 
 	public List<SpecialProject> findBySpecialType(SpecialType specialType);
 

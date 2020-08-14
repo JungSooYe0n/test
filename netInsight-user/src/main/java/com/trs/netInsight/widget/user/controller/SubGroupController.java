@@ -570,8 +570,6 @@ public class SubGroupController {
         }
         user = userService.findById(orgAdminId);
 
-        //查询该用户下的日常监测（包括自定义的）以及包含的栏目组
-//        List<Map<String, Object>> columnNavs = findByOrgAdminId(userId);
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("column",selectColumn(user,""));
         //查询 该用户 下 的专题分析（一级或者二级分组下无专题则不返给前端）且带着层级关系
@@ -583,6 +581,7 @@ public class SubGroupController {
 
         List<SpecialSubject> oneIndexSubject = null;
         List<SpecialProject> oneIndexProject = null;
+        List<SpecialProject> top = null;
         Map<String,Object> oneSpecial = this.getOneLevelSpecialForMap(user);
         if (oneSpecial.containsKey("page")) {
             oneIndexSubject = (List<SpecialSubject>) oneSpecial.get("page");
@@ -590,17 +589,24 @@ public class SubGroupController {
         if (oneSpecial.containsKey("tab")) {
             oneIndexProject = (List<SpecialProject>) oneSpecial.get("tab");
         }
+        if (oneSpecial.containsKey("top")) {
+            top = (List<SpecialProject>) oneSpecial.get("top");
+        }
+        List<Object> result = new ArrayList<>();
+        if(top != null && top.size()>0){
+            result.addAll(top);
+        }
         //获取到了第一层的栏目和分组信息，现在对信息进行排序
-        List<Object> result =  sortSpecial(oneIndexProject,oneIndexSubject,true,false);
+        result =  sortSpecial(result,oneIndexProject,oneIndexSubject,true,false);
         List<Boolean> isGetOne = new ArrayList<>();
         isGetOne.add(false);
         return formatResultSpecial(result,0,isGetOne,false);
-//        return resultList;
 
     }
     public Object selectColumn(User user,String typeId) throws OperationException {
         List<IndexPage> oneIndexPage = null;
         List<IndexTabMapper> oneIndexTab = null;
+        List<IndexTabMapper> top = null;
         Map<String,Object> oneColumn = this.getOneLevelColumnForMap(typeId,user);
         if (oneColumn.containsKey("page")) {
             oneIndexPage = (List<IndexPage>) oneColumn.get("page");
@@ -608,12 +614,18 @@ public class SubGroupController {
         if (oneColumn.containsKey("tab")) {
             oneIndexTab = (List<IndexTabMapper>) oneColumn.get("tab");
         }
+        if (oneColumn.containsKey("top")) {
+            top = (List<IndexTabMapper>) oneColumn.get("top");
+        }
+        List<Object> result = new ArrayList<>();
+        if(top != null && top.size()>0){
+            result.addAll(top);
+        }
         //获取到了第一层的栏目和分组信息，现在对信息进行排序
-        List<Object> column =  sortColumn(oneIndexTab,oneIndexPage,true,false);
+        List<Object> column =  sortColumn(result,oneIndexTab,oneIndexPage,true,false);
         List<Boolean> isGetOne = new ArrayList<>();
         isGetOne.add(false);
-        Object result = formatResultColumn(column,0,isGetOne,null);
-        return result;
+        return formatResultColumn(column,0,isGetOne,null);
     }
     public Map<String,Object> getOneLevelColumnForMap(String typeId,User loginUser){
         List<Sort.Order> orders=new ArrayList<Sort.Order>();
@@ -669,12 +681,25 @@ public class SubGroupController {
             result.put("page",oneIndexPage);
         }
         if(oneIndexTab != null && oneIndexTab.size() >0){
-            result.put("tab",oneIndexTab);
+            List<IndexTabMapper> topList = new ArrayList<>();
+            List<IndexTabMapper> otherIndexTab = new ArrayList<>();
+            for(IndexTabMapper mapper :oneIndexTab){
+                if("top".equals(mapper.getTopFlag())){
+                    topList.add(mapper);
+                }else{
+                    otherIndexTab.add(mapper);
+                }
+            }
+            if(topList != null && topList.size() >0){
+                result.put("top",topList);
+            }
+            if(otherIndexTab != null && otherIndexTab.size() >0){
+                result.put("tab",otherIndexTab);
+            }
         }
         return  result;
     }
-    public List<Object> sortColumn(List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
-        List<Object> result = new ArrayList<>();
+    public List<Object> sortColumn(List<Object> result,List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
 
         List<Map<String,Object>> sortList = new ArrayList<>();
         if(!onlySortPage){
@@ -722,7 +747,7 @@ public class SubGroupController {
                             child_mapper = indexPage.getIndexTabMappers();
                         }
                         if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
-                            indexPage.setColumnList(sortColumn(child_mapper,child_page,sortAll,onlySortPage));
+                            indexPage.setColumnList(sortColumn(new ArrayList<>(),child_mapper,child_page,sortAll,onlySortPage));
                         }
                     }
                     result.add(indexPage);
@@ -1003,10 +1028,7 @@ public class SubGroupController {
                 }else {
                     predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
                 }
-//				predicate.add(cb.equal(root.get("typeId"),typeId));
                 List<Predicate> predicateParent = new ArrayList<>();
-//				predicateParent.add(cb.isNull(root.get("parentId")));
-//				predicateParent.add(cb.equal(root.get("parentId"),""));
                 predicateParent.add(cb.isNull(root.get("subjectId")));
                 predicateParent.add(cb.equal(root.get("subjectId"),""));
 
@@ -1025,10 +1047,7 @@ public class SubGroupController {
                 }else {
                     predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
                 }
-//				predicate.add(cb.equal(root.get("typeId"),typeId));
-//				predicate.add(cb.isNull(root.get("specialSubject")));
                 predicate.add(cb.isNull(root.get("groupId")));
-//				predicate.add(cb.equal(root.get("groupId"),""));
                 Predicate[] pre = new Predicate[predicate.size()];
                 return query.where(predicate.toArray(pre)).getRestriction();
             }
@@ -1045,13 +1064,25 @@ public class SubGroupController {
             result.put("page",oneIndexPage);
         }
         if(oneIndexTab != null && oneIndexTab.size() >0){
-            result.put("tab",oneIndexTab);
+            List<SpecialProject> topList = new ArrayList<>();
+            List<SpecialProject> otherProjectList = new ArrayList<>();
+            for(SpecialProject specialProject :oneIndexTab){
+                if("top".equals(specialProject.getTopFlag())){
+                    topList.add(specialProject);
+                }else{
+                    otherProjectList.add(specialProject);
+                }
+            }
+            if(topList != null && topList.size() >0){
+                result.put("top",topList);
+            }
+            if(otherProjectList != null && otherProjectList.size() >0){
+                result.put("tab",otherProjectList);
+            }
         }
         return  result;
     }
-    public List<Object> sortSpecial(List<SpecialProject> mapperList,List<SpecialSubject> indexPageList,Boolean sortAll,Boolean onlySortPage){
-        List<Object> result = new ArrayList<>();
-
+    public List<Object> sortSpecial(List<Object> result,List<SpecialProject> mapperList,List<SpecialSubject> indexPageList,Boolean sortAll,Boolean onlySortPage){
         List<Map<String,Object>> sortList = new ArrayList<>();
         if(!onlySortPage){
             if(mapperList != null && mapperList.size() >0){
@@ -1098,7 +1129,7 @@ public class SubGroupController {
                             child_mapper = indexPage.getIndexTabMappers();
                         }
                         if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
-                            indexPage.setColumnList(sortSpecial(child_mapper,child_page,sortAll,onlySortPage));
+                            indexPage.setColumnList(sortSpecial(new ArrayList<Object>(),child_mapper,child_page,sortAll,onlySortPage));
                         }
                     }
                     result.add(indexPage);
@@ -1124,14 +1155,8 @@ public class SubGroupController {
                     map.put("parentId",tab.getGroupId());
                     map.put("name", tab.getSpecialName());
                     map.put("flag", SpecialFlag.SpecialProjectFlag.ordinal());
-//                    if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
-//                        //要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
-//                        map.put("active", true);
-//                        isGetOne.set(0,true);
-//                    }
                     result.add(map);
                 }
-
             }
             for (Object obj : list) {
                 map = new HashMap<>();

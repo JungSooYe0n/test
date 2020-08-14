@@ -41,6 +41,19 @@ import com.trs.netInsight.widget.column.entity.IndexTab;
  *  @author 北京拓尔思信息技术股份有限公司
  */
 public interface IColumnService {
+	/**
+	 * 置顶一个栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	Object topColumn(String id,User user);
+
+	/**
+	 * 取消置顶栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	Object noTopColumn(String id,User user);
 
 	/**
 	 * 获取层级下最的排序值
@@ -58,7 +71,7 @@ public interface IColumnService {
 	 * @param sortAll 是否包括对子层级排序
 	 * @return
 	 */
-	List<Object> sortColumn(List<IndexTabMapper> mapperList, List<IndexPage> indexPageList, Boolean sortAll,Boolean sortPage);
+	List<Object> sortColumn(List<Object> result,List<IndexTabMapper> mapperList, List<IndexPage> indexPageList, Boolean sortAll,Boolean sortPage);
 
 	/**
 	 * 获取日常监测第一层级的栏目和分组
@@ -67,13 +80,6 @@ public interface IColumnService {
 	 * @return
 	 */
 	Map<String,Object> getOneLevelColumnForMap(String typeId,User loginUser);
-	/**
-	 * 获取日常监测第一层级的栏目和分组
-	 * @param typeId
-	 * @param user
-	 * @return
-	 */
-	Object getOneLevelColumn(String typeId,User user);
 
 	/**
 	 * 重新排序column，在删除一个分组或者栏目时，去掉原栏目的排序

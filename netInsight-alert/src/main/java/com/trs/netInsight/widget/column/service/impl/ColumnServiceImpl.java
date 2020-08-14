@@ -47,16 +47,11 @@ import com.trs.netInsight.widget.column.service.IIndexTabService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.microblog.entity.SpreadObject;
-import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
-import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.annotation.Obsolete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -124,6 +119,57 @@ public class ColumnServiceImpl implements IColumnService {
 
 
 	/**
+	 * 置顶一个栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	public Object topColumn(String id,User user){
+		List<Sort.Order> orders=new ArrayList<Sort.Order>();
+		orders.add( new Sort.Order(Sort.Direction.ASC, "sequence"));
+		orders.add( new Sort.Order(Sort.Direction.ASC, "createdTime"));
+		Criteria<IndexTabMapper> criteria = new Criteria<>();
+		criteria.add(Restrictions.eq("topFlag", "top"));
+		if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
+			criteria.add(Restrictions.eq("userId", user.getId()));
+		}else {
+			criteria.add(Restrictions.eq("subGroupId", user.getSubGroupId()));
+		}
+		List<IndexTabMapper> findTop = tabMapperRepository.findAll(criteria,new Sort(orders));
+		if(findTop != null && findTop.size() >0){
+			int i =2;
+			for (IndexTabMapper mapper : findTop) {
+				mapper.setSequence(i);
+				i++;
+				tabMapperRepository.save(mapper);
+			}
+		}
+		IndexTabMapper findOne = tabMapperRepository.findOne(id);
+		//这里要做一步操作，把置顶的专题信息原来的东西重新排序
+		//specialService.moveSequenceForSpecial(findOne.getId(), SpecialFlag.SpecialProjectFlag, loginUser);
+		findOne.setIndexPage(null);
+		findOne.setSequence(1);
+		findOne.setTopFlag("top");
+		tabMapperRepository.save(findOne);
+		return findOne;
+	}
+
+	/**
+	 * 取消置顶栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	public Object noTopColumn(String id,User user){
+		IndexTabMapper findOne = tabMapperRepository.findOne(id);
+		findOne.setTopFlag(null);
+		Integer  seq = this.getMaxSequenceForColumn(null,"",user) +1;
+		findOne.setSequence(seq);
+		// 放在原来列表最后一个 查找时按照sequence排列
+		tabMapperRepository.save(findOne);
+		return findOne;
+	}
+
+
+	/**
 	 * 获取层级下最的排序值
 	 * @param parentPageId 要获取排序值的对象的上级分组id ，如果没有上级分组，则为空
 	 * @param navigationId 对应的模块id，默认日常监测模块为""，
@@ -147,7 +193,7 @@ public class ColumnServiceImpl implements IColumnService {
 			indexPage = parentPage.getChildrenPage();
 			indexTabMapper = parentPage.getIndexTabMappers();
 		}
-		List<Object> sortColumn = this.sortColumn(indexTabMapper,indexPage,false,false);
+		List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),indexTabMapper,indexPage,false,false);
 		if(sortColumn != null && sortColumn.size() > 0){
 			Object column = sortColumn.get(sortColumn.size()-1);
 			if (column instanceof IndexTabMapper) {
@@ -156,21 +202,21 @@ public class ColumnServiceImpl implements IColumnService {
 				seq = ((IndexPage)column).getSequence();
 			}
 		}
-
 		return seq;
 	}
 
 
 	/**
 	 * 对日常监测分组和栏目进行排序展示
+	 * @param result 这是排序后的结果放到这个中，这个是结果对象，因为 top的东西肯定是在前面，是在外面添加的，写这个是因为方便把top的数据先放进去
 	 * @param mapperList  栏目数据List
 	 * @param indexPageList 分组数据List
 	 * @param sortAll 是否对所有层进行排序，包括当前数据及其子类， 查询列表时对整个列表排序，则为true，如果只是拖拽修改顺序则只排一层即可，为false
 	 * @param onlySortPage 是否只对分组进行排序，因为有时需要获取日常监测下的所有分组，但不需要栏目
 	 * @return
 	 */
-	public List<Object> sortColumn(List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
-		List<Object> result = new ArrayList<>();
+	public List<Object> sortColumn(List<Object> result,List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
+
 
 		List<Map<String,Object>> sortList = new ArrayList<>();
 		if(!onlySortPage){
@@ -218,7 +264,7 @@ public class ColumnServiceImpl implements IColumnService {
 							child_mapper = indexPage.getIndexTabMappers();
 						}
 						if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
-							indexPage.setColumnList(sortColumn(child_mapper,child_page,sortAll,onlySortPage));
+							indexPage.setColumnList(sortColumn(new ArrayList<Object>(),child_mapper,child_page,sortAll,onlySortPage));
 						}
 					}
 					result.add(indexPage);
@@ -237,6 +283,7 @@ public class ColumnServiceImpl implements IColumnService {
 	public Object selectColumn(User user,String typeId) throws OperationException {
 		List<IndexPage> oneIndexPage = null;
 		List<IndexTabMapper> oneIndexTab = null;
+		List<IndexTabMapper> top = null;
 		Map<String,Object> oneColumn = this.getOneLevelColumnForMap(typeId,user);
 		if (oneColumn.containsKey("page")) {
 			oneIndexPage = (List<IndexPage>) oneColumn.get("page");
@@ -244,12 +291,18 @@ public class ColumnServiceImpl implements IColumnService {
 		if (oneColumn.containsKey("tab")) {
 			oneIndexTab = (List<IndexTabMapper>) oneColumn.get("tab");
 		}
+		if (oneColumn.containsKey("top")) {
+			top = (List<IndexTabMapper>) oneColumn.get("top");
+		}
+		List<Object> result = new ArrayList<>();
+		if(top != null && top.size()>0){
+			result.addAll(top);
+		}
 		//获取到了第一层的栏目和分组信息，现在对信息进行排序
-		List<Object> column =  sortColumn(oneIndexTab,oneIndexPage,true,false);
+		List<Object> column =  sortColumn(result,oneIndexTab,oneIndexPage,true,false);
 		List<Boolean> isGetOne = new ArrayList<>();
 		isGetOne.add(false);
-		Object result = formatResultColumn(column,0,isGetOne,null);
-		return result;
+		return formatResultColumn(column,0,isGetOne,null);
 	}
 
 	/**
@@ -355,6 +408,11 @@ public class ColumnServiceImpl implements IColumnService {
 							topMap.put("active", true);
 						}
 					}
+					if("top".equals(mapper.getTopFlag())){
+						map.put("topFlag", true);
+					}else{
+						map.put("topFlag", false);
+					}
 				} else if (obj instanceof IndexPage) {
 					IndexPage page = (IndexPage) obj;
 					map.put("id", page.getId());
@@ -372,6 +430,7 @@ public class ColumnServiceImpl implements IColumnService {
 						child = this.formatResultColumn(childColumn,level+1,isGetOne,map);
 						map.put("children", child);
 					}
+					map.put("topFlag", false);
 				}
 				result.add(map);
 			}
@@ -433,23 +492,23 @@ public class ColumnServiceImpl implements IColumnService {
 			result.put("page",oneIndexPage);
 		}
 		if(oneIndexTab != null && oneIndexTab.size() >0){
-			result.put("tab",oneIndexTab);
+			List<IndexTabMapper> topList = new ArrayList<>();
+			List<IndexTabMapper> otherIndexTab = new ArrayList<>();
+			for(IndexTabMapper mapper :oneIndexTab){
+				if("top".equals(mapper.getTopFlag())){
+					topList.add(mapper);
+				}else{
+					otherIndexTab.add(mapper);
+				}
+			}
+			if(topList != null && topList.size() >0){
+				result.put("top",topList);
+			}
+			if(otherIndexTab != null && otherIndexTab.size() >0){
+				result.put("tab",otherIndexTab);
+			}
 		}
 		return  result;
-	}
-
-	@Override
-	public Object getOneLevelColumn(String typeId,User user){
-
-		Map<String,Object> map = getOneLevelColumnForMap(typeId,user);
-		List<Object> result = new ArrayList<>();
-		if(map.containsKey("page")){
-			result.addAll((List<Object>)map.get("page"));
-		}
-		if(map.containsKey("tab")){
-			result.addAll((List<Object>)map.get("tab"));
-		}
-		return result;
 	}
 
 	@Override
@@ -487,14 +546,15 @@ public class ColumnServiceImpl implements IColumnService {
 				pageList = parentPage.getChildrenPage();
 				mapperList = parentPage.getIndexTabMappers();
 			}
-			List<Object> sortColumn = this.sortColumn(mapperList, pageList, false,false);
+			List<Object> sortColumn = this.sortColumn(new ArrayList<>(),mapperList, pageList, false,false);
 			int seq = 1;
 			for (Object o : sortColumn) {
 				if (o instanceof IndexTabMapper) {
 					IndexTabMapper seqMapper = (IndexTabMapper) o;
-					if (flag.equals(ColumnFlag.IndexTabFlag) && !moveMapper.getId().equals(seqMapper.getId())) {
+					if ((flag.equals(ColumnFlag.IndexTabFlag) && !moveMapper.getId().equals(seqMapper.getId()))
+							|| flag.equals(ColumnFlag.IndexPageFlag)) {
 						seqMapper.setSequence(seq);
-						if(seqMapper.isMe()){
+						if (seqMapper.isMe()) {
 							IndexTab seqTab = seqMapper.getIndexTab();
 							seqTab.setSequence(seq);
 							indexTabRepository.saveAndFlush(seqTab);
@@ -504,7 +564,8 @@ public class ColumnServiceImpl implements IColumnService {
 					}
 				} else if (o instanceof IndexPage) {
 					IndexPage seqPage = (IndexPage) o;
-					if (flag.equals(ColumnFlag.IndexPageFlag) && !movePage.getId().equals(seqPage.getId())) {
+					if ((flag.equals(ColumnFlag.IndexPageFlag) && !movePage.getId().equals(seqPage.getId()))
+							|| flag.equals(ColumnFlag.IndexTabFlag)) {
 						seqPage.setSequence(seq);
 						seq++;
 						indexPageRepository.saveAndFlush(seqPage);
@@ -530,6 +591,7 @@ public class ColumnServiceImpl implements IColumnService {
 			JSONObject move = JSONObject.parseObject(moveData);
 			String moveId = move.getString("id");
 			ColumnFlag moveFlag = ColumnFlag.values()[move.getInteger("flag")];
+			Boolean topFlag = move.getBoolean("topFlag");
 			String moveParentId = null;
 
 			//修改同级下的其他分组的顺序
@@ -550,14 +612,15 @@ public class ColumnServiceImpl implements IColumnService {
 				moveParentId = "";
 			}
 			//被拖拽的元素更换了层级，需要对元素本来的层级的数据重新排序
-			if (!parentId.equals(moveParentId)) {
+			if (!topFlag &&!parentId.equals(moveParentId)) {
 				//对原来的同层级的数据排序
 				this.moveSequenceForColumn(moveId,moveFlag, user);
 			}
 
 			JSONArray array = JSONArray.parseArray(data);
+			List<Object> filter = array.stream().filter(json -> topFlag.equals(JSONObject.parseObject(String.valueOf(json)).getBoolean("topFlag")) ).collect(Collectors.toList());
 			Integer sequence = 0;
-			for (Object json : array) {
+			for (Object json : filter) {
 				sequence += 1;
 				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
 				String id = parseObject.getString("id");

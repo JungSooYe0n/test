@@ -418,10 +418,10 @@ public class SpecialProject extends BaseEntity {
      * 构造函数
      */
     public SpecialProject(String userId,String subGroupId, SpecialType specialType, String specialName,
-                          String anyKeywords, String excludeWords, String trsl,
+                          String anyKeywords, String excludeWords,String excludeWordIndex, String trsl,
                           SearchScope searchScope, Date startTime, Date endTime, String source, String groupName,
                           String groupId,String timeRange,int sequence,boolean similar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb,
-                          String imgUrl,String monitorSite,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,String mediaArea,String contentArea) {
+                          String imgUrl,String monitorSite,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,String mediaArea,String contentArea,String topFlag) {
 
         this.setUserId(userId);
         this.setSubGroupId(subGroupId);
@@ -429,6 +429,7 @@ public class SpecialProject extends BaseEntity {
         this.specialName = specialName;
         this.anyKeywords = anyKeywords;
         this.excludeWords = excludeWords;
+        this.excludeWordIndex = excludeWordIndex;
         this.trsl = trsl;
         this.searchScope = searchScope;
         this.startTime = startTime;
@@ -455,6 +456,7 @@ public class SpecialProject extends BaseEntity {
         this.filterInfo = filterInfo;
         this.mediaArea = mediaArea;
         this.contentArea = contentArea;
+		this.topFlag = topFlag;
     }
 	/**
 	 * 构造函数
@@ -743,22 +745,19 @@ public class SpecialProject extends BaseEntity {
 
 						//论坛筛选  ---  屏蔽论坛主贴  -  为回帖  、屏蔽论坛回帖为主贴
 						if (sourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
-							//不同时包含 屏蔽主贴回帖
-							// - 如果同时屏蔽主贴回帖，等同于不查论坛  能进来判断则代表一定选择了屏蔽中的一项
-							if (!(preciseFilterList.contains("notLuntanForward") && preciseFilterList.contains("notLuntanPrimary"))) {
-								if (buffer.length() > 0) {
-									buffer.append(" OR ");
-								}
-								buffer.append("(");
-								buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
-								if (preciseFilterList.contains("notLuntanForward")) { //屏蔽论坛回帖 -- 主贴
-									buffer.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
-								}
-								if (preciseFilterList.contains("notLuntanPrimary")) { //屏蔽论坛主贴
-									buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
-								}
-								buffer.append(")");
+							if (buffer.length() > 0) {
+								buffer.append(" OR ");
 							}
+							buffer.append("(");
+							buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+							if (preciseFilterList.contains("notLuntanForward")) { //屏蔽论坛回帖 -- 主贴
+								buffer.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+							}
+							if (preciseFilterList.contains("notLuntanPrimary")) { //屏蔽论坛主贴
+								buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
+							}
+							buffer.append(")");
+
 							sourceList.remove(Const.GROUPNAME_LUNTAN);
 						}
 
@@ -768,40 +767,38 @@ public class SpecialProject extends BaseEntity {
 						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
 						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
 						)) {
-							//不同时包含 屏蔽原发转发
-							// - 如果同时屏蔽原发转发，等同于不查微博  能进来判断则代表一定选择了屏蔽中的一项
-							if (!(preciseFilterList.contains("notWeiboForward") && preciseFilterList.contains("notWeiboPrimary"))) {
-								if (buffer.length() > 0) {
-									buffer.append(" OR ");
-								}
-								buffer.append("(");
-								buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
-								if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
-									buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
-								}
-								if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
-									buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
-								}
-								if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
 
-								}
-								if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
-
-								}
-								if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
-
-								}
-								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-
-								}
-								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-
-								}
-								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-
-								}
-								buffer.append(")");
+							if (buffer.length() > 0) {
+								buffer.append(" OR ");
 							}
+							buffer.append("(");
+							buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+							if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
+								buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
+							}
+							if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
+								buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
+							}
+							if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
+
+							}
+							if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
+
+							}
+							if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
+
+							}
+							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+
+							}
+							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+
+							}
+							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+
+							}
+							buffer.append(")");
+
 							sourceList.remove(Const.GROUPNAME_WEIBO);
 						}
 						if (buffer.length() > 0) {
@@ -1082,9 +1079,10 @@ public class SpecialProject extends BaseEntity {
 	}
 	public SpecialProject copyForSubGroup(String commonSubGroupId) {
 		SpecialProject project = new SpecialProject( null, commonSubGroupId, specialType,  specialName,
-				 anyKeywords,  excludeWords,  trsl,
+				 anyKeywords,  excludeWords,excludeWordIndex,  trsl,
 				 searchScope,  startTime,  endTime,  source,  groupName,
-				 null, timeRange, sequence, similar, irSimflag, weight, server, irSimflagAll, excludeWeb,  imgUrl, monitorSite, mediaLevel, mediaIndustry, contentIndustry, filterInfo, mediaArea, contentArea);
+				 null, timeRange, sequence, similar, irSimflag, weight, server, irSimflagAll, excludeWeb,  imgUrl,
+				monitorSite, mediaLevel, mediaIndustry, contentIndustry, filterInfo, mediaArea, contentArea,topFlag);
 
 		return project;
 	}

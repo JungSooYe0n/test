@@ -15,6 +15,7 @@ import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.column.entity.emuns.SpecialFlag;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
@@ -33,6 +34,7 @@ import net.sf.json.JSONArray;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -98,6 +100,9 @@ public class SpecialController {
 			// 查这个用户或用户分组下有多少个已经置顶的专题 新置顶的排前边 查找专题列表的时候按照sequence正序排
 			User loginUser = UserUtils.getUser();
 
+			List<Sort.Order> orders=new ArrayList<Sort.Order>();
+			orders.add( new Sort.Order(Sort.Direction.ASC, "sequence"));
+			orders.add( new Sort.Order(Sort.Direction.ASC, "createdTime"));
 			Criteria<SpecialProject> criteria = new Criteria<>();
 			criteria.add(Restrictions.eq("topFlag", "top"));
 			if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
@@ -105,17 +110,20 @@ public class SpecialController {
 			}else {
 				criteria.add(Restrictions.eq("subGroupId", loginUser.getSubGroupId()));
 			}
-			List<SpecialProject> findByUserId = specialProjectService.findAll(criteria);
-			for (SpecialProject special : findByUserId) {
-				special.setSequence(special.getSequence() + 1);
-				specialProjectService.save(special);
+			List<SpecialProject> findTop = specialProjectService.findAll(criteria,new Sort(orders));
+			if(findTop != null && findTop.size() >0){
+				int i =2;
+				for (SpecialProject special : findTop) {
+					special.setSequence(i);
+					i++;
+					specialProjectService.save(special);
+				}
 			}
 			SpecialProject findOne = specialProjectService.findOne(specialId);
-			// findOne.setTopFlag("top");
-			// 后边查找非top的
-			// specialProjectService.save(findOne);
-			// 把要置顶专题后边的同一级的专题主题和二级都往前提一位
-			specialProjectService.beforeDelete(findOne);
+			//这里要做一步操作，把置顶的专题信息原来的东西重新排序
+			//specialService.moveSequenceForSpecial(findOne.getId(), SpecialFlag.SpecialProjectFlag, loginUser);
+			findOne.setGroupId(null);
+			findOne.setSpecialSubject(null);
 			findOne.setSequence(1);
 			findOne.setTopFlag("top");
 			specialProjectService.save(findOne);
@@ -140,9 +148,11 @@ public class SpecialController {
 	@RequestMapping(value = "/noTopFlag", method = RequestMethod.GET)
 	public Object noTopFlag(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId) throws TRSException {
 		try {
+			User user = UserUtils.getUser();
 			SpecialProject findOne = specialProjectService.findOne(specialId);
-			findOne.setTopFlag("");
-			specialSequence(findOne.getGroupId(), findOne, "end");
+			findOne.setTopFlag(null);
+			Integer  seq = specialService.getMaxSequenceForSpecial(null,user) +1;
+			findOne.setSequence(seq);
 			// 放在原来列表最后一个 查找时按照sequence排列
 			specialProjectService.save(findOne);
 			return findOne;
@@ -966,7 +976,6 @@ public class SpecialController {
 			}
 			//命中规则
 			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {
-//				specialProject.setKeyWordIndex(wordIndex);
 				if (SearchScope.TITLE.equals(wordIndex)){
 					specialProject.setSearchScope(SearchScope.TITLE);
 				}
