@@ -4,6 +4,7 @@ import com.trs.netInsight.support.fts.annotation.FtsClient;
 import com.trs.netInsight.support.fts.annotation.FtsField;
 import com.trs.netInsight.support.fts.annotation.enums.FtsHybaseType;
 import com.trs.netInsight.support.fts.model.result.IDocument;
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.alert.entity.enums.Store;
 import lombok.Getter;
@@ -274,7 +275,7 @@ public class FtsDocumentTF extends IDocument {
 
 	public boolean isReadFlag() {
 		String userId = UserUtils.getUser().getId();
-		if (read.contains(userId)){
+		if (StringUtil.isNotEmpty(read) && read.contains(userId)){
 			return true;
 		}
 		return false;

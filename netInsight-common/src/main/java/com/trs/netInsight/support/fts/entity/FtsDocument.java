@@ -301,7 +301,7 @@ public class FtsDocument extends IDocument implements Serializable{
 
 	public boolean isReadFlag() {
 		String userId = UserUtils.getUser().getId();
-		if (read.contains(userId)){
+		if (StringUtil.isNotEmpty(read) && read.contains(userId)){
 			return true;
 		}
 		return false;

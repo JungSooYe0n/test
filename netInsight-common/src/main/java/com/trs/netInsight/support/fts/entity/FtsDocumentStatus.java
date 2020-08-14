@@ -394,7 +394,7 @@ public class FtsDocumentStatus extends IDocument {
 
 	public boolean isReadFlag() {
 		String userId = UserUtils.getUser().getId();
-		if (read.contains(userId)){
+		if (StringUtil.isNotEmpty(read) && read.contains(userId)){
 			return true;
 		}
 		return false;

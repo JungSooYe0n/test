@@ -362,6 +362,7 @@ public class CommonListChartUtil {
                 map.put("channel", vo.getChannel());
 
                 map.put("simNum", 0);
+                map.put("readFlag",vo.isReadFlag());
 
                 resultList.add(map);
             }
