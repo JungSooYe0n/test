@@ -607,6 +607,9 @@ public class FtsFieldConst {
 	public static final String FIELD_SIZE = "IR_SIZE";
 	public static final String FIELD_ALERT_SOURCE = "IR_ALERT_SOURCE";
 
+//	已读 标
+	public static final String FIELD_READ = "IR_READ";
+
 }
 
 /**

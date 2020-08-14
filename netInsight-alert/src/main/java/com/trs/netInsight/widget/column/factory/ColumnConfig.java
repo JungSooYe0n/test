@@ -10,6 +10,7 @@ import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import com.trs.netInsight.widget.column.entity.IndexTab;
@@ -340,6 +341,12 @@ public class ColumnConfig {
 				this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
 			}
 		}
+		//	阅读标记	已读/未读
+		if ("read".equals(read)){//已读
+			queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+		}else if ("unread".equals(read)){//未读
+			queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
+		}
 		// 排除网站
 		if (this.indexTab.getExcludeWeb() != null && this.indexTab.getExcludeWeb().split("[;|；]").length > 0) {
 			addExcloudSite();
@@ -369,6 +376,7 @@ public class ColumnConfig {
 		if(StringUtil.isNotEmpty(mediaArea )){
 			addAreaFilter(FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
 		}
+
 		//信息过滤
 		if(StringUtil.isNotEmpty(filterInfo) && !filterInfo.equals(Const.NOT_FILTER_INFO)){
 			String trsl = queryBuilder.asTRSL();

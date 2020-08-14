@@ -314,7 +314,9 @@ public class UserUtils {
 		if (StringUtils.isNotBlank(user.getOrganizationId())) {
 			OrganizationRepository repository = (OrganizationRepository)SpringUtil.getBean("organizationRepository");
 			Organization organization = repository.findOne(user.getOrganizationId());
-			user.setExclusiveHybase(organization.isExclusiveHybase());
+			if (ObjectUtil.isNotEmpty(organization)){
+				user.setExclusiveHybase(organization.isExclusiveHybase());
+			}
 			SubGroupRepository subGroupRepository = (SubGroupRepository)SpringUtil.getBean("subGroupRepository");
 			String subGroupId = user.getSubGroupId();
 			SubGroup subGroup = null;

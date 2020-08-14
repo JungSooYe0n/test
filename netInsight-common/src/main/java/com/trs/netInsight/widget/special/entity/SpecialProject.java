@@ -14,6 +14,7 @@ import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
@@ -715,9 +716,11 @@ public class SpecialProject extends BaseEntity {
 					queryBuilder.filterByTRSL(Const.OCR_NOT_INCLUDE);
 				}
 			}
-			// 阅读标记
-			if (StringUtils.isNoneBlank(read) && !"ALL".equals(read)) {
-
+			//	阅读标记	已读/未读
+			if ("read".equals(read)){//已读
+				queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+			}else if ("unread".equals(read)){//未读
+				queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
 			}
 			// 精准筛选
 			if (StringUtils.isNoneBlank(preciseFilter) && !"ALL".equals(preciseFilter)) {

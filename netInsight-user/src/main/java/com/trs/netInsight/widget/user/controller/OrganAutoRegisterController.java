@@ -135,7 +135,7 @@ public class OrganAutoRegisterController {
                     5,500, dataSource,
                     90,365,90,null,"网察",
                     "网察大数据分析平台","010-64859900",null,
-                    null,true,true,isAdmin,isAutoAdd,tenantId,null,null,null,null,null);
+                    null,true,true,isAdmin,isAutoAdd,tenantId,false,null,null,null,null,null);
 
             //修改状态
             List<Organization> organizations = organizationService.findByOrganizationName(tenantName);
@@ -260,7 +260,7 @@ public class OrganAutoRegisterController {
                     5,500, dataSource,
                     90,365,90,null,"网察",
                     "网察大数据分析平台","010-64859900",null,
-                    null,true,true,isAdmin,isAutoAdd,tenantId,null,null,null,null,null);
+                    null,true,true,isAdmin,isAutoAdd,tenantId,false,null,null,null,null,null);
 
             //修改状态
             List<Organization> organizations = organizationService.findByOrganizationName(tenantName);
