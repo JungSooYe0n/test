@@ -105,8 +105,6 @@ public class InfoListController {
 	private ISpecialProjectService specialProjectService;
 
 	@Autowired
-	private OrganizationRepository organizationRepository;
-	@Autowired
 	private IHybaseShardService hybaseShardService;
 
 	@Autowired
@@ -1775,17 +1773,11 @@ public class InfoListController {
 				} else {
 					trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, userId);
 				}
-				Organization org = organizationRepository.findOne(user.getOrganizationId());
-				if (ObjectUtil.isNotEmpty(org) && org.isExclusiveHybase()){
-					HybaseShard trsHybaseShard = null;
 
-					if (StringUtil.isNotEmpty(user.getOrganizationId())){
-						trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
-						if(ObjectUtil.isNotEmpty(trsHybaseShard)){
-						}
-					}
+				if (StringUtil.isNotEmpty(user.getOrganizationId())){
+					HybaseShard trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+					if(ObjectUtil.isNotEmpty(trsHybaseShard)){
 
-					if (ObjectUtil.isNotEmpty(trsHybaseShard)) {
 						String database = trsHybaseShard.getTradition();
 						if (Const.MEDIA_TYPE_WEIBO.contains(groupName)) {
 							database = trsHybaseShard.getWeiBo();
