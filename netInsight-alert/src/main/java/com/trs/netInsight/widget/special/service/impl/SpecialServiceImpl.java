@@ -248,7 +248,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 		List<Object> sortColumn = this.sortColumn(new ArrayList<>(),indexTabMapper,indexPage,false,false);
 		if(sortColumn != null && sortColumn.size() > 0){
-			Object column = sortColumn.get(sortColumn.size()-1);
+			Object column = sortColumn.get(0);
 			if (column instanceof SpecialProject) {
 				seq = ((SpecialProject)column).getSequence();
 			} else if (column instanceof SpecialSubject) {
@@ -714,7 +714,7 @@ public class SpecialServiceImpl implements ISpecialService {
 			Collections.sort(sortList, (o1, o2) -> {
 				Integer seq1 = (Integer) o1.get("sequence");
 				Integer seq2 = (Integer) o2.get("sequence");
-				return seq1.compareTo(seq2);
+				return seq2.compareTo(seq1);
 			});
 			//sortList 排序过后的数据
 			//只排序当前层，排序过后的数据，按顺序取出并返回

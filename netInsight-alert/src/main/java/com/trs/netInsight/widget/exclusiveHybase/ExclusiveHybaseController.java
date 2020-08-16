@@ -1,4 +1,4 @@
-package com.trs.netInsight.widget;
+package com.trs.netInsight.widget.exclusiveHybase;
 
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.hybase.client.TRSInputRecord;
@@ -19,14 +19,11 @@ import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
-import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
-import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

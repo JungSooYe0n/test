@@ -808,6 +808,8 @@ public class OrganizationController {
 				}
 				if (isExclusiveHybase){
 					hybaseShardService.save(HybaseFactory.getServer(),HybaseFactory.getUserName(),HybaseFactory.getPassword(),tradition,weiBo,weiXin,overseas,video,null,id);
+				}else {
+					hybaseShardService.deleteByOrg(id);
 				}
 				organizationService.updateOrganization(id, organizationType, organizationName,fileName,userName,password, displayName, email,
 						phone, expireAt, customerSource, headOfSales, rolePlatforms, descriptions, userLimit,columnNum,specialNum,alertNum,alertAccountNum,

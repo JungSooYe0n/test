@@ -18,5 +18,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface HybaseShardRepository extends PagingAndSortingRepository<HybaseShard, String>, JpaSpecificationExecutor<HybaseShard>, JpaRepository<HybaseShard,String> {
     HybaseShard findByOwnerId(String ownerId);
-    HybaseShard findByOrganizationId(String organizationId);
+    HybaseShard findByOrganizationId(String OrganizationId);
+    void  deleteByOrganizationId(String OrganizationId);
 }

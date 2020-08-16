@@ -58,4 +58,9 @@ public class HybaseShardServiceImpl implements IHybaseShardService {
     public HybaseShard findByOrganizationId(String organizationId) {
         return hybaseShardRepository.findByOrganizationId(organizationId);
     }
+
+    @Override
+    public void deleteByOrg(String orgId) {
+        hybaseShardRepository.deleteByOrganizationId(orgId);
+    }
 }
