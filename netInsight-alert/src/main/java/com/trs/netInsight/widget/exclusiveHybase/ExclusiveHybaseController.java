@@ -19,7 +19,9 @@ import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
+import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
+import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -45,8 +47,10 @@ public class ExclusiveHybaseController {
     @Autowired
     private IHybaseShardService hybaseShardService;
 
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
     @FormatResult
-    @EnableRedis
     @ApiOperation("修改列表情绪标")
     @RequestMapping(value = "/updateEmotionFlag", method = RequestMethod.POST)
     public Object updateEmotionFlag(@ApiParam("被修改数据的ID") @RequestParam(value = "sid", required = true) String sid,
@@ -75,32 +79,36 @@ public class ExclusiveHybaseController {
 
     private void updateEmotion(FtsDocumentCommonVO ftsDocumentCommonVO,String emotion) throws com.trs.hybase.client.TRSException,TRSException{
         User user = UserUtils.getUser();
-        if (ObjectUtil.isNotEmpty(user) && user.isExclusiveHybase()){
-//			有小库情况下  才能执行此操作
-            if (ObjectUtil.isNotEmpty(ftsDocumentCommonVO)){
-                String groupName = ftsDocumentCommonVO.getGroupName();
-                TRSInputRecord trsInputRecord = new TRSInputRecord();
-                trsInputRecord.setUid(ftsDocumentCommonVO.getSysUid());
-                trsInputRecord.addColumn(FtsFieldConst.FIELD_APPRAISE, emotion);
+        if (ObjectUtil.isNotEmpty(user)){
+            Organization organization = organizationRepository.findOne(user.getOrganizationId());
+            if (ObjectUtil.isNotEmpty(organization) && organization.isExclusiveHybase()){
+                //			有小库情况下  才能执行此操作
+                if (ObjectUtil.isNotEmpty(ftsDocumentCommonVO)){
+                    String groupName = ftsDocumentCommonVO.getGroupName();
+                    TRSInputRecord trsInputRecord = new TRSInputRecord();
+                    trsInputRecord.setUid(ftsDocumentCommonVO.getSysUid());
+                    trsInputRecord.addColumn(FtsFieldConst.FIELD_APPRAISE, emotion);
 
-                if (StringUtil.isNotEmpty(user.getOrganizationId())){
-                    HybaseShard trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
-                    if(ObjectUtil.isNotEmpty(trsHybaseShard)){
-                        String database = trsHybaseShard.getTradition();
-                        if (Const.MEDIA_TYPE_WEIBO.contains(groupName)) {
-                            database = trsHybaseShard.getWeiBo();
-                        } else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
-                            database = trsHybaseShard.getWeiXin();
-                        } else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
-                            database = trsHybaseShard.getOverseas();
-                        } else if (Const.MEDIA_TYPE_VIDEO.contains(groupName)){
-                            database = trsHybaseShard.getVideo();
+                    if (StringUtil.isNotEmpty(user.getOrganizationId())){
+                        HybaseShard trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+                        if(ObjectUtil.isNotEmpty(trsHybaseShard)){
+                            String database = trsHybaseShard.getTradition();
+                            if (Const.MEDIA_TYPE_WEIBO.contains(groupName)) {
+                                database = trsHybaseShard.getWeiBo();
+                            } else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
+                                database = trsHybaseShard.getWeiXin();
+                            } else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
+                                database = trsHybaseShard.getOverseas();
+                            } else if (Const.MEDIA_TYPE_VIDEO.contains(groupName)){
+                                database = trsHybaseShard.getVideo();
+                            }
+                            hybase8SearchServiceNew.updateRecords(database, trsInputRecord);
                         }
-                        hybase8SearchServiceNew.updateRecords(database, trsInputRecord);
                     }
-                }
 
+                }
             }
+
         }
 
     }
