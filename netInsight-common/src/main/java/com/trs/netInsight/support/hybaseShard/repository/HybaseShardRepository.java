@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
+
 /**
  * @Author:拓尔思信息股份有限公司
  *
@@ -19,5 +21,6 @@ import org.springframework.stereotype.Repository;
 public interface HybaseShardRepository extends PagingAndSortingRepository<HybaseShard, String>, JpaSpecificationExecutor<HybaseShard>, JpaRepository<HybaseShard,String> {
     HybaseShard findByOwnerId(String ownerId);
     HybaseShard findByOrganizationId(String OrganizationId);
+    @Transactional
     void  deleteByOrganizationId(String OrganizationId);
 }
