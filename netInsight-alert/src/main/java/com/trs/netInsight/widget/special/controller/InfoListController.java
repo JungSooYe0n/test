@@ -122,6 +122,9 @@ public class InfoListController {
 	private SingleMicroblogDataRepository singleMicroblogDataRepository;
 	@Autowired
 	private RequestTimeLogRepository requestTimeLogRepository;
+
+	@Autowired
+	private OrganizationRepository organizationRepository;
 	/**
 	 * 是否走独立预警服务
 	 */
@@ -1752,43 +1755,46 @@ public class InfoListController {
 //	加入已读 标 针对用户
 	private void readArticle(FtsDocumentCommonVO ftsDocumentCommonVO) throws com.trs.hybase.client.TRSException,TRSException{
 		User user = UserUtils.getUser();
-		if (ObjectUtil.isNotEmpty(user) && user.isExclusiveHybase()){
-//			有小库情况下  才能使用已读标
-			if (ObjectUtil.isNotEmpty(ftsDocumentCommonVO)){
-				String groupName = ftsDocumentCommonVO.getGroupName();
-				String userId = user.getId();
+		if (ObjectUtil.isNotEmpty(user)){
+			Organization organization = organizationRepository.findOne(user.getOrganizationId());
+			if (ObjectUtil.isNotEmpty(organization) && organization.isExclusiveHybase()){
+				//			有小库情况下  才能使用已读标
+				if (ObjectUtil.isNotEmpty(ftsDocumentCommonVO)){
+					String groupName = ftsDocumentCommonVO.getGroupName();
+					String userId = user.getId();
 
-				TRSInputRecord trsInputRecord = new TRSInputRecord();
-				trsInputRecord.setUid(ftsDocumentCommonVO.getSysUid());
-				String read = ftsDocumentCommonVO.getRead();
-				if (StringUtils.isNotBlank(read)) {
-					String[] split = read.split(";");
-					List<String> asList = Arrays.asList(split);
-					if (!asList.contains(userId)) {
-						asList = new ArrayList<>(asList);
-						asList.add(userId);
-					}
-					String join = String.join(";", asList);
-					trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, join);
-				} else {
-					trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, userId);
-				}
-
-				if (StringUtil.isNotEmpty(user.getOrganizationId())){
-					HybaseShard trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
-					if(ObjectUtil.isNotEmpty(trsHybaseShard)){
-
-						String database = trsHybaseShard.getTradition();
-						if (Const.MEDIA_TYPE_WEIBO.contains(groupName)) {
-							database = trsHybaseShard.getWeiBo();
-						} else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
-							database = trsHybaseShard.getWeiXin();
-						} else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
-							database = trsHybaseShard.getOverseas();
-						} else if (Const.MEDIA_TYPE_VIDEO.contains(groupName)){
-							database = trsHybaseShard.getVideo();
+					TRSInputRecord trsInputRecord = new TRSInputRecord();
+					trsInputRecord.setUid(ftsDocumentCommonVO.getSysUid());
+					String read = ftsDocumentCommonVO.getRead();
+					if (StringUtils.isNotBlank(read)) {
+						String[] split = read.split(";");
+						List<String> asList = Arrays.asList(split);
+						if (!asList.contains(userId)) {
+							asList = new ArrayList<>(asList);
+							asList.add(userId);
 						}
-						hybase8SearchService.updateRecords(database, trsInputRecord);
+						String join = String.join(";", asList);
+						trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, join);
+					} else {
+						trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, userId);
+					}
+
+					if (StringUtil.isNotEmpty(user.getOrganizationId())){
+						HybaseShard trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+						if(ObjectUtil.isNotEmpty(trsHybaseShard)){
+
+							String database = trsHybaseShard.getTradition();
+							if (Const.MEDIA_TYPE_WEIBO.contains(groupName)) {
+								database = trsHybaseShard.getWeiBo();
+							} else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
+								database = trsHybaseShard.getWeiXin();
+							} else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
+								database = trsHybaseShard.getOverseas();
+							} else if (Const.MEDIA_TYPE_VIDEO.contains(groupName)){
+								database = trsHybaseShard.getVideo();
+							}
+							hybase8SearchService.updateRecords(database, trsInputRecord);
+						}
 					}
 				}
 			}
