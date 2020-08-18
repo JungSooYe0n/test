@@ -8,10 +8,7 @@ import com.trs.netInsight.support.api.result.ApiResultType;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
-import com.trs.netInsight.util.DateUtil;
-import com.trs.netInsight.util.RedisUtil;
-import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.user.entity.User;
@@ -56,10 +53,20 @@ public class HybaseReadAround {
         Object result = null;
         try {
             User user = UserUtils.getUser();
-            MethodSignature methodSign = (MethodSignature)point.getSignature();
-            Class returnClazz = methodSign.getReturnType();
             // 获取参数列表及参数值
             Object[] paramValues = point.getArgs();
+            if (ObjectUtil.isNotEmpty(user)){
+                user = UserUtils.checkOrganization(user);
+//                小库 涉及 已读 / 未读，情绪标的修改 与 筛选，为保证列表页统计数据与信息数据一致， 不走缓存
+                if (user.isExclusiveHybase()){
+                    return point.proceed(paramValues);// 方法运行;
+
+                }
+            }
+
+            MethodSignature methodSign = (MethodSignature)point.getSignature();
+            Class returnClazz = methodSign.getReturnType();
+
             //参数必须注意,否则可能缓存无效
             String paramsStr = getParamsStr(paramValues);
             Integer redisKeyHash = paramsStr.hashCode();
