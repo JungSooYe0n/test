@@ -221,7 +221,14 @@ public class Organization extends BaseEntity implements Comparable<Organization>
 
 //	是否给机构开启专享库
 	@Column(name = "`exclusive_hybase`")
-	private boolean exclusiveHybase = false;
+	private Boolean exclusiveHybase = false;
+	public Boolean isExclusiveHybase(){
+		if(this.exclusiveHybase != null && this.exclusiveHybase){
+			return this.exclusiveHybase;
+		}else{
+			return false;
+		}
+	}
 
 	/**
 	 * status的set方法

@@ -101,7 +101,7 @@ public class SpecialController {
 			User loginUser = UserUtils.getUser();
 
 			List<Sort.Order> orders=new ArrayList<Sort.Order>();
-			orders.add( new Sort.Order(Sort.Direction.ASC, "sequence"));
+			orders.add( new Sort.Order(Sort.Direction.DESC, "sequence"));
 			orders.add( new Sort.Order(Sort.Direction.ASC, "createdTime"));
 			Criteria<SpecialProject> criteria = new Criteria<>();
 			criteria.add(Restrictions.eq("topFlag", "top"));
@@ -111,21 +111,18 @@ public class SpecialController {
 				criteria.add(Restrictions.eq("subGroupId", loginUser.getSubGroupId()));
 			}
 			List<SpecialProject> findTop = specialProjectService.findAll(criteria,new Sort(orders));
-			if(findTop != null && findTop.size() >0){
-				int i =2;
-				for (SpecialProject special : findTop) {
-					special.setSequence(i);
-					i++;
-					specialProjectService.save(special);
-				}
-			}
+
 			SpecialProject findOne = specialProjectService.findOne(specialId);
 			//这里要做一步操作，把置顶的专题信息原来的东西重新排序
 			//specialService.moveSequenceForSpecial(findOne.getId(), SpecialFlag.SpecialProjectFlag, loginUser);
 			findOne.setBakParentId(findOne.getGroupId());
 			findOne.setGroupId(null);
 			findOne.setSpecialSubject(null);
-			findOne.setSequence(1);
+			int seq =1;
+			if(findTop != null &&findTop.size() >0){
+				seq = findTop.get(0).getSequence()+1;
+			}
+			findOne.setSequence(seq);
 			findOne.setTopFlag("top");
 			specialProjectService.save(findOne);
 			return findOne;
@@ -161,8 +158,11 @@ public class SpecialController {
 				}
 			}
 
-			Integer  seq = specialService.getMaxSequenceForSpecial(parentId,user) +1;
-			findOne.setSequence(seq);
+			//Integer  seq = specialService.getMaxSequenceForSpecial(parentId,user) +1;
+			//原本排序为正序，现在排序方式改为倒序
+			specialService.insertPropectToLast(parentId,user);
+			findOne.setSequence(1);
+			findOne.setBakParentId(null);
 			// 放在原来列表最后一个 查找时按照sequence排列
 			specialProjectService.save(findOne);
 			return findOne;

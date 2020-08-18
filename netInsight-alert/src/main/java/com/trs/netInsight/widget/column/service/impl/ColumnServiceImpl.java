@@ -311,6 +311,7 @@ public class ColumnServiceImpl implements IColumnService {
 		}
 		Integer  seq = this.getMaxSequenceForColumn(parentId,"",user) +1;
 		findOne.setSequence(seq);
+		findOne.setBakParentId(null);
 		// 放在原来列表最后一个 查找时按照sequence排列
 		tabMapperRepository.save(findOne);
 		return findOne;

@@ -867,6 +867,8 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		resourceCopyed.setUrlDate(resource.getUrlDate());
 		resourceCopyed.setMd5Tag(resource.getMd5Tag());
 		resourceCopyed.setRttCount(resource.getRttCount());
+		resourceCopyed.setSimNum(resource.getSimNum());
+		resourceCopyed.setSimCount(resource.getSimCount());
 		resourceCopyed.setSrcName(resource.getSrcName());
 		resourceCopyed.setUrlName(resource.getUrlName());
 		resourceCopyed.setTemplateId(resource.getTemplateId());

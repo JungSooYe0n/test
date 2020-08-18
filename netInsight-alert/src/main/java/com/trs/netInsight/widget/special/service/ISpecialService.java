@@ -188,6 +188,8 @@ public interface ISpecialService {
 	 */
 	public Object moveListNew(String id,String pid,String typeFlag,String[] ids,int[] typeFlags) throws TRSException;
 	Object moveProjectSequence(String data,String moveData,String parentId,User user)throws OperationException;
+
+	void insertPropectToLast(String parentId,User user);
 	/**
 	 * 重新排序column，在删除一个分组或者栏目时，去掉原栏目的排序
 	 * @param moveId  被删除的对象的id
