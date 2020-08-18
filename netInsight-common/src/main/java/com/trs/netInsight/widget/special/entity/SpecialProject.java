@@ -88,20 +88,21 @@ public class SpecialProject extends BaseEntity {
 	 */
 	@Column(name = "exclude_word_index", columnDefinition = "TEXT")
 	private String excludeWordIndex = "1";
-//	public String getExcludeWordIndex(){
-//		if(StringUtil.isEmpty(this.excludeWordIndex)){
-//			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
-//				return "1";
-//			}
-//			if(SearchScope.TITLE.equals(this.searchScope)){//标题
-//				return "0";
-//			}
-//			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
-//				return "2";
-//			}
-//		}
-//		return this.excludeWordIndex;
-//	}
+	public String getExcludeWordIndex(){
+		if(StringUtil.isEmpty(this.excludeWordIndex)){
+			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
+				return "1";
+			}
+			if(SearchScope.TITLE.equals(this.searchScope)){//标题
+				return "0";
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
+				return "2";
+			}
+			return "1";
+		}
+		return this.excludeWordIndex;
+	}
 
 	/**
 	 * 排除网站
@@ -662,8 +663,9 @@ public class SpecialProject extends BaseEntity {
 					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
 				}
 			}
+			String excludeIndex = this.getExcludeWordIndex();
 			//拼凑排除词
-			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeWordIndex);
+			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
 			if(StringUtil.isNotEmpty(excludeWordTrsl)){
 				queryBuilder.filterByTRSL(excludeWordTrsl);
 			}

@@ -109,6 +109,7 @@ public class SpecialCustomChartController {
             @ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
@@ -131,6 +132,7 @@ public class SpecialCustomChartController {
                                  @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
                                  @RequestParam(value = "keyWord", required = false) String keyWord,
                                  @RequestParam(value = "excludeWords", required = false) String excludeWords,
+                                 @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
                                  @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
                                  @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
                                  @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -239,6 +241,7 @@ public class SpecialCustomChartController {
             SpecialCustomChart customChart = new SpecialCustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb,monitorSite, timeRange, keyWord, excludeWords,
                     keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, specialId, sequence, specialType1,mediaLevel, mediaIndustry, contentIndustry,
                     filterInfo, contentArea, mediaArea);
+            customChart.setExcludeWordsIndex(excludeWordsIndex);
             customChart = specialCustomChartService.saveSpecialCustomChart(customChart);
             result.add(customChart);
         }
@@ -283,6 +286,7 @@ public class SpecialCustomChartController {
             @ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
@@ -305,6 +309,7 @@ public class SpecialCustomChartController {
                                     @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
                                     @RequestParam(value = "keyWord", required = false) String keyWord,
                                     @RequestParam(value = "excludeWords", required = false) String excludeWords,
+                                    @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
                                     @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
                                     @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
                                     @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -402,6 +407,7 @@ public class SpecialCustomChartController {
             customChart.setTimeRange(timeRange);
             customChart.setKeyWord(keyWord);
             customChart.setExcludeWords(excludeWords);
+            customChart.setExcludeWordsIndex(excludeWordsIndex);
             customChart.setKeyWordIndex(keyWordIndex);
             customChart.setGroupName(groupName);
             customChart.setSimilar(isSimilar);

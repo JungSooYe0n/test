@@ -76,6 +76,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("keyWordIndex", chart.getKeyWordIndex());
                 chartMap.put("weight", chart.isWeight());
                 chartMap.put("excludeWords", chart.getExcludeWords());
+                chartMap.put("excludeWordsIndex", chart.getExcludeWordsIndex());
                 chartMap.put("excludeWeb", chart.getExcludeWeb());
                 chartMap.put("monitorSite", chart.getMonitorSite());
                 //排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove

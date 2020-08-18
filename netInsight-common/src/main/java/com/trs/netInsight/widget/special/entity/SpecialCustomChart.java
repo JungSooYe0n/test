@@ -22,10 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 专题分析自定义图表实体类
@@ -85,6 +82,19 @@ public class SpecialCustomChart extends BaseEntity{
      */
     @Column(name = "exclude_words", columnDefinition = "TEXT")
     private String excludeWords;
+
+    /**
+     * 排除词检索位置 0：标题 1：标题+正文  2：标题+摘要
+     */
+    @Column(name = "exclude_words_index", columnDefinition = "TEXT")
+    private String excludeWordsIndex;
+    public String getExcludeWordsIndex(){
+        if(StringUtil.isEmpty(this.excludeWordsIndex)){
+            return this.keyWordIndex;
+        }
+        return this.excludeWordsIndex;
+    }
+
 
     /**
      * 检索关键词位置 0：标题 1：标题+正文
@@ -281,39 +291,19 @@ public class SpecialCustomChart extends BaseEntity{
         switch (this.specialType) {
             case COMMON:
                 queryBuilder = WordSpacingUtil.handleKeyWords(this.keyWord, this.keyWordIndex, this.weight);
-                if (StringUtil.isNotEmpty(this.excludeWords)) {
-                    //拼接排除词
-                    if ("0".equals(this.keyWordIndex)) { //标题
-                        StringBuilder exbuilder = new StringBuilder();
-                        exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-                                .append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                        queryBuilder.filterByTRSL(exbuilder.toString());
 
-                    }else if ("1".equals(this.keyWordIndex)) { //标题 + 正文
-                        StringBuilder exbuilder = new StringBuilder();
-                        exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-                                .append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                        queryBuilder.filterByTRSL(exbuilder.toString());
-                        StringBuilder exbuilder2 = new StringBuilder();
-                        exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-                                .append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                        queryBuilder.filterByTRSL(exbuilder2.toString());
-
-                    } else if ("2".equals(this.keyWordIndex)) { //标题 + 摘要
-                        StringBuilder exbuilder = new StringBuilder();
-                        exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-                                .append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                        queryBuilder.filterByTRSL(exbuilder.toString());
-                        StringBuilder exbuilder2 = new StringBuilder();
-                        exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
-                                .append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-                        queryBuilder.filterByTRSL(exbuilder2.toString());
-
-                    }
+                String excludeIndex = this.getExcludeWordsIndex();
+                //拼凑排除词
+                String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
+                if(StringUtil.isNotEmpty(excludeWordTrsl)){
+                    queryBuilder.filterByTRSL(excludeWordTrsl);
                 }
                 //监测网站
-                if (StringUtil.isNotEmpty(this.monitorSite) && this.monitorSite.trim().split(";|；").length > 0) {
-                    queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,this.monitorSite.replaceAll("[;|；]"," OR ") , Operator.Equal);
+                if (StringUtil.isNotEmpty(this.monitorSite)) {
+                    String addMonitorSite = addMonitorSite(this.monitorSite);
+                    if(StringUtil.isNotEmpty(addMonitorSite)){
+                        queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
+                    }
                 }
                 //排除网站
                 if (StringUtil.isNotEmpty(this.excludeWeb) && this.excludeWeb.trim().split(";|；").length > 0) {
@@ -445,4 +435,29 @@ public class SpecialCustomChart extends BaseEntity{
             }
         }
     }
+
+    /**
+     * 增加监测站点
+     *
+     * @Return : void
+     */
+    private String addMonitorSite(String monitorSite) {
+        if(StringUtil.isNotEmpty(monitorSite)){
+            String[] splitArr  = monitorSite.split("[;|；]");
+            List<String> list = new ArrayList<>();
+            for(String split:splitArr){
+                if(StringUtil.isNotEmpty(split)){
+                    list.add(split);
+                }
+            }
+            if(list.size()>0){
+                return StringUtils.join(list," OR ");
+            }else{
+                return "";
+            }
+        }else{
+            return "";
+        }
+    }
+
 }

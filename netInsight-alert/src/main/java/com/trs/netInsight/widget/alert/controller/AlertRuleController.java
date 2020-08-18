@@ -159,6 +159,7 @@ public class AlertRuleController {
 			@ApiParam("数据来源(可多值,中间以';'隔开,默认为ALL，查询当前用户所能查取数据)") @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
 			@ApiParam("任意关键词") @RequestParam(value = "anyKeyword", required = false) String anyKeyword,
 			@ApiParam("排除词") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+			@ApiParam("排除词命中位置") @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
 			@ApiParam("排除网站") @RequestParam(value = "excludeSiteName", required = false) String excludeSiteName,
 							 @ApiParam("排除网站") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 			@ApiParam("关键词位置 TITLE；TITLE_ABSTRACT；TITLE_CONTENT") @RequestParam(value = "scope", required = false, defaultValue = "TITLE") String scope,
@@ -257,7 +258,7 @@ public class AlertRuleController {
 		}
 		// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
 		AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, repetition, irSimflag,irSimflagAll,groupName, anyKeyword,
-				excludeWords, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
+				excludeWords,excludeWordsIndex, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight, null, null,
 				countBy, frequencyId, md5Num, md5Range, false, false);
 		// timeInterval看逻辑是按分钟存储 2h 120
@@ -315,6 +316,7 @@ public class AlertRuleController {
 			@ApiParam("数据来源(可多值,中间以';'隔开,默认为ALL，查询当前用户所能查取数据)") @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
 			@ApiParam("任意关键词") @RequestParam(value = "anyKeyword", required = false) String anyKeyword,
 			@ApiParam("排除词") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+			@ApiParam("排除词命中位置") @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
 			@ApiParam("排除网站") @RequestParam(value = "excludeSiteName", required = false) String excludeSiteName,
 							 @ApiParam("监测网站") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 			@ApiParam("关键词位置 TITLE；TITLE_ABSTRACT；TITLE_CONTENT") @RequestParam(value = "scope", required = false, defaultValue = "TITLE") String scope,
@@ -392,6 +394,7 @@ public class AlertRuleController {
 		alertRule.setGroupName(groupName);
 		alertRule.setAnyKeyword(anyKeyword);
 		alertRule.setExcludeWords(excludeWords);
+		alertRule.setExcludeWordsIndex(excludeWordsIndex);
 		alertRule.setExcludeSiteName(excludeSiteName);
 		alertRule.setMonitorSite(monitorSite);
 		alertRule.setScope(scopeValue);
@@ -732,26 +735,26 @@ public class AlertRuleController {
 			if (Const.MEDIA_TYPE_WEIXIN.contains(source)
 					&& (SpecialType.COMMON.equals(specialType) || StringUtil.isNotEmpty(alertRule.getWeChatTrsl()))) {
 				return alertRuleService.weChatSearch(alertRule, pageNo, pageSize, source, time, area, industry, emotion,
-						sort, keywords, fuzzyValueScope,null, keywordIndex);
+						sort, keywords, fuzzyValueScope, keywordIndex);
 			} else if (Const.MEDIA_TYPE_WEIBO.contains(source)
 					&& (SpecialType.COMMON.equals(specialType) || StringUtil.isNotEmpty(alertRule.getStatusTrsl()))) {
 				return alertRuleService.statusSearch(alertRule, pageNo, pageSize, source, time, area, industry, emotion,
-						sort, keywords,fuzzyValueScope, null, null, forwarPrimary);
+						sort, keywords,fuzzyValueScope, null, forwarPrimary);
 			} else if ((Const.MEDIA_TYPE_NEWS.contains(source) || Const.GROUPNAME_CHANGSHIPIN.contains(source) || Const.GROUPNAME_DUANSHIPIN.contains(source))
 					&& (SpecialType.COMMON.equals(specialType) || StringUtil.isNotEmpty(alertRule.getTrsl()))) {
 				log.error("进入" + source + "方法:" + System.currentTimeMillis());
 				return alertRuleService.documentSearch(alertRule, pageNo, pageSize, source, time, area, industry,
-						emotion, sort, invitationCard, keywords, fuzzyValueScope,null, keywordIndex);
+						emotion, sort, invitationCard, keywords, fuzzyValueScope, keywordIndex);
 			} else if (Const.MEDIA_TYPE_TF.contains(source)
 					&& (SpecialType.COMMON.equals(specialType) || StringUtil.isNotEmpty(alertRule.getTrsl()))) {
 				//TF类型数据是用传统表达式查询的
 				log.error("进入" + source + "方法:" + System.currentTimeMillis());
 				return alertRuleService.documentTFSearch(alertRule, pageNo, pageSize, source, time, area, industry,
-						emotion, sort, keywords, fuzzyValueScope,null, keywordIndex);
+						emotion, sort, keywords, fuzzyValueScope, keywordIndex);
 			} else if ("ALL".contains(source)) {
 				log.error("进入" + source + "方法:" + System.currentTimeMillis());
 				return alertRuleService.documentCommonSearch(alertRule, pageNo, pageSize, source, time, area, industry,
-						emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null, keywordIndex,isExport);
+						emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,keywordIndex,isExport);
 			}
 		} catch (Exception e) {
 			throw new OperationException("查询规则信息失败,message:" + e, e);

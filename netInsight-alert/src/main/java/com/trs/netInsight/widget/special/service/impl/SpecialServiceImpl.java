@@ -185,7 +185,7 @@ public class SpecialServiceImpl implements ISpecialService {
 	 */
 	@Override
 	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
-			String anyKeywords, String excludeWords, String trsl,
+			String anyKeywords, String excludeWords,String excludeWordsIndex, String trsl,
 			SearchScope scope, Date startTime, Date endTime, String source, String timerange, boolean similar,
 			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String monitorSite,String mediaLevel,
 										String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea) throws Exception {
@@ -196,6 +196,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setSearchScope(scope);
 		specialProject.setAnyKeywords(anyKeywords);
 		specialProject.setExcludeWords(excludeWords);
+		specialProject.setExcludeWordIndex(excludeWordsIndex);
 		specialProject.setTrsl(trsl);
 		specialProject.setStartTime(startTime);
 		specialProject.setStart(new SimpleDateFormat("yyyyMMddHHmmss").format(startTime));
@@ -217,16 +218,11 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setFilterInfo(filterInfo);
 		specialProject.setMediaArea(mediaArea);
 		specialProject.setContentArea(contentArea);
-		// if (legal(specialProject)) {
 		specialProjectRepository.save(specialProject);
 		reportService.saveMaterialLibrary(specialProject);
 		PerpetualPool.put(specialId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
 		RedisFactory.deleteAllKey(specialId);
-		// RedisFactory.batchClearRedis(specialId);
 		return specialProject;
-		// } else {
-		// throw new OperationException("修改失败");
-		// }
 	}
 	@Override
 	public Integer getMaxSequenceForSpecial(String parentPageId, User user) {

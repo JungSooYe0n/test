@@ -684,7 +684,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	@Override
 	public Object weChatSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-							   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex)
+							   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String keyWordIndex)
 			throws Exception {
 		log.warn("专项检测信息列表，微信，  开始调用接口");
 		QueryBuilder builder = new QueryBuilder();
@@ -773,28 +773,6 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			countBuilder.filterByTRSL(fuzzyBuilder.toString());
 			log.info(builder.asTRSL());
 		}
-		//拼接排除词
-		if (StringUtil.isNotEmpty(notKeyWords) ) {
-			if("positioCon".equals(keyWordIndex)){
-				StringBuilder exbuilder = new StringBuilder();
-				exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-				builder.filterByTRSL(exbuilder.toString());
-				countBuilder.filterByTRSL(exbuilder.toString());
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}else {
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}
-
-		}
 		log.info(builder.asTRSL());
 		switch (sort) { // 排序
 			case "desc":
@@ -832,7 +810,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	@Override
 	public Object statusSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-							   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex,String forwarPrimary)
+							   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String keyWordIndex,String forwarPrimary)
 			throws Exception {
 		log.warn("专项检测信息列表，微博，  开始调用接口");
 		QueryBuilder builder = new QueryBuilder();
@@ -952,29 +930,6 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			countBuilder.filterByTRSL(fuzzyBuilder.toString());
 			log.info(builder.asTRSL());
 		}
-		//拼接排除词
-		if (StringUtil.isNotEmpty(notKeyWords) ) {
-			if("positioCon".equals(keyWordIndex)){
-				StringBuilder exbuilder = new StringBuilder();
-				exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-				builder.filterByTRSL(exbuilder.toString());
-				countBuilder.filterByTRSL(exbuilder.toString());
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}else {
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}
-
-		}
-
 		log.info(builder.asTRSL());
 		switch (sort) { // 排序
 			case "desc":
@@ -1007,7 +962,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	@Override
 	public Object documentSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-								 String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,String notKeyWords,
+								 String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,
 								 String keyWordIndex) throws Exception {
 		log.error(source + "信息列表  开始调用接口:" + System.currentTimeMillis());
 		source = CommonListChartUtil.changeGroupName(source);
@@ -1124,28 +1079,6 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			countBuilder.filterByTRSL(fuzzyBuilder.toString());
 			log.info(builder.asTRSL());
 		}
-		//拼接排除词
-		if (StringUtil.isNotEmpty(notKeyWords) ) {
-			if("positioCon".equals(keyWordIndex)){
-				StringBuilder exbuilder = new StringBuilder();
-				exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-				builder.filterByTRSL(exbuilder.toString());
-				countBuilder.filterByTRSL(exbuilder.toString());
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}else {
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}
-
-		}
 
 		log.info(builder.asTRSL());
 		switch (sort) { // 排序
@@ -1183,7 +1116,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 	@Override
 	public Object documentTFSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-								   String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords,
+								   String industry, String emotion, String sort, String keywords,String fuzzyValueScope,
 								   String keyWordIndex) throws Exception {
 		log.error(source + "信息列表  开始调用接口:" + System.currentTimeMillis());
 		QueryBuilder builder = new QueryBuilder();
@@ -1260,29 +1193,6 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			countBuilder.filterByTRSL(fuzzyBuilder.toString());
 			log.info(builder.asTRSL());
 		}
-		//拼接排除词
-		if (StringUtil.isNotEmpty(notKeyWords) ) {
-			if("positioCon".equals(keyWordIndex)){
-				StringBuilder exbuilder = new StringBuilder();
-				exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-				builder.filterByTRSL(exbuilder.toString());
-				countBuilder.filterByTRSL(exbuilder.toString());
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}else {
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}
-
-		}
-
 		log.info(builder.asTRSL());
 		switch (sort) { // 排序
 			case "desc":
@@ -1312,7 +1222,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 	}
 	@Override
 	public Object documentCommonSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-									   String industry, String emotion, String sort, String invitationCard,String forwarPrimary, String keywords,String fuzzyValueScope, String notKeyWords,
+									   String industry, String emotion, String sort, String invitationCard,String forwarPrimary, String keywords,String fuzzyValueScope,
 									   String keyWordIndex,Boolean isExport) throws Exception {
 		log.error(source + "信息列表  开始调用接口:" + System.currentTimeMillis());
 		QueryCommonBuilder builder = new QueryCommonBuilder();
@@ -1479,28 +1389,6 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			builder.filterByTRSL(fuzzyBuilder.toString());
 			countBuilder.filterByTRSL(fuzzyBuilder.toString());
 			log.info(builder.asTRSL());
-		}
-		//拼接排除词
-		if (StringUtil.isNotEmpty(notKeyWords) ) {
-			if("positioCon".equals(keyWordIndex)){
-				StringBuilder exbuilder = new StringBuilder();
-				exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-				builder.filterByTRSL(exbuilder.toString());
-				countBuilder.filterByTRSL(exbuilder.toString());
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}else {
-				StringBuilder exbuilder2 = new StringBuilder();
-				exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-						.append(notKeyWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-				builder.filterByTRSL(exbuilder2.toString());
-				countBuilder.filterByTRSL(exbuilder2.toString());
-			}
-
 		}
 
 		log.info(builder.asTRSL());
