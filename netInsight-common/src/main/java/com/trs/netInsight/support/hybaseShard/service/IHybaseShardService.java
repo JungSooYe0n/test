@@ -33,4 +33,6 @@ public interface IHybaseShardService {
 
     public HybaseShard findByOrganizationId(String organizationId);
 
+    public void deleteByOrg(String orgId);
+
 }

@@ -18,6 +18,7 @@ import com.trs.netInsight.support.fts.annotation.FtsField;
 import com.trs.netInsight.support.fts.annotation.enums.FtsHybaseType;
 import com.trs.netInsight.support.fts.model.result.IDocument;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.alert.entity.enums.Store;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,6 +41,10 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
      *
      */
     private static final long serialVersionUID = 1L;
+
+    @FtsField("uid")
+    private String sysUid;
+
     /**
      * 唯一标识
      */
@@ -453,6 +458,27 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
     public String beforeUrl() {
         return StringUtil.isEmpty(this.urlName) ? this.retweetedUrl : this.urlName;
     }
+
+
+
+    /**
+     * 已读字段(多值---针对用户)
+	 */
+    @FtsField("IR_READ")
+    private String read;
+
+//    前端识别已读/未读标
+    private boolean readFlag;
+
+    public boolean isReadFlag() {
+        String userId = UserUtils.getUser().getId();
+        if (StringUtil.isNotEmpty(read) && read.contains(userId)){
+            return true;
+        }
+        return false;
+    }
+
+
 }
 
 /**

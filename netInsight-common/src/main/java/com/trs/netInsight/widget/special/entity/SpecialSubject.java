@@ -104,7 +104,7 @@ public class SpecialSubject extends BaseEntity {
 	 */
 	@JsonIgnore
 	@OneToMany(mappedBy = "groupId", cascade = CascadeType.DETACH)
-	@OrderBy("sequence asc")
+	@OrderBy("sequence desc")
 	private List<SpecialProject> indexTabMappers = new ArrayList<>();
 
 	/**

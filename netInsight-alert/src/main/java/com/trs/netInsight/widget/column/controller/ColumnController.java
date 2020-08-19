@@ -38,6 +38,7 @@ import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
@@ -862,8 +863,9 @@ public class ColumnController {
 			@ApiImplicitParam(name = "indexMapperId", value = "三级栏目映射id", dataType = "String", paramType = "query") })
 	public Object deleteThree(@RequestParam("indexMapperId") String indexMapperId, HttpServletRequest request)
 			throws TRSException {
+		Object result = columnService.selectNextShowColumn(indexMapperId, ColumnFlag.IndexTabFlag);
 		indexTabMapperService.deleteMapper(indexMapperId);
-		return "success";
+		return result;
 	}
 
 
@@ -909,8 +911,10 @@ public class ColumnController {
 			@ApiImplicitParam(name = "indexPageId", value = "一级栏目id", dataType = "String", paramType = "query") })
 	public Object deleteOne(@ApiParam("一级栏目id") @RequestParam("indexPageId") String indexPageId,
 							HttpServletRequest request) throws OperationException {
+		Object reslut = columnService.selectNextShowColumn(indexPageId, ColumnFlag.IndexPageFlag);
 		//已修改，递归删除分组下的所有数据
-		return columnService.deleteOne(indexPageId);
+		columnService.deleteOne(indexPageId);
+		return reslut;
 	}
 
 	/**

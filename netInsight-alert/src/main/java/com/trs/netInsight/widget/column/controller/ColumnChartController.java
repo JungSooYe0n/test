@@ -128,7 +128,7 @@ public class ColumnChartController {
     public Object topColumnChart(@RequestParam("id") String id,
                                  @RequestParam("chartPage") String chartPage,
                                  @RequestParam("isTop") Boolean isTop,
-                                 @RequestParam("randomNum") String randomNum, HttpServletRequest request)
+                                 @RequestParam(value = "randomNum", required = false) String randomNum, HttpServletRequest request)
             throws TRSException {
         ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
         Integer topSeq = 0;

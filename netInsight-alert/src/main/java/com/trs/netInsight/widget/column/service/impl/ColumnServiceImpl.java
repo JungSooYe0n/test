@@ -118,12 +118,142 @@ public class ColumnServiceImpl implements IColumnService {
 	private IColumnChartService columnChartService;
 
 
-	/**
-	 * 置顶一个栏目
-	 * @param user 当前用户信息
-	 * @return
-	 */
-	public Object topColumn(String id,User user){
+	public Object selectNextShowColumn(String id,ColumnFlag columnFlag){
+		User user = UserUtils.getUser();
+		IndexPage parent = null;
+		String topFlag = null;
+		Map<String,Object> map = new HashMap<>();
+		if(ColumnFlag.IndexPageFlag.equals(columnFlag)){
+			IndexPage indexPage = indexPageRepository.findOne(id);
+			if(indexPage != null){
+				if(StringUtil.isNotEmpty(indexPage.getParentId())){
+					parent = indexPageRepository.findOne(indexPage.getParentId());
+				}
+			}
+		}else if(ColumnFlag.IndexTabFlag.equals(columnFlag)){
+			IndexTabMapper mapper = tabMapperRepository.findOne(id);
+			if(mapper!=null){
+				topFlag = mapper.getTopFlag();
+				parent = mapper.getIndexPage();
+			}
+		}
+		Object result = null;
+		if(parent != null){  //在分组下
+
+			List<IndexPage> oneIndexPage = parent.getChildrenPage();
+			List<IndexTabMapper> oneIndexTab = parent.getIndexTabMappers();
+			List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
+			if(sortColumn == null || sortColumn.size() <=1){
+				result = parent;
+			}else{
+				result = getNextNode(sortColumn,id,columnFlag);
+			}
+		}else{ // 第一层的数据， 置顶的和不置顶的分开
+			List<IndexPage> oneIndexPage = null;
+			List<IndexTabMapper> oneIndexTab = null;
+			List<IndexTabMapper> top = null;
+			Map<String,Object> oneColumn = this.getOneLevelColumnForMap("",user);
+			if (oneColumn.containsKey("page")) {
+				oneIndexPage = (List<IndexPage>) oneColumn.get("page");
+			}
+			if (oneColumn.containsKey("tab")) {
+				oneIndexTab = (List<IndexTabMapper>) oneColumn.get("tab");
+			}
+			if (oneColumn.containsKey("top")) {
+				top = (List<IndexTabMapper>) oneColumn.get("top");
+			}
+			List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
+			if("top".equals(topFlag)){
+				//List<IndexTabMapper> findTop = getTopIndexTabMapper(user);
+				if(top != null && top.size() >1){
+					int index = 0;
+					for(int i = 0;i <top.size();i++){
+						if(id.equals(top.get(i).getId())){
+							index = i;
+							break;
+						}
+					}
+					if(index == top.size()-1){ // 这里是用的下标判断，判断当前这个是否是整个top的最后一个下标，是则拿前一个
+						result = top.get(index-1);
+					}else{
+						result = top.get(index+1);
+					}
+				}else{
+					// 找到所有元素中的第一个
+					if(sortColumn == null || sortColumn.size() ==0){
+						result = null;
+					}else{
+						result = sortColumn.get(0);
+					}
+				}
+			}else{
+				// 找到当前元素的下一个有东西的元素 下一个没有就找上一个 不直接用seq 判断是因为可能存在seq错误的情况，但是都是按照上面的方法排序后的数据，跟页面一致
+				// 找到所有元素中的第一个
+				if(sortColumn == null || sortColumn.size() <=1){
+					//如果第一层只有当前一个，看他上面有没有置顶的
+					if(top != null && top.size() >0){
+						result = top.get(top.size() -1);
+					}else{
+						result = null;
+					}
+				}else{
+					result = getNextNode(sortColumn,id,columnFlag);
+				}
+			}
+		}
+		if(result == null){
+			map.put("id",null);
+			map.put("flag",null);
+			map.put("name",null);
+		}else{
+			if (result instanceof IndexTabMapper) {
+				IndexTabMapper mapper = (IndexTabMapper)result;
+				map.put("id",mapper.getId());
+				map.put("flag",1);
+				map.put("name",mapper.getIndexTab().getName());
+			} else if (result instanceof IndexPage) {
+				IndexPage page = (IndexPage)result;
+				map.put("id",page.getId());
+				map.put("flag",0);
+				map.put("name",page.getName());
+			}
+		}
+		return map;
+	}
+
+	private Object getNextNode(List<Object> sortColumn,String id,ColumnFlag columnFlag){
+		if(sortColumn != null && sortColumn.size() >0){
+			int index = -1;
+			for(int i = 0;i <sortColumn.size();i++){
+				if (sortColumn.get(i) instanceof IndexTabMapper) {
+					IndexTabMapper mapper = (IndexTabMapper)sortColumn.get(i);
+					if(id.equals(mapper.getId())  && ColumnFlag.IndexTabFlag.equals(columnFlag)){
+						index = i;
+						break;
+					}
+				} else if (sortColumn.get(i) instanceof IndexPage) {
+					IndexPage page = (IndexPage)sortColumn.get(i);
+					if(id.equals(page.getId())  && ColumnFlag.IndexPageFlag.equals(columnFlag)){
+						index = i;
+						break;
+					}
+				}
+			}
+			if(index != -1){
+				if(index == sortColumn.size()-1){ // 这里是用的下标判断，判断当前这个是否是整个数据的最后一个下标，是则拿前一个
+					return sortColumn.get(index-1);
+				}else{
+					return sortColumn.get(index+1);
+				}
+			}else{
+				return null;
+			}
+		}
+		return null;
+	}
+
+
+	private List<IndexTabMapper> getTopIndexTabMapper(User user){
 		List<Sort.Order> orders=new ArrayList<Sort.Order>();
 		orders.add( new Sort.Order(Sort.Direction.ASC, "sequence"));
 		orders.add( new Sort.Order(Sort.Direction.ASC, "createdTime"));
@@ -134,7 +264,16 @@ public class ColumnServiceImpl implements IColumnService {
 		}else {
 			criteria.add(Restrictions.eq("subGroupId", user.getSubGroupId()));
 		}
-		List<IndexTabMapper> findTop = tabMapperRepository.findAll(criteria,new Sort(orders));
+		 return tabMapperRepository.findAll(criteria,new Sort(orders));
+	}
+
+	/**
+	 * 置顶一个栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	public Object topColumn(String id,User user){
+		List<IndexTabMapper> findTop = getTopIndexTabMapper(user);
 		if(findTop != null && findTop.size() >0){
 			int i =2;
 			for (IndexTabMapper mapper : findTop) {
@@ -144,8 +283,9 @@ public class ColumnServiceImpl implements IColumnService {
 			}
 		}
 		IndexTabMapper findOne = tabMapperRepository.findOne(id);
-		//这里要做一步操作，把置顶的专题信息原来的东西重新排序
-		//specialService.moveSequenceForSpecial(findOne.getId(), SpecialFlag.SpecialProjectFlag, loginUser);
+		if(findOne.getIndexPage()!= null){
+			findOne.setBakParentId(findOne.getIndexPage().getId());
+		}
 		findOne.setIndexPage(null);
 		findOne.setSequence(1);
 		findOne.setTopFlag("top");
@@ -161,8 +301,17 @@ public class ColumnServiceImpl implements IColumnService {
 	public Object noTopColumn(String id,User user){
 		IndexTabMapper findOne = tabMapperRepository.findOne(id);
 		findOne.setTopFlag(null);
-		Integer  seq = this.getMaxSequenceForColumn(null,"",user) +1;
+		String parentId = null;
+		if(StringUtil.isNotEmpty(findOne.getBakParentId())){
+			IndexPage parent = indexPageRepository.findOne(findOne.getBakParentId());
+			if(parent != null && StringUtil.isNotEmpty(parent.getId())){
+				parentId = parent.getId();
+				findOne.setIndexPage(parent);
+			}
+		}
+		Integer  seq = this.getMaxSequenceForColumn(parentId,"",user) +1;
 		findOne.setSequence(seq);
+		findOne.setBakParentId(null);
 		// 放在原来列表最后一个 查找时按照sequence排列
 		tabMapperRepository.save(findOne);
 		return findOne;
@@ -704,7 +853,7 @@ public class ColumnServiceImpl implements IColumnService {
 				throw new OperationException("当前分组不存在");
 			}
 			//重新排序
-			User user = userService.findOne(indexPage.getUserId());
+			User user = UserUtils.getUser();
 			this.moveSequenceForColumn(indexPageId, ColumnFlag.IndexPageFlag, user);
 			List<IndexPage> list = new ArrayList<>();
 			list.add(indexPage);

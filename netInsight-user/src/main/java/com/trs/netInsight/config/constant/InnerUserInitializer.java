@@ -45,6 +45,7 @@ public class InnerUserInitializer {
 		String salt = UUID.randomUUID().toString();
 		String password = UserUtils.getEncryptPsw("trsadmin", salt);
 		createUser("admin", password, salt);
+		createUser("yunwei", password, salt);
 	}
 
 	/**
@@ -56,17 +57,33 @@ public class InnerUserInitializer {
 	 */
 	private void createUser(String userName, String password, String salt) {
 		if (userService.findByUserName(userName) == null) {
-			User user = new User();
-			user.setUserName(userName);
-			user.setDisplayName(userName);
-			user.setPassword(password);
-			user.setExpireAt(UserUtils.FOREVER_DATE);
-			user.setSalt(salt);
-			user.setCheckRole(CheckRole.SUPER_ADMIN);
-			user.setSameTimeLogin(true);
-			user.setStatus(Status.normal);
-			user.setOrganizationId("trsadminorganizationid");
-			userService.add(user,false);
+			if (userName.equals("admin")){
+				User user = new User();
+				user.setUserName(userName);
+				user.setDisplayName(userName);
+				user.setPassword(password);
+				user.setExpireAt(UserUtils.FOREVER_DATE);
+				user.setSalt(salt);
+				user.setCheckRole(CheckRole.SUPER_ADMIN);
+				user.setSameTimeLogin(true);
+				user.setStatus(Status.normal);
+				user.setOrganizationId("trsadminorganizationid");
+				userService.add(user,false);
+			}else {
+				User user = new User();
+				user.setUserName(userName);
+				user.setDisplayName(userName);
+				user.setPassword(password);
+				user.setExpireAt(UserUtils.FOREVER_DATE);
+				user.setSalt(salt);
+				user.setCheckRole(CheckRole.ROLE_PLATFORM);
+				user.setSameTimeLogin(true);
+				user.setStatus(Status.normal);
+				user.setOrganizationId("trsadminorganizationid");
+				userService.add(user,false);
+			}
+
+
 		}
 	}
 }

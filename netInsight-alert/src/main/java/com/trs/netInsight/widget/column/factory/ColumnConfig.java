@@ -10,6 +10,7 @@ import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import com.trs.netInsight.widget.column.entity.IndexTab;
@@ -340,6 +341,12 @@ public class ColumnConfig {
 				this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
 			}
 		}
+		//	阅读标记	已读/未读
+		if ("已读".equals(read)){//已读
+			queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+		}else if ("已读".equals(read)){//已读
+			queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
+		}
 		// 排除网站
 		if (this.indexTab.getExcludeWeb() != null && this.indexTab.getExcludeWeb().split("[;|；]").length > 0) {
 			addExcloudSite();
@@ -369,6 +376,7 @@ public class ColumnConfig {
 		if(StringUtil.isNotEmpty(mediaArea )){
 			addAreaFilter(FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
 		}
+
 		//信息过滤
 		if(StringUtil.isNotEmpty(filterInfo) && !filterInfo.equals(Const.NOT_FILTER_INFO)){
 			String trsl = queryBuilder.asTRSL();
@@ -447,7 +455,8 @@ public class ColumnConfig {
 		}
 		//精准筛选 与上面论坛的主回帖和微博的原转发类似 ，都需要在数据源的基础上进行修改
 		if (StringUtil.isNotEmpty(preciseFilter)) {
-			if (sourceList.contains(Const.GROUPNAME_XINWEN) || sourceList.contains(Const.GROUPNAME_WEIBO) || sourceList.contains(Const.GROUPNAME_LUNTAN)) {
+			List<String> searchSourceList = CommonListChartUtil.formatGroupName(StringUtil.isEmpty(groupName)? source:groupName);
+			if (searchSourceList.contains(Const.GROUPNAME_XINWEN) || searchSourceList.contains(Const.GROUPNAME_WEIBO) || searchSourceList.contains(Const.GROUPNAME_LUNTAN)) {
 				String[] arr = preciseFilter.split(";");
 				if (arr != null && arr.length > 0) {
 					List<String> preciseFilterList = new ArrayList<>();
@@ -456,16 +465,16 @@ public class ColumnConfig {
 					}
 					StringBuffer buffer = new StringBuffer();
 					// 新闻筛选  --- 屏蔽新闻转发 就是新闻 不要新闻不为空的时候，也就是要新闻原发
-					if (sourceList.contains(Const.GROUPNAME_XINWEN) && preciseFilterList.contains("notNewsForward")) {
+					if (searchSourceList.contains(Const.GROUPNAME_XINWEN) && preciseFilterList.contains("notNewsForward")) {
 
 						buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_XINWEN + ")");
 						buffer.append(" AND (").append(Const.SRCNAME_XINWEN).append(")");
 						buffer.append(")");
-						sourceList.remove(Const.GROUPNAME_XINWEN);
+						searchSourceList.remove(Const.GROUPNAME_XINWEN);
 					}
 
 					//论坛筛选  ---  屏蔽论坛主贴  -  为回帖  、屏蔽论坛回帖为主贴
-					if (sourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
+					if (searchSourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
 						if (buffer.length() > 0) {
 							buffer.append(" OR ");
 						}
@@ -478,11 +487,11 @@ public class ColumnConfig {
 							buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
 						}
 						buffer.append(")");
-						sourceList.remove(Const.GROUPNAME_LUNTAN);
+						searchSourceList.remove(Const.GROUPNAME_LUNTAN);
 					}
 
 					//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
-					if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
+					if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
 						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
 						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
 						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
@@ -517,14 +526,14 @@ public class ColumnConfig {
 
 						}
 						buffer.append(")");
-						sourceList.remove(Const.GROUPNAME_WEIBO);
+						searchSourceList.remove(Const.GROUPNAME_WEIBO);
 					}
 					if(buffer.length() >0){
-						if (sourceList.size() > 0) {
+						if (searchSourceList.size() > 0) {
 							if (buffer.length() > 0) {
 								buffer.append(" OR ");
 							}
-							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
 						}
 						queryBuilder.filterByTRSL(buffer.toString());
 					}

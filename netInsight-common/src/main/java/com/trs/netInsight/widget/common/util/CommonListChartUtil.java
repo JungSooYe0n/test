@@ -172,10 +172,8 @@ public class CommonListChartUtil {
             String[] groupArray = commonSource.toArray(new String[commonSource.size()]);
             String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
             String trsl = queryBuilder.asTRSL();
-            if(!trsl.contains(groupTrsl)){
-                queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-                queryCommonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-            }
+            queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
+            queryCommonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
             String[] database = TrslUtil.chooseDatabases(groupArray);
             queryBuilder.setDatabase(StringUtil.join(database, ";"));
             queryCommonBuilder.setDatabase(database);
@@ -362,6 +360,7 @@ public class CommonListChartUtil {
                 map.put("channel", vo.getChannel());
 
                 map.put("simNum", 0);
+                map.put("readFlag",vo.isReadFlag());
 
                 resultList.add(map);
             }

@@ -150,7 +150,7 @@ public interface IAlertRuleService {
 	 * @return
 	 */
 	public Object weChatSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String notKeyWords, String keyWordIndex)
+			String industry, String emotion, String sort, String keywords,String fuzzyValueScope, String keyWordIndex)
 			throws Exception;
 
 	/**
@@ -171,7 +171,7 @@ public interface IAlertRuleService {
 	 * @return
 	 */
 	public Object statusSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String keywords, String fuzzyValueScope,String notKeyWords, String keyWordIndex,String forwarPrimary)
+			String industry, String emotion, String sort, String keywords, String fuzzyValueScope,String keyWordIndex,String forwarPrimary)
 			throws Exception;
 
 	/**
@@ -192,7 +192,7 @@ public interface IAlertRuleService {
 	 * @return
 	 */
 	public Object documentSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,String notKeyWords,
+			String industry, String emotion, String sort, String invitationCard, String keywords, String fuzzyValueScope,
 			String keyWordIndex) throws Exception;
 	
 	/**
@@ -215,7 +215,7 @@ public interface IAlertRuleService {
 	 * @Return : Object
 	 */
 	public Object documentTFSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-			String industry, String emotion, String sort,  String keywords, String fuzzyValueScope,String notKeyWords,
+			String industry, String emotion, String sort,  String keywords, String fuzzyValueScope,
 			String keyWordIndex) throws Exception;
 
 	/**
@@ -232,14 +232,13 @@ public interface IAlertRuleService {
 	 * @param sort
 	 * @param invitationCard
 	 * @param keywords
-	 * @param notKeyWords
 	 * @param keyWordIndex
 	 * @return
 	 * @throws Exception
 	 * @Return : Object
 	 */
 	public Object documentCommonSearch(AlertRule alertRule, int pageNo, int pageSize, String source, String time, String area,
-								   String industry, String emotion, String sort, String invitationCard,String forwarPrimary, String keywords,String fuzzyValueScope, String notKeyWords,
+								   String industry, String emotion, String sort, String invitationCard,String forwarPrimary, String keywords,String fuzzyValueScope,
 								   String keyWordIndex,Boolean isExport) throws Exception;
 
 	/**

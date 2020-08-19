@@ -3,6 +3,7 @@ package com.trs.netInsight.widget.special.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
+import com.trs.hybase.client.TRSInputRecord;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.ESFieldConst;
 import com.trs.netInsight.config.constant.FtsFieldConst;
@@ -10,6 +11,7 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.support.cache.RedisFactory;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
@@ -18,6 +20,8 @@ import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.support.hybaseShard.entity.HybaseShard;
+import com.trs.netInsight.support.hybaseShard.service.IHybaseShardService;
 import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
@@ -54,11 +58,14 @@ import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.special.service.IJunkDataService;
 import com.trs.netInsight.widget.special.service.ISearchRecordService;
 import com.trs.netInsight.widget.special.service.ISpecialProjectService;
+import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
+import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -98,7 +105,7 @@ public class InfoListController {
 	private ISpecialProjectService specialProjectService;
 
 	@Autowired
-	private AlertRepository alertRepository;
+	private IHybaseShardService hybaseShardService;
 
 	@Autowired
 	private FavouritesRepository favouritesRepository;
@@ -115,6 +122,9 @@ public class InfoListController {
 	private SingleMicroblogDataRepository singleMicroblogDataRepository;
 	@Autowired
 	private RequestTimeLogRepository requestTimeLogRepository;
+
+	@Autowired
+	private OrganizationRepository organizationRepository;
 	/**
 	 * 是否走独立预警服务
 	 */
@@ -923,7 +933,7 @@ public class InfoListController {
 							 @ApiParam("trslk") @RequestParam(value = "trslk", required = false) String trslk,
 							 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
 							 @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "nreserved1", required = false) String nreserved1)
-            throws TRSSearchException, TRSException {
+            throws TRSSearchException, TRSException, com.trs.hybase.client.TRSException{
     	User user = UserUtils.getUser();
         String userId = user.getId();
         String trsl = RedisUtil.getString(trslk);
@@ -945,6 +955,12 @@ public class InfoListController {
         PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
         List<FtsDocumentCommonVO> ftsQuery = content.getPageItems();
         if (null != ftsQuery && ftsQuery.size() > 0) {
+
+//        	加上已读 / 未读 标
+			for (FtsDocumentCommonVO ftsDocumentCommonVO : ftsQuery) {
+				readArticle(ftsDocumentCommonVO);
+			}
+
             FtsDocumentCommonVO ftsDocument = ftsQuery.get(0);
 
             // 判断是否收藏
@@ -1734,6 +1750,55 @@ public class InfoListController {
 			}
 		}
 		return null;
+
+	}
+//	加入已读 标 针对用户
+	private void readArticle(FtsDocumentCommonVO ftsDocumentCommonVO) throws com.trs.hybase.client.TRSException,TRSException{
+		User user = UserUtils.getUser();
+		if (ObjectUtil.isNotEmpty(user)){
+			Organization organization = organizationRepository.findOne(user.getOrganizationId());
+			if (ObjectUtil.isNotEmpty(organization) && organization.isExclusiveHybase()){
+				//			有小库情况下  才能使用已读标
+				if (ObjectUtil.isNotEmpty(ftsDocumentCommonVO)){
+					String groupName = ftsDocumentCommonVO.getGroupName();
+					String userId = user.getId();
+
+					TRSInputRecord trsInputRecord = new TRSInputRecord();
+					trsInputRecord.setUid(ftsDocumentCommonVO.getSysUid());
+					String read = ftsDocumentCommonVO.getRead();
+					if (StringUtils.isNotBlank(read)) {
+						String[] split = read.split(";");
+						List<String> asList = Arrays.asList(split);
+						if (!asList.contains(userId)) {
+							asList = new ArrayList<>(asList);
+							asList.add(userId);
+						}
+						String join = String.join(";", asList);
+						trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, join);
+					} else {
+						trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, userId);
+					}
+
+					if (StringUtil.isNotEmpty(user.getOrganizationId())){
+						HybaseShard trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+						if(ObjectUtil.isNotEmpty(trsHybaseShard)){
+
+							String database = trsHybaseShard.getTradition();
+							if (Const.MEDIA_TYPE_WEIBO.contains(groupName)) {
+								database = trsHybaseShard.getWeiBo();
+							} else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
+								database = trsHybaseShard.getWeiXin();
+							} else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
+								database = trsHybaseShard.getOverseas();
+							} else if (Const.MEDIA_TYPE_VIDEO.contains(groupName)){
+								database = trsHybaseShard.getVideo();
+							}
+							hybase8SearchService.updateRecords(database, trsInputRecord);
+						}
+					}
+				}
+			}
+		}
 
 	}
 }

@@ -101,7 +101,7 @@ public class SpecialController {
 			User loginUser = UserUtils.getUser();
 
 			List<Sort.Order> orders=new ArrayList<Sort.Order>();
-			orders.add( new Sort.Order(Sort.Direction.ASC, "sequence"));
+			orders.add( new Sort.Order(Sort.Direction.DESC, "sequence"));
 			orders.add( new Sort.Order(Sort.Direction.ASC, "createdTime"));
 			Criteria<SpecialProject> criteria = new Criteria<>();
 			criteria.add(Restrictions.eq("topFlag", "top"));
@@ -111,20 +111,18 @@ public class SpecialController {
 				criteria.add(Restrictions.eq("subGroupId", loginUser.getSubGroupId()));
 			}
 			List<SpecialProject> findTop = specialProjectService.findAll(criteria,new Sort(orders));
-			if(findTop != null && findTop.size() >0){
-				int i =2;
-				for (SpecialProject special : findTop) {
-					special.setSequence(i);
-					i++;
-					specialProjectService.save(special);
-				}
-			}
+
 			SpecialProject findOne = specialProjectService.findOne(specialId);
 			//这里要做一步操作，把置顶的专题信息原来的东西重新排序
 			//specialService.moveSequenceForSpecial(findOne.getId(), SpecialFlag.SpecialProjectFlag, loginUser);
+			findOne.setBakParentId(findOne.getGroupId());
 			findOne.setGroupId(null);
 			findOne.setSpecialSubject(null);
-			findOne.setSequence(1);
+			int seq =1;
+			if(findTop != null &&findTop.size() >0){
+				seq = findTop.get(0).getSequence()+1;
+			}
+			findOne.setSequence(seq);
 			findOne.setTopFlag("top");
 			specialProjectService.save(findOne);
 			return findOne;
@@ -151,8 +149,20 @@ public class SpecialController {
 			User user = UserUtils.getUser();
 			SpecialProject findOne = specialProjectService.findOne(specialId);
 			findOne.setTopFlag(null);
-			Integer  seq = specialService.getMaxSequenceForSpecial(null,user) +1;
-			findOne.setSequence(seq);
+			String parentId = null;
+			if(StringUtil.isNotEmpty(findOne.getBakParentId())){
+				SpecialSubject parent = specialSubjectService.findOne(findOne.getBakParentId());
+				if(parent != null && StringUtil.isNotEmpty(parent.getId())){
+					parentId = parent.getId();
+					findOne.setGroupId(parentId);
+				}
+			}
+
+			//Integer  seq = specialService.getMaxSequenceForSpecial(parentId,user) +1;
+			//原本排序为正序，现在排序方式改为倒序
+			specialService.insertPropectToLast(parentId,user);
+			findOne.setSequence(1);
+			findOne.setBakParentId(null);
 			// 放在原来列表最后一个 查找时按照sequence排列
 			specialProjectService.save(findOne);
 			return findOne;
@@ -188,6 +198,7 @@ public class SpecialController {
 			@ApiImplicitParam(name = "timeRange", value = "时间范围[yyyy-MM-dd HH:mm:ss;yyyy-MM-dd HH:mm:ss]", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "anyKeywords", value = "任意关键词[中国,河北;美国,洛杉矶]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置：0标题、1标题+正文、2标题+摘要", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "trsl", value = "专家模式传统库表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "searchScope", value = "搜索范围[TITLE，TITLE_ABSTRACT, TITLE_CONTENT]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "specialType", value = "专项模式[COMMON, SPECIAL]", dataType = "String", paramType = "query", required = false),
@@ -210,6 +221,7 @@ public class SpecialController {
 							 @RequestParam("timeRange") String timeRange,
 							 @RequestParam(value = "anyKeywords", required = false) String anyKeywords,
 							 @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							 @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
 							 @RequestParam(value = "trsl", required = false) String trsl,
 							 @RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
 							 @RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
@@ -308,6 +320,7 @@ public class SpecialController {
 				SpecialProject specialProject = new SpecialProject(userId, type, specialName, anyKeywords,
 						excludeWords, trsl, scope, startTime, endTime, source, groupName,
 						groupId, timerange,Integer.valueOf(sequence),isSimilar, irSimflag, weight, server,irSimflagAll,excludeWeb);
+				specialProject.setExcludeWordIndex(excludeWordsIndex);
 				String imgUrl = "";
 				specialProject.setImgUrl(imgUrl);
 				specialProject.setMonitorSite(monitorSite);
@@ -806,18 +819,19 @@ public class SpecialController {
 	})
 	@RequestMapping(value = "/update", method = RequestMethod.POST)
 	public Object updateSpecial(@RequestParam("specialId") String specialId,
-			@RequestParam("specialName") String specialName, @RequestParam("timeRange") String timeRange,
-			@RequestParam(value = "anyKeywords", required = false) String anyKeywords,
-			@RequestParam(value = "excludeWords", required = false) String excludeWords,
-			@RequestParam(value = "trsl", required = false) String trsl,
-			@RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
-			@RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
-			@RequestParam(value = "weight", required = false) boolean weight,
-			@RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-			@RequestParam(value = "monitorSite", required = false) String monitorSite,
-			@RequestParam(value = "simflag", required = false) String simflag,
-			@RequestParam(value = "server", required = false) boolean server,
-			@RequestParam(value = "source", required = false) String source,
+								@RequestParam("specialName") String specialName, @RequestParam("timeRange") String timeRange,
+								@RequestParam(value = "anyKeywords", required = false) String anyKeywords,
+								@RequestParam(value = "excludeWords", required = false) String excludeWords,
+								@RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
+								@RequestParam(value = "trsl", required = false) String trsl,
+								@RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
+								@RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
+								@RequestParam(value = "weight", required = false) boolean weight,
+								@RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+								@RequestParam(value = "monitorSite", required = false) String monitorSite,
+								@RequestParam(value = "simflag", required = false) String simflag,
+								@RequestParam(value = "server", required = false) boolean server,
+								@RequestParam(value = "source", required = false) String source,
 								@RequestParam(value = "mediaLevel", required = false) String mediaLevel,
 								@RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
 								@RequestParam(value = "contentIndustry", required = false) String contentIndustry,
@@ -879,7 +893,7 @@ public class SpecialController {
 				server = false;
 			}
 			SpecialProject updateSpecial = specialService.updateSpecial(specialId, type, specialName,
-					anyKeywords, excludeWords, trsl, scope, startTime, endTime, source,
+					anyKeywords, excludeWords,excludeWordsIndex, trsl, scope, startTime, endTime, source,
 					timerange, isSimilar, weight, irSimflag, server,irSimflagAll,excludeWeb, monitorSite,mediaLevel,
 					 mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 

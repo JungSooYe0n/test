@@ -41,6 +41,14 @@ import com.trs.netInsight.widget.column.entity.IndexTab;
  *  @author 北京拓尔思信息技术股份有限公司
  */
 public interface IColumnService {
+
+	/**
+	 * 获取当前节点的下一个节点（如果没有下一个节点，则获取上一个，上一个也没有则获取父节点）
+	 * @param id
+	 * @param columnFlag
+	 * @return
+	 */
+	Object selectNextShowColumn(String id,ColumnFlag columnFlag);
 	/**
 	 * 置顶一个栏目
 	 * @param user 当前用户信息

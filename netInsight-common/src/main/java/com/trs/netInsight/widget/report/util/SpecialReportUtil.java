@@ -8,6 +8,7 @@ import com.trs.netInsight.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,6 +61,7 @@ public class SpecialReportUtil {
 
     // 日常监测 专题分析报告的 各舆论场趋势分析
     private static String getSprcialBrokenLineChart(String imgData) {
+        NumberFormat numberFormat1 = NumberFormat.getNumberInstance();
         if(StringUtil.isNotEmpty(imgData)){
             JSONObject object = JSONObject.parseObject(imgData);
 
@@ -86,15 +88,13 @@ public class SpecialReportUtil {
             resultSb.append("由图可知，信息量于");
             //时间
             if(time.length() ==10 &&  DateUtil.isTimeFormatterYMD(time)){
-                //time = time.replaceAll("/","").replaceAll(" ","");
                 String date = DateUtil.formatDateToString(time,DateUtil.yyyyMMdd4,DateUtil.YMD_PAGE);
                 resultSb.append(date);
             }else if(time.length() ==16 && DateUtil.isTimeFormatterYMDH(time)){
-                //time = time.replaceAll("/","").replaceAll(" ","").replaceAll(":","");
                 String date = DateUtil.formatDateToString(time,DateUtil.yyyyMMddHHmmss_Line2,DateUtil.YMDH_PAGE);
                 resultSb.append(date);
             }
-            resultSb.append("达到最高峰，信息量为").append(num).append("篇。");
+            resultSb.append("达到最高峰，信息量为").append(numberFormat1.format(num)).append("篇。");
 
             return resultSb.toString();
 
@@ -213,6 +213,7 @@ public class SpecialReportUtil {
     }
     // 日常监测 专题分析报告的 活跃账号
     private static String getActiveAccount(String imgData) {
+        NumberFormat numberFormat1 = NumberFormat.getNumberInstance();
         if(StringUtil.isNotEmpty(imgData)){
             StringBuilder resultSb = new StringBuilder();
             List<Map<String, Object>> parseArray = JSONObject.parseObject(imgData,
@@ -239,7 +240,7 @@ public class SpecialReportUtil {
             String str = resultSb.toString().substring(0,resultSb.length()-1);
             resultSb = new StringBuilder(str);
             resultSb.append("。其中，").append(maxName).append("发布的信息量最大，共")
-                    .append(maxNum).append("篇。");
+                    .append(numberFormat1.format(maxNum)).append("篇。");
 
             return resultSb.toString();
         }
@@ -248,6 +249,7 @@ public class SpecialReportUtil {
 
     // 日常监测 专题分析报告的 地图
     private static String getArea(String imgData) {
+        NumberFormat numberFormat1 = NumberFormat.getNumberInstance();
         if(StringUtil.isNotEmpty(imgData)){
             StringBuilder resultSb = new StringBuilder();
             List<Map<String, Object>> parseArray = JSONObject.parseObject(imgData,
@@ -266,8 +268,9 @@ public class SpecialReportUtil {
             String str = resultSb.toString().substring(0,resultSb.length()-1);
             resultSb = new StringBuilder(str);
             Map<String, Object> oneMap = (Map<String, Object>)parseArray.get(0);
+            Integer oneValue = (Integer)oneMap.get("value");
             resultSb.append("等地。其中，提及").append(oneMap.get("name")).append("的信息量最大，共")
-                    .append(oneMap.get("value")).append("篇。");
+                    .append(numberFormat1.format(oneValue)).append("篇。");
             return resultSb.toString();
         }
         return null;

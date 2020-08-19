@@ -292,7 +292,7 @@ public class SepcialReportTask implements Runnable {
                                         Map<String, Object> opinionResult = new HashMap<>();
                                         opinionResult.put("OFFICIAL_VIEW", officialResult);
                                         opinionResult.put("MEDIA_VIEW", mediaResult);
-                                        opinionResult.put("EXPORT_VIEW", exportResult);
+                                        //opinionResult.put("EXPORT_VIEW", exportResult);
                                         opinionResult.put("NETIZEN_VIEW", netizenResult);
                                         endMillis = System.currentTimeMillis();
                                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OPININOANALYSIS, (endMillis - startMillis)));

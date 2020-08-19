@@ -314,6 +314,9 @@ public class UserUtils {
 		if (StringUtils.isNotBlank(user.getOrganizationId())) {
 			OrganizationRepository repository = (OrganizationRepository)SpringUtil.getBean("organizationRepository");
 			Organization organization = repository.findOne(user.getOrganizationId());
+			if (ObjectUtil.isNotEmpty(organization)){
+				user.setExclusiveHybase(organization.isExclusiveHybase());
+			}
 			SubGroupRepository subGroupRepository = (SubGroupRepository)SpringUtil.getBean("subGroupRepository");
 			String subGroupId = user.getSubGroupId();
 			SubGroup subGroup = null;
@@ -337,7 +340,6 @@ public class UserUtils {
 				user.setUserLimit(organization.getUserLimit());
 				user.setDataSources(organization.getDataSources());
 				user.setSystemName(organization.getOrganizationName());
-
 			}else{
 				user.setColumnDateLimit(1825);
 				user.setSpecialDateLimit(1825);

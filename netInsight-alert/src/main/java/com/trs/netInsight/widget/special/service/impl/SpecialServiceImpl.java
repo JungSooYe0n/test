@@ -185,7 +185,7 @@ public class SpecialServiceImpl implements ISpecialService {
 	 */
 	@Override
 	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
-			String anyKeywords, String excludeWords, String trsl,
+			String anyKeywords, String excludeWords,String excludeWordsIndex, String trsl,
 			SearchScope scope, Date startTime, Date endTime, String source, String timerange, boolean similar,
 			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String monitorSite,String mediaLevel,
 										String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea) throws Exception {
@@ -196,6 +196,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setSearchScope(scope);
 		specialProject.setAnyKeywords(anyKeywords);
 		specialProject.setExcludeWords(excludeWords);
+		specialProject.setExcludeWordIndex(excludeWordsIndex);
 		specialProject.setTrsl(trsl);
 		specialProject.setStartTime(startTime);
 		specialProject.setStart(new SimpleDateFormat("yyyyMMddHHmmss").format(startTime));
@@ -217,16 +218,11 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setFilterInfo(filterInfo);
 		specialProject.setMediaArea(mediaArea);
 		specialProject.setContentArea(contentArea);
-		// if (legal(specialProject)) {
 		specialProjectRepository.save(specialProject);
 		reportService.saveMaterialLibrary(specialProject);
 		PerpetualPool.put(specialId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
 		RedisFactory.deleteAllKey(specialId);
-		// RedisFactory.batchClearRedis(specialId);
 		return specialProject;
-		// } else {
-		// throw new OperationException("修改失败");
-		// }
 	}
 	@Override
 	public Integer getMaxSequenceForSpecial(String parentPageId, User user) {
@@ -248,7 +244,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 		List<Object> sortColumn = this.sortColumn(new ArrayList<>(),indexTabMapper,indexPage,false,false);
 		if(sortColumn != null && sortColumn.size() > 0){
-			Object column = sortColumn.get(sortColumn.size()-1);
+			Object column = sortColumn.get(0);
 			if (column instanceof SpecialProject) {
 				seq = ((SpecialProject)column).getSequence();
 			} else if (column instanceof SpecialSubject) {
@@ -714,7 +710,7 @@ public class SpecialServiceImpl implements ISpecialService {
 			Collections.sort(sortList, (o1, o2) -> {
 				Integer seq1 = (Integer) o1.get("sequence");
 				Integer seq2 = (Integer) o2.get("sequence");
-				return seq1.compareTo(seq2);
+				return seq2.compareTo(seq1);
 			});
 			//sortList 排序过后的数据
 			//只排序当前层，排序过后的数据，按顺序取出并返回
@@ -859,14 +855,14 @@ public class SpecialServiceImpl implements ISpecialService {
 				mapperList = parentPage.getIndexTabMappers();
 			}
 			List<Object> sortColumn = this.sortColumn(new ArrayList<>(),mapperList, pageList, false,false);
-			int seq = 1;
+			int seq = sortColumn.size();
 			for (Object o : sortColumn) {
 				if (o instanceof SpecialProject) {
 					SpecialProject seqMapper = (SpecialProject) o;
 					if ((flag.equals(SpecialFlag.SpecialProjectFlag) && !moveMapper.getId().equals(seqMapper.getId()))
 							|| flag.equals(SpecialFlag.SpecialSubjectFlag)) {
 						seqMapper.setSequence(seq);
-						seq++;
+						seq--;
 						specialProjectRepository.saveAndFlush(seqMapper);
 					}
 				} else if (o instanceof SpecialSubject) {
@@ -874,7 +870,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					if ((flag.equals(SpecialFlag.SpecialSubjectFlag) && !movePage.getId().equals(seqPage.getId()))
 							|| flag.equals(SpecialFlag.SpecialProjectFlag)) {
 						seqPage.setSequence(seq);
-						seq++;
+						seq--;
 						specialSubjectRepository.saveAndFlush(seqPage);
 					}
 				}
@@ -885,8 +881,49 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 	}
 
+
+	@Transactional
+	@Override
+	public void insertPropectToLast(String parentId,User user){
+		List<SpecialProject> mapperList = null;
+		List<SpecialSubject> pageList = null;
+		if (StringUtil.isEmpty(parentId)) {
+			//无父分组，则为一级，直接获取一级的内容
+			Map<String, Object> oneColumn = getOneLevelColumnForMap(user);
+			if (oneColumn.containsKey("page")) {
+				pageList = (List<SpecialSubject>) oneColumn.get("page");
+			}
+			if (oneColumn.containsKey("tab")) {
+				mapperList = (List<SpecialProject>) oneColumn.get("tab");
+			}
+		} else {
+			SpecialSubject parentPage = specialSubjectRepository.findOne(parentId);
+			pageList = parentPage.getChildrenPage();
+			mapperList = parentPage.getIndexTabMappers();
+		}
+		List<Object> sortColumn = this.sortColumn(new ArrayList<>(),mapperList, pageList, false,false);
+		int seq = sortColumn.size()+1;
+		for (Object o : sortColumn) {
+			if (o instanceof SpecialProject) {
+				SpecialProject seqMapper = (SpecialProject) o;
+
+					seqMapper.setSequence(seq);
+					seq--;
+					specialProjectRepository.saveAndFlush(seqMapper);
+
+			} else if (o instanceof SpecialSubject) {
+				SpecialSubject seqPage = (SpecialSubject) o;
+
+					seqPage.setSequence(seq);
+					seq--;
+					specialSubjectRepository.saveAndFlush(seqPage);
+
+			}
+		}
+	}
+
 	public Map<String,Object> getOneLevelColumnForMap(User loginUser){
-		Sort sort = new Sort(Sort.Direction.ASC,"sequence");
+		Sort sort = new Sort(Sort.Direction.DESC,"sequence");
 		Specification<SpecialSubject> criteria_page = new Specification<SpecialSubject>(){
 
 			@Override
@@ -1254,9 +1291,9 @@ public class SpecialServiceImpl implements ISpecialService {
 			}
 			JSONArray array = JSONArray.parseArray(data);
 			List<Object> filter = array.stream().filter(json -> topFlag.equals(JSONObject.parseObject(String.valueOf(json)).getBoolean("topFlag")) ).collect(Collectors.toList());
-			Integer sequence = 0;
+			Integer sequence = filter.size();
 			for (Object json : filter) {
-				sequence += 1;
+
 				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
 				String id = parseObject.getString("id");
 				//如果是分组为0 ，如果是栏目为1
@@ -1281,6 +1318,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					indexTab.setSequence(sequence);
 						specialProjectRepository.save(indexTab);
 				}
+				sequence -= 1;
 			}
 			specialProjectRepository.flush();
 			specialSubjectRepository.flush();

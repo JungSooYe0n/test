@@ -14,6 +14,7 @@ import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
@@ -87,20 +88,21 @@ public class SpecialProject extends BaseEntity {
 	 */
 	@Column(name = "exclude_word_index", columnDefinition = "TEXT")
 	private String excludeWordIndex = "1";
-//	public String getExcludeWordIndex(){
-//		if(StringUtil.isEmpty(this.excludeWordIndex)){
-//			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
-//				return "1";
-//			}
-//			if(SearchScope.TITLE.equals(this.searchScope)){//标题
-//				return "0";
-//			}
-//			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
-//				return "2";
-//			}
-//		}
-//		return this.excludeWordIndex;
-//	}
+	public String getExcludeWordIndex(){
+		if(StringUtil.isEmpty(this.excludeWordIndex)){
+			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
+				return "1";
+			}
+			if(SearchScope.TITLE.equals(this.searchScope)){//标题
+				return "0";
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
+				return "2";
+			}
+			return "1";
+		}
+		return this.excludeWordIndex;
+	}
 
 	/**
 	 * 排除网站
@@ -221,6 +223,12 @@ public class SpecialProject extends BaseEntity {
 	 * 置顶（新提出置顶字段）
 	 */
 	private String topFlag;
+
+	/**
+	 * 上级id备份，主要是为了置顶存在，置顶元素取消置顶时回到原来分组下
+	 */
+	@Column(name = "bak_parent_id")
+	private String bakParentId;
 
 	/**
 	 * 是否排重
@@ -655,8 +663,9 @@ public class SpecialProject extends BaseEntity {
 					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
 				}
 			}
+			String excludeIndex = this.getExcludeWordIndex();
 			//拼凑排除词
-			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeWordIndex);
+			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
 			if(StringUtil.isNotEmpty(excludeWordTrsl)){
 				queryBuilder.filterByTRSL(excludeWordTrsl);
 			}
@@ -717,9 +726,11 @@ public class SpecialProject extends BaseEntity {
 					queryBuilder.filterByTRSL(Const.OCR_NOT_INCLUDE);
 				}
 			}
-			// 阅读标记
-			if (StringUtils.isNoneBlank(read) && !"ALL".equals(read)) {
-
+			//	阅读标记	已读/未读
+			if ("已读".equals(read)){//已读
+				queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+			}else if ("已读".equals(read)){//未读
+				queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
 			}
 			// 精准筛选
 			if (StringUtils.isNoneBlank(preciseFilter) && !"ALL".equals(preciseFilter)) {
