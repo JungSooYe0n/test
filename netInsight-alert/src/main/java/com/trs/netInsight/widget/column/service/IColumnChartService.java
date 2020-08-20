@@ -13,7 +13,23 @@ public interface IColumnChartService {
      * @param id 栏目id
      * @return
      */
-    Object getColumnChart(String id);
+    //Object getColumnChart(String id);
+
+    /**
+     * 获取当前栏目对应的所有图表，包括统计分析图表和自定义图表
+     *
+     * @param id 栏目id
+     * @return
+     */
+    Object getCustomChart(String id,int pageNo,int pageSize);
+
+    /**
+     * 获取当前栏目对应的所有图表，包括统计分析图表和自定义图表
+     *
+     * @param id 栏目id
+     * @return
+     */
+    Object getStatisticalChart(String id);
 
     /**
      * 获取当前分组对应的所有置顶的栏目和图表 栏目+自定义图表+ 统计分析图表
@@ -21,7 +37,7 @@ public interface IColumnChartService {
      * @param pageId 分组id
      * @return
      */
-    Object getTopColumnChartForPage(String pageId);
+    Object getTopColumnChartForPage(String pageId,int pageNo,int pageSize);
 
     /**
      * 初始化统计图表信息

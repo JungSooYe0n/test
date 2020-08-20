@@ -10,7 +10,7 @@ public interface ISpecialCustomChartService {
      * @param id
      * @return
      */
-    Object getCustomChart(String id);
+    Object getCustomChart(String id,int pageNo,int pageSize);
 
     /**
      * 获取当前专题分析栏目id下的自定义图表个数

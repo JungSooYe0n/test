@@ -115,7 +115,7 @@ public class CommonListChartUtil {
         String[] medias = newXyTrsl.split("[;|；]");
         if (medias.length > 0) {
             for (String str : medias) {
-                if (StringUtils.isNotBlank(str)) {
+                if (StringUtils.isNotBlank(str) && str.indexOf("=") != -1) {
                     String key = str.substring(0, str.indexOf("="));
                     String val = str.substring(str.indexOf("=") + 1, str.length());
                     list.add(new CategoryBean(key, val));

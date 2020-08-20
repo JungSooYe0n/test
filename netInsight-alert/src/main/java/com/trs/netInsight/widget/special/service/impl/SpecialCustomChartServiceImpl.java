@@ -32,6 +32,9 @@ import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -52,16 +55,17 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
     private CustomChartRepository customChartRepository;
 
     @Override
-    public Object getCustomChart(String id) {
+    public Object getCustomChart(String id,int pageNo,int pageSize) {
         if (StringUtil.isEmpty(id)) {
             return null;
         }
         Sort sort = new Sort(Sort.Direction.ASC, "sequence");
-        List<SpecialCustomChart> chartList = specialCustomChartRepository.findByParentId(id, sort);
+        Pageable pageable = new PageRequest(pageNo,pageSize,sort);
+        Page<SpecialCustomChart> chartPage = specialCustomChartRepository.findByParentId(id, pageable);
         List<Object> result = null;
-        if (chartList != null && chartList.size() > 0) {
+        if (chartPage != null &&chartPage.getContent() != null && chartPage.getContent().size() > 0) {
             result = new ArrayList<>();
-            for (SpecialCustomChart chart : chartList) {
+            for (SpecialCustomChart chart : chartPage.getContent()) {
                 Map<String, Object> chartMap = new HashMap<>();
                 chartMap.put("id", chart.getId());
                 chartMap.put("name", chart.getName());
@@ -103,6 +107,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
 
                 result.add(chartMap);
             }
+            return new PagedList<Object>(result,pageNo,
+                    pageSize, (int)chartPage.getTotalElements());
         }
         return result;
     }
