@@ -1,5 +1,6 @@
 package com.trs.netInsight.support.hybaseRedis;
 
+import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.support.api.entity.ApiAccessToken;
 import com.trs.netInsight.support.api.exception.ApiException;
 import com.trs.netInsight.support.api.handler.Api;
@@ -50,8 +51,8 @@ public class HybaseReadAround {
      */
     @Around("@annotation(hybaseRead)")
     public Object before(ProceedingJoinPoint point, HybaseRead hybaseRead) throws Throwable {
-        Object result = null;
         try {
+            Object result = null;
             User user = UserUtils.getUser();
             // 获取参数列表及参数值
             Object[] paramValues = point.getArgs();
@@ -115,11 +116,12 @@ public class HybaseReadAround {
                 RedisUtil.setObject(redisKey,result);
                 RedisUtil.setString(redisKeyAddTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
             }
-
+            return result;
         } catch (Exception e) {
             log.error("Api调用失败,请返回重试或联系管理员!e=[" + e.getMessage() + "]", e);
+            throw new TRSException("检索Hybase失败："+ e);
         }
-        return result;
+        //return result;
     }
     public String getParamsStr(Object[] paramValues){
         StringBuilder sb = new StringBuilder();
