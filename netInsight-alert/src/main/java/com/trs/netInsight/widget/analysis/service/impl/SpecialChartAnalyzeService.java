@@ -921,7 +921,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				break;
 			case Const.NETIZEN_VIEW:
 				//微博+微信  这里我先查微博 再查微信
-				groupNames = "微博";
+				groupNames = "微信";
 				break;
 		}
 		User user = UserUtils.getUser();
@@ -931,7 +931,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		log.info("观点分析海贝查询所需时间" + time);
 		if (infoListResult == null || infoListResult.getContent() == null) {
 			if (viewType.equals(Const.NETIZEN_VIEW)){
-				 infoListResult = commonListService.queryPageListForHot(builder, "微信", user, "special", false);
+				 infoListResult = commonListService.queryPageListForHot(builder, "微博", user, "special", false);
 				if (infoListResult == null || infoListResult.getContent() == null) {
 					return null;
 				}
@@ -947,7 +947,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
 		for (FtsDocumentCommonVO vo : voList) {
 			map = new HashMap<>();
-			String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+//			String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
 			if (ObjectUtil.isNotEmpty(vo.getTitle())) {
 				map.put("name", StringUtil.replaceFont(vo.getTitle()));
 				map.put("value", String.valueOf(vo.getSimCount()));
@@ -5831,6 +5831,9 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 		List<Map<String, Object>> list1 = null;
 		try {
 			list1 = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,groupName,"",ESFieldConst.IR_APPRAISE,"special",chartResultField);
+		if (ObjectUtil.isEmpty(list1)){
+			return null;
+		}
 		} catch (TRSException e) {
 			e.printStackTrace();
 		}
