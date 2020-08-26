@@ -85,6 +85,8 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 	
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
+	@Value("${netinsight.url}")
+	private String netinsightUrl;
 
 	/**
 	 * 发送预警
@@ -108,16 +110,18 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 			List<Map<String, String>> list = (List<Map<String, String>>) map.get("listMap");
 			int size = (int) map.get("size");
 			log.error("receivers信息："+receivers+"，sendAll传入userId："+userId);
+			User findByUserName = null;
 			try {
-				User ceshiUser = this.findByUserName(receivers);
+				findByUserName = this.findByUserName(receivers);
 			} catch (Exception e) {
 				log.error("findByUserName查询失败！receivers信息是："+receivers+"findById查询所得userName为："+userName);
 			}
 			switch (send) {
 			case EMAIL:
-				User findByUserName = findByUserName(receivers);
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				
+				String emailNetinsightUrl = netinsightUrl;
+				emailNetinsightUrl = emailNetinsightUrl.substring(0,emailNetinsightUrl.lastIndexOf("//")+1);
+				map.put("url", emailNetinsightUrl);
 				if (findByUserName != null) {
 					//计算今天与到期时间差多少
 					String expireAt = findByUserName.getExpireAt();
@@ -187,8 +191,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					record.addColumn(FtsFieldConst.FIELD_RECEIVER,receivers);
 
 					List<String> messageList = new ArrayList<>();
-					// 通过用户名
-					User findByUserNameWE_CHAT = this.findByUserName(receivers);
+
 					Environment env = SpringUtil.getBean(Environment.class);
 					String netinsightUrl = env.getProperty(Const.NETINSIGHT_URL);
 
@@ -206,8 +209,8 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 										userName);
 
 					List<AlertAccount> accountList = new ArrayList<>();
-					if (findByUserNameWE_CHAT != null) {
-						accountList = alertAccountService.findByUserIdAndType(findByUserNameWE_CHAT.getId(), SendWay.WE_CHAT);
+					if (findByUserName != null) {
+						accountList = alertAccountService.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
 					}else{//直接传的微信号   这个人没停止预警  就发  停止预警就不发
 						//通过微信号查alertaccount中的active  true发  false不发
 						AlertAccount alertaccount = alertAccountService.findByAccountAndUserIdAndType(receivers,userId, SendWay.WE_CHAT);
