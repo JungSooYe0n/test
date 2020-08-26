@@ -137,6 +137,7 @@ public class IndexTabDTO implements Serializable {
         this.contentIndustry= tab.getContentIndustry();
         this.filterInfo=tab.getFilterInfo();
         this.contentArea=tab.getContentArea();
+        this.mediaArea=tab.getMediaArea();
 
         if("top".equals(mapper.getTopFlag())){
             this.topFlag = true;
