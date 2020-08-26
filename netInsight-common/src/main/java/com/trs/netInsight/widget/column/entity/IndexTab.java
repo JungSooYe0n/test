@@ -13,10 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * 三级栏目（图）实体类
@@ -44,7 +41,18 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 */
 	@Column(name = "special_type")
 	@ApiModelProperty(notes = "专项类型")
+	@Enumerated(EnumType.ORDINAL)
 	private SpecialType specialType;
+	public SpecialType getSpecialType(){
+		if(this.specialType == null) {
+			if (StringUtil.isNotEmpty(this.getXyTrsl()) || StringUtil.isNotEmpty(this.getTrsl())) {
+				this.specialType = SpecialType.SPECIAL;
+			} else {
+				this.specialType = SpecialType.COMMON;
+			}
+		}
+		return this.specialType;
+	}
 
 	@Column(name = "trsl", columnDefinition = "TEXT")
 	private String trsl;// trs表达式
@@ -55,7 +63,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	// private ColumnType type;//图表类型
 	@Column(name = "type")
 	private String type;// 图表类型
-	
+
 	/**
 	 * 分类对比类型
 	 */

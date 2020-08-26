@@ -69,14 +69,18 @@ public class SpecialCustomChartController {
     @RequestMapping(value = "/selectSpecialChartList", method = RequestMethod.GET)
     @ApiOperation("查找当前专题分析对应的图表 - 自定义图表")
     public Object selectTabChartList(HttpServletRequest request,
-                                     @ApiParam("专题分析栏目id") @RequestParam(value = "id") String id)
+                                     @ApiParam("专题分析栏目id") @RequestParam(value = "id") String id,
+                                     @ApiParam("当前页显示多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                     @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo)
             throws TRSException {
         User user = UserUtils.getUser();
         SpecialProject specialProject = specialProjectService.findOne(id);
         if (ObjectUtil.isEmpty(specialProject)) {
             throw new TRSException(CodeUtils.FAIL,"当前专题栏目不存在");
         }
-        Object result = specialCustomChartService.getCustomChart(id);
+        pageNo = pageNo < 0 ? 0 : pageNo;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+        Object result = specialCustomChartService.getCustomChart(id,pageNo,pageSize);
         return result;
     }
 

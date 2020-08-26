@@ -11,9 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * 日常监测自定义图表实体类
@@ -38,7 +36,18 @@ public class CustomChart extends BaseEntity {
      */
     @Column(name = "special_type")
     @ApiModelProperty(notes = "专项类型")
+    @Enumerated(EnumType.ORDINAL)
     private SpecialType specialType;
+    public SpecialType getSpecialType(){
+        if(this.specialType == null) {
+            if (StringUtil.isNotEmpty(this.getXyTrsl()) || StringUtil.isNotEmpty(this.getTrsl())) {
+                this.specialType = SpecialType.SPECIAL;
+            } else {
+                this.specialType = SpecialType.COMMON;
+            }
+        }
+        return this.specialType;
+    }
 
     @Column(name = "trsl", columnDefinition = "TEXT")
     private String trsl;// trs表达式

@@ -55,6 +55,30 @@ public class ColumnChartController {
     @Autowired
     private IColumnChartService columnChartService;
 
+    /**
+     * 查找当前栏目对应的图表 - 统计分析图表+自定义图表
+     *
+     * @param request
+     * @param id
+     * @return
+     * @throws TRSException
+     */
+    @FormatResult
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_TAB_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前栏目对应的统计分析图表：${id}")
+    @RequestMapping(value = "/selectTabStatisticalChartList", method = RequestMethod.GET)
+    @ApiOperation("查找当前栏目对应的统计分析图表")
+    public Object selectTabStatisticalChartList(HttpServletRequest request,
+                                     @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id,
+                                     @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
+            throws TRSException {
+        User user = UserUtils.getUser();
+        IndexTabMapper mapper = indexTabMapperService.findOne(id);
+        if (ObjectUtil.isEmpty(mapper)) {
+            throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
+        }
+        Object result = columnChartService.getStatisticalChart(id);
+        return result;
+    }
 
     /**
      * 查找当前栏目对应的图表 - 统计分析图表+自定义图表
@@ -65,19 +89,23 @@ public class ColumnChartController {
      * @throws TRSException
      */
     @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_TAB_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前栏目对应的图表 - 统计分析图表+自定义图表：${id}")
-    @RequestMapping(value = "/selectTabChartList", method = RequestMethod.GET)
-    @ApiOperation("查找当前栏目对应的图表 - 统计分析图表+自定义图表")
-    public Object selectTabChartList(HttpServletRequest request,
-                                     @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id,
-                                     @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_TAB_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前栏目对应的自定义图表：${id}")
+    @RequestMapping(value = "/selectTabCustomChartList", method = RequestMethod.GET)
+    @ApiOperation("查找当前栏目对应的自定义图表")
+    public Object selectTabCustomChartList(HttpServletRequest request,
+                                           @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id,
+                                           @ApiParam("当前页显示多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                           @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
+                                           @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
             throws TRSException {
         User user = UserUtils.getUser();
         IndexTabMapper mapper = indexTabMapperService.findOne(id);
         if (ObjectUtil.isEmpty(mapper)) {
             throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
         }
-        Object result = columnChartService.getColumnChart(id);
+        pageNo = pageNo < 0 ? 0 : pageNo;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+        Object result = columnChartService.getCustomChart(id,pageNo,pageSize);
         return result;
     }
 
@@ -95,6 +123,8 @@ public class ColumnChartController {
     @ApiOperation("查找当前分组下所要显示的豆腐块缩略图 - 栏目+统计分析+自定义图表被置顶的数据")
     public Object selectPageTopChartList(HttpServletRequest request,
                                          @ApiParam("栏目分组id") @RequestParam(value = "id") String id,
+                                         @ApiParam("当前页显示多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                         @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
                                          @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
             throws TRSException {
         User user = UserUtils.getUser();
@@ -103,7 +133,9 @@ public class ColumnChartController {
         if (ObjectUtil.isEmpty(indexPage)) {
             throw new TRSException(CodeUtils.FAIL,"当前分组不存在");
         }
-        Object result = columnChartService.getTopColumnChartForPage(id);
+        pageNo = pageNo < 0 ? 0 : pageNo;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+        Object result = columnChartService.getTopColumnChartForPage(id,pageNo,pageSize);
         return result;
     }
 

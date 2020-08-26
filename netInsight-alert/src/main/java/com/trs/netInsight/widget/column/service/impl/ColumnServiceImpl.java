@@ -33,6 +33,8 @@ import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.entity.IndexTabType;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import com.trs.netInsight.widget.column.entity.pageShow.IndexPageDTO;
+import com.trs.netInsight.widget.column.entity.pageShow.IndexTabDTO;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
@@ -461,7 +463,7 @@ public class ColumnServiceImpl implements IColumnService {
 	 * @param isGetOne  是否找到了要显示的第一个栏目
 	 * @return
 	 */
-	private Object formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne ,Object returnResult) {
+	private Object formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne ,IndexPageDTO returnResult) {
 		//前端需要字段
 		/*
 		id
@@ -471,117 +473,33 @@ public class ColumnServiceImpl implements IColumnService {
 		show
 		children
 		 */
-		Map<String,Object> topMap = new HashMap<>();
-		if(returnResult != null){
-			topMap= (Map<String,Object>) returnResult;
-		}
 		List<Object> result = new ArrayList<>();
-		Map<String, Object> map = null;
 		if (list != null && list.size() > 0) {
 			for (Object obj : list) {
-				map = new HashMap<>();
 				if (obj instanceof IndexTabMapper) {
-
 					IndexTabMapper mapper = (IndexTabMapper) obj;
-					IndexTab tab = mapper.getIndexTab();
-					map.put("id", mapper.getId());
-					map.put("name", tab.getName());
-					map.put("columnType", tab.getSpecialType());
-					map.put("flag", ColumnFlag.IndexTabFlag.ordinal());
-					map.put("flagSort", level);
-					map.put("show", false);//前端需要，与后端无关
-					map.put("hide", mapper.isHide());
-					map.put("isMe", mapper.isMe());
-					map.put("share", mapper.getShare());
-
-					map.put("type", tab.getType());
-					map.put("contrast", tab.getContrast());
-					map.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
-
-					//获取词距信息
-					String keywordJson = tab.getKeyWord();
-					map.put("updateWordForm", false);
-					map.put("wordFromNum", 0);
-					map.put("wordFromSort",false);
-					if(StringUtil.isNotEmpty(keywordJson)){
-						JSONArray jsonArray = JSONArray.parseArray(keywordJson);
-						//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
-						if(jsonArray!= null && jsonArray.size() ==1 ){
-							Object o = jsonArray.get(0);
-							JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
-							String key = jsonObject.getString("keyWords");
-							if(StringUtil.isNotEmpty(key) && key.contains(",")){
-								String wordFromNum = jsonObject.getString("wordSpace");
-								Boolean wordFromSort = jsonObject.getBoolean("wordOrder");
-								map.put("updateWordForm", true);
-								map.put("wordFromNum", wordFromNum);
-								map.put("wordFromSort",wordFromSort);
-							}
-						}
-					}
-					map.put("keyWord", keywordJson);
-					map.put("keyWordIndex", tab.getKeyWordIndex());
-					map.put("weight", tab.isWeight());
-					map.put("excludeWords", tab.getExcludeWords());
-					map.put("excludeWordsIndex", tab.getExcludeWordIndex());
-					map.put("excludeWeb", tab.getExcludeWeb());
-					map.put("monitorSite", tab.getMonitorSite());
-					//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
-					if (tab.isSimilar()) {
-						map.put("simflag", "netRemove");
-					} else if (tab.isIrSimflag()) {
-						map.put("simflag", "urlRemove");
-					} else if (tab.isIrSimflagAll()) {
-						map.put("simflag", "sourceRemove");
-					}
-					map.put("tabWidth", mapper.getTabWidth());
-					map.put("timeRange", tab.getTimeRange());
-					map.put("trsl", tab.getTrsl());
-					map.put("xyTrsl", tab.getXyTrsl());
-
-					map.put("mediaLevel", tab.getMediaLevel());
-					map.put("mediaIndustry", tab.getMediaIndustry());
-					map.put("contentIndustry", tab.getContentIndustry());
-					map.put("filterInfo", tab.getFilterInfo());
-					map.put("contentArea", tab.getContentArea());
-					map.put("mediaArea", tab.getMediaArea());
-
-					map.put("active", false);
-
+					IndexTabDTO indexTabDTO = new IndexTabDTO(mapper,level);
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						isGetOne.set(0,true);
 						if(returnResult == null){
-							map.put("active", true);
+							indexTabDTO.setActive(true);
 							isGetOne.set(0,true);
 						}else{
-							topMap.put("active", true);
+							returnResult.setActive(true);
 						}
 					}
-					if("top".equals(mapper.getTopFlag())){
-						map.put("topFlag", true);
-					}else{
-						map.put("topFlag", false);
-					}
+					result.add(indexTabDTO);
+
 				} else if (obj instanceof IndexPage) {
 					IndexPage page = (IndexPage) obj;
-					map.put("id", page.getId());
-					map.put("name", page.getName());
-					map.put("flag", ColumnFlag.IndexPageFlag.ordinal());
-					map.put("flagSort", level);
-					map.put("show", false);//前端需要，与后端无关
-					map.put("hide", page.isHide());
-					map.put("active", false);
+					IndexPageDTO indexPageDTO = new IndexPageDTO(page,level);
 					List<Object> childColumn = page.getColumnList();
-
-					Object child = null;
-					map.put("children", child);
 					if (childColumn != null && childColumn.size() > 0) {
-						child = this.formatResultColumn(childColumn,level+1,isGetOne,map);
-						map.put("children", child);
+						Object child = this.formatResultColumn(childColumn,level+1,isGetOne,indexPageDTO);
+						indexPageDTO.setChildren(child);
 					}
-					map.put("topFlag", false);
+					result.add(indexPageDTO);
 				}
-				result.add(map);
 			}
 		}
 		return result;
