@@ -6791,7 +6791,7 @@ public class InfoListServiceImpl implements IInfoListService {
 							channelBuilder.filterField(FtsFieldConst.FIELD_CHANNEL_INDUSTRY, channelString, Operator.Equal);
 						}
 						//在channel的基础上再加上groupName
-						channelBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupNameInResult, Operator.Equal);
+//						channelBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupNameInResult, Operator.Equal);
 					} else if (StringUtil.isNotEmpty(siteName)) {//channelIndustry为空时查同sitename下最新五篇
 						channelBuilder.filterField(FtsFieldConst.FIELD_SITENAME, siteName, Operator.Equal);
 					}
