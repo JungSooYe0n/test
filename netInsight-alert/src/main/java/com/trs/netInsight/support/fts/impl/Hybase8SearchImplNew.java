@@ -66,6 +66,8 @@ public class Hybase8SearchImplNew implements FullTextSearch {
 
     @Autowired
     private IKnowledgeBaseService knowledgeBaseService;
+    //@Autowired
+    //private RecordSearchTimeUtil recordSearchTimeUtil;
 
     @Value("${system.hybase.search.irSimflag.open}")
     private boolean irSimflagOpen;
@@ -344,10 +346,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if(!verifyFilterTime(searchParams)){
                 return null;
             }
+            //recordSearchTimeUtil.setSearchStartTime(startHybase);
             TRSResultSet resultSet = connection.executeSelect(db, trsl, from, recordNum, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
             long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             int queryTime = (int) (endHybase - startHybase);
             queryTime(startHybase, endHybase, trsl, queryTime, connectTime, db, connection.getURL());
             List<T> entities = new ArrayList<>();
@@ -363,6 +368,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
                     + "],size:[" + pageSize + "]", e);
+            //long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             throw new TRSSearchException("检索异常" + e, e);
         } finally {
             HybaseFactory.clean();
@@ -419,10 +427,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if(!verifyFilterTime(searchParams)){
                 return null;
             }
+            //recordSearchTimeUtil.setSearchStartTime(timeStart);
             TRSResultSet resultSet = connection.executeSelect(db, trsl, from, recordNum, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
             long timeEnd = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(timeEnd);
+            //recordSearchTimeUtil.printSearchTimeLog();
             int queryTime = (int) (timeEnd - timeStart);
             queryTime(timeStart, timeEnd, trsl, queryTime, connectTime, db, connection.getURL());
             if (StringUtil.isNotEmpty(query.getKeyRedis())) {
@@ -441,6 +452,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
                     + "],size:[" + pageSize + "]", e);
+            //long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             throw new com.trs.netInsight.handler.exception.TRSException("检索异常", e);
         } finally {
             HybaseFactory.clean();
@@ -484,10 +498,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if(!verifyFilterTime(searchParams)){
                 return null;
             }
+            //recordSearchTimeUtil.setSearchStartTime(timeStart);
             TRSResultSet resultSet = connection.executeSelectNoSort(db, trsl, from, recordNum, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
             long timeEnd = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(timeEnd);
+            //recordSearchTimeUtil.printSearchTimeLog();
             int queryTime = (int) (timeEnd - timeStart);
             queryTime(timeStart, timeEnd, trsl, queryTime, connectTime, db, connection.getURL());
             if (StringUtil.isNotEmpty(query.getKeyRedis())) {
@@ -504,6 +521,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to search by hybase: [" + trsl + "],page number:[" + pageNo + "],size:[" + pageSize + "]",
                     e);
+            //long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             throw new com.trs.netInsight.handler.exception.TRSException("检索异常", e);
         } finally {
             HybaseFactory.clean();
@@ -548,10 +568,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             long startHybase = new Date().getTime();
             String db = query.getDatabase();
             log.info(db);
+            //recordSearchTimeUtil.setSearchStartTime(startHybase);
             TRSResultSet resultSet = connection.executeSelect(db, trsl, from, recordNum, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
             long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             int queryTime = (int) (endHybase - startHybase);
             queryTime(startHybase, endHybase, trsl, queryTime, connectTime, db, connection.getURL());
             List<T> entities = new ArrayList<>();
@@ -567,6 +590,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
                     + "],size:[" + pageSize + "]", e);
+            long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             throw new TRSSearchException("检索异常", e);
         } finally {
             HybaseFactory.clean();
@@ -596,10 +622,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if(!verifyFilterTime(param)){
                 return 0;
             }
+            //recordSearchTimeUtil.setSearchStartTime(startHybase);
             TRSResultSet resultSet = client.executeSelect(db, similartrsl, 0, 1, param);
             // 系统日志记录
             systemLogRecord(similartrsl);
             long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             int queryTime = (int) (endHybase - startHybase);
             countTime(startHybase, endHybase, similartrsl, queryTime, connectTime, db, client.getURL());
             if (StringUtil.isNotEmpty(query.getKeyRedis())) {
@@ -608,6 +637,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             return resultSet.getNumFound();
         } catch (TRSException e) {
             log.error("Fail to count by hybase " + e.getMessage());
+            long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             return 0;
         } finally {
             HybaseFactory.clean();
@@ -638,10 +670,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if(!verifyFilterTime(param)){
                 return 0;
             }
+            //recordSearchTimeUtil.setSearchStartTime(startHybase);
             TRSResultSet resultSet = client.executeSelect(db, similarTrsl, 0, 1, param);
             // 系统日志记录
             systemLogRecord(similarTrsl);
             long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             int queryTime = (int) (endHybase - startHybase);
             countTime(startHybase, endHybase, similarTrsl, queryTime, connectTime, db, client.getURL());
             if (StringUtil.isNotEmpty(query.getKeyRedis())) {
@@ -650,6 +685,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             return resultSet.getNumFound();
         } catch (TRSException e) {
             log.error("Fail to count by hybase " + e.getMessage());
+            //long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             return 0;
         } finally {
             HybaseFactory.clean();
@@ -714,10 +752,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if(!verifyFilterTime(searchParams)){
                 return null;
             }
+            //recordSearchTimeUtil.setSearchStartTime(startHybase);
             TRSResultSet result = connection.categoryQuery(db, trsl, "", groupField, limit, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
             long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
 
             int queryTime = (int) (endHybase - startHybase);
             categoryTime(startHybase, endHybase, trsl, queryTime, connectTime, db, groupField, connection.getURL());
@@ -734,6 +775,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to statistic by Hybase: [" + trsl + "],statisticOnField:[" + groupField + "],topN:[" + limit
                     + "]", e);
+            //long endHybase = new Date().getTime();
+            //recordSearchTimeUtil.setSearchEndTime(endHybase);
+            //recordSearchTimeUtil.printSearchTimeLog();
             throw new TRSSearchException("分类统计失败", e);
         } finally {
             HybaseFactory.clean();
@@ -1643,6 +1687,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                           String linked) {
         long id = Thread.currentThread().getId();
 
+        RecordSearchTimeUtil.printSearchTime(time,trsl,connectTime,db,linked);
         LogPrintUtil loginpool = RedisUtil.getLog(Thread.currentThread().getId());
         if (null != loginpool) {
             List<LogEntity> logList = loginpool.getLogList();
@@ -1675,6 +1720,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                              String field, String linked) {
         long id = Thread.currentThread().getId();
 
+        RecordSearchTimeUtil.printSearchTime(time,trsl,connectTime,db,linked);
         LogPrintUtil loginpool = RedisUtil.getLog(id);
         if (null != loginpool) {
             List<LogEntity> logList = loginpool.getLogList();
@@ -1709,7 +1755,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                           String linked) {
 
         long id = Thread.currentThread().getId();
-
+        RecordSearchTimeUtil.printSearchTime(time,trsl,connectTime,db,linked);
         LogPrintUtil loginpool = RedisUtil.getLog(id);
         if (null != loginpool) {
             List<LogEntity> logList = loginpool.getLogList();

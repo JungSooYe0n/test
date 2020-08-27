@@ -2,6 +2,8 @@ package com.trs.netInsight.support.fts.model.factory;
 
 import com.trs.hybase.client.TRSConnection;
 import com.trs.hybase.client.params.ConnectParams;
+import com.trs.netInsight.util.RecordSearchTimeUtil;
+import com.trs.netInsight.util.SpringUtil;
 import com.trs.netInsight.util.StringUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -132,6 +134,8 @@ public class HybaseFactory {
 			//log.info("hybase 链接IP ************************ "+link);
 			//System.out.println("hybase 链接IP ---------- "+link);
 			String serverList = assemblyServerList(host, port, link);
+			//RecordSearchTimeUtil recordSearchTimeUtil = SpringUtil.getBean(RecordSearchTimeUtil.class);
+			//recordSearchTimeUtil.setHybaseServerInfo(serverList);
 			connection = new TRSConnection(serverList, userName, password, new ConnectParams());
 			setClient(connection);
 		}
