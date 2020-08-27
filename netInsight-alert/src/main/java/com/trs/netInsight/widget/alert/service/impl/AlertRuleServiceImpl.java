@@ -1596,8 +1596,12 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 					String string = split[i];
 					SendWay sendValue = SendWay.valueOf(string);
 					String[] splitWeb = receivers.split(";");
-					// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
-					noticeSendService.sendAll(sendValue, "mailmess2.ftl", content, map, splitWeb[i], userId, AlertSource.ARTIFICIAL);
+					try {
+						// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
+						noticeSendService.sendAll(sendValue, "mailmess2.ftl", content, map, splitWeb[i], userId, AlertSource.ARTIFICIAL);
+					}catch (Exception e){
+						log.error("手动预警发送失败：发送方式为："+sendValue+"标题为："+content+"发送用户信息为："+userId);
+					}
 				}
 			}
 		}
