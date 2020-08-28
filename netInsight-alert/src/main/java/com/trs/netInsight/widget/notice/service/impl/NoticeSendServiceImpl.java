@@ -120,7 +120,8 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 			case EMAIL:
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				String emailNetinsightUrl = netinsightUrl;
-				emailNetinsightUrl = emailNetinsightUrl.substring(0,emailNetinsightUrl.lastIndexOf("//")+1);
+				int index = emailNetinsightUrl.lastIndexOf("/netInsight");
+				emailNetinsightUrl = emailNetinsightUrl.substring(0,index);
 				map.put("url", emailNetinsightUrl);
 				if (findByUserName != null) {
 					//计算今天与到期时间差多少

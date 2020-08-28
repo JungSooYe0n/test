@@ -131,11 +131,7 @@ public class HybaseFactory {
 			}
 			List<String> asList = Arrays.asList(split);
 			String link = asList.get(nextInt);
-			//log.info("hybase 链接IP ************************ "+link);
-			//System.out.println("hybase 链接IP ---------- "+link);
 			String serverList = assemblyServerList(host, port, link);
-			//RecordSearchTimeUtil recordSearchTimeUtil = SpringUtil.getBean(RecordSearchTimeUtil.class);
-			//recordSearchTimeUtil.setHybaseServerInfo(serverList);
 			connection = new TRSConnection(serverList, userName, password, new ConnectParams());
 			setClient(connection);
 		}
