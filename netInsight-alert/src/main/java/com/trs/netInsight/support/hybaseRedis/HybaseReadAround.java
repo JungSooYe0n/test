@@ -68,7 +68,7 @@ public class HybaseReadAround {
             long alreadyAddMin = 1000l;
             if(addTime != null) alreadyAddMin = DateUtil.getDateTimeMin(addTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"),"min");
 //          // redis有数据并且小于10分钟直接去redis数据
-            if(rt != null && alreadyAddMin<1){
+            if(rt != null && alreadyAddMin<10){
                 log.info("从redis获取该信息----------");
                 if(returnClazz == java.lang.Long.class ){
                     rt = Long.parseLong(rt.toString());
