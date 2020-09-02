@@ -7,6 +7,7 @@ import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
@@ -608,4 +609,56 @@ public class AlertRule extends BaseEntity {
 		}
 		return searchBuilder;
 	}
+
+	public String getAlertRuleTrsl() throws OperationException {
+		QueryCommonBuilder queryCommonBuilder = this.toSearchBuilderCommon(null);
+		String queryTrsl = queryCommonBuilder.asTRSL();
+		if (queryTrsl.contains(FtsFieldConst.FIELD_HYLOAD_TIME)) {
+			int indexTime = queryTrsl.indexOf(FtsFieldConst.FIELD_HYLOAD_TIME);
+			queryTrsl = queryTrsl.substring(indexTime, indexTime);
+		}
+		if (StringUtil.isNotEmpty(this.getGroupName())) {
+			String[] groupArr = this.getGroupName().split(";");
+			String groupTrsl = StringUtils.join(groupArr, " OR ");
+			queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
+		}
+		return queryTrsl;
+
+	}
+	public String getQueryHybaseDataBase(){
+		String database = Const.MIX_DATABASE;
+		switch (specialType) {
+			case COMMON:
+				String[] databaseArr = TrslUtil.chooseDatabases(this.getGroupName().split(";"));
+				List<String> dataList = new ArrayList<>();
+				for(String data :databaseArr){
+					if(StringUtil.isNotEmpty(data)){
+						dataList.add(data);
+					}
+				}
+				database = StringUtils.join(dataList,";");
+				break;
+			case SPECIAL:
+				List<String> dataListS = new ArrayList<>();
+				if(this.trsl != null && !"".equals(this.trsl)){
+					dataListS.add(Const.HYBASE_NI_INDEX);
+					dataListS.add(Const.HYBASE_OVERSEAS);
+				}
+				if(this.statusTrsl != null && !"".equals(this.statusTrsl)){
+					dataListS.add(Const.WEIBO);
+				}
+				if(this.weChatTrsl != null && !"".equals(this.weChatTrsl)){
+					dataListS.add(Const.WECHAT_COMMON);
+				}
+				database = StringUtils.join(dataListS,";");
+				break;
+			default:
+				break;
+		}
+		return database;
+	}
+
+
+
+
 }

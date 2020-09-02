@@ -22,11 +22,11 @@ import com.trs.netInsight.support.hybaseShard.entity.HybaseShard;
 import com.trs.netInsight.support.hybaseShard.service.IHybaseShardService;
 import com.trs.netInsight.support.knowledgeBase.entity.KnowledgeBase;
 import com.trs.netInsight.support.knowledgeBase.entity.KnowledgeClassify;
-import com.trs.netInsight.support.knowledgeBase.service.IKnowledgeBaseService;
+import com.trs.netInsight.support.knowledgeBase.repository.KnowledgeBaseRepository;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.article.entity.ArticleDelete;
 import com.trs.netInsight.widget.article.entity.enums.ArticleDeleteGroupName;
-import com.trs.netInsight.widget.article.service.IArticleDeleteService;
+import com.trs.netInsight.widget.article.repository.ArticleDeleteRepository;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
@@ -35,6 +35,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -56,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 public class Hybase8SearchImplNew implements FullTextSearch {
 
     @Autowired
-    private IArticleDeleteService articleDeleteService;
+    private ArticleDeleteRepository articleDeleteRepository;
 
     @Autowired
     private OrganizationRepository organizationRepository;
@@ -65,13 +68,27 @@ public class Hybase8SearchImplNew implements FullTextSearch {
     private IHybaseShardService hybaseShardService;
 
     @Autowired
-    private IKnowledgeBaseService knowledgeBaseService;
+    private KnowledgeBaseRepository knowledgeBaseRepository;
 
     @Value("${system.hybase.search.irSimflag.open}")
     private boolean irSimflagOpen;
 
     private static final int MAX_PAGE_SIZE = 512 * 2;
-
+    private List<KnowledgeBase> findByClassify(KnowledgeClassify classify) {
+        if(ObjectUtil.isEmpty(classify)){
+            return knowledgeBaseRepository.findAll();
+        }
+        return knowledgeBaseRepository.findByClassify(classify);//后期写上分类
+    }
+    private Page<ArticleDelete> findByGroupNameAndUserId(ArticleDeleteGroupName groupName, User user, int pageNo, int pageSize) {
+        Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+        Pageable pageable = new PageRequest(pageNo, pageSize, sort);
+        if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
+            return articleDeleteRepository.findByGroupNameAndUserId(groupName, user.getId(), pageable);
+        }else {
+            return articleDeleteRepository.findByGroupNameAndSubGroupId(groupName, user.getSubGroupId(), pageable);
+        }
+    }
 
 
     /**
@@ -905,7 +922,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
 
         if (UserUtils.isRoleVisitor() && ObjectUtil.isNotEmpty(trsHybaseShard)) {
             //加入排除词
-            List<KnowledgeBase> byEffective = knowledgeBaseService.findByClassify(KnowledgeClassify.Exclude);
+            List<KnowledgeBase> byEffective = this.findByClassify(KnowledgeClassify.Exclude);
             if (ObjectUtil.isNotEmpty(byEffective) && byEffective.size() > 0) {
                 String keywordsTotal = "";
                 for (KnowledgeBase knowledgeBase : byEffective) {
@@ -1096,7 +1113,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         User loginUser = UserUtils.getUser();
         if (ObjectUtil.isNotEmpty(loginUser)) {
 
-            Page<ArticleDelete> articleDeletePage = articleDeleteService.findByGroupNameAndUserId(groupName, loginUser, 0,
+            Page<ArticleDelete> articleDeletePage = this.findByGroupNameAndUserId(groupName, loginUser, 0,
                     count);
             long time = Long.valueOf(DateUtil.getTimeBeforeOneMonth().replaceAll("-", "").replaceAll(":", "").replaceAll(" ", ""));
             if (articleDeletePage != null) {
@@ -1143,7 +1160,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
     private String articleDeleteTrsl(String trsl, boolean isGroupNameWeixin, ArticleDeleteGroupName groupName, int count) {
         User loginUser = UserUtils.getUser();
         if (ObjectUtil.isNotEmpty(loginUser)) {
-            Page<ArticleDelete> articleDeletePage = articleDeleteService.findByGroupNameAndUserId(groupName, loginUser, 0,
+            Page<ArticleDelete> articleDeletePage = this.findByGroupNameAndUserId(groupName, loginUser, 0,
                     count);
             if (articleDeletePage != null) {
                 List<ArticleDelete> articleDeleteList = articleDeletePage.getContent();

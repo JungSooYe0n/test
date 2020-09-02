@@ -90,4 +90,5 @@ public interface AlertRuleRepository
 	 */
 	public List<AlertRule> findByStatusAndAlertTypeAndFrequencyId(ScheduleStatus open, AlertSource auto, String frequencyId);
 	public List<AlertRule> findBySpecialType(SpecialType specialType);
+	public List<AlertRule> findByAlertType(AlertSource auto);
 }

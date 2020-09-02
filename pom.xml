@@ -15,6 +15,7 @@
 		<module>netInsight-alert</module>
 		<module>netInsight-common</module>
 		<module>netInsight-user</module>
+		<module>alert-netInsight</module>
 	</modules>
 	<parent>
 		<groupId>org.springframework.boot</groupId>

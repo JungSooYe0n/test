@@ -112,7 +112,7 @@
         </encoder>
     </appender>-->
     
-    <!--<logger name="com.trs.netInsight.support.fts.impl.Hybase8SearchImpl" level="DEBUG" additivity="false">
+   <!--<logger name="com.trs.netInsight.support.fts.impl.Hybase8SearchImpl" level="DEBUG" additivity="false">
     	<appender-ref ref="search"/>
     </logger>-->
     
