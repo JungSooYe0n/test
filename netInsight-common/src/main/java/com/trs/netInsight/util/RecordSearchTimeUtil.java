@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@Component
 public class RecordSearchTimeUtil {
 
     public static void printSearchTime(long searchTime, String trsl, int connectTime, String db,
