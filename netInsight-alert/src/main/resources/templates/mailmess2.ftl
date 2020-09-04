@@ -79,7 +79,8 @@
 			<h4>【预警标题】${title}</h4>
 			<p class="infoTitle">
 				<span>来自帐号：${userName}</span>
-				<span style="margin-left:20px;display:inline-block">查看更多请登录<a href="http://www.netinsight.com.cn/">http://www.netinsight.com.cn/</a></span>
+				<span style="margin-left:20px;display:inline-block">查看更多请登录<a href="${url}">${url}</a></span>
+				<!--<span style="margin-left:20px;display:inline-block">查看更多请登录<a href="http://www.netinsight.com.cn/">http://www.netinsight.com.cn/</a></span>-->
 			</p>
 			<p class="TitleInfo">
 				<span>此次预警共${size}条信息</span>

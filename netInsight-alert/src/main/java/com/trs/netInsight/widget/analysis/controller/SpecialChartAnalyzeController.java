@@ -627,11 +627,18 @@ public class SpecialChartAnalyzeController {
 
 			long end = new Date().getTime();
 			long time = end - start;
-			log.info("yanyan微博top5后台总共所需时间" + time);
+			log.info("微博top5后台总共所需时间" + time);
 			return mBlogTop5;
 		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("微博top5出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("微博top5出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("微博top5出错，message:" + e);
 		}
 	}
@@ -996,6 +1003,13 @@ public class SpecialChartAnalyzeController {
 		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("获取活跃账号等级出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("获取活跃账号出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("获取活跃账号等级出错，message:" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -1094,6 +1108,13 @@ public class SpecialChartAnalyzeController {
 		} catch (TRSException e) {
 			throw e;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("获取媒体活跃等级出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("获取没提活跃等级出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("获取媒体活跃等级出错，message:" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -1443,6 +1464,13 @@ public class SpecialChartAnalyzeController {
 			log.info("专题监测统计表格后台所需时间" + time);
 			return resultList;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("走势计算错误,message: ", e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -1777,6 +1805,13 @@ public class SpecialChartAnalyzeController {
 			}
 			return resultList;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("走势计算错误,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("走势计算错误,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("走势计算错误,message: " + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -1886,7 +1921,14 @@ public class SpecialChartAnalyzeController {
             requestTimeLogRepository.save(requestTimeLog);
 			return voList;
 		} catch (Exception e) {
-			throw new OperationException("走势计算错误,message: " + e);
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("事件脉络,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("事件脉络:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
+			throw new OperationException("事件脉络,message: " + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
 			long end = new Date().getTime();
@@ -2041,6 +2083,13 @@ public class SpecialChartAnalyzeController {
 			map.put("param", chartParam);
 			return map;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e, e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -2123,6 +2172,13 @@ public class SpecialChartAnalyzeController {
 			map.put("param", chartParam);
 			return map;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -2213,10 +2269,24 @@ public class SpecialChartAnalyzeController {
 				resultMap.put("param", chartParam);
 			} catch (Exception e) {
 				e.printStackTrace();
+				if (e.getMessage().contains("检索超时")){
+					throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+							e);
+				}else if (e.getMessage().contains("表达式过长")){
+					throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+							e);
+				}
 				throw new OperationException("情感分析曲线趋势图计算错误,message: " + e);
 			}
 			return resultMap;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -2355,6 +2425,13 @@ public class SpecialChartAnalyzeController {
 			log.error("获取url为空", n);
 			return null;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("引爆点计算错误,message: ", e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -2518,6 +2595,13 @@ public class SpecialChartAnalyzeController {
             requestTimeLogRepository.save(requestTimeLog);
 			return object;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -2565,6 +2649,13 @@ public class SpecialChartAnalyzeController {
 					industry, area, specParam);
 			return result;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -2649,10 +2740,24 @@ public class SpecialChartAnalyzeController {
 					return null;
 				}
 			} catch (Exception e) {
+				if (e.getMessage().contains("检索超时")){
+					throw new TRSException("网友观点计算错误,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+							e);
+				}else if (e.getMessage().contains("表达式过长")){
+					throw new TRSException("网友观点计算错误,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+							e);
+				}
 				throw new OperationException("网友观点计算错误,message: ", e);
 			}
 			return returnMap;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -2927,6 +3032,13 @@ public class SpecialChartAnalyzeController {
 			map.put("param", chartParam);
 			return map;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -3029,6 +3141,13 @@ public class SpecialChartAnalyzeController {
 			log.info("专题监测统计后台所需时间" + time);
 			return total;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("专题监测统计错误,message: " + e, e);
 		}
 	}
@@ -3284,6 +3403,13 @@ public class SpecialChartAnalyzeController {
 			}
 			return null;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -3328,7 +3454,7 @@ public class SpecialChartAnalyzeController {
 										 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 										 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
                                          @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
-										 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws OperationException {
+										 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws OperationException,TRSException {
 		try {
 Date startDate = new Date();
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
@@ -3374,6 +3500,13 @@ Date startDate = new Date();
 			}
 			return null;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e, e);
 		} finally {
 		}
@@ -3406,7 +3539,7 @@ Date startDate = new Date();
 								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
                                  @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
-								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr) throws OperationException {
+								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr) throws OperationException,TRSException {
 		long start = new Date().getTime();
 		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
@@ -3463,6 +3596,13 @@ Date startDate = new Date();
 			}
 			return null;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e, e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);
@@ -3500,7 +3640,7 @@ Date startDate = new Date();
 								   @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
 								   @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
 								   @ApiParam("每日最多展示网站个数，主要配合api，网察页面不需要理会此参数") @RequestParam(value = "isApi", defaultValue = "false",required = false) boolean isApi,
-								   @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws OperationException {
+								   @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area) throws OperationException,TRSException {
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -3559,6 +3699,13 @@ Date startDate = new Date();
 			}
 			return null;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错：" + e, e);
 		} finally {
 			LogPrintUtil logReids = RedisUtil.getLog(id);

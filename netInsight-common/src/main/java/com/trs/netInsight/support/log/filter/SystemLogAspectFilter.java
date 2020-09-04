@@ -16,6 +16,7 @@ import com.trs.netInsight.support.log.entity.enums.DepositPattern;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.repository.SystemLogExceptionRepository;
+import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -303,6 +304,13 @@ public class SystemLogAspectFilter {
 			} catch (Exception e) {
 				log.info("--------->插入错误日志到system_log_exception表报错");
 				e.printStackTrace();
+			}
+			if (throwable.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + throwable, CodeUtils.HYBASE_TIMEOUT,
+						throwable);
+			}else if (throwable.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + throwable, CodeUtils.HYBASE_EXCEPTION,
+						throwable);
 			}
 			throw new TRSException("处理controller结果出错,message:" + throwable, ResultCode.OPERATION_EXCEPTION, throwable);
 		}

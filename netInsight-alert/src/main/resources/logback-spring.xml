@@ -132,6 +132,40 @@
     <logger name="com.trs.netInsight.util.LogPrintUtil" level="DEBUG" additivity="false">
     	<appender-ref ref="overtimelog"/>
     </logger>
+
+    <!-- 记录hybase检索时间 时间超时状态 -->
+  <appender name="searchTimeOverLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/searchTimeOverLog.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/searchTimeOverLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.trs.netInsight.util.RecordSearchTimeUtil" level="ERROR" additivity="false">
+        <appender-ref ref="searchTimeOverLog"/>
+    </logger>
+
+    <!-- 记录hybase检索时间 时间超时状态 -->
+    <appender name="hybaseTimeOut" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/hybaseTimeOut.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/bak/hybaseTimeOut.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.trs.netInsight.support.fts.hybaselog.HybaseExceptionLog" level="ERROR" additivity="false">
+        <appender-ref ref="hybaseTimeOut"/>
+    </logger>
     
     <!-- 指定业务类的日志记录示例 -->
     <appender name="specailComputeTask" class="ch.qos.logback.core.rolling.RollingFileAppender">

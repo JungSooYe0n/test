@@ -961,6 +961,13 @@ public class ChartAnalyzeController {
 			}
 			return resultList;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("走势计算错误,message: " + e);
 		}
 	}
@@ -1097,6 +1104,13 @@ public class ChartAnalyzeController {
 			log.info("专题监测统计表格后台所需时间" + time);
 			return resultList;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("走势计算错误,message: " + e);
 		}
 	}
@@ -1226,6 +1240,13 @@ public class ChartAnalyzeController {
 			}
 			return resultList;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("走势计算错误,message: " + e);
 		}
 	}
@@ -1461,6 +1482,13 @@ public class ChartAnalyzeController {
 					sim, irSimflag,irSimflagAll, FtsFieldConst.FIELD_TAG_TXT, 10, Const.WEIBO);
 			return records.size() > 0 ? records : null;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("网友观点计算错误,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("网友观点计算错误,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("网友观点计算错误,message: " + e);
 		}
 	}
