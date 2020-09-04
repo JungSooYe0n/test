@@ -198,6 +198,11 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		} catch (Exception e) {
 			log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
 					+ "],size:[" + pageSize + "]", e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("检索异常,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("检索异常,检索超时", e);
+			}
 			throw new TRSSearchException("检索异常", e);
 		} finally {
 			HybaseFactory.clean();
@@ -306,6 +311,11 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		} catch (Exception e) {
 			log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
 					+ "],size:[" + pageSize + "]", e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("检索异常,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("检索异常,检索超时", e);
+			}
 			throw new TRSSearchException("检索异常", e);
 		} finally {
 			HybaseFactory.clean();
@@ -415,6 +425,11 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		} catch (Exception e) {
 			log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
 					+ "],size:[" + pageSize + "]", e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("检索异常,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("检索异常,检索超时", e);
+			}
 			throw new TRSSearchException("检索异常"+e, e);
 		} finally {
 			HybaseFactory.clean();
@@ -623,6 +638,11 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		} catch (Exception e) {
 			log.error("fail to statistic by Hybase: [" + trsl + "],statisticOnField:[" + groupField + "],topN:[" + limit
 					+ "]", e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("分类统计失败,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("分类统计失败,检索超时", e);
+			}
 			throw new TRSSearchException("分类统计失败", e);
 		} finally {
 			HybaseFactory.clean();
@@ -690,6 +710,11 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		} catch (Exception e) {
 			log.error("fail to statistic by Hybase: [" + trsl + "],statisticOnField:[" + groupField + "],topN:[" + limit
 					+ "]", e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("分类统计失败,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("分类统计失败,检索超时", e);
+			}
 			throw new TRSSearchException("分类统计失败", e);
 		} finally {
 			HybaseFactory.clean();
@@ -889,6 +914,11 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		} catch (Exception e) {
 			log.error("fail to statistic by Hybase: [" + similarTrsl + "],statisticOnField:[" + groupBy + "],topN:["
 					+ Long.MAX_VALUE + "]", e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("分类统计失败,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("分类统计失败,检索超时", e);
+			}
 			throw new TRSSearchException("分类统计失败", e);
 		} finally {
 			HybaseFactory.clean();
@@ -1577,6 +1607,11 @@ private String isArticleDelete(String startTrsl,String... indices){
 		} catch (Exception e) {
 			log.error("fail to search by hybase: [" + trsl + "],page number:[" + pageNo + "],size:[" + pageSize + "]",
 					e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("检索异常,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("检索异常,检索超时", e);
+			}
 			throw new com.trs.netInsight.handler.exception.TRSException("检索异常", e);
 		} finally {
 			HybaseFactory.clean();
@@ -1646,6 +1681,11 @@ private String isArticleDelete(String startTrsl,String... indices){
 		} catch (Exception e) {
 			log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
 					+ "],size:[" + pageSize + "]", e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("检索异常,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("检索异常,检索超时", e);
+			}
 			throw new com.trs.netInsight.handler.exception.TRSException("检索异常", e);
 		} finally {
 			HybaseFactory.clean();
@@ -1851,6 +1891,11 @@ private String isArticleDelete(String startTrsl,String... indices){
 		} catch (Exception e) {
 			log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
 					+ "],size:[" + pageSize + "]", e);
+			if (e.getMessage().contains("expression too long")){
+				throw new TRSSearchException("检索异常,表达式过长", e);
+			}else if (e.getMessage().contains("timed out")){
+				throw new TRSSearchException("检索异常,检索超时", e);
+			}
 			throw new TRSSearchException("检索异常", e);
 		} finally {
 			HybaseFactory.clean();

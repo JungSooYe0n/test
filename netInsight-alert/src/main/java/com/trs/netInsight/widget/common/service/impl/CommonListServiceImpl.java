@@ -21,6 +21,7 @@ import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.support.hybaseRedis.HybaseRead;
 import com.trs.netInsight.support.template.GUIDGenerator;
+import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.RedisUtil;
 import com.trs.netInsight.util.StringUtil;
@@ -193,6 +194,13 @@ public class CommonListServiceImpl implements ICommonListService {
                 return null;
             }
         } catch (Exception e) {
+            if (e.getMessage().contains("检索超时")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+                        e);
+            }else if (e.getMessage().contains("表达式过长")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+                        e);
+            }
             throw new OperationException("检索异常：", e);
         }
 
@@ -261,6 +269,13 @@ public class CommonListServiceImpl implements ICommonListService {
             log.error("间隔HY时间：" + (endTime - startTime));
             return pagedList;
         } catch (Exception e) {
+            if (e.getMessage().contains("检索超时")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+                        e);
+            }else if (e.getMessage().contains("表达式过长")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+                        e);
+            }
             throw new OperationException("检索异常：", e);
         }
     }
@@ -307,6 +322,13 @@ public class CommonListServiceImpl implements ICommonListService {
                 return pagedList;
             }
         } catch (Exception e) {
+            if (e.getMessage().contains("检索超时")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+                        e);
+            }else if (e.getMessage().contains("表达式过长")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+                        e);
+            }
             throw new OperationException("检索异常：", e);
         }
 
@@ -368,6 +390,13 @@ public class CommonListServiceImpl implements ICommonListService {
             //统一处理列表返回数据
             return formatPageListResult(user, pageId, nextPageId, pagedList, builder.getDatabase(), type, isCalculateSimNum);
         } catch (Exception e) {
+            if (e.getMessage().contains("检索超时")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+                        e);
+            }else if (e.getMessage().contains("表达式过长")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+                        e);
+            }
             throw new OperationException("listByHot error:" + e);
         }
     }
@@ -482,6 +511,13 @@ public class CommonListServiceImpl implements ICommonListService {
                     (int) (pageSize < 0 ? 15 : pageSize), pageListSize, ftsDocumentCommonVOS, 1);
             return pagedList;
         } catch (Exception e) {
+            if (e.getMessage().contains("检索超时")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+                        e);
+            }else if (e.getMessage().contains("表达式过长")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+                        e);
+            }
             throw new OperationException("热点列表计算失败:" + e);
         }
     }
@@ -515,6 +551,13 @@ public class CommonListServiceImpl implements ICommonListService {
             log.error("间隔HY时间：" + (endTime - startTime));
             return pagedList;
         } catch (Exception e) {
+            if (e.getMessage().contains("检索超时")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+                        e);
+            }else if (e.getMessage().contains("表达式过长")){
+                throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+                        e);
+            }
             throw new OperationException("检索异常：", e);
         }
     }
