@@ -58,6 +58,8 @@ public class StatisticalChart extends BaseEntity {
      */
     @Column(name = "parent_id")
     private String parentId;
+    @Column(name = "hide")
+    private Boolean hide;
 
     public StatisticalChart(String chartType ,Integer sequence ,Boolean isTop ,String  name ,String  parentId  ){
         this.chartType = chartType;
@@ -65,6 +67,7 @@ public class StatisticalChart extends BaseEntity {
         this.isTop = isTop;
         this.name = name;
         this.parentId = parentId;
+        this.hide = false;
     }
 
 

@@ -16,6 +16,7 @@ import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import com.trs.netInsight.widget.column.repository.IndexSequenceRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabRepository;
 import com.trs.netInsight.widget.column.service.*;
@@ -67,6 +68,8 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 
 	@Autowired
 	private IColumnChartService columnChartService;
+	@Autowired
+	private IndexSequenceRepository indexSequenceRepository;
 
 	@Override
 	public IndexTabMapper findOne(String indexTabMapperId) {
@@ -368,6 +371,7 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 							// 引用栏目只删除本身
 							tabMapperRepository.delete(mapper);
 						}
+						indexSequenceRepository.delete(indexSequenceRepository.findByIndexTabId(mapper.getId()));
 					}
 				}
 			}

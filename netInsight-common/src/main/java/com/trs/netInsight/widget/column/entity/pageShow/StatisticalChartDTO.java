@@ -23,6 +23,7 @@ public class StatisticalChartDTO implements Serializable {
     private Integer topSequence;
     private Integer tabWidth = 50;
     private String pointToId;
+    private Boolean hide = false;
     private void setPointToId(String mapperId){
         this.pointToId = mapperId;
     }
@@ -41,6 +42,7 @@ public class StatisticalChartDTO implements Serializable {
         this.contrast = statisticalChartInfo.getContrast();
         this.timeRange = timeRange;
         this.topSequence = statisticalChart.getTopSequence();
+        this.hide = statisticalChart.getHide();
 
         if (StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)
                 || StatisticalChartInfo.MAP.equals(statisticalChartInfo)

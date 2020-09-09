@@ -39,12 +39,14 @@ import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
+import com.trs.netInsight.widget.column.entity.emuns.IndexFlag;
 import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
 import com.trs.netInsight.widget.column.repository.IndexPageRepository;
+import com.trs.netInsight.widget.column.repository.IndexSequenceRepository;
 import com.trs.netInsight.widget.column.service.*;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -116,6 +118,7 @@ public class ColumnController {
 
 	@Autowired
 	private RequestTimeLogRepository requestTimeLogRepository;
+
 	/**
 	 * 刚加载页面时查询所有栏目（分组）
 	 */
@@ -346,7 +349,32 @@ public class ColumnController {
 
 		return "success";
 	}
+	/**
+	 * 栏目分组拖拽接口（分组）
+	 * @param parentId
+	 * @param sequenceData
+	 * @return
+	 */
+	@FormatResult
+	@RequestMapping(value = "/moveColumnAll", method = RequestMethod.POST)
+	@ApiOperation("栏目分组拖拽接口")
+	public Object moveColumnAll(@ApiParam("分组要拖拽后的父级分组") @RequestParam(value = "parentId", required = false) String parentId,
+							 @ApiParam("拖拽完成后的顺序") @RequestParam("sequenceData") String sequenceData)throws TRSException {
+		IndexPage parent = null;
+		if(StringUtil.isNotEmpty(parentId)){
+			parent = indexPageService.findOne(parentId);
+			if(ObjectUtil.isEmpty(parent)){
+				throw new TRSException(CodeUtils.FAIL,"对应的日常监测栏目分组不存在");
+			}
+		}
+		if(StringUtil.isEmpty(sequenceData)){
+			throw new TRSException(CodeUtils.FAIL,"拖拽后顺序为空");
+		}
+		User user = UserUtils.getUser();
+		columnService.moveIndexSequenceAll(sequenceData,parentId,user);
 
+		return "success";
+	}
 	/**
 	 * 新提出置顶接口
 	 */
@@ -560,6 +588,7 @@ public class ColumnController {
 			indexTab.setParentId(indexPage.getId());
 			indexTab.setOneName(indexPage.getName());
 		}
+
 		return indexTabService.save(indexTab, share);
 	}
 

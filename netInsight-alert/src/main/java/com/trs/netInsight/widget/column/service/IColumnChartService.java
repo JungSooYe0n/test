@@ -38,6 +38,13 @@ public interface IColumnChartService {
      * @return
      */
     Object getTopColumnChartForPage(String pageId,int pageNo,int pageSize);
+    /**
+     * 获取当前分组对应的所有置顶的栏目和图表 栏目+自定义图表+ 统计分析图表
+     *注意：这个是单层级
+     * @param pageId 分组id
+     * @return
+     */
+    Object getOneTopColumnChartForPage(String pageId,int pageNo,int pageSize);
 
     /**
      * 初始化统计图表信息

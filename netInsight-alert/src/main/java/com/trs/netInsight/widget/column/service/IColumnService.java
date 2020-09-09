@@ -80,6 +80,7 @@ public interface IColumnService {
 	 * @return
 	 */
 	List<Object> sortColumn(List<Object> result,List<IndexTabMapper> mapperList, List<IndexPage> indexPageList, Boolean sortAll,Boolean sortPage);
+	List<Object> sortColumnAll(List<Object> result,List<IndexTabMapper> mapperList, List<IndexPage> indexPageList, Boolean sortAll,Boolean sortPage);
 
 	/**
 	 * 获取日常监测第一层级的栏目和分组
@@ -106,6 +107,7 @@ public interface IColumnService {
 	 * @return
 	 */
 	Object moveIndexSequence(String data,String moveData,String parentId,User user)throws OperationException;
+	Object moveIndexSequenceAll(String data,String parentId,User user)throws OperationException;
 
 	/**
 	 * 修改二级栏目
