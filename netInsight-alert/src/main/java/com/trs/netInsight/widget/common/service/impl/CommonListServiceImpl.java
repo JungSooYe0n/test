@@ -588,6 +588,10 @@ public class CommonListServiceImpl implements ICommonListService {
             return null;
         }
         queryBuilder.setPageSize(queryBuilder.getPageSize() >= 1 ? queryBuilder.getPageSize() : 15);
+        if (Const.GROUPNAME_XINWEN.equals(CommonListChartUtil.changeGroupName(groupName))){
+            queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
+                    "大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+        }
         GroupResult groupResult = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, FtsFieldConst.FIELD_GROUPNAME, type);
 
         if(groupResult == null || groupResult.getGroupList()==null || groupResult.getGroupList().size() ==0){
