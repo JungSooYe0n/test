@@ -551,7 +551,12 @@ sequenceRepository.flush();
 							Map<String, Object> map = new HashMap<>();
 							map.put("id", mapperList.get(i).getId());
 							IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
-							map.put("sequence", indexSequence.getSequence());
+							if (ObjectUtil.isNotEmpty(indexSequence)) {
+								map.put("sequence", indexSequence.getSequence());
+							} else {
+								map.put("sequence", mapperList.get(i).getSequence());
+							}
+//							map.put("sequence", indexSequence.getSequence());
 							map.put("index", i);
 							//栏目类型为1
 							map.put("flag", IndexFlag.IndexTabFlag);
@@ -562,7 +567,12 @@ sequenceRepository.flush();
 						Map<String, Object> map = new HashMap<>();
 						map.put("id", mapperList.get(i).getId());
 						IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
-						map.put("sequence", indexSequence.getSequence());
+//						map.put("sequence", indexSequence.getSequence());
+						if (ObjectUtil.isNotEmpty(indexSequence)) {
+							map.put("sequence", indexSequence.getSequence());
+						} else {
+							map.put("sequence", mapperList.get(i).getSequence());
+						}
 						map.put("index", i);
 						//栏目类型为1
 						map.put("flag", IndexFlag.IndexTabFlag);
