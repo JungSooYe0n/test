@@ -1437,6 +1437,8 @@ public class Const {
     public static final String GATHER_NO_AUDIT = "未审核";
     public static final String GATHER_AUDITED = "已审核";
     public static final String GATHER_AUDITING = "审核中";
+    public static final String[] REMOVEMEDIAS = new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
+            "大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点","惠头条号"};
 
 }
 

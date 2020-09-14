@@ -1003,8 +1003,10 @@ public class UserController {
 		if (StringUtils.isNotBlank(phone) && !RegexUtils.checkMobile(phone)) {
 			throw new TRSException(CodeUtils.PHONE_FAIL, "手机号格式不正确！");
 		}
-
-		user.setUserName(userName);
+//		防止机构管理员修改设置 时，  userName为空，导致该机构管理员无法登录问题
+		if (!UserUtils.ROLE_ADMIN.equals(loginUser.getCheckRole())){
+			user.setUserName(userName);
+		}
 		user.setDisplayName(displayName);
 		user.setEmail(email);
 		user.setPhone(phone);

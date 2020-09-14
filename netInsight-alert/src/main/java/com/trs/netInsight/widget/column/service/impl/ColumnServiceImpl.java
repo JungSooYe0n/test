@@ -27,21 +27,19 @@ import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
-import com.trs.netInsight.widget.column.entity.Columns;
-import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.column.entity.IndexTab;
-import com.trs.netInsight.widget.column.entity.IndexTabType;
+import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
+import com.trs.netInsight.widget.column.entity.emuns.IndexFlag;
+import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import com.trs.netInsight.widget.column.entity.pageShow.CustomChartDTO;
 import com.trs.netInsight.widget.column.entity.pageShow.IndexPageDTO;
 import com.trs.netInsight.widget.column.entity.pageShow.IndexTabDTO;
+import com.trs.netInsight.widget.column.entity.pageShow.StatisticalChartDTO;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
-import com.trs.netInsight.widget.column.repository.ColumnRepository;
-import com.trs.netInsight.widget.column.repository.IndexPageRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabRepository;
+import com.trs.netInsight.widget.column.repository.*;
 import com.trs.netInsight.widget.column.service.IColumnChartService;
 import com.trs.netInsight.widget.column.service.IColumnService;
 import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
@@ -111,6 +109,8 @@ public class ColumnServiceImpl implements IColumnService {
 	@Autowired
 	private IndexTabMapperRepository tabMapperRepository;
 	@Autowired
+	private IndexSequenceRepository sequenceRepository;
+	@Autowired
 	private ICommonListService commonListService;
 	@Autowired
 	private ICommonChartService commonChartService;
@@ -118,6 +118,10 @@ public class ColumnServiceImpl implements IColumnService {
 	private UserRepository userService;
 	@Autowired
 	private IColumnChartService columnChartService;
+	@Autowired
+	private StatisticalChartRepository statisticalChartRepository;
+	@Autowired
+	private CustomChartRepository customChartRepository;
 
 
 	public Object selectNextShowColumn(String id,ColumnFlag columnFlag){
@@ -344,19 +348,397 @@ public class ColumnServiceImpl implements IColumnService {
 			indexPage = parentPage.getChildrenPage();
 			indexTabMapper = parentPage.getIndexTabMappers();
 		}
-		List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),indexTabMapper,indexPage,false,false);
+		List<Object> sortColumn = this.sortColumnAll(new ArrayList<Object>(),indexTabMapper,indexPage,false,false);
 		if(sortColumn != null && sortColumn.size() > 0){
 			Object column = sortColumn.get(sortColumn.size()-1);
 			if (column instanceof IndexTabMapper) {
 				seq = ((IndexTabMapper)column).getSequence();
 			} else if (column instanceof IndexPage) {
 				seq = ((IndexPage)column).getSequence();
+			}else if (column instanceof CustomChartDTO){
+				seq = ((CustomChartDTO) column).getSequence();
+			}else if (column instanceof StatisticalChartDTO){
+				seq = ((StatisticalChartDTO) column).getSequence();
 			}
 		}
 		return seq;
 	}
 
+	/**
+	 * 重新排序
+	 * @param mapperList
+	 * @param indexPageList
+	 * @param sortAll
+	 * @param onlySortPage
+	 * @return
+	 */
+	public void newSortColumnAll(List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage,String prentId){
 
+
+		List<Map<String,Object>> sortList = new ArrayList<>();
+		List<Object> listZi = new ArrayList<>();
+		if(!onlySortPage){
+			if(mapperList != null && mapperList.size() >0){
+				for(int i =0;i<mapperList.size();i++){
+					Map<String,Object> map = new HashMap<>();
+					map.put("id",mapperList.get(i).getId());
+					IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+					map.put("sequence",mapperList.get(i).getSequence());
+					map.put("index",i);
+					//栏目类型为1
+					map.put("flag",IndexFlag.IndexTabFlag);
+					sortList.add(map);
+//					listZi.addAll(getTopColumnChartForTab(sortList,mapperList.get(i)));
+				}
+			}
+		}
+		if(indexPageList != null && indexPageList.size() > 0){
+			for(int i =0;i<indexPageList.size();i++){
+				Map<String,Object> map = new HashMap<>();
+				map.put("id",indexPageList.get(i).getId());
+				map.put("sequence",indexPageList.get(i).getSequence());
+				map.put("index",i);
+				//分组类型为0
+				map.put("flag", IndexFlag.IndexPageFlag);
+				sortList.add(map);
+			}
+		}
+		if(sortList.size() >0){
+			Collections.sort(sortList, (o1, o2) -> {
+				Integer seq1 = (Integer) o1.get("sequence");
+				Integer seq2 = (Integer) o2.get("sequence");
+				return seq1.compareTo(seq2);
+			});
+			List<Map<String,Object>> newSortList = new ArrayList<>();//单层级顺序
+			for(Map<String,Object> map : sortList){
+				IndexFlag flag = (IndexFlag) map.get("flag");
+				Integer index = (Integer) map.get("index");
+				if(flag.equals(IndexFlag.IndexPageFlag)){
+					newSortList.add(map);
+				}else if(flag.equals(IndexFlag.IndexTabFlag)){
+					newSortList.add(map);
+					IndexTabMapper mapper = mapperList.get(index);
+					//栏目有子节点
+					List<Object> columnChartList = new ArrayList<>();
+					String timeRange = mapper.getIndexTab().getTimeRange();
+					Sort sort = new Sort(Sort.Direction.ASC, "topSequence");
+					//获取统计分析中被置顶的数据
+					List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentIdAndIsTop(mapper.getId(), true, sort);
+					int num = 0;
+					if (statisticalChartList != null && statisticalChartList.size() > 0) {
+						for (StatisticalChart oneSc : statisticalChartList) {
+							num++;
+							StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(oneSc.getChartType());
+							StatisticalChartDTO statisticalChartDTO = new StatisticalChartDTO(oneSc,statisticalChartInfo,timeRange);
+							//拿到统计分析图的基本数据
+							columnChartList.add(statisticalChartDTO);
+							Map<String,Object> newmap = new HashMap<>();
+							newmap.put("id",statisticalChartDTO.getId());
+							newmap.put("sequence",statisticalChartDTO.getSequence());
+							newmap.put("index",num);
+							//栏目类型为1
+							newmap.put("flag",IndexFlag.StatisticalFlag);
+							newmap.put("indexTabId",(String)map.get("id"));
+							newSortList.add(newmap);
+						}
+					}
+					//获取当前栏目被置顶的自定义图表
+					List<CustomChart> customChartList = customChartRepository.findByParentIdAndIsTop(mapper.getId(), true, sort);
+					if (customChartList != null && customChartList.size() > 0) {
+						for (CustomChart oneCc : customChartList) {
+							num++;
+							CustomChartDTO customChartDTO = new CustomChartDTO(oneCc);
+							columnChartList.add(customChartDTO);
+							Map<String,Object> newmap = new HashMap<>();
+							newmap.put("id",customChartDTO.getId());
+							newmap.put("sequence",customChartDTO.getSequence());
+							newmap.put("index",num);
+							//栏目类型为1
+							newmap.put("flag",IndexFlag.CustomFlag);
+							newmap.put("indexTabId",(String)map.get("id"));
+							newSortList.add(newmap);
+						}
+					}
+
+				}
+			}
+			//排序过后存表
+			Integer seq = 0;
+			for(Map<String,Object> map : newSortList){
+				seq++;
+				IndexFlag flag = (IndexFlag) map.get("flag");
+				String id = (String) map.get("id");
+				if(flag.equals(IndexFlag.IndexPageFlag)){
+					IndexPage indexPage = indexPageRepository.findOne(id);
+					IndexSequence indexSequence1 = sequenceRepository.findByIndexId(id);
+					if (ObjectUtil.isEmpty(indexSequence1)){
+						IndexSequence indexSequence = new IndexSequence();
+						indexSequence.setIndexId(id);
+						indexSequence.setParentId(prentId);
+						indexSequence.setSequence(seq);
+						indexSequence.setIndexFlag(IndexFlag.IndexPageFlag);
+						indexSequence.setIndexTabId((String) map.get("id"));
+						sequenceRepository.save(indexSequence);
+					}
+					if(sortAll){
+						//获取子类的数据进行排序
+						List<IndexPage> child_page = indexPage.getChildrenPage();
+						List<IndexTabMapper> child_mapper = null;
+						if(!onlySortPage){
+							child_mapper = indexPage.getIndexTabMappers();
+						}
+						if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
+//							indexPage.setColumnList(newSortColumnAll(child_mapper,child_page,sortAll,onlySortPage,id));
+							newSortColumnAll(child_mapper,child_page,sortAll,onlySortPage,id);
+						}
+					}
+				}else if(flag.equals(IndexFlag.IndexTabFlag)){
+					IndexTabMapper mapper = indexTabMapperService.findOne(id);
+					IndexSequence indexSequence1 = sequenceRepository.findByIndexId(id);
+					if (ObjectUtil.isEmpty(indexSequence1)){
+						IndexSequence indexSequence = new IndexSequence();
+						indexSequence.setIndexId(id);
+						if (ObjectUtil.isEmpty(mapper.getIndexPage())){
+							indexSequence.setParentId("");
+						}else {
+							indexSequence.setParentId(mapper.getIndexPage().getId());
+						}
+
+						indexSequence.setSequence(seq);
+						indexSequence.setIndexFlag(IndexFlag.IndexTabFlag);
+						indexSequence.setIndexTabId((String) map.get("id"));
+						sequenceRepository.save(indexSequence);
+					}
+				} else if (flag.equals(IndexFlag.StatisticalFlag)) {
+					IndexSequence indexSequence1 = sequenceRepository.findByIndexId(id);
+					if (ObjectUtil.isEmpty(indexSequence1)){
+						IndexSequence indexSequence = new IndexSequence();
+//						StatisticalChart statisticalChart = statisticalChartRepository.findOne(id);
+						indexSequence.setIndexId(id);
+						indexSequence.setParentId(prentId);
+						indexSequence.setSequence(seq);
+						indexSequence.setIndexFlag(IndexFlag.StatisticalFlag);
+						indexSequence.setIndexTabId((String) map.get("indexTabId"));
+						sequenceRepository.save(indexSequence);
+					}
+				}else if (flag.equals(IndexFlag.CustomFlag)) {
+					IndexSequence indexSequence1 = sequenceRepository.findByIndexId(id);
+					if (ObjectUtil.isEmpty(indexSequence1)){
+						IndexSequence indexSequence = new IndexSequence();
+//						CustomChart customChart = customChartRepository.findOne(id);
+						indexSequence.setIndexId(id);
+						indexSequence.setParentId(prentId);
+						indexSequence.setSequence(seq);
+						indexSequence.setIndexFlag(IndexFlag.CustomFlag);
+						indexSequence.setIndexTabId((String) map.get("indexTabId"));
+						sequenceRepository.save(indexSequence);
+					}
+				}
+			}
+		}
+sequenceRepository.flush();
+	}
+	public List<Object> sortColumnAll(List<Object> result,List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
+
+
+		List<Map<String,Object>> sortList = new ArrayList<>();
+		List<Object> listZi = new ArrayList<>();
+		if(!onlySortPage){
+			if(mapperList != null && mapperList.size() >0){
+				for(int i =0;i<mapperList.size();i++){
+					if (sortAll) {
+						if (!mapperList.get(i).isHide()) {
+							Map<String, Object> map = new HashMap<>();
+							map.put("id", mapperList.get(i).getId());
+							IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+							if (ObjectUtil.isNotEmpty(indexSequence)) {
+								map.put("sequence", indexSequence.getSequence());
+							} else {
+								map.put("sequence", mapperList.get(i).getSequence());
+							}
+//							map.put("sequence", indexSequence.getSequence());
+							map.put("index", i);
+							//栏目类型为1
+							map.put("flag", IndexFlag.IndexTabFlag);
+							sortList.add(map);
+							listZi.addAll(getTopColumnChartForTab(sortList, mapperList.get(i), listZi.size(),sortAll));
+						}
+					}else {
+						Map<String, Object> map = new HashMap<>();
+						map.put("id", mapperList.get(i).getId());
+						IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+//						map.put("sequence", indexSequence.getSequence());
+						if (ObjectUtil.isNotEmpty(indexSequence)) {
+							map.put("sequence", indexSequence.getSequence());
+						} else {
+							map.put("sequence", mapperList.get(i).getSequence());
+						}
+						map.put("index", i);
+						//栏目类型为1
+						map.put("flag", IndexFlag.IndexTabFlag);
+						sortList.add(map);
+						listZi.addAll(getTopColumnChartForTab(sortList, mapperList.get(i), listZi.size(),sortAll));
+					}
+				}
+			}
+		}
+		if(indexPageList != null && indexPageList.size() > 0){
+			for(int i =0;i<indexPageList.size();i++){
+				if (!indexPageList.get(i).isHide() || !sortAll) {
+					Map<String, Object> map = new HashMap<>();
+					map.put("id", indexPageList.get(i).getId());
+					IndexSequence indexSequence = sequenceRepository.findByIndexId(indexPageList.get(i).getId());
+					if (ObjectUtil.isNotEmpty(indexSequence)) {
+						map.put("sequence", indexSequence.getSequence());
+					}
+					map.put("index", i);
+					//分组类型为0
+					map.put("flag", IndexFlag.IndexPageFlag);
+					sortList.add(map);
+				}
+			}
+		}
+		if(sortList.size() >0){
+			Collections.sort(sortList, (o1, o2) -> {
+				Integer seq1 = (Integer) o1.get("sequence");
+				Integer seq2 = (Integer) o2.get("sequence");
+				return seq1.compareTo(seq2);
+			});
+			//sortList 排序过后的数据
+			//只排序当前层，排序过后的数据，按顺序取出并返回
+			for(Map<String,Object> map : sortList){
+				IndexFlag flag = (IndexFlag) map.get("flag");
+				Integer index = (Integer) map.get("index");
+				if(flag.equals(IndexFlag.IndexPageFlag)){
+					IndexPage indexPage = indexPageList.get(index);
+					if(sortAll){
+						//获取子类的数据进行排序
+						List<IndexPage> child_page = indexPage.getChildrenPage();
+						List<IndexTabMapper> child_mapper = null;
+						if(!onlySortPage){
+							child_mapper = indexPage.getIndexTabMappers();
+						}
+						if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
+							indexPage.setColumnList(sortColumnAll(new ArrayList<Object>(),child_mapper,child_page,sortAll,onlySortPage));
+						}
+					}
+					result.add(indexPage);
+				}else if(flag.equals(IndexFlag.IndexTabFlag)){
+					IndexTabMapper mapper = mapperList.get(index);
+					//栏目只有一层，直接添加就行
+					result.add(mapper);
+				} else if (flag.equals(IndexFlag.StatisticalFlag)) {
+					result.add(listZi.get(index));
+				}else if (flag.equals(IndexFlag.CustomFlag)) {
+					result.add(listZi.get(index));
+				}
+			}
+		}
+
+		return result;
+	}
+	private List<Object> getTopColumnChartForTab(List<Map<String,Object>> sortList,IndexTabMapper mapper,int size,boolean sortAll){
+		List<Object> result = new ArrayList<>();
+		if (ObjectUtil.isEmpty(mapper)) {
+			return result;
+		}
+		List<Object> columnChartList = new ArrayList<>();
+		String timeRange = mapper.getIndexTab().getTimeRange();
+		Sort sort = new Sort(Sort.Direction.ASC, "topSequence");
+		//获取统计分析中被置顶的数据
+		List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentIdAndIsTop(mapper.getId(), true, sort);
+		int num = size;
+		if (statisticalChartList != null && statisticalChartList.size() > 0) {
+			for (StatisticalChart oneSc : statisticalChartList) {
+				StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(oneSc.getChartType());
+				StatisticalChartDTO statisticalChartDTO = new StatisticalChartDTO(oneSc,statisticalChartInfo,timeRange);
+				if (sortAll) {
+					if (!oneSc.getHide()) {
+						//拿到统计分析图的基本数据
+						columnChartList.add(statisticalChartDTO);
+						Map<String, Object> map = new HashMap<>();
+						map.put("id", statisticalChartDTO.getId());
+						IndexSequence indexSequence = sequenceRepository.findByIndexId(statisticalChartDTO.getId());
+						if (ObjectUtil.isNotEmpty(indexSequence)) {
+							map.put("sequence", indexSequence.getSequence());
+						} else {
+							map.put("sequence", statisticalChartDTO.getSequence());
+						}
+
+						map.put("index", num);
+						//栏目类型为1
+						map.put("flag", IndexFlag.StatisticalFlag);
+						sortList.add(map);
+						num++;
+					}
+				}else {
+					columnChartList.add(statisticalChartDTO);
+					Map<String, Object> map = new HashMap<>();
+					map.put("id", statisticalChartDTO.getId());
+					IndexSequence indexSequence = sequenceRepository.findByIndexId(statisticalChartDTO.getId());
+					if (ObjectUtil.isNotEmpty(indexSequence)) {
+						map.put("sequence", indexSequence.getSequence());
+					} else {
+						map.put("sequence", statisticalChartDTO.getSequence());
+					}
+
+					map.put("index", num);
+					//栏目类型为1
+					map.put("flag", IndexFlag.StatisticalFlag);
+					sortList.add(map);
+					num++;
+				}
+			}
+		}
+		//获取当前栏目被置顶的自定义图表
+		List<CustomChart> customChartList = customChartRepository.findByParentIdAndIsTop(mapper.getId(), true, sort);
+		if (customChartList != null && customChartList.size() > 0) {
+			for (CustomChart oneCc : customChartList) {
+				if (sortAll) {
+					if (!oneCc.isHide()) {
+						CustomChartDTO customChartDTO = new CustomChartDTO(oneCc);
+						columnChartList.add(customChartDTO);
+						Map<String, Object> map = new HashMap<>();
+						map.put("id", customChartDTO.getId());
+						IndexSequence indexSequence = sequenceRepository.findByIndexId(customChartDTO.getId());
+						if (ObjectUtil.isNotEmpty(indexSequence)) {
+							map.put("sequence", indexSequence.getSequence());
+						} else {
+							map.put("sequence", customChartDTO.getSequence());
+						}
+
+						map.put("index", num);
+						//栏目类型为1
+						map.put("flag", IndexFlag.CustomFlag);
+						sortList.add(map);
+						num++;
+					}
+				}else {
+					CustomChartDTO customChartDTO = new CustomChartDTO(oneCc);
+					columnChartList.add(customChartDTO);
+					Map<String, Object> map = new HashMap<>();
+					map.put("id", customChartDTO.getId());
+					IndexSequence indexSequence = sequenceRepository.findByIndexId(customChartDTO.getId());
+					if (ObjectUtil.isNotEmpty(indexSequence)) {
+						map.put("sequence", indexSequence.getSequence());
+					} else {
+						map.put("sequence", customChartDTO.getSequence());
+					}
+
+					map.put("index", num);
+					//栏目类型为1
+					map.put("flag", IndexFlag.CustomFlag);
+					sortList.add(map);
+					num++;
+				}
+			}
+		}
+		if(columnChartList.size() ==0 ){
+			return result;
+		}
+		result.addAll(columnChartList);
+		return result;
+	}
 	/**
 	 * 对日常监测分组和栏目进行排序展示
 	 * @param result 这是排序后的结果放到这个中，这个是结果对象，因为 top的东西肯定是在前面，是在外面添加的，写这个是因为方便把top的数据先放进去
@@ -370,28 +752,45 @@ public class ColumnServiceImpl implements IColumnService {
 
 
 		List<Map<String,Object>> sortList = new ArrayList<>();
+//		List<Map<String,Object>> sortList2 = new ArrayList<>();
 		if(!onlySortPage){
 			if(mapperList != null && mapperList.size() >0){
 				for(int i =0;i<mapperList.size();i++){
-					Map<String,Object> map = new HashMap<>();
-					map.put("id",mapperList.get(i).getId());
-					map.put("sequence",mapperList.get(i).getSequence());
-					map.put("index",i);
-					//栏目类型为1
-					map.put("flag",ColumnFlag.IndexTabFlag);
-					sortList.add(map);
+					if (!mapperList.get(i).isHide()) {
+						Map<String, Object> map = new HashMap<>();
+						map.put("id", mapperList.get(i).getId());
+						IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+						if (ObjectUtil.isNotEmpty(indexSequence)) {
+							map.put("sequence", indexSequence.getSequence());
+						} else {
+							map.put("sequence", mapperList.get(i).getSequence());
+						}
+
+						map.put("index", i);
+						//栏目类型为1
+						map.put("flag", IndexFlag.IndexTabFlag);
+						sortList.add(map);
+//						getTopColumnChartForTab(sortList2, mapperList.get(i), 0);//这里把自定义以及统计的子节点加进来 但是不返回
+					}
 				}
 			}
 		}
 		if(indexPageList != null && indexPageList.size() > 0){
 			for(int i =0;i<indexPageList.size();i++){
-				Map<String,Object> map = new HashMap<>();
-				map.put("id",indexPageList.get(i).getId());
-				map.put("sequence",indexPageList.get(i).getSequence());
-				map.put("index",i);
-				//分组类型为0
-				map.put("flag", ColumnFlag.IndexPageFlag);
-				sortList.add(map);
+				if (!indexPageList.get(i).isHide()) {
+					Map<String, Object> map = new HashMap<>();
+					map.put("id", indexPageList.get(i).getId());
+					IndexSequence indexSequence = sequenceRepository.findByIndexId(indexPageList.get(i).getId());
+					if (ObjectUtil.isNotEmpty(indexSequence)) {
+						map.put("sequence", indexSequence.getSequence());
+					} else {
+						map.put("sequence", indexPageList.get(i).getSequence());
+					}
+					map.put("index", i);
+					//分组类型为0
+					map.put("flag", IndexFlag.IndexPageFlag);
+					sortList.add(map);
+				}
 			}
 		}
 		if(sortList.size() >0){
@@ -400,12 +799,14 @@ public class ColumnServiceImpl implements IColumnService {
 				Integer seq2 = (Integer) o2.get("sequence");
 				return seq1.compareTo(seq2);
 			});
+
+
 			//sortList 排序过后的数据
 			//只排序当前层，排序过后的数据，按顺序取出并返回
 			for(Map<String,Object> map : sortList){
-				ColumnFlag flag = (ColumnFlag) map.get("flag");
+				IndexFlag flag = (IndexFlag) map.get("flag");
 				Integer index = (Integer) map.get("index");
-				if(flag.equals(ColumnFlag.IndexPageFlag)){
+				if(flag.equals(IndexFlag.IndexPageFlag)){
 					IndexPage indexPage = indexPageList.get(index);
 					if(sortAll){
 						//获取子类的数据进行排序
@@ -419,7 +820,7 @@ public class ColumnServiceImpl implements IColumnService {
 						}
 					}
 					result.add(indexPage);
-				}else if(flag.equals(ColumnFlag.IndexTabFlag)){
+				}else if(flag.equals(IndexFlag.IndexTabFlag)){
 					IndexTabMapper mapper = mapperList.get(index);
 					//栏目只有一层，直接添加就行
 					result.add(mapper);
@@ -435,6 +836,7 @@ public class ColumnServiceImpl implements IColumnService {
 		List<IndexPage> oneIndexPage = null;
 		List<IndexTabMapper> oneIndexTab = null;
 		List<IndexTabMapper> top = null;
+		List<IndexTabMapper> indexTab = new ArrayList<>();
 		Map<String,Object> oneColumn = this.getOneLevelColumnForMap(typeId,user);
 		if (oneColumn.containsKey("page")) {
 			oneIndexPage = (List<IndexPage>) oneColumn.get("page");
@@ -448,6 +850,19 @@ public class ColumnServiceImpl implements IColumnService {
 		List<Object> result = new ArrayList<>();
 		if(top != null && top.size()>0){
 			result.addAll(top);
+		}
+		User loginUser = UserUtils.getUser();
+		List<IndexSequence> indexSequences = null;
+		if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+			indexSequences = sequenceRepository.findByUserId(loginUser.getId());
+		}else {
+			indexSequences = sequenceRepository.findBySubGroupId(loginUser.getSubGroupId());
+		}
+		if (ObjectUtil.isEmpty(indexSequences)){
+//没有 代表 第一次实行新排序逻辑 相当于历史数据处理
+			if (oneIndexTab != null) indexTab.addAll(oneIndexTab);
+			if (top != null) indexTab.addAll(top);
+			newSortColumnAll(indexTab,oneIndexPage,true,false,"");
 		}
 		//获取到了第一层的栏目和分组信息，现在对信息进行排序
 		List<Object> column =  sortColumn(result,oneIndexTab,oneIndexPage,true,false);
@@ -646,6 +1061,130 @@ public class ColumnServiceImpl implements IColumnService {
 	}
 
 
+	@Override
+	public Object moveIndexSequenceAll(String data, String parentId, User user) throws OperationException {
+		try {
+
+			IndexPage parent = null;
+			if (StringUtil.isNotEmpty(parentId)) {
+				parent = indexPageRepository.findOne(parentId);
+			}
+			String moveParentId = null;
+
+			if (parentId == null) {
+				parentId = "";
+			}
+			if (moveParentId == null) {
+				moveParentId = "";
+			}
+			Boolean topFlag = false;
+			JSONArray array = JSONArray.parseArray(data);
+			List<Object> filter = array.stream().filter(json -> topFlag.equals(JSONObject.parseObject(String.valueOf(json)).getBoolean("topFlag"))).collect(Collectors.toList());
+			Integer sequence = 0;
+			StringBuilder deleteIds = new StringBuilder();
+			for (Object json : filter) {
+				sequence += 1;
+				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
+				String id = parseObject.getString("id");
+				//如果是分组为0 ，如果是栏目为1
+				IndexFlag flag = IndexFlag.values()[parseObject.getInteger("flag")];
+				IndexSequence indexSequence = sequenceRepository.findByIndexId(id);
+				if (ObjectUtil.isEmpty(indexSequence)){
+					throw new OperationException(parseObject.getString("name")+"已出现变更请刷新重试");
+				}
+				indexSequence.setSequence(sequence);
+				if (parent != null) {
+					indexSequence.setParentId(parentId);
+				}
+				sequenceRepository.save(indexSequence);
+				if (flag.equals(IndexFlag.IndexPageFlag)) {
+
+				}else if (flag.equals(IndexFlag.IndexTabFlag)) {
+					if (parseObject.getBoolean("delete")) {
+						deleteIds.append(id+";");
+					}else {
+						IndexTabMapper mapper = tabMapperRepository.findOne(id);
+						mapper.setSequence(sequence);
+						mapper.setHide(parseObject.getBoolean("hide"));
+						mapper.setTabWidth(parseObject.getInteger("tabWidth"));
+						IndexTab indexTab = mapper.getIndexTab();
+						indexTab.setTabWidth(parseObject.getInteger("tabWidth"));
+						indexTab.setHide(parseObject.getBoolean("hide"));
+						if (mapper.isMe()) {
+							indexTabRepository.save(indexTab);
+						}
+						tabMapperRepository.save(mapper);
+					}
+
+
+				}else if (flag.equals(IndexFlag.CustomFlag)){
+//					if (parseObject.getBoolean("delete") || parseObject.getBoolean("hide")) sequenceRepository.delete(sequenceRepository.findByIndexId(id));
+					//删除是取消分类
+					CustomChart customChart = customChartRepository.findOne(id);
+					customChart.setTabWidth(parseObject.getInteger("tabWidth"));
+					if (parseObject.getBoolean("delete")){
+						customChart.setIsTop(false);
+						sequenceRepository.delete(sequenceRepository.findByIndexId(id));
+					}
+					customChart.setHide(parseObject.getBoolean("hide"));
+					customChartRepository.save(customChart);
+
+				}else if (flag.equals(IndexFlag.StatisticalFlag)){
+//					if (parseObject.getBoolean("delete") || parseObject.getBoolean("hide")) sequenceRepository.delete(sequenceRepository.findByIndexId(id));
+
+						StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
+						if (parseObject.getBoolean("delete")){
+							statisticalChart.setIsTop(false);
+							sequenceRepository.delete(sequenceRepository.findByIndexId(id));
+						}
+						statisticalChart.setHide(parseObject.getBoolean("hide"));
+						statisticalChartRepository.save(statisticalChart);
+
+				}
+//				if (flag.equals(IndexFlag.IndexPageFlag)) {
+//					IndexPage indexPage = indexPageRepository.findOne(id);
+//					indexPage.setParentId(null);
+//					if (parent != null) {
+//						indexPage.setParentId(parentId);
+//					}
+//					indexPage.setSequence(sequence);
+//					indexPageRepository.save(indexPage);
+//				} else if (flag.equals(IndexFlag.IndexTabFlag)) {
+//					IndexTabMapper mapper = tabMapperRepository.findOne(id);
+//					IndexTab indexTab = mapper.getIndexTab();
+//					if (parent != null) {
+//						mapper.setIndexPage(parent);
+//						indexTab.setParentId(parent.getId());
+//					} else {
+//						mapper.setIndexPage(null);
+//					}
+//					mapper.setSequence(sequence);
+//					if (mapper.isMe()) {
+//						indexTab.setSequence(sequence);
+//						indexTabRepository.save(indexTab);
+//					}
+//					tabMapperRepository.save(mapper);
+//				}else if (flag.equals(IndexFlag.CustomFlag)){
+//					CustomChart customChart = customChartRepository.findOne(id);
+//					customChart.setSequence(sequence);
+//					customChartRepository.save(customChart);
+//				}else if (flag.equals(IndexFlag.StatisticalFlag)){
+//					StatisticalChart statisticalChart = statisticalChartRepository.findOne(id);
+//					statisticalChart.setSequence(sequence);
+//					statisticalChartRepository.save(statisticalChart);
+//				}
+			}
+			indexTabMapperService.deleteMapper(deleteIds.toString());
+			indexPageRepository.flush();
+			tabMapperRepository.flush();
+			indexTabRepository.flush();
+			statisticalChartRepository.flush();
+			customChartRepository.flush();
+			return "success";
+		} catch (Exception e) {
+			throw new OperationException("移动失败：" + e.getMessage());
+		}
+	}
 
 	@Override
 	public Object moveIndexSequence(String data, String moveData, String parentId, User user) throws OperationException {
@@ -658,7 +1197,7 @@ public class ColumnServiceImpl implements IColumnService {
 			JSONObject move = JSONObject.parseObject(moveData);
 			String moveId = move.getString("id");
 			ColumnFlag moveFlag = ColumnFlag.values()[move.getInteger("flag")];
-			Boolean topFlag = move.getBoolean("topFlag");
+			boolean topFlag = move.getBoolean("topFlag");
 			String moveParentId = null;
 
 			//修改同级下的其他分组的顺序
@@ -678,49 +1217,210 @@ public class ColumnServiceImpl implements IColumnService {
 			if (moveParentId == null) {
 				moveParentId = "";
 			}
-			//被拖拽的元素更换了层级，需要对元素本来的层级的数据重新排序
-			if (!topFlag &&!parentId.equals(moveParentId)) {
-				//对原来的同层级的数据排序
-				this.moveSequenceForColumn(moveId,moveFlag, user);
-			}
+//			//被拖拽的元素更换了层级，需要对元素本来的层级的数据重新排序
+//			if (!topFlag &&!parentId.equals(moveParentId)) {
+//				//对原来的同层级的数据排序
+//				this.moveSequenceForColumn(moveId,moveFlag, user);
+//			}
+List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBySequence(parentId);
+
 
 			JSONArray array = JSONArray.parseArray(data);
-			List<Object> filter = array.stream().filter(json -> topFlag.equals(JSONObject.parseObject(String.valueOf(json)).getBoolean("topFlag")) ).collect(Collectors.toList());
-			Integer sequence = 0;
+			List<Object> filter = array.stream().filter(json -> topFlag == JSONObject.parseObject(String.valueOf(json)).getBoolean("topFlag")).collect(Collectors.toList());
+			boolean isTheOne = false;
+			String nextId = null;
 			for (Object json : filter) {
-				sequence += 1;
 				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
 				String id = parseObject.getString("id");
 				//如果是分组为0 ，如果是栏目为1
 				ColumnFlag flag = ColumnFlag.values()[parseObject.getInteger("flag")];
-				if (flag.equals(ColumnFlag.IndexPageFlag)) {
-					IndexPage indexPage = indexPageRepository.findOne(id);
-					indexPage.setParentId(null);
-					if (parent != null) {
-						indexPage.setParentId(parentId);
+				if (isTheOne){
+					//上一个是移动的点
+					nextId = id;
+					break;
+				}
+				if (moveId.equals(id)) isTheOne = true;
+
+			}
+			if (nextId != null) {
+				boolean isChange = false;
+				Integer point = null;
+				point = sequenceRepository.findByIndexId(nextId).getSequence();
+				Integer nextPoint = 1;//下一个需要添加的值
+				IndexSequence indexSeq = sequenceRepository.findByIndexId(moveId);
+				if (moveId.equals(indexSeq.getIndexId())){
+					//移动的点
+					indexSeq.setSequence(point);
+					if (IndexFlag.IndexTabFlag.equals(indexSeq.getIndexFlag())) {
+						List<IndexSequence> sequences = sequenceRepository.findByIndexTabId(moveId);
+						for (int i = 0; i < sequences.size(); i++) {
+							sequences.get(i).setSequence(point+1+i);
+							nextPoint++;
+						}
+						sequenceRepository.save(sequences);
+
+//								List<indexSeq> sequences = sequenceRepository.findByIndexTabIdOrderBySequence(indexSeq.getIndexTabId());
+						IndexTabMapper mapper = tabMapperRepository.findOne(indexSeq.getIndexId());
+						IndexTab indexTab = mapper.getIndexTab();
+						if (parent != null) {
+							mapper.setIndexPage(parent);
+							indexTab.setParentId(parent.getId());
+						} else {
+							mapper.setIndexPage(null);
+						}
+						indexSeq.setParentId(parentId);
+						mapper.setSequence(indexSeq.getSequence());
+						if (mapper.isMe()) {
+							indexTab.setSequence(indexSeq.getSequence());
+							indexTabRepository.save(indexTab);
+						}
+						tabMapperRepository.save(mapper);
+
+
+					}else if (IndexFlag.IndexPageFlag.equals(indexSeq.getIndexFlag())){
+						IndexPage indexPage = indexPageRepository.findOne(indexSeq.getIndexId());
+						indexPage.setParentId(null);
+						if (parent != null) {
+							indexPage.setParentId(parentId);
+
+						}
+						indexSeq.setParentId(parentId);
+						indexPage.setSequence(indexSeq.getSequence());
+						indexPageRepository.save(indexPage);
 					}
-					indexPage.setSequence(sequence);
-					indexPageRepository.save(indexPage);
-				} else if (flag.equals(ColumnFlag.IndexTabFlag)) {
-					IndexTabMapper mapper = tabMapperRepository.findOne(id);
+					sequenceRepository.save(indexSeq);
+				}
+				for (IndexSequence indexSequence : indexSequenceList) {
+
+						if (nextId.equals(indexSequence.getIndexId())) {
+							isChange = true;
+						}
+						if (isChange && !moveId.equals(indexSequence.getIndexId())) {
+							if (IndexFlag.IndexTabFlag.equals(indexSequence.getIndexFlag())) {
+//								List<IndexSequence> sequences = sequenceRepository.findByIndexTabIdOrderBySequence(indexSequence.getIndexTabId());
+								IndexTabMapper mapper = tabMapperRepository.findOne(indexSequence.getIndexId());
+								IndexTab indexTab = mapper.getIndexTab();
+								if (parent != null) {
+									mapper.setIndexPage(parent);
+									indexTab.setParentId(parent.getId());
+
+								} else {
+									mapper.setIndexPage(null);
+								}
+								indexSequence.setParentId(parentId);
+								mapper.setSequence(indexSequence.getSequence() + nextPoint);
+								if (mapper.isMe()) {
+									indexTab.setSequence(indexSequence.getSequence() + nextPoint);
+									indexTabRepository.save(indexTab);
+								}
+								tabMapperRepository.save(mapper);
+
+							}else if (IndexFlag.IndexPageFlag.equals(indexSequence.getIndexFlag())){
+								IndexPage indexPage = indexPageRepository.findOne(indexSequence.getIndexId());
+								indexPage.setParentId(null);
+								if (parent != null) {
+									indexPage.setParentId(parentId);
+
+								}
+								indexSequence.setParentId(parentId);
+								indexPage.setSequence(indexSequence.getSequence() + nextPoint);
+								indexPageRepository.save(indexPage);
+							}
+
+							indexSequence.setSequence(indexSequence.getSequence() + nextPoint);
+						}
+				}
+				sequenceRepository.save(indexSequenceList);
+
+			}else {
+				//移动到最后
+				Integer moveSeq = 0;
+				if (ObjectUtil.isNotEmpty(indexSequenceList)){
+					IndexSequence indexSequence1 = indexSequenceList.get(indexSequenceList.size() - 1);
+					moveSeq = indexSequence1.getSequence() + 1;
+				}
+				IndexSequence indexSequence = sequenceRepository.findByIndexId(moveId);
+				indexSequence.setSequence(moveSeq);
+				sequenceRepository.save(indexSequence);
+				if (IndexFlag.IndexTabFlag.equals(indexSequence.getIndexFlag())) {
+					List<IndexSequence> sequences = sequenceRepository.findByIndexTabId(moveId);
+					for (int i = 0; i < sequences.size(); i++) {
+						sequences.get(i).setSequence(moveSeq+i+1);
+					}
+					sequenceRepository.save(sequences);
+					IndexTabMapper mapper = tabMapperRepository.findOne(indexSequence.getIndexId());
 					IndexTab indexTab = mapper.getIndexTab();
+					indexSequence.setParentId(parentId);
 					if (parent != null) {
 						mapper.setIndexPage(parent);
 						indexTab.setParentId(parent.getId());
+
 					} else {
 						mapper.setIndexPage(null);
 					}
-					mapper.setSequence(sequence);
+					mapper.setSequence(indexSequence.getSequence());
 					if (mapper.isMe()) {
-						indexTab.setSequence(sequence);
+						indexTab.setSequence(indexSequence.getSequence());
 						indexTabRepository.save(indexTab);
 					}
 					tabMapperRepository.save(mapper);
+
+				}else if (IndexFlag.IndexPageFlag.equals(indexSequence.getIndexFlag())){
+					IndexPage indexPage = indexPageRepository.findOne(indexSequence.getIndexId());
+					indexPage.setParentId(null);
+					if (parent != null) {
+						indexPage.setParentId(parentId);
+
+					}
+					indexSequence.setParentId(parentId);
+					indexPage.setSequence(indexSequence.getSequence());
+					indexPageRepository.save(indexPage);
 				}
+
 			}
+//			Integer sequence = 0;
+//			for (Object json : filter) {
+//				sequence += 1;
+//				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
+//				String id = parseObject.getString("id");
+//				//如果是分组为0 ，如果是栏目为1
+//				ColumnFlag flag = ColumnFlag.values()[parseObject.getInteger("flag")];
+//				if (flag.equals(ColumnFlag.IndexPageFlag)) {
+//					IndexSequence indexSequence = sequenceRepository.findByIndexId(id);
+//					indexSequence.setSequence(sequence);
+//					indexSequence.setParentId(null);
+//					if (parent != null) {
+//						indexSequence.setParentId(parentId);
+//					}
+//					sequenceRepository.save(indexSequence);
+////					IndexPage indexPage = indexPageRepository.findOne(id);
+////					indexPage.setParentId(null);
+////					if (parent != null) {
+////						indexPage.setParentId(parentId);
+////					}
+////					indexPage.setSequence(sequence);
+////					indexPageRepository.save(indexPage);
+//				} else if (flag.equals(ColumnFlag.IndexTabFlag)) {
+//					IndexTabMapper mapper = tabMapperRepository.findOne(id);
+//					IndexTab indexTab = mapper.getIndexTab();
+//					if (parent != null) {
+//						mapper.setIndexPage(parent);
+//						indexTab.setParentId(parent.getId());
+//					} else {
+//						mapper.setIndexPage(null);
+//					}
+//					mapper.setSequence(sequence);
+//					if (mapper.isMe()) {
+//						indexTab.setSequence(sequence);
+//						indexTabRepository.save(indexTab);
+//					}
+//					tabMapperRepository.save(mapper);
+//				}
+//			}
 			indexPageRepository.flush();
 			tabMapperRepository.flush();
 			indexTabRepository.flush();
+			sequenceRepository.flush();
 			return "success";
 		} catch (Exception e) {
 			throw new OperationException("移动失败：" + e.getMessage());
@@ -811,12 +1511,15 @@ public class ColumnServiceImpl implements IColumnService {
 								//删除所有与indexTab关联的  否则剩余关联则删除indexTab时失败
 								tabMapperRepository.delete(findByIndexTab);
 								indexTabRepository.delete(mapper.getIndexTab());
+
 							}else{
 								//如果是引用，则只删除当前引用即可
 								tabMapperRepository.delete(mapper);
 							}
+
 						}
 					}
+					sequenceRepository.delete(sequenceRepository.findByParentId(indexPage.getId()));
 					//删除当前分组对应的子分组
 					if (CollectionsUtil.isNotEmpty(chidPage)) {
 						deleteIndexPage(chidPage);

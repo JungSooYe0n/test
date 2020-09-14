@@ -1,5 +1,7 @@
 package com.trs.netInsight.support.fts.builder;
 
+import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.builder.condition.SearchCondition;
 import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
@@ -109,7 +111,18 @@ public class QueryBuilder extends IQueryBuilder implements Cloneable{
 
 	public String asTRSL() {
 		Collections.sort(conditions);
-		String trsl = join(conditions.toArray(), " AND ");
+//		String trsl = join(conditions.toArray(), " AND ");
+		StringBuilder sb = new StringBuilder();
+		StringBuilder sb1 = new StringBuilder();
+		sb1.append("NOT ").append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(")
+				.append("国内新闻)")
+				.append(" AND "+FtsFieldConst.FIELD_SITENAME).append(":(")
+				.append(String.join(" OR ",Const.REMOVEMEDIAS)).append("))");
+		sb.append(join(conditions.toArray(), " AND "));
+		if (!appendTRSL.toString().contains(sb1)){
+			sb.append(sb1.toString());
+		}
+		String trsl = sb.toString();
 		String result = isEmpty(trsl) ? appendTRSL.toString()
 				: appendTRSL.length() > 0 ? trsl + " AND " + appendTRSL.toString() : trsl;
 //		if (log.isDebugEnabled()) {

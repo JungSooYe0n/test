@@ -153,6 +153,15 @@ public class CodeUtils {
 	 */
 	public static final int  STATUS_URLNAME = 301;
 
+	/*
+	*  hybase出错 （运行超时）
+	*/
+	public static final int HYBASE_TIMEOUT = 302;
+	/*
+	 *  hybase出错 （表达式超长）
+	 */
+	public static final int HYBASE_EXCEPTION = 303;
+
 	/**
 	 * 验证码储存到session的 key
 	 */
