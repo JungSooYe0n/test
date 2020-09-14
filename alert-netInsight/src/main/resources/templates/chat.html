@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<meta charset="UTF-8" />
+<head>
+    <title>Home</title>
+    <script src="http://121.43.38.142/webSocket/jquery-1.11.3.min.js"></script>  
+    <script type="text/javascript" src="//cdn.bootcss.com/sockjs-client/1.1.1/sockjs.min.js"></script>  
+    <script src="//cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script> 
+</head>
+<body>
+<p>
+    聊天室
+</p>
+
+<form id="wiselyForm">
+    <textarea rows="4" cols="60" name="text"></textarea>
+    <input type="submit"/>
+</form>
+
+<script th:inline="javascript">
+	debugger
+    $('#wiselyForm').submit(function(e){
+        e.preventDefault();
+        var text = $('#wiselyForm').find('textarea[name="text"]').val();
+        sendSpittle(text);
+    });
+    //链接endpoint名称为 "/endpointChat" 的endpoint。
+    var sock = new SockJS("/netInsight/websocket");
+    var stomp = Stomp.over(sock);
+    stomp.connect('guest', 'guest', function(frame) {
+
+        /**  订阅了/user/queue/notifications 发送的消息,这里雨在控制器的 convertAndSendToUser 定义的地址保持一致, 
+         *  这里多用了一个/user,并且这个user 是必须的,使用user 才会发送消息到指定的用户。 
+         *  */
+        stomp.subscribe("/user/topic/greetings", handleNotification);
+    });
+
+
+
+    function handleNotification(message) {
+        $('#output').append("<b>Received: " + typeof(message.body) + "</b><br/>")
+    }
+
+    function sendSpittle(text) {
+        console.log(text)
+        stomp.send("/app/chat", {}, JSON.stringify({ 'name': text }));//3
+    }
+    $('#stop').click(function() {sock.close()});
+</script>
+
+<div id="output"></div>
+</body>
+</html>

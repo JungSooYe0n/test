@@ -381,6 +381,11 @@ public class FtsFieldConst {
 	public final static String FIELD_PRCOUNT = "IR_PRCOUNT";
 
 	/**
+	 * 13.点赞数
+	 */
+	public final static String FIELD_APPROVE_COUNT = "IR_APPROVE_COUNT";
+
+	/**
 	 * 14.文章中包含的图片，多值
 	 */
 	public final static String FIELD_URLIMAGE = "IR_URLIMAGE";

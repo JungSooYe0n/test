@@ -12,15 +12,20 @@ import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.model.result.IDocument;
+import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.Frequency;
 import com.trs.netInsight.widget.alert.entity.PastMd5;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
+import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
 import com.trs.netInsight.widget.alert.entity.repository.PastMd5Repository;
 import com.trs.netInsight.widget.alert.util.ScheduleUtil;
+import com.trs.netInsight.widget.kafka.entity.AlertKafkaSend;
+import com.trs.netInsight.widget.kafka.util.AlertKafkaUtil;
+import com.trs.netInsight.widget.notice.service.INoticeSendService;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
@@ -35,12 +40,15 @@ import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.mail.search.SearchException;
+
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
 @Slf4j
 public class AlertMd5 implements Job {
+    @Autowired
+    private INoticeSendService noticeSendService;
 
     @Autowired
     private PastMd5Repository md5Repository;
@@ -55,8 +63,13 @@ public class AlertMd5 implements Job {
 
     @Autowired
     private FullTextSearch hybase8SearchServiceNew;
+    /**
+     * 模板
+     */
+    private static final String TEMPLATE = "mailmess2.ftl";
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        log.info("按热度值预警定时任务开始执行 ------------------");
         // 获得频率id
         Frequency alertFrequency = (Frequency) context.getJobDetail().getJobDataMap().get("schedule");
         List<AlertRule> rules = alertRuleRepository.findByStatusAndAlertTypeAndFrequencyId(ScheduleStatus.OPEN,
@@ -75,31 +88,43 @@ public class AlertMd5 implements Job {
                         String notMd5 = stringBuilder.toString().replaceFirst(" OR ", "");
                         String appendGroupName = appendTrsl(alertRule);
 
-
                         List<FtsDocumentCommonVO> alertList = new ArrayList<>();
                         if (SpecialType.SPECIAL.equals(alertRule.getSpecialType())) {
                             QueryBuilder searchBuilder = alertRule.toSearchBuilder(null);
                             if (searchBuilder != null) {
-
                                 searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
-                                searchBuilder.filterByTRSL(appendGroupName);
+                                searchBuilder.setPageNo(0);
+                                searchBuilder.setPageSize(5);
+                                if(StringUtil.isNotEmpty(appendGroupName)){
+                                    searchBuilder.filterByTRSL(appendGroupName);
+                                }
                             }
                             QueryBuilder searchBuilderWeiBo = alertRule.toSearchBuilderWeiBo(null);
                             if (searchBuilderWeiBo != null) {
-
                                 searchBuilderWeiBo.setDatabase(Const.WEIBO);
-                                searchBuilderWeiBo.filterByTRSL(appendGroupName);
+                                searchBuilderWeiBo.setPageNo(0);
+                                searchBuilderWeiBo.setPageSize(5);
+                                if(StringUtil.isNotEmpty(appendGroupName)){
+                                    searchBuilderWeiBo.filterByTRSL(appendGroupName);
+                                }
                             }
                             QueryBuilder searchBuilderWeiXin = alertRule.toSearchBuilderWeiXin(null);
                             if (searchBuilderWeiXin != null) {
-
                                 searchBuilderWeiXin.setDatabase(Const.WECHAT);
-                                searchBuilderWeiXin.filterByTRSL(appendGroupName);
+                                searchBuilderWeiXin.setPageNo(0);
+                                searchBuilderWeiXin.setPageSize(5);
+                                if(StringUtil.isNotEmpty(appendGroupName)){
+                                    searchBuilderWeiXin.filterByTRSL(appendGroupName);
+                                }
                             }
                             QueryBuilder searchBuilderTF = alertRule.toSearchBuilder(null);
                             if (searchBuilderTF != null) {
                                 searchBuilderTF.setDatabase(Const.HYBASE_OVERSEAS);
-                                searchBuilderTF.filterByTRSL(appendGroupName);
+                                searchBuilderTF.setPageNo(0);
+                                searchBuilderTF.setPageSize(5);
+                                if(StringUtil.isNotEmpty(appendGroupName)){
+                                    searchBuilderTF.filterByTRSL(appendGroupName);
+                                }
                             }
                             GroupResult categoryQuery = category(searchBuilder, notMd5, alertRule);
                             GroupResult categoryQueryWeibo = category(searchBuilderWeiBo, notMd5, alertRule);
@@ -118,7 +143,7 @@ public class AlertMd5 implements Job {
                                 queryCommonBuilder.filterByTRSL(appendGroupName);
                             }
                             QueryBuilder queryBuilder = new QueryBuilder().filterByTRSL(queryCommonBuilder.asTRSL())
-                                    .page(queryCommonBuilder.getPageNo(),queryCommonBuilder.getPageSize());
+                                    .page(0,20);
                             queryBuilder.setDatabase(Const.MIX_DATABASE);
                             GroupResult categoryQuery = category(queryBuilder, notMd5, alertRule);
                              queryHybase(queryBuilder, categoryQuery,Const.MIX_DATABASE.split(";"),alertList);
@@ -134,9 +159,39 @@ public class AlertMd5 implements Job {
                             }
                         });
                         if (alertList.size() > 0) {
-                            //String result = SendUtil.send(alertList, alertRule);
-                            //alertKafkaConsumerService.send(alertList, alertRule);
+                            log.info("按热度值预警，有数据可发送，预警：" + alertRule.getId() + "，名字：" + alertRule.getTitle());
+                            List<Map<String, String>> sendMap = formatData(alertList,alertRule);
+                            if(sendMap.size() >0){
+                                Map<String, Object> map = new HashMap<>();
+                                map.put("listMap", sendMap);
+                                map.put("size", sendMap.size());
+                                // 自动预警标题
+                                map.put("title", alertRule.getTitle());
+                                AlertKafkaSend alertKafkaSend = new AlertKafkaSend(alertRule,map);
+                                AlertKafkaUtil.send(alertKafkaSend,true);
+
+                                /*String sendWays = alertRule.getSendWay();
+                                if (StringUtils.isNotBlank(sendWays)) {
+                                    String[] split = sendWays.split(";|；");
+                                    for (int i = 0; i < split.length; i++) {
+                                        String string = split[i];
+                                        SendWay sendWay = SendWay.valueOf(string);
+                                        String webReceiver = alertRule.getWebsiteId();
+                                        String[] splitWeb = webReceiver.split(";");
+                                        try {
+                                            // 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
+                                            noticeSendService.sendAll(sendWay, TEMPLATE, alertRule.getTitle(), map, splitWeb[i],
+                                                    alertRule.getUserId(), AlertSource.AUTO);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }*/
+                            }
+
                         }
+                        alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
+                        alertRule.setLastExecutionTime(System.currentTimeMillis());
                     }
                 } catch (Exception e) {
                     log.error("预警【" + alertRule.getTitle() + "】任务报错：", e);
@@ -144,6 +199,87 @@ public class AlertMd5 implements Job {
             }
 
         }
+    }
+
+    public List<Map<String, String>> formatData(List<FtsDocumentCommonVO> voList, AlertRule alertRule) {
+        List<Map<String, String>> listMap = new ArrayList<>();
+        for(FtsDocumentCommonVO vo :voList){
+            FtsDocumentAlert ftsDocumentAlert = null;
+
+            String title = vo.getContent();
+            String cutTitle = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
+
+            String content = vo.getContent();
+                    content = StringUtil.replaceImg(content);
+            String cutContent = StringUtil.cutContentPro(content, 150);
+            String imgUrl = "";
+            if (content != null) {
+                String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
+                if (imgUrls.length > 1) {
+                    imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
+                }
+            }
+            String keywords = vo.getKeywords() == null || vo.getKeywords().size() ==0 ? "" : StringUtils.join(vo.getKeywords(),";");
+            String groupName = vo.getGroupName();
+            if (Const.GROUPNAME_WEIBO.equals(groupName)) {
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutContent, content, cutContent, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                        vo.getCommtCount(), vo.getRttCount(), vo.getScreenName(), vo.getAppraise(), "", null,
+                        "other", vo.getMd5Tag(), vo.getRetweetedMid(), imgUrl,keywords , 0, alertRule.getId());
+            } else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getHkey(), cutTitle, title, cutContent, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                        0, 0, vo.getAuthors(), vo.getAppraise(), "", null,
+                        "other", vo.getMd5Tag(), "other", imgUrl, keywords, 0, alertRule.getId());
+            } else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutContent, content, cutContent, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                        vo.getCommtCount(), vo.getRttCount(), vo.getAuthors(), vo.getAppraise(), "", null,
+                        "other",  vo.getMd5Tag(), "other", imgUrl, keywords, 0, alertRule.getId());
+            } else {
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutTitle, title, cutContent, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                        0, 0, vo.getScreenName(), vo.getAppraise(), "", null,
+                        vo.getNreserved1(),  vo.getMd5Tag(), "", imgUrl, keywords, 0, alertRule.getId());
+            }
+
+            Map<String, String> map = new HashMap<>();
+
+            map.put("url", ftsDocumentAlert.getUrlName());
+            map.put("titleWhole", ftsDocumentAlert.getTitleWhole());
+            map.put("title", ftsDocumentAlert.getTitle());
+            map.put("groupName", ftsDocumentAlert.getGroupName());
+            map.put("sid", ftsDocumentAlert.getSid());
+            map.put("retweetedMid", ftsDocumentAlert.getRetweetedMid());
+            map.put("sim", "0");// 热度值要显示相似文章数
+            String source = vo.getSiteName();
+            if (StringUtil.isEmpty(source)) {
+                source = groupName;
+            }
+            map.put("source", source);
+            map.put("imageUrl", ftsDocumentAlert.getImageUrl());
+            SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
+            if (ftsDocumentAlert.getTime() != null) {
+                String str = sdf.format(ftsDocumentAlert.getTime());
+                map.put("urlTime", str);
+            } else {
+                map.put("urlTime", "");
+            }
+
+            map.put("appraise", ftsDocumentAlert.getAppraise());
+            map.put("siteName", ftsDocumentAlert.getSiteName());
+            map.put("md5", ftsDocumentAlert.getMd5tag());
+            map.put("content", ftsDocumentAlert.getContent());
+            map.put("screenName", ftsDocumentAlert.getScreenName());
+            map.put("rttCount", String.valueOf(ftsDocumentAlert.getRttCount()));
+            map.put("commtCount", String.valueOf(ftsDocumentAlert.getCommtCount()));
+            map.put("nreserved1", ftsDocumentAlert.getNreserved1());
+            map.put("ruleId", alertRule.getId());
+            map.put("organizationId", alertRule.getOrganizationId());
+            map.put("countBy", alertRule.getCountBy());
+
+            listMap.add(map);
+        }
+
+        return listMap;
+
+
     }
 
     /**
@@ -159,14 +295,14 @@ public class AlertMd5 implements Job {
     public GroupResult category(QueryBuilder searchBuilder, String notMd5, AlertRule alertRule) {
         // 如果是专家模式 且没填写对应的表达式 则builder是null
         if (searchBuilder != null) {
-            searchBuilder.page(0, 5);
+            //searchBuilder.page(0, 5);
             if (StringUtil.isNotEmpty(notMd5)) {
                 searchBuilder.filterChildField(FtsFieldConst.FIELD_MD5TAG, notMd5, Operator.NotEqual);
             }
             GroupResult categoryQuery = new GroupResult();
             try {
                 categoryQuery = hybase8SearchServiceNew.categoryQuery(searchBuilder, false,
-                        true, false,FtsFieldConst.FIELD_MD5TAG, searchBuilder.getDatabase());
+                        true, false,FtsFieldConst.FIELD_MD5TAG, null,Const.MIX_DATABASE.split(";"));
             } catch (Exception e) {
                 e.printStackTrace();
                 log.error("md5预警报错" + alertRule.getTitle() + e.toString());
@@ -201,7 +337,7 @@ public class AlertMd5 implements Job {
                     PagedList<FtsDocumentCommonVO> pagedList = null ;
                     try {
                          pagedList = hybase8SearchServiceNew.pageListCommon(queryBuilder, false, false,
-                                false, "alert");
+                                false, null);
                     } catch (TRSException e) {
                         e.printStackTrace();
                     }

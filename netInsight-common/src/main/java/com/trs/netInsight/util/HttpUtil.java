@@ -288,16 +288,16 @@ public class HttpUtil {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static String doPost(String url, Map<String, String> map, String charset) {
-		log.error("进入dopost方法");
+		//log.error("进入dopost方法");
 		HttpClient httpClient = null;
 		HttpPost httpPost = null;
 		String result = null;
 		try {
-			log.error("开始获取连接");
+			//log.error("开始获取连接");
 			httpClient = new SSLClient();
 			httpPost = new HttpPost(url);
 			// 设置参数
-			log.error("设置参数");
+			//log.error("设置参数");
 			List<NameValuePair> list = new ArrayList<NameValuePair>();
 			Iterator iterator = map.entrySet().iterator();
 			while (iterator.hasNext()) {
@@ -310,10 +310,10 @@ public class HttpUtil {
 				httpPost.setEntity(entity);
 			}
 			HttpResponse response = httpClient.execute(httpPost);
-			log.error("response:" + response);
+			//log.error("response:" + response);
 			if (response != null) {
 				HttpEntity resEntity = response.getEntity();
-				log.error("resEntity:" + resEntity);
+				//log.error("resEntity:" + resEntity);
 				if (resEntity != null) {
 					result = EntityUtils.toString(resEntity, charset);
 				}

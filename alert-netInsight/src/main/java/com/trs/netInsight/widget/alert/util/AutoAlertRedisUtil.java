@@ -4,25 +4,54 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trs.netInsight.util.StringUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.stereotype.Component;
 import redis.clients.jedis.JedisPoolConfig;
 
-
+@Component
 public class AutoAlertRedisUtil {
+    private static String redisHost;
+    @Value("${alert.auto.redis.host}")
+    public void setRedisHost(String redisHost) {
+        this.redisHost = redisHost;
+    }
+    private static Integer redisPort;
+    @Value("${alert.auto.redis.port}")
+    public void setRedisPort(Integer redisPort) {
+        this.redisPort = redisPort;
+    }
+    private static String userName;
+    @Value("${alert.auto.redis.username}")
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+    private static String password;
+    @Value("${alert.auto.redis.password}")
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    private static Integer databaseIndex;
+    @Value("${alert.auto.redis.database.index}")
+    public void setDatabaseIndex(Integer databaseIndex) {
+        this.databaseIndex = databaseIndex;
+    }
 
     private static RedisTemplate<String, Object> redisTemplate;
 
-    static {
+    public static RedisTemplate<String, Object> getRedisTemplate(){
         try {
-
-            redisTemplate = createRedisTemplate();
+            if(redisTemplate == null ){
+                redisTemplate = createRedisTemplate();
+            }
         } catch (Exception e) {
             System.out.println(e);
         }
+        return redisTemplate;
     }
 
 
@@ -52,10 +81,10 @@ public class AutoAlertRedisUtil {
 
     private static RedisConnectionFactory connectionFactory() {
         JedisConnectionFactory jedis = new JedisConnectionFactory();
-        jedis.setHostName("192.168.201.177");
-        jedis.setPort(6379);
-        jedis.setPassword("trsadmin123.");
-        jedis.setDatabase(9);
+        jedis.setHostName(AutoAlertRedisUtil.redisHost);
+        jedis.setPort(AutoAlertRedisUtil.redisPort);
+        jedis.setPassword(AutoAlertRedisUtil.password);
+        jedis.setDatabase(AutoAlertRedisUtil.databaseIndex);
 
         jedis.setPoolConfig(poolCofig());
         // 初始化连接pool
@@ -78,18 +107,18 @@ public class AutoAlertRedisUtil {
         if(StringUtil.isEmpty(key)){
             return 0L;
         }
-        return redisTemplate.opsForList().size(key);
+        return AutoAlertRedisUtil.getRedisTemplate().opsForList().size(key);
     }
 
     public static Object getOneDataForList(String key){
         if(StringUtil.isEmpty(key)){
             return null;
         }
-        return redisTemplate.opsForList().rightPop(key);
+        return AutoAlertRedisUtil.getRedisTemplate().opsForList().rightPop(key);
     }
     public static void removeAllDataForlist(String key){
         if(StringUtil.isNotEmpty(key)){
-            redisTemplate.opsForList().trim(key,0,0);
+            AutoAlertRedisUtil.getRedisTemplate().opsForList().trim(key,0,0);
         }
     }
 
@@ -97,7 +126,7 @@ public class AutoAlertRedisUtil {
         if(StringUtil.isEmpty(hashName) || StringUtil.isEmpty(hashKey)){
             return null;
         }
-        return redisTemplate.opsForHash().get(hashName, hashKey);
+        return AutoAlertRedisUtil.getRedisTemplate().opsForHash().get(hashName, hashKey);
     }
 
 

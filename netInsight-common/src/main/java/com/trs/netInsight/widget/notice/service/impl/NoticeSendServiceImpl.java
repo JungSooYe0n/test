@@ -13,7 +13,6 @@
  */
 package com.trs.netInsight.widget.notice.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trs.hybase.client.TRSException;
 import com.trs.hybase.client.TRSInputRecord;
 import com.trs.netInsight.config.constant.Const;
@@ -26,11 +25,8 @@ import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.*;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
+import com.trs.netInsight.widget.alert.entity.repository.AlertAccountRepository;
 import com.trs.netInsight.widget.alert.entity.repository.AlertBackupsRepository;
-import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
-import com.trs.netInsight.widget.alert.service.IAlertAccountService;
-import com.trs.netInsight.widget.alert.service.IAlertSendService;
-import com.trs.netInsight.widget.alert.service.ISendAlertService;
 import com.trs.netInsight.widget.notice.service.IMailSendService;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -45,7 +41,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -53,8 +48,8 @@ import java.util.*;
 /**
  * 
  * @Type NoticeSendServiceImpl.java
- * @author 谷泽昊
- * @date 2018年2月1日 下午1:57:28
+ * @author
+ * @date
  * @version
  */
 @Service
@@ -65,7 +60,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 	private IMailSendService mailSend;
 
 	@Autowired
-	private IAlertAccountService alertAccountService;
+	private AlertAccountRepository alertAccountRepository;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -79,12 +74,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 	private FullTextSearch hybase8SearchServiceNew;
 
 	private SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
-	
-	@Value("${http.client}")
-	private boolean httpClient;
-	
-	@Value("${http.alert.netinsight.url}")
-	private String alertNetinsightUrl;
+
 	@Value("${netinsight.url}")
 	private String netinsightUrl;
 
@@ -131,7 +121,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						n = DateUtil.rangBetweenNow(sdf.parse(expireAt));
 					}
 					if(n>0){
-						List<AlertAccount> userList = alertAccountService.findByUserIdAndType(findByUserName.getId(),
+						List<AlertAccount> userList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(),
 								SendWay.EMAIL);
 						List<String> emailList = new ArrayList<>();
 						for (AlertAccount account : userList) {
@@ -211,10 +201,14 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 					List<AlertAccount> accountList = new ArrayList<>();
 					if (findByUserName != null) {
-						accountList = alertAccountService.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
+						accountList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
 					}else{//直接传的微信号   这个人没停止预警  就发  停止预警就不发
 						//通过微信号查alertaccount中的active  true发  false不发
-						AlertAccount alertaccount = alertAccountService.findByAccountAndUserIdAndType(receivers,userId, SendWay.WE_CHAT);
+						List<AlertAccount> byAccountAndUserIdAndType = alertAccountRepository.findByAccountAndUserIdAndType(receivers, userId, SendWay.WE_CHAT);
+						AlertAccount alertaccount = null;
+						if (list != null && byAccountAndUserIdAndType.size() > 0) {
+							alertaccount =  byAccountAndUserIdAndType.get(0);
+						}
 						accountList.add(alertaccount);
 					}
 					for (AlertAccount alertAccount : accountList) {
@@ -479,6 +473,47 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 			return buffer.toString();
 		}
 	}
+
+	/**
+	 * 发送预警信息
+	 * @return
+	 */
+	public String sendAlert(AlertRule alertRule,Map<String, Object> sendMap,List<Map<String, String>> bakMap){
+
+
+
+		return null;
+	}
+
+	/**
+	 * 通过各种方式发送预警信息
+	 * @return
+	 */
+
+	private String sendWayAlertInfoForAlertRule(){
+
+		return null;
+	}
+
+	/**
+	 * 存储预警发送的信息 - 预警内容详情
+	 *
+	 * @return
+	 */
+	private String saveAlertEntityInfo(List<Map<String, String>> bakMap){
+
+		return null;
+	}
+
+	/**
+	 * 这里主要是微信和app的发送信息概括
+	 * @return
+	 */
+	private String saveAlertTypeInfo(Map<String, Object> sendMap){
+
+		return null;
+	}
+
 }
 
 /**

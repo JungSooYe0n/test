@@ -13,6 +13,7 @@ import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import lombok.*;
@@ -602,24 +603,22 @@ public class AlertRule extends BaseEntity {
 			default:
 				break;
 		}
-		if(StringUtils.isNotBlank(time)){
-			searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, DateUtil.formatTimeRange(time), Operator.Between);
-		}else{
-			searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, new String[] { before, now }, Operator.Between);
+		if(!"noTime".equals(time)){
+			if(StringUtils.isNotBlank(time)){
+				searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, DateUtil.formatTimeRange(time), Operator.Between);
+			}else{
+				searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, new String[] { before, now }, Operator.Between);
+			}
 		}
 		return searchBuilder;
 	}
 
 	public String getAlertRuleTrsl() throws OperationException {
-		QueryCommonBuilder queryCommonBuilder = this.toSearchBuilderCommon(null);
+		QueryCommonBuilder queryCommonBuilder = this.toSearchBuilderCommon("noTime");
 		String queryTrsl = queryCommonBuilder.asTRSL();
-		if (queryTrsl.contains(FtsFieldConst.FIELD_HYLOAD_TIME)) {
-			int indexTime = queryTrsl.indexOf(FtsFieldConst.FIELD_HYLOAD_TIME);
-			queryTrsl = queryTrsl.substring(indexTime, indexTime);
-		}
 		if (StringUtil.isNotEmpty(this.getGroupName())) {
-			String[] groupArr = this.getGroupName().split(";");
-			String groupTrsl = StringUtils.join(groupArr, " OR ");
+			List<String> groupList = CommonListChartUtil.formatGroupName(this.getGroupName());
+			String groupTrsl = StringUtils.join(groupList, " OR ");
 			queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
 		}
 		return queryTrsl;
@@ -629,7 +628,9 @@ public class AlertRule extends BaseEntity {
 		String database = Const.MIX_DATABASE;
 		switch (specialType) {
 			case COMMON:
-				String[] databaseArr = TrslUtil.chooseDatabases(this.getGroupName().split(";"));
+				String group = this.getGroupName();
+
+				String[] databaseArr = TrslUtil.chooseDatabases(CommonListChartUtil.changeGroupName(group).split(";"));
 				List<String> dataList = new ArrayList<>();
 				for(String data :databaseArr){
 					if(StringUtil.isNotEmpty(data)){
@@ -657,8 +658,5 @@ public class AlertRule extends BaseEntity {
 		}
 		return database;
 	}
-
-
-
 
 }
