@@ -569,22 +569,22 @@ public class GatherController {
         };
 
         list = gatherRepository.findAll(criteria, pageable);
-        List<GatherPoint> gatherPointList = list.getContent();
-        List<GatherPoint> newGatherList = new ArrayList<>();
-        for (GatherPoint gatherPoint : gatherPointList) {
-            if (gatherPoint.getAuditStatus().equals(Const.GATHER_AUDITED)){
-                newGatherList.add(gatherPoint);
-            }
-        }
-        StringBuilder ids = new StringBuilder();
-        for (int i = 0; i < newGatherList.size(); i++) {
-            if (i == 0){
-                ids.append(newGatherList.get(i).getId());
-            }else {
-                ids.append(","+newGatherList.get(i).getId());
-            }
-        }
-        String sendPost = HttpUtil.sendPost(gatherInfo, "ids=["+ids+"]");
+//        List<GatherPoint> gatherPointList = list.getContent();
+//        List<GatherPoint> newGatherList = new ArrayList<>();
+//        for (GatherPoint gatherPoint : gatherPointList) {
+//            if (gatherPoint.getAuditStatus().equals(Const.GATHER_AUDITED)){
+//                newGatherList.add(gatherPoint);
+//            }
+//        }
+//        StringBuilder ids = new StringBuilder();
+//        for (int i = 0; i < newGatherList.size(); i++) {
+//            if (i == 0){
+//                ids.append(newGatherList.get(i).getId());
+//            }else {
+//                ids.append(","+newGatherList.get(i).getId());
+//            }
+//        }
+//        String sendPost = HttpUtil.sendPost(gatherInfo, "ids=["+ids+"]");
         return list;
 
     }
@@ -946,7 +946,7 @@ public class GatherController {
                 JSONObject jsonObject = JSONObject.parseObject(sendPost);
                 if (jsonObject.getBoolean("success")) {
                     for (GatherPoint gatherPoint : gatherPointList){
-//                        gatherPoint.setStatus("采集中");
+                        gatherPoint.setStatus("采集中");
                         gatherPoint.setAuditStatus(Const.GATHER_AUDITED);
                         gatherPoint.setAuditUserName(user.getUserName());
                         gatherPoint.setNeedRemind(true);
@@ -1562,8 +1562,8 @@ dataType = Const.PAGE_SHOW_BOKE;
 
                         }
                     }
-//                    gatherRepository.save(gatherPointList);
-                    return gatherPointList;
+                    gatherRepository.save(gatherPointList);
+//                    return gatherPointList;
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new TRSException("解析失败" + e);
@@ -1661,7 +1661,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                 ids.append(","+gatherId[i]);
             }
         }
-        String sendPost = HttpUtil.sendPost(gatherInfo, "ids=["+ids+"]");
+        String sendPost = HttpUtil.sendPost(gatherInfo, "ids=["+ids.toString()+"]");
         return sendPost;
     }
 }
