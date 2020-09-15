@@ -5736,7 +5736,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					queryBuilder = WordSpacingUtil.handleKeyWords(keywords, keyWordIndex, weight);
 				}
 			}
-			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
+			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRangeMinus1(time), Operator.Between);
 			if (StringUtil.isNotEmpty(excludeWords)) {
 				//拼凑排除词
 				String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeWordsIndex);
@@ -7181,7 +7181,7 @@ public class InfoListServiceImpl implements IInfoListService {
                     queryBuilder = WordSpacingUtil.handleKeyWords(keywords, keyWordIndex, weight);
                 }
             }
-			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
+			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRangeMinus1(time), Operator.Between);
 
 			if (StringUtil.isNotEmpty(notKeyWords)) {
 				//拼凑排除词
