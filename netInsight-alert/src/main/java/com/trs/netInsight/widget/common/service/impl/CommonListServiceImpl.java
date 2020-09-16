@@ -66,7 +66,8 @@ public class CommonListServiceImpl implements ICommonListService {
     /**
      * 线程池跑任务
      */
-    private static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+//    private static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+    private static ExecutorService fixedThreadPool = Executors.newCachedThreadPool();
 
 
     /**
