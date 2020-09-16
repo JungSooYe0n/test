@@ -1738,7 +1738,7 @@ public class DateUtil {
 		if (pattern1.matcher(time).matches()) {
 			// 如果满足xh/d/w/m/y(代表:近x时/天/周/月/年)这种格式
 			int timeNum = Integer.parseInt(time.substring(0, time.length() - 1));
-			timeNum = timeNum>0?timeNum-1:0;
+			//timeNum = timeNum>0?timeNum-1:0;
 			char timeFlag = time.charAt(time.length() - 1);
 			timeArray[1] = new SimpleDateFormat(yyyyMMddHHmmss).format(new Date());
 			switch (timeFlag) {

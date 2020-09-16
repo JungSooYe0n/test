@@ -66,7 +66,8 @@ public class CommonListServiceImpl implements ICommonListService {
     /**
      * 线程池跑任务
      */
-    private static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+//    private static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+    private static ExecutorService fixedThreadPool = Executors.newCachedThreadPool();
 
 
     /**
@@ -137,7 +138,7 @@ public class CommonListServiceImpl implements ICommonListService {
             //根据参数计算相似文章数才计算相似文章数，基本的都需要计算相似文章数，但是存在个别不需要，例如API个别方法，详情页、导出
             if (isCalculateSimNum) {
                 //最后一个参数为是否计算相似文章对应的发文网站，现在统一设置成true
-                fixedThreadPool.execute(() -> calculateSimNum(String.join(";", database), pageId, ftsList, trsSim, type, true));
+                fixedThreadPool.execute(() -> calculateSimNum(String.join(";", database), pageId, ftsList, trsSim, type, false));
             }
 
         }
@@ -703,7 +704,7 @@ public class CommonListServiceImpl implements ICommonListService {
     }
 
     /**
-     * 在相同文章的基础上求发表相似文章的对应媒体网站
+     * 在相同文章的基础上求发表相似文章的对应媒体网站(3.0普通搜索页面)
      *
      * @param pageId        页面id
      * @param trslk         表达式key
