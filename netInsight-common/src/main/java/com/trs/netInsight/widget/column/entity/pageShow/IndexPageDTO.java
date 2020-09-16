@@ -31,7 +31,11 @@ public class IndexPageDTO implements Serializable {
     private Boolean topFlag = false;
 
     public IndexPageDTO(){}
-
+    public IndexPageDTO(IndexPage indexPage){
+        this.id = indexPage.getId();
+        this.name = indexPage.getName();
+        this.hide = indexPage.isHide();
+    }
     public IndexPageDTO(IndexPage indexPage,Integer level){
         this.id = indexPage.getId();
         this.name = indexPage.getName();

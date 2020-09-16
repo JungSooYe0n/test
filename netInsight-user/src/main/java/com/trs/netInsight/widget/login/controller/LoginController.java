@@ -113,6 +113,7 @@ public class LoginController {
 		// if (!StringUtils.equalsIgnoreCase(code, v)) {
 		// throw new TRSException(CodeUtils.VCODE_FAIL, "验证码错误!");
 		// }
+		log.info("loginName=="+userName+",pwd=="+password);
 		User byUserName = userService.findByUserName(userName);
 		if(userService.findByUserName(userName) != null){
 			User user = userService.findByUserName(userName);

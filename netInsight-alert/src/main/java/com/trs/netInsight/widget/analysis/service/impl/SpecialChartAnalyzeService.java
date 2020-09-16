@@ -145,6 +145,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			data.add(list);
 			return data;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错");
 		}
 	}
@@ -290,6 +297,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 			return groupResult;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("查询出错" + e);
 		}
 	}
@@ -448,6 +462,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			log.info("微博top5处理查询结果累计时间，其中包括查询每条的count数据："+(endCount - startCount));
 			return pagedList;
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("微博top5检索失败:" + e,e);
 		}
 	}
@@ -870,6 +891,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			}
 
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("地域分布查询失败" + e);
 		}
 		return resultMap;
@@ -921,7 +949,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				break;
 			case Const.NETIZEN_VIEW:
 				//微博+微信  这里我先查微博 再查微信
-				groupNames = "微博";
+				groupNames = "微信";
 				break;
 		}
 		User user = UserUtils.getUser();
@@ -931,7 +959,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		log.info("观点分析海贝查询所需时间" + time);
 		if (infoListResult == null || infoListResult.getContent() == null) {
 			if (viewType.equals(Const.NETIZEN_VIEW)){
-				 infoListResult = commonListService.queryPageListForHot(builder, "微信", user, "special", false);
+				 infoListResult = commonListService.queryPageListForHot(builder, "微博", user, "special", false);
 				if (infoListResult == null || infoListResult.getContent() == null) {
 					return null;
 				}
@@ -947,7 +975,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
 		for (FtsDocumentCommonVO vo : voList) {
 			map = new HashMap<>();
-			String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
+//			String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
 			if (ObjectUtil.isNotEmpty(vo.getTitle())) {
 				map.put("name", StringUtil.replaceFont(vo.getTitle()));
 				map.put("value", String.valueOf(vo.getSimCount()));
@@ -1652,6 +1680,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("网站统计失败" + e);
 		}
 		return result;
@@ -2164,6 +2199,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			result.put("arrayList", list);
 		} catch (Exception e) {
 			e.printStackTrace();
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("网站统计失败" + e);
 		}
 
@@ -2581,6 +2623,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			}
 		} catch (Exception e) {
 			log.error("statByClassification error ", e);
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("statByClassification error: " + e, e);
 		}
 		return classInfo;
@@ -3080,6 +3129,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			resultMap.put("Dates", dateList);
 		} catch (Exception e) {
 			e.printStackTrace();
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("声量趋势计算错误,message: " + e);
 		}
 		return resultMap;
@@ -3291,6 +3347,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 						long list = hybase8SearchService.ftsCount(query, isSimilar, false,false,"special");
 						result.add(list);
 					} catch (Exception e) {
+						if (e.getMessage().contains("检索超时")){
+							throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+									e);
+						}else if (e.getMessage().contains("表达式过长")){
+							throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+									e);
+						}
 						throw new OperationException("网站统计失败" + e);
 					}
 				}
@@ -3341,6 +3404,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 							result.add(list);
 							log.info("esSql---" + newSql);
 						} catch (Exception e) {
+							if (e.getMessage().contains("检索超时")){
+								throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+										e);
+							}else if (e.getMessage().contains("表达式过长")){
+								throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+										e);
+							}
 							throw new OperationException("网站统计失败" + e);
 						}
 					}
@@ -4856,7 +4926,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public List<Map<String, Object>> spreadAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean isApi, String groupName) throws TRSSearchException {
+	public List<Map<String, Object>> spreadAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean isApi, String groupName) throws TRSSearchException,TRSException {
 		// 最多显示几个
 		int maxLength = 5;
 		List<String> list = DateUtil.getBetweenDateString(timeArray[0], timeArray[1], DateUtil.yyyyMMddHHmmss,
@@ -4908,10 +4978,17 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				}
 				GroupResult resultNotWxb = null;
 				try {
+					System.err.println("表达式打印==================："+builderNotWxb.asTRSL());
 					resultNotWxb = commonListService.categoryQuery(builderNotWxb, similar, irSimflag,irSimflagAll,
 							contrastField,"special",groupName);
 				} catch (TRSException e) {
-					e.printStackTrace();
+					if (e.getMessage().contains("检索超时")){
+						throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+								e);
+					}else if (e.getMessage().contains("表达式过长")){
+						throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+								e);
+					}
 				}
 				if (resultNotWxb != null) {
 					listData.addAll(resultNotWxb.getGroupList());
@@ -5009,7 +5086,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange) throws OperationException, ParseException {
+	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange) throws OperationException, ParseException,TRSException {
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
 			if (StringUtils.isBlank(timeRange)) {
@@ -5036,6 +5113,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				resultData.add(result);
 			}
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("情绪统计计算错误,message: ", e);
 		}
 		return resultData;
@@ -5831,6 +5915,9 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 		List<Map<String, Object>> list1 = null;
 		try {
 			list1 = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,groupName,"",ESFieldConst.IR_APPRAISE,"special",chartResultField);
+		if (ObjectUtil.isEmpty(list1)){
+			return null;
+		}
 		} catch (TRSException e) {
 			e.printStackTrace();
 		}
@@ -5903,6 +5990,23 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 			hashMap.put("value", String.valueOf(ftsCount));
 			list.add(hashMap);
 
+		}
+		String value1 = "";
+		String value2 = "";
+		String value3 = "";
+		for (int i = 0; i < list.size(); i++) {
+			Map<String, String> stringMap =  list.get(i);
+			if(i == 0){
+				value1 = stringMap.get("value");
+			}else if (i==1){
+				value2 = stringMap.get("value");
+			}else if (i==2){
+				value3 = stringMap.get("value");
+			}
+
+		}
+		if ("0".equals(value1) && "0".equals(value2) && "0".equals(value3)){
+			return null;
 		}
 		return list;
 	}

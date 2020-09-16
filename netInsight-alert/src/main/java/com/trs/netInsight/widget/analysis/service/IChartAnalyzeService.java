@@ -504,7 +504,7 @@ public interface IChartAnalyzeService {
 	public List<Map<String, Object>> newsSiteAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar,
 													  boolean irSimflag,boolean irSimflagAll,boolean isApi) throws TRSSearchException;
 	public List<Map<String, Object>> spreadAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar,
-													  boolean irSimflag,boolean irSimflagAll,boolean isApi,String groupName) throws TRSSearchException;
+													  boolean irSimflag,boolean irSimflagAll,boolean isApi,String groupName) throws TRSSearchException,TRSException;
 	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder) throws TRSSearchException, TRSException;
 	HashMap<String, Object> getUserViewsData(SpecialProject specialProject, String timeRange, String industry, String area, SpecialParam specParam) throws Exception;
 

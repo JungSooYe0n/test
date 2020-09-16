@@ -14,8 +14,11 @@ import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
+import com.trs.netInsight.widget.column.entity.emuns.IndexFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
+import com.trs.netInsight.widget.column.repository.IndexSequenceRepository;
+import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
 import com.trs.netInsight.widget.column.service.*;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
@@ -54,6 +57,11 @@ public class ColumnChartController {
 
     @Autowired
     private IColumnChartService columnChartService;
+    @Autowired
+    private IndexSequenceRepository indexSequenceRepository;
+
+    @Autowired
+    private IndexTabMapperRepository tabMapperRepository;
 
     /**
      * 查找当前栏目对应的图表 - 统计分析图表+自定义图表
@@ -139,7 +147,35 @@ public class ColumnChartController {
         return result;
     }
 
-
+    /**
+     * 查找当前分组下所要显示的豆腐块缩略图
+     *
+     * @param request
+     * @param id
+     * @return
+     * @throws OperationException
+     */
+    @FormatResult
+//    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_PAGE_TOP_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前分组下所要显示的豆腐块缩略图 - 栏目+统计分析+自定义图表被置顶的数据：${id}")
+    @RequestMapping(value = "/selectOnePageTopChartList", method = RequestMethod.GET)
+    @ApiOperation("查找当前分组一级所要显示的豆腐块缩略图 - 栏目+统计分析+自定义图表被置顶的数据")
+    public Object selectOnePageTopChartList(HttpServletRequest request,
+                                         @ApiParam("栏目分组id") @RequestParam(value = "id") String id,
+                                         @ApiParam("当前页显示多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                         @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
+                                         @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
+            throws TRSException {
+        User user = UserUtils.getUser();
+        // 需要排序
+        IndexPage indexPage = indexPageService.findOne(id);
+        if (ObjectUtil.isEmpty(indexPage)) {
+            throw new TRSException(CodeUtils.FAIL,"当前分组不存在");
+        }
+        pageNo = pageNo < 0 ? 0 : pageNo;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+        Object result = columnChartService.getOneTopColumnChartForPage(id,pageNo,pageSize);
+        return result;
+    }
     /**
      * 置顶 或 取消置顶 一个自定义图表或统计分析图表
      *
@@ -175,6 +211,12 @@ public class ColumnChartController {
                 statisticalChart.setTopSequence(0);
             }
             columnChartService.saveStatisticalChart(statisticalChart);
+            if (isTop) {
+            IndexTabMapper mapper = tabMapperRepository.findOne(statisticalChart.getParentId());
+            saveSequence(statisticalChart.getParentId(),mapper.getIndexPage().getId(),statisticalChart.getId(),IndexFlag.StatisticalFlag);
+            }else {
+                indexSequenceRepository.delete(indexSequenceRepository.findByIndexId(statisticalChart.getId()));
+            }
             return statisticalChart;
         } else if (ChartPageInfo.CustomChart.equals(chartPageInfo)) {
             CustomChart customChart = columnChartService.findOneCustomChart(id);
@@ -186,11 +228,60 @@ public class ColumnChartController {
                 customChart.setTopSequence(0);
             }
             columnChartService.saveCustomChart(customChart);
+            if (isTop) {
+                IndexTabMapper mapper = tabMapperRepository.findOne(customChart.getParentId());
+                saveSequence(customChart.getParentId(), mapper.getIndexPage().getId(), customChart.getId(), IndexFlag.CustomFlag);
+            }else {
+                indexSequenceRepository.delete(indexSequenceRepository.findByIndexId(customChart.getId()));
+            }
             return customChart;
         }
         return null;
     }
+private void saveSequence(String tabId,String pageId,String indexId,IndexFlag indexFlag){
+    List<IndexSequence> indexSequenceList = indexSequenceRepository.findByParentIdOrderBySequence(pageId);
+    boolean isChange = false;
+    Integer seq = 1;
+    boolean isAfterOne = true;//是否是最后一个
+    for ( IndexSequence sequence : indexSequenceList) {
+        if (isChange){
+            if((sequence.getIndexFlag().equals(IndexFlag.IndexPageFlag) || sequence.getIndexFlag().equals(IndexFlag.IndexTabFlag)) && seq == 1){
+                //to
+                isAfterOne = false;
+                seq = sequence.getSequence();
+            }
+           if (seq != 0){
+               sequence.setSequence(sequence.getSequence()+1);
+           }
+        }
+        if (tabId.equals(sequence.getIndexId())){
+            isChange = true;
+        }
 
+    }
+    if (isAfterOne && ObjectUtil.isNotEmpty(indexSequenceList)){
+        seq = indexSequenceList.get(indexSequenceList.size()-1).getSequence()+1;
+    }
+    IndexSequence indexSequence = indexSequenceRepository.findByIndexId(indexId);
+    if (ObjectUtil.isEmpty(indexSequence)) {
+        IndexSequence indexSequence1 = new IndexSequence();
+        indexSequence1.setParentId(pageId);
+        indexSequence1.setIndexTabId(tabId);
+        indexSequence1.setIndexFlag(indexFlag);
+        indexSequence1.setIndexId(indexId);
+        indexSequence1.setSequence(seq);
+        indexSequenceRepository.save(indexSequence1);
+        indexSequenceRepository.save(indexSequenceList);
+    }else {
+        indexSequence.setParentId(pageId);
+        indexSequence.setIndexTabId(tabId);
+        indexSequence.setIndexFlag(indexFlag);
+        indexSequence.setIndexId(indexId);
+        indexSequence.setSequence(seq);
+        indexSequenceRepository.save(indexSequence);
+        indexSequenceRepository.save(indexSequenceList);
+    }
+}
     /**
      * 自定义图表的拖动排序
      *

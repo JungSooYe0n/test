@@ -13,6 +13,7 @@ import com.trs.netInsight.support.fts.annotation.parser.FtsParser;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
+import com.trs.netInsight.support.fts.hybaselog.HybaseExceptionLog;
 import com.trs.netInsight.support.fts.model.factory.HybaseFactory;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.model.result.IDocument;
@@ -363,6 +364,12 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
                     + "],size:[" + pageSize + "]", e);
+            HybaseExceptionLog.printSearchTime(e,connection);
+            if (e.getMessage().contains("expression too long")){
+                throw new TRSSearchException("检索异常,表达式过长", e);
+            }else if (e.getMessage().contains("timed out")){
+                throw new TRSSearchException("检索异常,检索超时", e);
+            }
             throw new TRSSearchException("检索异常" + e, e);
         } finally {
             HybaseFactory.clean();
@@ -441,6 +448,12 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
                     + "],size:[" + pageSize + "]", e);
+            HybaseExceptionLog.printSearchTime(e,connection);
+            if (e.getMessage().contains("expression too long")){
+                throw new TRSSearchException("检索异常,表达式过长", e);
+            }else if (e.getMessage().contains("timed out")){
+                throw new TRSSearchException("检索异常,检索超时", e);
+            }
             throw new com.trs.netInsight.handler.exception.TRSException("检索异常", e);
         } finally {
             HybaseFactory.clean();
@@ -504,6 +517,12 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to search by hybase: [" + trsl + "],page number:[" + pageNo + "],size:[" + pageSize + "]",
                     e);
+            HybaseExceptionLog.printSearchTime(e,connection);
+            if (e.getMessage().contains("expression too long")){
+                throw new TRSSearchException("检索异常,表达式过长", e);
+            }else if (e.getMessage().contains("timed out")){
+                throw new TRSSearchException("检索异常,检索超时", e);
+            }
             throw new com.trs.netInsight.handler.exception.TRSException("检索异常", e);
         } finally {
             HybaseFactory.clean();
@@ -567,6 +586,12 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
                     + "],size:[" + pageSize + "]", e);
+            HybaseExceptionLog.printSearchTime(e,connection);
+            if (e.getMessage().contains("expression too long")){
+                throw new TRSSearchException("检索异常,表达式过长", e);
+            }else if (e.getMessage().contains("timed out")){
+                throw new TRSSearchException("检索异常,检索超时", e);
+            }
             throw new TRSSearchException("检索异常", e);
         } finally {
             HybaseFactory.clean();
@@ -734,6 +759,12 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         } catch (Exception e) {
             log.error("fail to statistic by Hybase: [" + trsl + "],statisticOnField:[" + groupField + "],topN:[" + limit
                     + "]", e);
+            HybaseExceptionLog.printSearchTime(e,connection);
+            if (e.getMessage().contains("expression too long")){
+                throw new TRSSearchException("分类统计失败,表达式过长", e);
+            }else if (e.getMessage().contains("timed out")){
+                throw new TRSSearchException("分类统计失败,检索超时", e);
+            }
             throw new TRSSearchException("分类统计失败", e);
         } finally {
             HybaseFactory.clean();
@@ -1643,6 +1674,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                           String linked) {
         long id = Thread.currentThread().getId();
 
+        RecordSearchTimeUtil.printSearchTime(time,trsl,connectTime,db,linked);
         LogPrintUtil loginpool = RedisUtil.getLog(Thread.currentThread().getId());
         if (null != loginpool) {
             List<LogEntity> logList = loginpool.getLogList();
@@ -1675,6 +1707,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                              String field, String linked) {
         long id = Thread.currentThread().getId();
 
+        RecordSearchTimeUtil.printSearchTime(time,trsl,connectTime,db,linked);
         LogPrintUtil loginpool = RedisUtil.getLog(id);
         if (null != loginpool) {
             List<LogEntity> logList = loginpool.getLogList();
@@ -1709,7 +1742,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                           String linked) {
 
         long id = Thread.currentThread().getId();
-
+        RecordSearchTimeUtil.printSearchTime(time,trsl,connectTime,db,linked);
         LogPrintUtil loginpool = RedisUtil.getLog(id);
         if (null != loginpool) {
             List<LogEntity> logList = loginpool.getLogList();

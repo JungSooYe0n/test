@@ -21,6 +21,9 @@ import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.column.entity.IndexSequence;
+import com.trs.netInsight.widget.column.entity.emuns.IndexFlag;
+import com.trs.netInsight.widget.column.repository.IndexSequenceRepository;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.user.entity.User;
@@ -56,7 +59,8 @@ public class IndexTabServiceImpl implements IIndexTabService {
 
 	@Autowired
 	private IndexTabMapperRepository indexTabMapperRepository;
-
+	@Autowired
+	private IndexSequenceRepository indexSequenceRepository;
 	@Override
 	public List<IndexTab> findByParentId(String parentId) {
 		return indexTabRepository.findByParentId(parentId);
@@ -116,6 +120,13 @@ public class IndexTabServiceImpl implements IIndexTabService {
 		}
 		mapper.setTypeId(indexTab.getTypeId());
 		mapper = indexTabMapperRepository.save(mapper);
+		IndexSequence indexSequence = new IndexSequence();
+		indexSequence.setIndexId(mapper.getId());
+		indexSequence.setParentId(mapper.getIndexPage().getId());
+		indexSequence.setSequence(save.getSequence());
+		indexSequence.setIndexFlag(IndexFlag.IndexTabFlag);
+		indexSequence.setIndexTabId(save.getId());
+		indexSequenceRepository.save(indexSequence);
 		return mapper;
 	}
 

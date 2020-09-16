@@ -25,6 +25,9 @@ import com.trs.jpa.utils.Restrictions;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.support.appApi.entity.AppApiAccessToken;
 import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.column.entity.*;
+import com.trs.netInsight.widget.column.entity.emuns.IndexFlag;
+import com.trs.netInsight.widget.column.repository.*;
 import com.trs.netInsight.widget.column.service.*;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.user.entity.SubGroup;
@@ -35,15 +38,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.column.entity.IndexTab;
-import com.trs.netInsight.widget.column.entity.NavigationConfig;
-import com.trs.netInsight.widget.column.entity.NavigationEnum;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
-import com.trs.netInsight.widget.column.repository.IndexPageRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabRepository;
-import com.trs.netInsight.widget.column.repository.NavigationRepository;
 import com.trs.netInsight.widget.user.entity.User;
 
 /**
@@ -79,6 +74,8 @@ public class IndexPageServiceImpl implements IIndexPageService {
 	private IColumnService columnService;
 	@Autowired
 	private IColumnChartService columnChartService;
+	@Autowired
+	private IndexSequenceRepository indexSequenceRepository;
 
 	@Override
 	public List<IndexPage> findByParentId(String parentId) {
@@ -462,7 +459,12 @@ public class IndexPageServiceImpl implements IIndexPageService {
 		indexPage.setSequence(seq +1);
 		indexPage.setTypeId(typeId);
 		indexPageRepository.saveAndFlush(indexPage);
-
+		IndexSequence indexSequence = new IndexSequence();
+		indexSequence.setIndexId(indexPage.getId());
+		indexSequence.setParentId(indexPage.getParentId());
+		indexSequence.setSequence(indexPage.getSequence());
+		indexSequence.setIndexFlag(IndexFlag.IndexPageFlag);
+		indexSequenceRepository.saveAndFlush(indexSequence);
 		return indexPage;
 	}
 

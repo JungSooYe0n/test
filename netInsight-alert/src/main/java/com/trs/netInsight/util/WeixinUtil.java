@@ -91,6 +91,7 @@ public class WeixinUtil {
 	 */
 	public static final String WEIXINREDISKEY = "WEI_XIN_REDIS_KEY";
 	public static Integer counter = 0;
+	public static final String NETINSIGHR_WECHATTOKEN = "http://www.netinsight.com.cn/netInsight/system/weixin/getWeiXinToken";
 
 	/**
 	 * 获取token
@@ -103,11 +104,18 @@ public class WeixinUtil {
 		Environment env = SpringUtil.getBean(Environment.class);
 		String appid = env.getProperty("trs.weixin.AppID");
 		String secret = env.getProperty("trs.weixin.AppSecret");
+		Boolean master = Boolean.parseBoolean(env.getProperty("trs.master"));
 		log.error("appid:" + appid);
 		log.error("secret:" + secret);
 		String format = ACCESS_TOKEN_URL.replace("APPID", appid).replace("APPSECRET", secret);
-//		String token = null;
-		String token = RedisUtil.getString(WEIXINREDISKEY);
+		//4.0 环境目前在测试上，为不影响3.0微信功能使用，微信的token从3.0获取，4.0上线正式后，将注释去掉
+		//String token = RedisUtil.getString(WEIXINREDISKEY);
+		String token = null;
+		if(master != null && master){
+			token = RedisUtil.getString(WEIXINREDISKEY);
+		}else{
+			token = HttpUtil.doGet(NETINSIGHR_WECHATTOKEN, "utf-8");
+		}
 		if (StringUtils.isNotBlank(token)) {
 			return token;
 		}

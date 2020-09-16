@@ -5,6 +5,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.trs.netInsight.handler.exception.TRSSearchException;
+import com.trs.netInsight.util.CodeUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -118,8 +120,22 @@ public class GlobalResultHandler {
 				log.error(throwable.getMessage());
 				return new CommonResult(((LoginException) throwable).getCode(), throwable.getMessage(), null);
 			} else if (throwable instanceof TRSException) {
+				if (throwable.getMessage().contains("检索超时")){
+					throw new TRSException("处理controller结果出错,message:" + throwable, CodeUtils.HYBASE_TIMEOUT,
+							throwable);
+				}else if (throwable.getMessage().contains("表达式过长")){
+					throw new TRSException("处理controller结果出错,message:" + throwable, CodeUtils.HYBASE_EXCEPTION,
+							throwable);
+				}
 				throw (TRSException) throwable;
 			} else {
+				if (throwable.getMessage().contains("检索超时")){
+					throw new TRSException("处理controller结果出错,message:" + throwable, CodeUtils.HYBASE_TIMEOUT,
+							throwable);
+				}else if (throwable.getMessage().contains("表达式过长")){
+					throw new TRSException("处理controller结果出错,message:" + throwable, CodeUtils.HYBASE_EXCEPTION,
+							throwable);
+				}
 				throw new TRSException("处理controller结果出错,message:" + throwable, ResultCode.OPERATION_EXCEPTION,
 						throwable);
 			}

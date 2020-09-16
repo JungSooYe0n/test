@@ -9,6 +9,7 @@ import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.entity.pageShow.CustomChartDTO;
+import com.trs.netInsight.widget.column.entity.pageShow.IndexPageDTO;
 import com.trs.netInsight.widget.column.entity.pageShow.IndexTabDTO;
 import com.trs.netInsight.widget.column.entity.pageShow.StatisticalChartDTO;
 import com.trs.netInsight.widget.column.repository.*;
@@ -52,6 +53,8 @@ public class ColumnChartServiceImpl implements IColumnChartService {
     private IndexTabRepository indexTabRepository;
     @Autowired
     private IndexTabMapperRepository indexTabMapperRepository;
+    @Autowired
+    private IndexSequenceRepository indexSequenceRepository;
 
     /**
      * 获取当前栏目对应的所有图表，包括统计分析图表和自定义图表
@@ -122,19 +125,61 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         }
         List<Object> result = null;
         IndexPage indexPage = indexPageRepository.findOne(pageId);
+//        if(ObjectUtil.isNotEmpty(indexPage)){
+//            List<IndexPage> childrenPage = indexPage.getChildrenPage();
+//            List<IndexTabMapper> childrenMapper = indexPage.getIndexTabMappers();
+//
+//            //因为这个是分组下的栏目，top的东西不会在分组下，
+//            List<Object> columnList = columnService.sortColumn(new ArrayList<>(),childrenMapper,childrenPage,true,false);
+//            if(columnList == null || columnList.size() ==0){
+//                //当前分组下无数据，直接返回NULL
+//                return result;
+//            }
+//            result = new ArrayList<>();
+//            // 将当前分组下的栏目 和栏目对应的置顶的统计分析和自定义图表放进来
+//            formatTopColumnChart(result,columnList);
+//
+//            return new ColumnPageBean<Object>(pageNo,pageSize,result.size(),result).subList();
+//        }
         if(ObjectUtil.isNotEmpty(indexPage)){
             List<IndexPage> childrenPage = indexPage.getChildrenPage();
             List<IndexTabMapper> childrenMapper = indexPage.getIndexTabMappers();
             //因为这个是分组下的栏目，top的东西不会在分组下，
-            List<Object> columnList = columnService.sortColumn(new ArrayList<>(),childrenMapper,childrenPage,true,false);
+            List<Object> columnList = columnService.sortColumnAll(new ArrayList<>(),childrenMapper,childrenPage,true,false);
             if(columnList == null || columnList.size() ==0){
                 //当前分组下无数据，直接返回NULL
-                return result;
+                return columnList;
             }
             result = new ArrayList<>();
             // 将当前分组下的栏目 和栏目对应的置顶的统计分析和自定义图表放进来
-            formatTopColumnChart(result,columnList);
+            formatTopColumnChart(result,columnList,false);
+//            List<IndexSequence> indexSequenceList = indexSequenceRepository.findByParentId(pageId);
+
             return new ColumnPageBean<Object>(pageNo,pageSize,result.size(),result).subList();
+        }
+        return null;
+    }
+
+    @Override
+    public Object getOneTopColumnChartForPage(String pageId, int pageNo, int pageSize) {
+        if (StringUtil.isEmpty(pageId)) {
+            return null;
+        }
+        List<Object> result = null;
+        IndexPage indexPage = indexPageRepository.findOne(pageId);
+        if(ObjectUtil.isNotEmpty(indexPage)){
+            List<IndexPage> childrenPage = indexPage.getChildrenPage();
+            List<IndexTabMapper> childrenMapper = indexPage.getIndexTabMappers();
+            //因为这个是分组下的栏目，top的东西不会在分组下，
+            List<Object> columnList = columnService.sortColumnAll(new ArrayList<>(),childrenMapper,childrenPage,false,false);
+            if(columnList == null || columnList.size() ==0){
+                //当前分组下无数据，直接返回NULL
+                return columnList;
+            }
+            result = new ArrayList<>();
+            formatTopColumnChart(result,columnList,true);
+//            return new ColumnPageBean<Object>(pageNo,pageSize,result.size(),result).subList();
+            return result;
         }
         return null;
     }
@@ -146,20 +191,26 @@ public class ColumnChartServiceImpl implements IColumnChartService {
      * @param columnList 要统计的分组下的子分组和子栏目（包含子层级的）
      * @return
      */
-    private List<Object> formatTopColumnChart(List<Object> result, List<Object> columnList) {
+    private List<Object> formatTopColumnChart(List<Object> result, List<Object> columnList,boolean isOne) {
         if (columnList != null && columnList.size() > 0) {
             for (Object obj : columnList) {
                 if (obj instanceof IndexTabMapper) {
                     IndexTabMapper mapper = (IndexTabMapper) obj;
                     IndexTabDTO indexTabDTO = new IndexTabDTO(mapper);
                     result.add(indexTabDTO);
-                    this.getTopColumnChartForTab(result, mapper);
+//                    this.getTopColumnChartForTab(result, mapper);
                 } else if (obj instanceof IndexPage) {
                     IndexPage page = (IndexPage) obj;
                     List<Object> childColumn = page.getColumnList();
                     if (childColumn != null && childColumn.size() > 0) {
-                        this.formatTopColumnChart(result, childColumn);
+                        this.formatTopColumnChart(result, childColumn,isOne);
                     }
+                    if (isOne){
+                        IndexPageDTO indexPageDTO = new IndexPageDTO(page);
+                        result.add(indexPageDTO);
+                    }
+                }else {
+                    result.add(obj);
                 }
             }
         }
@@ -392,6 +443,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
             }
         }
         customChartRepository.delete(id);
+        indexSequenceRepository.delete(indexSequenceRepository.findByIndexId(id));
     }
 
     /**

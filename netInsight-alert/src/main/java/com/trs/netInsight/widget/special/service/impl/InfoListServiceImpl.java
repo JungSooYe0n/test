@@ -602,6 +602,13 @@ public class InfoListServiceImpl implements IInfoListService {
 			// 把表达式放缓存里边 把key值返回给前端
 
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("listByHot error:" + e);
 		}
 	}
@@ -1586,6 +1593,13 @@ public class InfoListServiceImpl implements IInfoListService {
 			// 把表达式放缓存里边 把key值返回给前端
 
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("listByHot error:" + e);
 		}
 	}
@@ -1757,6 +1771,13 @@ public class InfoListServiceImpl implements IInfoListService {
 			// 把表达式放缓存里边 把key值返回给前端
 
 		} catch (Exception e) {
+			if (e.getMessage().contains("检索超时")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_TIMEOUT,
+						e);
+			}else if (e.getMessage().contains("表达式过长")){
+				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
+						e);
+			}
 			throw new OperationException("listByHot error:" + e);
 		}
 	}
