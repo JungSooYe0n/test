@@ -65,7 +65,7 @@ public class ChartLineColumn extends AbstractColumn{
 		List<String> contrastData = new ArrayList<>();
 		String source = indexTab.getGroupName();
 		String contrastField = FtsFieldConst.FIELD_GROUPNAME;
-		if (StringUtils.equals(contrast, ColumnConst.CONTRAST_TYPE_GROUP)) {
+		if (StringUtils.equals(contrast, ColumnConst.CONTRAST_TYPE_GROUP) || super.config.getChartPage().equals(ChartPageInfo.StatisticalChart)) {
 			List<String> sourceList = CommonListChartUtil.formatGroupName(source);
 			List<String> allList = Const.ALL_GROUPNAME_SORT;
 			for(String oneGroupName : allList){
@@ -74,10 +74,13 @@ public class ChartLineColumn extends AbstractColumn{
 					contrastData.add(oneGroupName);
 				}
 			}
+			xyTrsl = null;
 		}else if (StringUtils.equals(contrast, ColumnConst.CONTRAST_TYPE_SITE)) {
 			contrastField = FtsFieldConst.FIELD_SITENAME;
+			xyTrsl = null;
 		}else if (StringUtils.equals(contrast, ColumnConst.CONTRAST_TYPE_WECHAT)) {
 			contrastField = FtsFieldConst.FIELD_SITENAME;
+			xyTrsl = null;
 		} else if (StringUtil.isNotEmpty(xyTrsl)) {
 			contrastField = null;
 		}

@@ -55,6 +55,7 @@ public class DateUtil {
 	/**
 	 * 长时间格式
 	 */
+	public static final String yyyyMMdd_5 = "yyyyMMdd";
 	public static final String yyyyMMddHH = "yyyyMMddHH";
 	public static final String yyyyMMddHH2 = "yyyy-MM-dd HH";
 	public static final String yyyyMMdd2 = "yyyyMMdd";
@@ -67,6 +68,12 @@ public class DateUtil {
 	 * 全格式,至毫秒级
 	 */
 	public static final String yyyyMMddHHmmssSSS = "yyyyMMddHHmmssSSS";
+
+
+	public static final String YMD_PAGE = "yyyy年MM月dd日";
+
+
+	public static final String YMDH_PAGE = "yyyy年MM月dd日HH时";
 
 	/**
 	 * 一天的总秒数
@@ -651,6 +658,18 @@ public class DateUtil {
 			return sdf.parse(date).getTime();
 		} catch (ParseException e) {
 			return 0;
+		}
+	}
+
+
+	public static String formatDateToString(String date,String oldFormat, String newFormat) {
+		try {
+			SimpleDateFormat old_sdf = new SimpleDateFormat(oldFormat);
+			SimpleDateFormat new_sdf = new SimpleDateFormat(newFormat);
+			Date time = old_sdf.parse(date);
+			return new_sdf.format(time);
+		} catch (ParseException e) {
+			return null;
 		}
 	}
 
@@ -2666,4 +2685,50 @@ public class DateUtil {
 		return ZUOTIAN;
 
 	}
+
+	/**
+	 * 是否为yyyy-MM-dd HH:mm:ss格式
+	 *
+	 * @param date
+	 *            日期
+	 * @return 是否为小时格式
+	 * @since zhanghu @ 2013-1-31
+	 */
+	public static boolean isTimeFormatterYMD(String date) {
+		Pattern pattern1 = Pattern
+				.compile("\\d{4}-\\d{2}-\\d{2}");
+		Matcher matcher1 = pattern1.matcher(date);
+		Pattern pattern2 = Pattern
+				.compile("\\d{4}/\\d{2}/\\d{2}");
+		Matcher matcher2 = pattern2.matcher(date);
+		if(matcher1.find() || matcher2.find()){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	/**
+	 * 是否为yyyy-MM-dd HH:mm:ss格式
+	 *
+	 * @param date
+	 *            日期
+	 * @return 是否为小时格式
+	 * @since zhanghu @ 2013-1-31
+	 */
+	public static boolean isTimeFormatterYMDH(String date) {
+		Pattern pattern1 = Pattern
+				.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}");
+		Matcher matcher1 = pattern1.matcher(date);
+		Pattern pattern2 = Pattern
+				.compile("\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}");
+		Matcher matcher2 = pattern2.matcher(date);
+		if(matcher1.find() || matcher2.find()){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+
+
 }

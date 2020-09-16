@@ -55,6 +55,30 @@ public class ColumnChartController {
     @Autowired
     private IColumnChartService columnChartService;
 
+    /**
+     * 查找当前栏目对应的图表 - 统计分析图表+自定义图表
+     *
+     * @param request
+     * @param id
+     * @return
+     * @throws TRSException
+     */
+    @FormatResult
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_TAB_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前栏目对应的统计分析图表：${id}")
+    @RequestMapping(value = "/selectTabStatisticalChartList", method = RequestMethod.GET)
+    @ApiOperation("查找当前栏目对应的统计分析图表")
+    public Object selectTabStatisticalChartList(HttpServletRequest request,
+                                     @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id,
+                                     @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
+            throws TRSException {
+        User user = UserUtils.getUser();
+        IndexTabMapper mapper = indexTabMapperService.findOne(id);
+        if (ObjectUtil.isEmpty(mapper)) {
+            throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
+        }
+        Object result = columnChartService.getStatisticalChart(id);
+        return result;
+    }
 
     /**
      * 查找当前栏目对应的图表 - 统计分析图表+自定义图表
@@ -65,18 +89,23 @@ public class ColumnChartController {
      * @throws TRSException
      */
     @FormatResult
-    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_TAB_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前栏目对应的图表 - 统计分析图表+自定义图表：${id}")
-    @RequestMapping(value = "/selectTabChartList", method = RequestMethod.GET)
-    @ApiOperation("查找当前栏目对应的图表 - 统计分析图表+自定义图表")
-    public Object selectTabChartList(HttpServletRequest request,
-                                     @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id)
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_TAB_CHART, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查找当前栏目对应的自定义图表：${id}")
+    @RequestMapping(value = "/selectTabCustomChartList", method = RequestMethod.GET)
+    @ApiOperation("查找当前栏目对应的自定义图表")
+    public Object selectTabCustomChartList(HttpServletRequest request,
+                                           @ApiParam("栏目映射实体id") @RequestParam(value = "id") String id,
+                                           @ApiParam("当前页显示多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                           @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
+                                           @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
             throws TRSException {
         User user = UserUtils.getUser();
         IndexTabMapper mapper = indexTabMapperService.findOne(id);
         if (ObjectUtil.isEmpty(mapper)) {
             throw new TRSException(CodeUtils.FAIL,"当前栏目不存在");
         }
-        Object result = columnChartService.getColumnChart(id);
+        pageNo = pageNo < 0 ? 0 : pageNo;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+        Object result = columnChartService.getCustomChart(id,pageNo,pageSize);
         return result;
     }
 
@@ -93,7 +122,10 @@ public class ColumnChartController {
     @RequestMapping(value = "/selectPageTopChartList", method = RequestMethod.GET)
     @ApiOperation("查找当前分组下所要显示的豆腐块缩略图 - 栏目+统计分析+自定义图表被置顶的数据")
     public Object selectPageTopChartList(HttpServletRequest request,
-                                         @ApiParam("栏目分组id") @RequestParam(value = "id") String id)
+                                         @ApiParam("栏目分组id") @RequestParam(value = "id") String id,
+                                         @ApiParam("当前页显示多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                         @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
+                                         @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
             throws TRSException {
         User user = UserUtils.getUser();
         // 需要排序
@@ -101,7 +133,9 @@ public class ColumnChartController {
         if (ObjectUtil.isEmpty(indexPage)) {
             throw new TRSException(CodeUtils.FAIL,"当前分组不存在");
         }
-        Object result = columnChartService.getTopColumnChartForPage(id);
+        pageNo = pageNo < 0 ? 0 : pageNo;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+        Object result = columnChartService.getTopColumnChartForPage(id,pageNo,pageSize);
         return result;
     }
 
@@ -121,10 +155,12 @@ public class ColumnChartController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "自定义图表或统计分析图表的id", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "chartPage", value = "图表类型：自定义图表或统计分析图表", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "isTop", value = "true:置顶、false:取消置顶", dataType = "String", paramType = "query")})
+            @ApiImplicitParam(name = "isTop", value = "true:置顶、false:取消置顶", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})
     public Object topColumnChart(@RequestParam("id") String id,
                                  @RequestParam("chartPage") String chartPage,
-                                 @RequestParam("isTop") Boolean isTop, HttpServletRequest request)
+                                 @RequestParam("isTop") Boolean isTop,
+                                 @RequestParam(value = "randomNum", required = false) String randomNum, HttpServletRequest request)
             throws TRSException {
         ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
         Integer topSeq = 0;
@@ -255,6 +291,7 @@ public class ColumnChartController {
                                  @RequestParam(value = "filterInfo", required = false) String filterInfo,
                                  @RequestParam(value = "contentArea", required = false) String contentArea,
                                  @RequestParam(value = "mediaArea", required = false) String mediaArea,
+                                 @RequestParam(value = "randomNum", required = false) String randomNum,
                                  HttpServletRequest request)
             throws TRSException {
         String[] typeArr = type.split(";");
@@ -334,10 +371,10 @@ public class ColumnChartController {
             } else {
                 trsl = null;
                 xyTrsl = null;
-                if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
-                        && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
+                if (StringUtil.isEmpty(contrast) && (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)
+                        || IndexTabType.CHART_LINE.equals(indexTabType))) {
                     throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
-                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType) || IndexTabType.WORD_CLOUD.equals(indexTabType)){
                     contrast = null;
                 }
             }
@@ -430,6 +467,7 @@ public class ColumnChartController {
                                     @RequestParam(value = "filterInfo", required = false) String filterInfo,
                                     @RequestParam(value = "contentArea", required = false) String contentArea,
                                     @RequestParam(value = "mediaArea", required = false) String mediaArea,
+                                    @RequestParam(value = "randomNum", required = false) String randomNum,
                                     HttpServletRequest request)
             throws TRSException {
 
@@ -492,10 +530,10 @@ public class ColumnChartController {
             } else {
                 trsl = null;
                 xyTrsl = null;
-                if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
-                        && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
+                if (StringUtil.isEmpty(contrast) && (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)
+                        || IndexTabType.CHART_LINE.equals(indexTabType))) {
                     throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
-                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType) || IndexTabType.WORD_CLOUD.equals(indexTabType)){
                     contrast = null;
                 }
             }
@@ -529,13 +567,7 @@ public class ColumnChartController {
             customChart.setFilterInfo(filterInfo);
             customChart.setMediaArea(mediaArea);
             customChart.setContentArea(contentArea);
-
-            // 栏目从标题+正文修改为仅标题的时候不设置权重，但传的weight还是=true
-            if ("0".equals(keyWordIndex)) {
-                customChart.setWeight(false);
-            } else {
-                customChart.setWeight(weight);
-            }
+            customChart.setWeight(weight);
             customChart.setTabWidth(tabWidth);
 
             return columnChartService.saveCustomChart(customChart);

@@ -11,14 +11,35 @@ import java.util.List;
 @Getter
 @Setter
 public class TElementNew {
-	
+
+	/**
+	 * 当前模块的中文名字
+	 */
 	private String chapterName;
+	/**
+	 * 模块位置，也是顺序
+	 */
 	private Integer chapterPosition;
 	//0未选中，1选中
 	private Integer selected;
+	//0未选中，1选中
+	private Boolean active = true;
+	public Boolean getActive(){
+		if(selected != null && selected ==1){
+			active = true;
+		}else{
+			active = false;
+		}
+		return active;
+	}
+
+
 	//详细见Enum Chapter valueType	==> SingleResource,ListResources,chart
 	private String chapterType;
 	//供查询所有模板时，不同章节预览时显示不同内容，
+	/**
+	 * 当前模块的英文名字
+	 */
 	private String chapterDetail;
 	//额外的章节标志。页面上自定义模板时，对于新增的章节，是可以选择删除的，前端需要1个flag。
 	//0 默认，1 额外的章节标志。

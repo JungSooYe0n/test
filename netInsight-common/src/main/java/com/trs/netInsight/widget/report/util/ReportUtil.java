@@ -4,10 +4,14 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.trs.netInsight.config.constant.ColumnConst;
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.SpringUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.constant.*;
 import com.trs.netInsight.widget.report.entity.ReportDataNew;
 import com.trs.netInsight.widget.report.entity.ReportResource;
@@ -34,22 +38,31 @@ import static com.trs.netInsight.widget.report.constant.ReportConst.*;
 @Slf4j
 public class ReportUtil {
 
+    private static final String startSpan = "<span>";
+    private static final String startFontSpan = "<span class=\"color\">";
+    private static final String endSpan = "</span>";
+
+
+
 	// 生成报告后需在页面上二次编辑，样式代码会原样显示在页面上，现决定将其去掉
 	private static final String SPANCOLORLEFT = "";
 	private static final String SPANCOLORRIGHT = "";
-	// private static final String SPANCOLORLEFT = "<span
-	// style='color:#FB9240;font-weight:bold'>";
-	// private static final String SPANCOLORRIGHT = "</span>";
 
 	public static String getImgComment(String img_data, String imgType, String chapter) {
 		if ("brokenLineChart".equals(imgType)) {
-			return getLineComment(img_data);
-		} else if ("pieGraphChartMeta".equals(imgType)) {
+			return getLineCommentNew(img_data);
+		} else if ("pieGraphChartMeta".equals(imgType) || ColumnConst.CHART_PIE.equals(imgType) || "opinionStatistics".equals(imgType)) {
 			return String.format(getbarComment(img_data), chapter);
-		} else if ("barGraphChartMeta".equals(imgType)) {
+		} else if ("barGraphChartMeta".equals(imgType) || ColumnConst.CHART_BAR.equals(imgType) || ColumnConst.CHART_BAR_CROSS.equals(imgType)) {
 			return String.format(getbarComment(img_data), chapter);
-		} else if ("mapChart".equals(imgType)) {
+		} else if ("mapChart".equals(imgType) || ColumnConst.CHART_MAP.equals(imgType)) {
 			return getMapComment(img_data);
+		} else if (ColumnConst.CHART_PIE_EMOTION.equals(imgType) || "moodStatistics".equals(imgType)) {
+			return String.format(getEmotion(img_data), chapter);
+		} else if ("gaugeChart".equals(imgType)) {
+			return getMapComment(img_data);
+		} else{
+			log.info("没有匹配到对应的图片类型 - "+imgType);
 		}
 		return null;
 	}
@@ -138,6 +151,107 @@ public class ReportUtil {
 		strResult.append("由此可见，").append(str1).append("数据报道量最多，其次为").append(str2).append("数据。");
 		return strResult.toString();
 	}
+
+	/**
+	 * 日常监测：折线图普通模式、专家模式
+	 *
+	 * @author shao.guangze
+	 */
+	@SuppressWarnings("unchecked")
+	private static String getLineCommentNew(String imgData) {
+
+		if (StringUtil.isEmpty(imgData)) {
+			return "";
+		}
+		JSONObject object = JSONObject.parseObject(imgData);
+
+		JSONObject single = object.getJSONObject("single");
+
+		JSONArray groupNameArr = single.getJSONArray("legendData");
+		JSONArray countArr = single.getJSONArray("lineYdata");
+		if (groupNameArr == null || groupNameArr.size() ==0) {
+			return "";
+		}
+		List<Map<String, Object>> sumList = new ArrayList<>();
+
+		for(int  i =1; i<groupNameArr.size();i++){
+			String oneGroupName = groupNameArr.getString(i);
+			List<Integer> countList = (List<Integer>)countArr.get(i);
+			Integer sum = countList.stream().reduce(Integer::sum).orElse(0);
+			HashMap<String, Object> hashMap = new HashMap<>();
+			hashMap.put("name", oneGroupName);
+			hashMap.put("count", sum);
+			sumList.add(hashMap);
+		}
+
+		Collections.sort(sumList, new Comparator<Map<String, Object>>() {
+
+			@Override
+			public int compare(Map<String, Object> m1, Map<String, Object> m2) {
+				Object count1 = m1.get("count");
+				Object count2 = m2.get("count");
+				if ((Integer) count1 == (Integer) count2) {
+					return 0;
+				} else {
+					return (Integer) count1 > (Integer) count2 ? 1 : -1;
+				}
+			}
+
+		});
+
+		removeTotalInLine(sumList);
+		List<String> headStr = new ArrayList<>();
+		List<String> secStr = new ArrayList<>();
+		List<Object> headCount = new ArrayList<>();
+		List<Object> secCount = new ArrayList<>();
+		// 最大的数
+		Object countSum = sumList.get(sumList.size() - 1).get("count");
+		Object countSec = null;
+		// 获取 "首位"
+		headStr.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get("name") + SPANCOLORRIGHT);
+		headCount.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get("count") + SPANCOLORRIGHT);
+		for (int i = sumList.size() - 2; i > -1; i--) {
+			if (sumList.get(i).get("count").equals(countSum)) {
+				// 此时说明 "首位数据有重复"
+				headStr.add("和" + SPANCOLORLEFT + sumList.get(i).get("name") + SPANCOLORRIGHT);
+				headCount.add(SPANCOLORLEFT + sumList.get(i).get("count") + SPANCOLORRIGHT);
+			} else if ((Integer) (sumList.get(i).get("count")) < (Integer) (countSum)) {
+				// 此时说明拥有 "次位" 数
+				if (secStr.size() == 0) {
+					secStr.add(SPANCOLORLEFT + sumList.get(i).get("name").toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get("count"));
+					// 记录 "次位" count
+					countSec = sumList.get(i).get("count");
+				} else if (secStr.size() < 2) {
+					secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get("name").toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get("count"));
+				} else if (sumList.get(i).get("count").equals(countSec)) {
+					// >= 3 的情况
+					secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get("name").toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get("count"));
+				}
+			}
+		}
+		StringBuffer strResult = new StringBuffer();
+		strResult.append("由图可知，传播数量居首位的是");
+		for (String str : headStr) {
+			strResult.append(str);
+		}
+		strResult.append("，为");
+		strResult.append(headCount.get(0));
+		if (secStr.size() > 0) {
+			strResult.append("篇，其次为");
+			if(secStr.size()>2){
+				secStr = secStr.subList(0,2);
+			}
+			for (String str : secStr) {
+				strResult.append(str);
+			}
+		}
+		strResult.append("。");
+		return strResult.toString();
+	}
+
 
 	/**
 	 * 日常监测：折线图普通模式、专家模式
@@ -254,12 +368,120 @@ public class ReportUtil {
 		if (sumList == null || sumList.size() == 0) {
 			return "";
 		}
-		Collections.sort(sumList, new Comparator<Map<String, Object>>() {
+		ChartResultField chartResultField = null;
+		Map<String, Object> fieldMap = sumList.get(0);
 
+		if(fieldMap.containsKey("name") && fieldMap.containsKey("value")){
+			chartResultField = new ChartResultField("name","value");
+			Collections.sort(sumList, new Comparator<Map<String, Object>>() {
+				@Override
+				public int compare(Map<String, Object> m1, Map<String, Object> m2) {
+					Object count1 = m1.get("value");
+					Object count2 = m2.get("value");
+					Integer countLeft = count1 instanceof Integer ? (Integer) count1 : Integer.parseInt(count1.toString());
+					Integer countRight = count2 instanceof Integer ? (Integer) count2 : Integer.parseInt(count2.toString());
+					if (countLeft == countRight) {
+						return 0;
+					} else {
+						return countLeft > countRight ? 1 : -1;
+					}
+				}
+			});
+		}else{
+			chartResultField = new ChartResultField("groupName","num");
+			Collections.sort(sumList, new Comparator<Map<String, Object>>() {
+				@Override
+				public int compare(Map<String, Object> m1, Map<String, Object> m2) {
+					Object count1 = m1.get("num");
+					Object count2 = m2.get("num");
+					Integer countLeft = count1 instanceof Integer ? (Integer) count1 : Integer.parseInt(count1.toString());
+					Integer countRight = count2 instanceof Integer ? (Integer) count2 : Integer.parseInt(count2.toString());
+					if (countLeft == countRight) {
+						return 0;
+					} else {
+						return countLeft > countRight ? 1 : -1;
+					}
+				}
+			});
+		}
+
+		List<String> headStr = new ArrayList<String>();
+		List<String> secStr = new ArrayList<String>();
+		List<Object> headCount = new ArrayList<Object>();
+		List<Object> secCount = new ArrayList<Object>();
+		// 最大的数
+		Integer countSum = sumList.get(sumList.size() - 1).get(chartResultField.getCountField()) instanceof Integer
+				? (Integer) (sumList.get(sumList.size() - 1).get(chartResultField.getCountField()))
+				: Integer.parseInt(sumList.get(sumList.size() - 1).get(chartResultField.getCountField()).toString());
+		Object countSec = null;
+		// 获取 "首位"
+		headStr.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get(chartResultField.getContrastField()) + SPANCOLORRIGHT);
+		headCount.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get(chartResultField.getCountField()) + SPANCOLORRIGHT);
+		for (int i = sumList.size() - 2; i > -1; i--) {
+			if (sumList.size() < 2) {
+				break;
+			}
+			Integer num1 = sumList.get(i).get(chartResultField.getCountField()) instanceof Integer ? (Integer) (sumList.get(i).get(chartResultField.getCountField()))
+					: Integer.parseInt(sumList.get(i).get(chartResultField.getCountField()).toString());
+
+
+			if (countSum.equals(num1)) {
+				// 此时说明 "首位数据有重复"
+				headStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+				headCount.add(SPANCOLORLEFT + sumList.get(i).get(chartResultField.getCountField()) + SPANCOLORRIGHT);
+			} else if (num1 < countSum) {
+				// 此时说明拥有 "次位" 数
+				if (secStr.size() == 0) {
+					secStr.add(SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get(chartResultField.getCountField()));
+					// 记录 "次位" count
+					countSec = sumList.get(i).get(chartResultField.getCountField());
+				} else if (secStr.size() < 2) {
+					secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get(chartResultField.getCountField()));
+				} else if (sumList.get(i).get(chartResultField.getCountField()).equals(countSec)) {
+					// >= 3 的情况
+					secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get(chartResultField.getCountField()));
+				}
+			}
+		}
+		StringBuffer strResult = new StringBuffer();
+		strResult.append("由图可知，%s居首位的是");
+		for (String str : headStr) {
+			strResult.append(str);
+		}
+		strResult.append("，为");
+		strResult.append(headCount.get(0));
+		if (secStr.size() > 0) {
+			strResult.append("篇，其次为");
+            if(secStr.size()>2){
+            	secStr = secStr.subList(0,2);
+			}
+			for (String str : secStr) {
+				strResult.append(str);
+			}
+		}
+		strResult.append("。");
+		return strResult.toString();
+	}
+	private static String getEmotion(String imgData) {
+		// 向 数据统计概述 中添加数据
+		if ("\"暂无数据\"".equals(imgData) || "暂无数据".equals(imgData)) {
+			return "";
+		}
+		List<Map<String, Object>> sumList = JSONObject.parseObject(imgData,
+				new TypeReference<List<Map<String, Object>>>() {
+				});
+		if (sumList == null || sumList.size() == 0) {
+			return "";
+		}
+		ChartResultField chartResultField = new ChartResultField("name", "value");
+		Collections.sort(sumList, new Comparator<Map<String, Object>>() {
 			@Override
 			public int compare(Map<String, Object> m1, Map<String, Object> m2) {
-				Object count1 = m1.get("num");
-				Object count2 = m2.get("num");
+				Object count1 = m1.get("value");
+				Object count2 = m2.get("value");
 				Integer countLeft = count1 instanceof Integer ? (Integer) count1 : Integer.parseInt(count1.toString());
 				Integer countRight = count2 instanceof Integer ? (Integer) count2 : Integer.parseInt(count2.toString());
 				if (countLeft == countRight) {
@@ -268,7 +490,6 @@ public class ReportUtil {
 					return countLeft > countRight ? 1 : -1;
 				}
 			}
-
 		});
 
 		List<String> headStr = new ArrayList<String>();
@@ -276,44 +497,44 @@ public class ReportUtil {
 		List<Object> headCount = new ArrayList<Object>();
 		List<Object> secCount = new ArrayList<Object>();
 		// 最大的数
-		Integer countSum = sumList.get(sumList.size() - 1).get("num") instanceof Integer
-				? (Integer) (sumList.get(sumList.size() - 1).get("num"))
-				: Integer.parseInt(sumList.get(sumList.size() - 1).get("num").toString());
+		Integer countSum = sumList.get(sumList.size() - 1).get(chartResultField.getCountField()) instanceof Integer
+				? (Integer) (sumList.get(sumList.size() - 1).get(chartResultField.getCountField()))
+				: Integer.parseInt(sumList.get(sumList.size() - 1).get(chartResultField.getCountField()).toString());
 		Object countSec = null;
 		// 获取 "首位"
-		headStr.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get("groupName") + SPANCOLORRIGHT);
-		headCount.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get("num") + SPANCOLORRIGHT);
+		headStr.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get(chartResultField.getContrastField()) + SPANCOLORRIGHT);
+		headCount.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get(chartResultField.getCountField()) + SPANCOLORRIGHT);
 		for (int i = sumList.size() - 2; i > -1; i--) {
 			if (sumList.size() < 2) {
 				break;
 			}
-			Integer num1 = sumList.get(i).get("num") instanceof Integer ? (Integer) (sumList.get(i).get("num"))
-					: Integer.parseInt(sumList.get(i).get("num").toString());
+			Integer num1 = sumList.get(i).get(chartResultField.getCountField()) instanceof Integer ? (Integer) (sumList.get(i).get(chartResultField.getCountField()))
+					: Integer.parseInt(sumList.get(i).get(chartResultField.getCountField()).toString());
 
 
 			if (countSum.equals(num1)) {
 				// 此时说明 "首位数据有重复"
-				headStr.add("和" + SPANCOLORLEFT + sumList.get(i).get("groupName").toString() + SPANCOLORRIGHT);
-				headCount.add(SPANCOLORLEFT + sumList.get(i).get("num") + SPANCOLORRIGHT);
+				headStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+				headCount.add(SPANCOLORLEFT + sumList.get(i).get(chartResultField.getCountField()) + SPANCOLORRIGHT);
 			} else if (num1 < countSum) {
 				// 此时说明拥有 "次位" 数
 				if (secStr.size() == 0) {
-					secStr.add(SPANCOLORLEFT + sumList.get(i).get("groupName").toString() + SPANCOLORRIGHT);
-					secCount.add(sumList.get(i).get("num"));
+					secStr.add(SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get(chartResultField.getCountField()));
 					// 记录 "次位" count
-					countSec = sumList.get(i).get("num");
+					countSec = sumList.get(i).get(chartResultField.getCountField());
 				} else if (secStr.size() < 2) {
-					secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get("groupName").toString() + SPANCOLORRIGHT);
-					secCount.add(sumList.get(i).get("num"));
-				} else if (sumList.get(i).get("num").equals(countSec)) {
+					secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get(chartResultField.getCountField()));
+				} else if (sumList.get(i).get(chartResultField.getCountField()).equals(countSec)) {
 					// >= 3 的情况
-					secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get("groupName").toString() + SPANCOLORRIGHT);
-					secCount.add(sumList.get(i).get("num"));
+					secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+					secCount.add(sumList.get(i).get(chartResultField.getCountField()));
 				}
 			}
 		}
 		StringBuffer strResult = new StringBuffer();
-		strResult.append("由图可知，%s居首位的是");
+		strResult.append("由图可知，情感分析居首位的是");
 		for (String str : headStr) {
 			strResult.append(str);
 		}
@@ -334,9 +555,21 @@ public class ReportUtil {
 		List<Map<String, Object>> parseArray = JSONObject.parseObject(imgData,
 				new TypeReference<List<Map<String, Object>>>() {
 				});
+
+		ChartResultField chartResultField = null;
+		Map<String, Object> fieldMap = parseArray.get(0);
+
 		List<Integer> arrayList = new ArrayList<Integer>();
-		arrayList = parseArray.stream().map(e -> Integer.parseInt(e.get("areaCount").toString())).sorted()
-				.collect(Collectors.toList());
+
+		if(fieldMap.containsKey("name") && fieldMap.containsKey("value")){
+			chartResultField = new ChartResultField("name","value");
+			arrayList = parseArray.stream().map(e -> Integer.parseInt(e.get("value").toString())).sorted()
+					.collect(Collectors.toList());
+		}else{
+			chartResultField = new ChartResultField("areaName","areaCount");
+			arrayList = parseArray.stream().map(e -> Integer.parseInt(e.get("areaCount").toString())).sorted()
+					.collect(Collectors.toList());
+		}
 		// 排序完成
 		System.out.println(arrayList);
 		String str1 = null;
@@ -347,58 +580,50 @@ public class ReportUtil {
 		if (parseArray.size() > 0) {
 
 			for (Map<String, Object> map : parseArray) {
-				if (arrayList.get(arrayList.size() - 1).equals(map.get("areaCount")) && str1 == null) {
-					str1 = map.get("areaName").toString();
-				} else if (arrayList.get(arrayList.size() - 2).equals(map.get("areaCount")) && str2 == null) {
-					str2 = map.get("areaName").toString();
-				} else if (arrayList.get(arrayList.size() - 3).equals(map.get("areaCount")) && str3 == null) {
-					str3 = map.get("areaName").toString();
-				} else if (arrayList.get(arrayList.size() - 4).equals(map.get("areaCount")) && str4 == null) {
-					str4 = map.get("areaName").toString();
-				} else if (arrayList.get(arrayList.size() - 5).equals(map.get("areaCount")) && str5 == null) {
-					str5 = map.get("areaName").toString();
+				if (arrayList.get(arrayList.size() - 1).equals(map.get(chartResultField.getCountField())) && str1 == null) {
+					str1 = map.get(chartResultField.getContrastField()).toString();
+				} else if (arrayList.get(arrayList.size() - 2).equals(map.get(chartResultField.getCountField())) && str2 == null) {
+					str2 = map.get(chartResultField.getContrastField()).toString();
+				} else if (arrayList.get(arrayList.size() - 3).equals(map.get(chartResultField.getCountField())) && str3 == null) {
+					str3 = map.get(chartResultField.getContrastField()).toString();
+				} else if (arrayList.get(arrayList.size() - 4).equals(map.get(chartResultField.getCountField())) && str4 == null) {
+					str4 = map.get(chartResultField.getContrastField()).toString();
+				} else if (arrayList.get(arrayList.size() - 5).equals(map.get(chartResultField.getCountField())) && str5 == null) {
+					str5 = map.get(chartResultField.getContrastField()).toString();
 				}
 			}
 			// 所有数据都一样 1 1 1 1 1 ...
 			if (str2 == null) {
-				str2 = parseArray.get(0).get("areaName").toString();
-				str3 = parseArray.get(0).get("areaName").toString();
-				str4 = parseArray.get(0).get("areaName").toString();
-				str5 = parseArray.get(0).get("areaName").toString();
+				str2 = parseArray.get(0).get(chartResultField.getContrastField()).toString();
+				str3 = parseArray.get(0).get(chartResultField.getContrastField()).toString();
+				str4 = parseArray.get(0).get(chartResultField.getContrastField()).toString();
+				str5 = parseArray.get(0).get(chartResultField.getContrastField()).toString();
 			}
 			// 2 1 1 1 1 1 ...
 			if (str3 == null) {
-				str3 = parseArray.get(1).get("areaName").toString();
-				str4 = parseArray.get(1).get("areaName").toString();
-				str5 = parseArray.get(1).get("areaName").toString();
+				str3 = parseArray.get(1).get(chartResultField.getContrastField()).toString();
+				str4 = parseArray.get(1).get(chartResultField.getContrastField()).toString();
+				str5 = parseArray.get(1).get(chartResultField.getContrastField()).toString();
 			}
 			// 3 2 1 1 1 1 ...
 			if (str4 == null) {
-				str4 = parseArray.get(2).get("areaName").toString();
-				str5 = parseArray.get(2).get("areaName").toString();
+				str4 = parseArray.get(2).get(chartResultField.getContrastField()).toString();
+				str5 = parseArray.get(2).get(chartResultField.getContrastField()).toString();
 			}
 			// 4 3 2 1 1 1 ...
 			if (str5 == null) {
-				str5 = parseArray.get(3).get("areaName").toString();
+				str5 = parseArray.get(3).get(chartResultField.getContrastField()).toString();
 			}
 			StringBuffer strResult = new StringBuffer();
-			strResult.append("由图可知，热点地域分布主要集中于：").append(str1).append("、").append(str2).append("、").append(str3)
-					.append("、").append(str4).append("、").append(str5).append("，关注度较高的前五个省信息量分别是：")
+			strResult.append("由图可知，热点地域分布主要集中于：")
+                    .append(str1).append("、").append(str2).append("、").append(str3)
+					.append("、").append(str4).append("、").append(str5)
+                    .append("，关注度较高的前五个省信息量分别是：")
 					.append(arrayList.get(arrayList.size() - 1)).append("、").append(arrayList.get(arrayList.size() - 2))
 					.append("、").append(arrayList.get(arrayList.size() - 3)).append("、")
 					.append(arrayList.get(arrayList.size() - 4)).append("、").append(arrayList.get(arrayList.size() - 5))
 					.append("。");
-			// .append("<span
-			// style='color:#FB9240;font-weight:bold'>").append(str1).append("、")
-			// .append(str2).append("、").append(str3).append("、").append(str4)
-			// .append("、").append(str5).append("</span>").append("，关注度较高的前五个省信息量分别是：")
-			// .append("<span style='color:#FB9240;font-weight:bold'>")
-			// .append(arrayList.get(arrayList.size() - 1)).append("、")
-			// .append(arrayList.get(arrayList.size() - 2)).append("、")
-			// .append(arrayList.get(arrayList.size() - 3)).append("、")
-			// .append(arrayList.get(arrayList.size() - 4)).append("、")
-			// .append(arrayList.get(arrayList.size() -
-			// 5)).append("</span>").append("。");
+
 			return strResult.toString();
 		}
 		return null;
@@ -485,7 +710,6 @@ public class ReportUtil {
 			Map<?, List<ReportResource>> collect) {
 		ArrayList<TElementNew> tElements = new ArrayList<>();
 		List<TElementNew> elementList = JSONArray.parseArray(template.getTemplateList(), TElementNew.class);
-		// elementList = ReportUtil.tElementListHandle(elementList);
 		// 同上，保证旧版可以正常使用
 		boolean flag = false;
 		if (collect.keySet().iterator().hasNext()) {
@@ -494,27 +718,27 @@ public class ReportUtil {
 		boolean finalFlag = flag;
 		elementList.stream().filter(e -> e.getSelected() == 1).forEach(e -> {
 			if (finalFlag) {
-				if (OVERVIEWOFDATA.equals(e.getChapterName())) {
+				if (OVERVIEWOFDATA.equals(e.getChapterName())||Chapter.Statistics_Summarize.toString().equals(e.getChapterDetail())) {
 					// 在数据统计概述有两条及以上时，选第一条(最新的一条).
 					e.setChapaterContent(collect.get(e.getChapterPosition()) != null
 							? Arrays.asList(collect.get(e.getChapterPosition()).get(0)) : null);
 				} else {
 					// 对每项列表中的信息排序
-					// String templateId = template.getId();
 					List<ReportResource> list = collect.get(e.getChapterPosition());
 					if (ObjectUtil.isNotEmpty(list)) {
-						e.setChapaterContent(sortDoc(list));
+						if(e.getChapterType().equals(ReportConst.LISTRESOURCES)){//如果是列表，则需要把列表的数据源进行转化
+							e.setChapaterContent(sortDoc(list));
+						}else{
+							e.setChapaterContent(sortDoc(list));
+						}
 					} else {
 						e.setChapaterContent(collect.get(e.getChapterPosition()));
 					}
-					// List<ReportResource> reportResourceList =
-					// sortDoc(collect.get(e.getChapterPosition()), templateId);
-					// e.setChapaterContent(reportResourceList);
 
 				}
 				tElements.add(e);
 			} else {
-				if (OVERVIEWOFDATA.equals(e.getChapterName())) {
+				if (OVERVIEWOFDATA.equals(e.getChapterName())||Chapter.Statistics_Summarize.toString().equals(e.getChapterDetail())) {
 					// 在数据统计概述有两条及以上时，选第一条(最新的一条).
 					e.setChapaterContent(collect.get(e.getChapterName()) != null
 							? Arrays.asList(collect.get(e.getChapterName()).get(0)) : null);
@@ -544,9 +768,9 @@ public class ReportUtil {
 			if (list.get(i).getDocPosition() == 0) {
 				list.get(i).setDocPosition(i + 1);
 				reportResourceRepository.save(list.get(i));
-				// reportServiceNewImpl.saveReportResource(sids, userId,
-				// groupName, chapter, img_data, secondaryChapter, reportType,
-				// templateId, imgType, chapterPosition, reportId)
+			}
+			if(StringUtil.isNotEmpty(list.get(i).getGroupName())){
+				list.get(i).setGroupName(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(list.get(i).getGroupName()));
 			}
 		}
 		collect = list.stream().sorted(Comparator.comparing(ReportResource::getDocPosition))
@@ -617,12 +841,12 @@ public class ReportUtil {
 	public static List<TElementNew> createEmptyTemplate(Integer selected) {
 		Chapter[] values = Chapter.values();
 		List<TElementNew> allChapters = new ArrayList<>();
-		for (int i = 0; i < values.length; i++) {
+		for (Chapter value : values) {
 			TElementNew tElementNew = new TElementNew();
-			tElementNew.setChapterName(values[i].getValue());
-			tElementNew.setChapterType(values[i].getValueType());
-			tElementNew.setChapterDetail(values[i].toString());
-			tElementNew.setChapterPosition(i);
+			tElementNew.setChapterName(value.getValue());
+			tElementNew.setChapterType(value.getValueType());
+			tElementNew.setChapterDetail(value.toString());
+			tElementNew.setChapterPosition(value.getSequence());
 			tElementNew.setSelected(selected);
 			allChapters.add(tElementNew);
 		}
@@ -720,6 +944,7 @@ public class ReportUtil {
 							.getDeclaredMethod(CHAPTERS2METHODNEW.get(e.getChapterDetail())).invoke(reportData);
 					jsonData = jsonObject == null ? null : jsonObject.toString();
 				} catch (Exception e1) {
+					log.info(e.getChapterDetail());
 					e1.printStackTrace();
 				}
 				TElementNew tElement = new TElementNew(e.getChapterName(), 1, e.getChapterPosition());
@@ -758,12 +983,6 @@ public class ReportUtil {
 				}
 			}
 		}
-
-		// tElements.stream().filter(te ->
-		// te.getChapterType().equals("SingleResource")).filter(te ->
-		// te.getChapterType().equals("chart")).forEach(te ->{
-		// te.getChapaterContent().stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
-		// });
 		List<TElementNew> tElementsResult = tElements.stream()
 				.sorted(Comparator.comparing(TElementNew::getChapterPosition)).collect(Collectors.toList());
 		return tElementsResult;
@@ -784,13 +1003,24 @@ public class ReportUtil {
 		List<Map> parseArray2 = JSONArray.parseArray(jsonImgElements, Map.class);
 		Map<String, List<Map<String, String>>> result = new HashMap<>();
 		parseArray2.stream().forEach(e -> {
-			// result 中 有该数据
-			List<Map<String, String>> list = result.get(e.get("chaptername"));
-			if (list == null) {
-				list = new ArrayList<>();
+			if(StringUtil.isNotEmpty(e.get("img_data").toString())){
+				String key = e.get("chaptername").toString();
+				if(e.containsKey("chapterDetail")){
+					key = e.get("chapterDetail").toString()+"_"+e.get("chapterPosition").toString();
+				}
+				// result 中 有该数据
+				List<Map<String, String>> list = result.get(key);
+				if (list == null) {
+					list = new ArrayList<>();
+				}
+				if(e.get("imgComment") != null){
+					String imgComment = e.get("imgComment").toString();
+					imgComment = imgComment.replaceAll(startSpan,"").replaceAll(startFontSpan,"").replaceAll(endSpan,"");
+					e.put("imgComment",imgComment);
+				}
+				list.add(e);
+				result.put((String) key, list);
 			}
-			list.add(e);
-			result.put((String) e.get("chaptername"), list);
 		});
 		return result;
 	}
@@ -809,77 +1039,6 @@ public class ReportUtil {
 		list.add(1, "2");
 		System.out.println(list);
 	}
-
-	// public static List<TElementNew> setResourceInElements(List<TElementNew>
-	// elementList , List<ReportResource> reportResources){
-	// List<TElementNew> tElements = new ArrayList<>();
-	// for (ReportResource reportResource : reportResources) {
-	// switch (reportResource.getChapter()){
-	// case REPORTINTRO:
-	//
-	// }
-	// }
-	// elementList.stream().forEach(e ->{
-	// //遍历模板中各模块的时候需要判断该模块是否被选中
-	// if(e.getSelected() == 1){
-	// String jsonData = null;
-	// try {
-	// // Object jsonObject =
-	// reportData.getClass().getDeclaredMethod(CHAPTERS2METHOD.get(e.getChapterName())).invoke(reportData);
-	//
-	// Object jsonObject =
-	// reportData.getClass().getDeclaredMethod(CHAPTERS2METHODNEW.get(e.getChapterDetail())).invoke(reportData);
-	// jsonData = jsonObject == null ? null :jsonObject.toString();
-	// } catch (Exception e1) {
-	// e1.printStackTrace();
-	// }
-	// TElementNew tElement = new TElementNew(e.getChapterName(), 1,
-	// e.getChapterPosition());
-	// tElement.setChapterDetail(e.getChapterDetail());
-	// tElement.setChapterType(e.getChapterType());
-	// if ("报告简介".equals(e.getChapterName())) {
-	// List<ReportResource> common = new ArrayList<>();
-	// ReportResource resource = new ReportResource();
-	// resource.setImgComment(jsonData);
-	// common.add(resource);
-	// tElement.setChapaterContent(common);
-	// }else if("数据统计概述".equals(e.getChapterName()) && jsonData!= null){
-	// List<ReportResource> common = new ArrayList<>();
-	// ReportResource resource = new ReportResource();
-	// resource.setImgComment(jsonData);
-	// common.add(resource);
-	// tElement.setChapaterContent(common);
-	// }else{
-	// tElement.setChapaterContent(JSONObject.parseObject(jsonData,new
-	// TypeReference<List<ReportResource>>(){}));
-	// }
-	// tElements.add(tElement);
-	// }
-	// } );
-	// //专报按位置信息排序，列表信息才能排序即： ListResources "SingleResource", "chart"不能
-	// for (TElementNew tElementNew : tElements) {
-	// List<ReportResource> list = new ArrayList<ReportResource>();
-	// if(!tElementNew.getChapterType().equals("SingleResource") &&
-	// !tElementNew.getChapterType().equals("chart")){
-	// list = tElementNew.getChapaterContent();
-	// if(ObjectUtil.isNotEmpty(list)){
-	// List<ReportResource> list2 =
-	// list.stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
-	// tElementNew.setChapaterContent(list2);
-	// }
-	// }
-	// }
-	//
-	//// tElements.stream().filter(te ->
-	// te.getChapterType().equals("SingleResource")).filter(te ->
-	// te.getChapterType().equals("chart")).forEach(te ->{
-	//// te.getChapaterContent().stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
-	//// });
-	// List<TElementNew> tElementsResult =
-	// tElements.stream().sorted(Comparator.comparing(TElementNew ::
-	// getChapterPosition)).collect(Collectors.toList());
-	// return tElementsResult;
-	// }
 	public static String statisticsTimeRestore(String primaryStatisticsTime) {
 		// TODO 需要把经过预览之后的时间格式还原
 		return "7d";
@@ -1062,7 +1221,7 @@ public class ReportUtil {
 				reportData.getClass().getDeclaredMethod(CHAPTERS2METHODSETNEW.get(chapterDetail), String.class).invoke(reportData, data);
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error("存储");
+				log.error("存储 --" + chapterDetail);
 			}
 		}
 	}

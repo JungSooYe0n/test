@@ -53,10 +53,10 @@ public interface ISubGroupService {
      * @param userJson      添加用户
      * @return
      */
-    public boolean save(int isAutoadd, String orgId, String name, MultipartFile picture, String[] roleIds, int columnNum, int specialNum, int alertNum, int alertAccount, String expireAt, String columnSync,
-                        String specialSyncLevel, String[] specialSync, int userLimit, String userJson) throws TRSException;
+    public boolean save(int isAutoadd, String orgId, String name, MultipartFile picture, String[] roleIds, int columnNum, int specialNum, int alertNum, int alertAccount, String expireAt, String[] columnSync,String[] columnSyncLevel,
+                        String[] specialSyncLevel, String[] specialSync, int userLimit, String userJson) throws TRSException;
 
-    public String  save(SubGroup subGroup, String columnSync, String[] specialSync, String specialSyncLevel) throws TRSException;
+    public String  save(SubGroup subGroup, String[] columnSync,String[] columnSyncLevel, String[] specialSync, String[] specialSyncLevel) throws TRSException;
 
     /**
      * 迁移历史数据使用

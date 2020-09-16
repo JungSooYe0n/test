@@ -43,6 +43,27 @@ import com.trs.netInsight.widget.column.entity.IndexTab;
 public interface IColumnService {
 
 	/**
+	 * 获取当前节点的下一个节点（如果没有下一个节点，则获取上一个，上一个也没有则获取父节点）
+	 * @param id
+	 * @param columnFlag
+	 * @return
+	 */
+	Object selectNextShowColumn(String id,ColumnFlag columnFlag);
+	/**
+	 * 置顶一个栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	Object topColumn(String id,User user);
+
+	/**
+	 * 取消置顶栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	Object noTopColumn(String id,User user);
+
+	/**
 	 * 获取层级下最的排序值
 	 * @param parentPageId 要获取排序值的对象的上级分组id ，如果没有上级分组，则为空
 	 * @param navigationId 对应的模块id，默认日常监测模块为""，
@@ -58,7 +79,7 @@ public interface IColumnService {
 	 * @param sortAll 是否包括对子层级排序
 	 * @return
 	 */
-	List<Object> sortColumn(List<IndexTabMapper> mapperList, List<IndexPage> indexPageList, Boolean sortAll,Boolean sortPage);
+	List<Object> sortColumn(List<Object> result,List<IndexTabMapper> mapperList, List<IndexPage> indexPageList, Boolean sortAll,Boolean sortPage);
 
 	/**
 	 * 获取日常监测第一层级的栏目和分组
@@ -67,13 +88,6 @@ public interface IColumnService {
 	 * @return
 	 */
 	Map<String,Object> getOneLevelColumnForMap(String typeId,User loginUser);
-	/**
-	 * 获取日常监测第一层级的栏目和分组
-	 * @param typeId
-	 * @param user
-	 * @return
-	 */
-	Object getOneLevelColumn(String typeId,User user);
 
 	/**
 	 * 重新排序column，在删除一个分组或者栏目时，去掉原栏目的排序
@@ -135,7 +149,7 @@ public interface IColumnService {
 	 * @return
 	 * @throws OperationException
 	 */
-	public List<Object> selectColumn(User user,String typeId) throws OperationException;
+	public Object selectColumn(User user,String typeId) throws OperationException;
 
 	/**
 	 * 保存
@@ -188,7 +202,7 @@ public interface IColumnService {
 	public Object selectList(IndexTab indexTab,int pageNo,int pageSize,String source,String emotion,String entityType,
 							 String dateTime,String key,String sort,String invitationCard,
 							 String forwarPrimary,String keywords,String fuzzyValueScope,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-							 String contentArea,String mediaArea,String preciseFilter);
+							 String contentArea,String mediaArea,String preciseFilter,String imgOcr);
 	/**
 	 * 日常监测 图数据导出
 	 * @param data

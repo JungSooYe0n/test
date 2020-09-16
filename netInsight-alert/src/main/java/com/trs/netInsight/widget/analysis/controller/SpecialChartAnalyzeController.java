@@ -25,9 +25,11 @@ import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.*;
@@ -46,13 +48,18 @@ import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
 import com.trs.netInsight.widget.special.entity.repository.SpecialSubjectRepository;
 import com.trs.netInsight.widget.spread.entity.SinaUser;
+import com.trs.netInsight.widget.user.entity.User;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -82,24 +89,49 @@ public class SpecialChartAnalyzeController {
 	private IChartAnalyzeService specialChartAnalyzeService;
 
 	@Autowired
-	private ICkmService ckmService;
-
-	@Autowired
 	private ICommonListService commonListService;
 	@Autowired
 	private ICommonChartService commonChartService;
+	@Autowired
+	private RequestTimeLogRepository requestTimeLogRepository;
 
-	// @Autowired
-	// private LogPrintUtil loginpool;
+
+
+
+
 	@FormatResult
 	@EnableRedis
 	@ApiOperation("舆论场趋势分析折线")
 	@RequestMapping(value = "/webCountLine", method = RequestMethod.GET)
 	public Object webCountLine(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-							 @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
-							   @ApiParam("hour/day") @RequestParam(value = "showType", required = true) String showType)
+							   @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+							   @ApiParam("hour/day") @RequestParam(value = "showType", required = true) String showType,
+
+							   @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+							   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+							   @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+							   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+							   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							   @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+							   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+							   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+							   @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							   @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+							   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+							   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr,
+							   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		Date startDate = new Date();
 		long start = new Date().getTime();
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
@@ -114,7 +146,25 @@ public class SpecialChartAnalyzeController {
 			specialProject.setStart(timeArray[0]);
 			specialProject.setEnd(timeArray[1]);
 		}
-		return specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
+		if(openFiltrate){
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+		}
+		log.info("【舆论场趋势分析折线】随机数： "+randomNum);
+		Date hyStartDate = new Date();
+		Object object = specialChartAnalyzeService.getWebCountLine(specialProject,timeRange,showType);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(startDate);
+		requestTimeLog.setEndTime(new Date());
+		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("各舆论场趋势分析");
+		requestTimeLogRepository.save(requestTimeLog);
+		return object;
 
 	}
 	@EnableRedis
@@ -122,8 +172,32 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("态势评估")
 	@RequestMapping(value = "/situationAssessment", method = RequestMethod.GET)
 	public Object situationAssessment(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-									@ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId)
+									  @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+
+									  @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+									  @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+									  @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+									  @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+									  @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+									  @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+									  @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+									  @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+									  @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+									  @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+									  @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+									  @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+									  @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+									  @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+									  @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+									  @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+									  @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+									  @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+									  @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+									  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+									  @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+									  @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr)
 			throws TRSException, ParseException {
+		Date startDate = new Date();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
 		ObjectUtil.assertNull(specialProject, "专题ID");
@@ -139,19 +213,61 @@ public class SpecialChartAnalyzeController {
 			specialProject.setStart(timeArray[0]);
 			specialProject.setEnd(timeArray[1]);
 		}
+		if(openFiltrate){
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+		}
 		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
-		return specialChartAnalyzeService.getSituationAssessment(searchBuilder,specialProject);
+		Date hyStartDate = new Date();
+		Object object = specialChartAnalyzeService.getSituationAssessment(searchBuilder,specialProject);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(startDate);
+		requestTimeLog.setEndTime(new Date());
+		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("专题分析-态势评估-态势评估");
+		requestTimeLogRepository.save(requestTimeLog);
+		return object;
 
 	}
+	@EnableRedis
 	@FormatResult
 	@ApiOperation("观点分析")
 	@RequestMapping(value = "/sentimentAnalysis", method = RequestMethod.GET)
 	public Object sentimentAnalysis(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-							 @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
-							 @RequestParam(value = "viewType", required = false, defaultValue = "OFFICIAL_VIEW") String viewType)
+									@ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+									@ApiParam("观点分析范围") @RequestParam(value = "viewType", required = false, defaultValue = "OFFICIAL_VIEW") String viewType,
+
+									@ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+									@ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+									@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+									@ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+									@ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+									@ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+									@ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+									@ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+									@ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+									@ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+									@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+									@ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+									@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+									@ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+									@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+									@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+									@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+									@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+									@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+									@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                    @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+									@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr)
 			throws TRSException, ParseException {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
@@ -165,7 +281,24 @@ public class SpecialChartAnalyzeController {
 			specialProject.setStart(timeArray[0]);
 			specialProject.setEnd(timeArray[1]);
 		}
-		return specialChartAnalyzeService.getSentimentAnalysis(specialProject,timeRange,viewType);
+		if(openFiltrate){
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+		}
+		Date hyStartDate = new Date();
+		Object object =specialChartAnalyzeService.getSentimentAnalysis(specialProject,timeRange,viewType);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
+        requestTimeLog.setStartHybaseTime(hyStartDate);
+        requestTimeLog.setEndHybaseTime(new Date());
+        requestTimeLog.setStartTime(startDate);
+        requestTimeLog.setEndTime(new Date());
+        requestTimeLog.setRandomNum(randomNum);
+        requestTimeLog.setOperation("观点分析");
+        requestTimeLogRepository.save(requestTimeLog);
+		return object;
 
 	}
 	/**
@@ -230,10 +363,6 @@ public class SpecialChartAnalyzeController {
 	 *            时间类型 今天，24小时，几天
 	 * @param specialId
 	 *            专项id
-	 * @param area
-	 *            检索开始时间
-	 * @param industry
-	 *            检索结束时间
 	 * @return
 	 * @throws TRSException
 	 * @author mawen 2017年12月2日 Object
@@ -243,10 +372,30 @@ public class SpecialChartAnalyzeController {
 	@FormatResult
 	@RequestMapping(value = "/webCommitCount", method = RequestMethod.GET)
 	@ApiOperation("舆论场发布统计")
-	public Object webCommitCount(@RequestParam(value = "timeRange", required = false) String timeRange,
-							  @RequestParam(value = "specialId", required = true) String specialId,
-							  @RequestParam(value = "area", defaultValue = "ALL") String area,
-							  @RequestParam(value = "industry", defaultValue = "ALL") String industry) throws Exception {
+	public Object webCommitCount(@ApiParam("时间")@RequestParam(value = "timeRange", required = false) String timeRange,
+								 @ApiParam("专题id")@RequestParam(value = "specialId", required = true) String specialId,
+
+								 @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+								 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+								 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+								 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+								 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+								 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+								 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+								 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+								 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+								 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+								 @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+								 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+								 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+								 @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+								 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+								 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+								 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws Exception {
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		long start = new Date().getTime();
 		ObjectUtil.assertNull(specialProject, "专题ID");
@@ -262,16 +411,19 @@ public class SpecialChartAnalyzeController {
 			specialProject.setStart(timeArray[0]);
 			specialProject.setEnd(timeArray[1]);
 		}
+		if(openFiltrate){
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+		}
 
-		// 根据时间升序,只要第一条
-		// QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, false);
 		// 排重
 		boolean sim = specialProject.isSimilar();
 		// url排重
 		boolean irSimflag = specialProject.isIrSimflag();
 		//跨数据源排重
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
-	 QueryBuilder builder = specialProject.toNoPagedBuilder();
+	 	QueryBuilder builder = specialProject.toNoPagedBuilder();
 		String contrastField = FtsFieldConst.FIELD_GROUPNAME;
 		builder.setPageSize(20);
 		ChartResultField resultField = new ChartResultField("name", "value");
@@ -568,9 +720,7 @@ public class SpecialChartAnalyzeController {
 	 * 地域分布
 	 *
 	 * @param specialId
-	 * @param area
 	 * @param timeRange
-	 * @param industry
 	 * @return
 	 * @throws TRSException
 	 */
@@ -580,18 +730,36 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("地域统计")
 	@RequestMapping(value = "/areaStatistics", method = RequestMethod.GET)
 	public Object area(@RequestParam(value = "specialId", required = true) String specialId,
-					   @RequestParam(value = "area", defaultValue = "ALL") String area,
 					   @RequestParam(value = "timeRange", required = false) String timeRange,
-					   @RequestParam(value = "industry", defaultValue = "ALL") String industry,@RequestParam(value = "areaType", defaultValue = "catalogArea") String areaType) throws Exception {
+					   @RequestParam(value = "areaType", defaultValue = "catalogArea") String areaType,
+
+					   @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+					   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+					   @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+					   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+					   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+					   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+					   @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+					   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+					   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
+					   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+					   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+					   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+					   @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+					   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+					   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+					   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+					   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+					   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+					   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                       @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+					   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
+					   ) throws Exception {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		if (specialProject != null) {
-			//单一媒体排重
-			boolean isSimilar = specialProject.isSimilar();
-			// url排重,站内排重
-			boolean irSimflag = specialProject.isIrSimflag();
-			//跨数据源排重,全网排重
-			boolean irSimflagAll = specialProject.isIrSimflagAll();
+
 			if (StringUtils.isBlank(timeRange)) {
 				timeRange = specialProject.getTimeRange();
 				if (StringUtils.isBlank(timeRange)) {
@@ -599,37 +767,39 @@ public class SpecialChartAnalyzeController {
 					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 				}
 			}
-			String groupName = specialProject.getSource();//多个以;隔开
-			if(groupName.contains("微信") && !groupName.contains("国内微信")){
-				groupName = groupName.replaceAll("微信","国内微信");
+
+			if(openFiltrate){
+				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
 			}
-			groupName = groupName.replaceAll("境外网站","国外新闻");
+			//单一媒体排重
+			boolean isSimilar = specialProject.isSimilar();
+			// url排重,站内排重
+			boolean irSimflag = specialProject.isIrSimflag();
+			//跨数据源排重,全网排重
+			boolean irSimflagAll = specialProject.isIrSimflagAll();
+
 			String[] timeArray = DateUtil.formatTimeRange(timeRange);
 			if (timeArray != null && timeArray.length == 2) {
 				specialProject.setStart(timeArray[0]);
 				specialProject.setEnd(timeArray[1]);
 			}
 			QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
-
 			searchBuilder.setGroupName(groupName);
-			if (!"ALL".equals(industry)) {
-				searchBuilder.filterField(FtsFieldConst.FIELD_INDUSTRY, industry.split(";"), Operator.Equal);
-			}
-			if (!"ALL".equals(area)) {
-				String[] areaSplit = area.split(";");
-				String contentArea = "";
-				for (int i = 0; i < areaSplit.length; i++) {
-					areaSplit[i] = "中国\\\\" + areaSplit[i] + "*";
-					if (i != areaSplit.length - 1) {
-						areaSplit[i] += " OR ";
-					}
-					contentArea += areaSplit[i];
-				}
-				searchBuilder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
-			}
-			// String[] timeArray = DateUtil.formatTimeRange(timeRange);
+			Date hyStartDate = new Date();
 			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
 					irSimflag,irSimflagAll,areaType);
+            RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
+            requestTimeLog.setStartHybaseTime(hyStartDate);
+            requestTimeLog.setEndHybaseTime(new Date());
+            requestTimeLog.setStartTime(startDate);
+            requestTimeLog.setEndTime(new Date());
+            requestTimeLog.setRandomNum(randomNum);
+            requestTimeLog.setOperation("地域统计");
+            requestTimeLogRepository.save(requestTimeLog);
 //			List<Map<String, Object>> sortByValue = MapUtil.sortByValue(resultMap, "value");
 //			long end = new Date().getTime();
 //			long time = end - start;
@@ -649,8 +819,6 @@ public class SpecialChartAnalyzeController {
 	 *
 	 * @param specialId
 	 * @param timeRange
-	 * @param industry
-	 * @param area
 	 * @return
 	 * @throws OperationException
 	 */
@@ -659,12 +827,33 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("正负面占比")
 	@EnableRedis
 	@RequestMapping(value = "/emotionOption", method = RequestMethod.GET)
-	public Object weiboOption(@RequestParam(value = "specialId") String specialId,
-							  @RequestParam(value = "timeRange", required = false) String timeRange,
-							  @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-							  @RequestParam(value = "area", defaultValue = "ALL") String area) throws Exception {
+	public Object weiboOption(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
+							  @ApiParam("时间筛选") @RequestParam(value = "timeRange", required = false) String timeRange,
+
+							  @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+							  @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+							  @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							  @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+							  @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+							  @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							  @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+							  @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							  @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+							  @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+							  @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							  @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							  @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							  @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+							  @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							  @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							  @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							  @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+							  @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							  @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+							  @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws Exception {
+	Date startDate = new Date();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
-		String groupName = specialProject.getSource();//多个以;隔开
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
 			if (StringUtils.isBlank(timeRange)) {
@@ -677,28 +866,24 @@ public class SpecialChartAnalyzeController {
 			specialProject.setStart(timeArray[0]);
 			specialProject.setEnd(timeArray[1]);
 		}
+		if(openFiltrate){
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+		}
 		QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
-		searchBuilder.setGroupName(groupName);
-
-		if (!"ALL".equals(industry)) {
-			searchBuilder.filterField(ESFieldConst.IR_VRESERVED5, industry.split(";"), Operator.Equal);
-		}
-
-		if (!"ALL".equals(area)) {
-			String[] areaSplit = area.split(";");
-			String contentArea = "";
-			for (int i = 0; i < areaSplit.length; i++) {
-				areaSplit[i] = "中国\\\\" + areaSplit[i] + "*";
-				if (i != areaSplit.length - 1) {
-					areaSplit[i] += " OR ";
-				}
-				contentArea += areaSplit[i];
-			}
-			searchBuilder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
-		}
-
+		Date hyStartDate = new Date();
 		List<Map<String, String>> list =specialChartAnalyzeService.emotionOption(searchBuilder,specialProject);
-
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(startDate);
+		requestTimeLog.setEndTime(new Date());
+		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("专题分析-事件态势-正负面占比");
+		requestTimeLogRepository.save(requestTimeLog);
 //		SpecialParam specParam = getSpecParam(specialProject);
 //		ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area, ChartType.EMOTIONOPTION.getType(),
 //				specParam.getFirstName(), specParam.getSecondName(), specParam.getThirdName(), "网察");
@@ -713,10 +898,6 @@ public class SpecialChartAnalyzeController {
 	 *
 	 * @param specialId
 	 *            专项ID
-	 * @param area
-	 *            地域
-	 * @param industry
-	 *            行业
 	 * @param timeRange
 	 *            时间范围
 	 * @return Object
@@ -724,19 +905,47 @@ public class SpecialChartAnalyzeController {
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_ACTIVE_LEVEL, systemLogType = SystemLogType.SPECIAL,systemLogOperationPosition="专题分析/${specialId}/内容统计/媒体活跃等级")
 	@FormatResult
 	@ApiOperation("活跃账号")
+	@EnableRedis
 	@RequestMapping(value = "/active_account", method = RequestMethod.GET)
-	public Object getActiveAccount(@RequestParam("specialId") String specialId,
-								 @RequestParam(value = "area", defaultValue = "ALL") String area,
-								 @RequestParam(value = "industry", defaultValue = "ALL") String industry,
-								 @RequestParam(value = "timeRange", required = false) String timeRange) throws TRSException {
+	public Object getActiveAccount(@ApiParam("专题id")@RequestParam("specialId") String specialId,
+								   @ApiParam("时间")@RequestParam(value = "timeRange", required = false) String timeRange,
+
+								   @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+								   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+								   @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+								   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+								   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+								   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+								   @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+								   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+								   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
+								   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,@ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+								   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+								   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+								   @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+								   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+								   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+								   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+								   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+								   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+								   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+								   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
+	) throws TRSException {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
 		log.info(loginpool.toString());
 		try {
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
-			String groupName = specialProject.getSource();//多个以;隔开
+
+			if(openFiltrate){
+				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+			}
 			// url排重
 			boolean irSimflag = specialProject.isIrSimflag();
 			//跨数据源排重
@@ -756,28 +965,25 @@ public class SpecialChartAnalyzeController {
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
 			builder.setGroupName(groupName);
 			boolean sim = specialProject.isSimilar();
-			if (!"ALL".equals(industry)) {
-				builder.filterField(FtsFieldConst.FIELD_INDUSTRY, industry.split(";"), Operator.Equal);
-			}
-			if (!"ALL".equals(area)) {
-				String[] areaSplit = area.split(";");
-				String contentArea = "";
-				for (int i = 0; i < areaSplit.length; i++) {
-					areaSplit[i] = "中国\\\\" + areaSplit[i] + "*";
-					if (i != areaSplit.length - 1) {
-						areaSplit[i] += " OR ";
-					}
-					contentArea += areaSplit[i];
-				}
-				builder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
-			}
-
 			String[] range = DateUtil.formatTimeRange(timeRange);
 			String source = specialProject.getSource();
+			log.info("【活跃账号】随机数："+randomNum);
+			Date hyStartDate = new Date();
 			Object mediaActiveAccount = specialChartAnalyzeService.mediaActiveAccount(builder,source, range, sim,
 					irSimflag,irSimflagAll);
 			long end = new Date().getTime();
 			long time = end - start;
+			log.info("活跃账号查询所需时间" + time);
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			requestTimeLog.setRandomNum(randomNum);
+            requestTimeLog.setOperation("活跃账号");
+			requestTimeLogRepository.save(requestTimeLog);
 //			log.info("媒体活跃等级图后台所需时间" + time);
 //			SpecialParam specParam = getSpecParam(specialProject);
 //			ChartParam chartParam = new ChartParam(specialId, timeRange, industry, area,
@@ -925,13 +1131,35 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("词云分析")
 	@RequestMapping(value = "/wordCloud", method = RequestMethod.GET)
 	public Object getWordYun(@ApiParam("专题ID") @RequestParam("specialId") String specialId,
-							 @ApiParam("地域") @RequestParam(value = "area", defaultValue = "ALL") String area,
-							 @ApiParam("行业") @RequestParam(value = "industry", defaultValue = "ALL") String industry,
 							 @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
 							 @ApiParam("实体类型（通用：keywords；人名:people；地名:location；机构名:agency；）") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
-							 @ApiParam("文章类型（全部：all；新闻：news；微博：weibo；微信：weixin；客户端：app 目前前端都传了all）") @RequestParam(value = "articleType", defaultValue = "all") String articleType)
-			throws Exception {
+							 @ApiParam("文章类型（全部：all；新闻：news；微博：weibo；微信：weixin；客户端：app 目前前端都传了all）") @RequestParam(value = "articleType", defaultValue = "all") String articleType,
+
+							 @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+							 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+							 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+							 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+							 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+							 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
+							 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+							 @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							 @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+							 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+							 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							 @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
+			) throws Exception {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
@@ -941,6 +1169,12 @@ public class SpecialChartAnalyzeController {
 				timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 			}
 		}
+		if(openFiltrate){
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+		}
+
 		QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
 		boolean sim = specialProject.isSimilar();
 		// url排重
@@ -950,21 +1184,7 @@ public class SpecialChartAnalyzeController {
 		searchBuilder.setPageSize(50);
 		String[] timeArray = DateUtil.formatTimeRange(timeRange);
 		searchBuilder.filterField(ESFieldConst.IR_URLTIME, timeArray, Operator.Between);
-		if (!"ALL".equals(industry)) {
-			searchBuilder.filterField(FtsFieldConst.FIELD_INDUSTRY, industry.split(";"), Operator.Equal);
-		}
-		if (!"ALL".equals(area)) {
-			String[] areaSplit = area.split(";");
-			String contentArea = "";
-			for (int i = 0; i < areaSplit.length; i++) {
-				areaSplit[i] = "中国\\\\" + areaSplit[i] + "*";
-				if (i != areaSplit.length - 1) {
-					areaSplit[i] += " OR ";
-				}
-				contentArea += areaSplit[i];
-			}
-			searchBuilder.filterByTRSL("CATALOG_AREA:(" + contentArea + ")");
-		}
+
 		if (!"all".equals(articleType)) {
 			// 新闻里边排除贴吧
 			if ("news".equals(articleType)) {
@@ -986,6 +1206,7 @@ public class SpecialChartAnalyzeController {
 		Object wordCloud = null;
 		String[] timeArr = com.trs.netInsight.util.DateUtil.formatTimeRange(timeRange);
 		String time0 = timeArr[0];
+		Date hyStartDate = new Date();
 		if (!com.trs.netInsight.util.DateUtil.isExpire("2019-10-01 00:00:00",time0)){
 			ChartResultField resultField = new ChartResultField("name", "value","entityType");
 			wordCloud = commonChartService.getWordCloudColumnData(searchBuilder,sim, irSimflag,irSimflagAll,specialProject.getSource(),entityType,"special",resultField);
@@ -993,6 +1214,16 @@ public class SpecialChartAnalyzeController {
 			wordCloud = specialChartAnalyzeService.getWordCloudNew(searchBuilder,sim, irSimflag,irSimflagAll, entityType,"special");
 
 		}
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(startDate);
+		requestTimeLog.setEndTime(new Date());
+		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("专题分析-事件态势-词云统计");
+		requestTimeLogRepository.save(requestTimeLog);
 		if(ObjectUtil.isEmpty(wordCloud)){
 			return null;
 		}
@@ -1568,12 +1799,36 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("事件脉络")
 	@RequestMapping(value = "/affairVenation", method = RequestMethod.GET)
 	public Object affairVenation(@ApiParam("专项id") @RequestParam(value = "specialId") String specialId,
-						   @ApiParam("pageSize") @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-						   @ApiParam("类型：新闻/微博/微信/自媒体号") @RequestParam(value = "groupName", required = false) String type,
-						   @ApiParam("md5Tag") @RequestParam(value = "md5Tag", required = false) String md5,
-						   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange) throws TRSException {
+								 @ApiParam("pageSize") @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+								 @ApiParam("类型：新闻/微博/微信/自媒体号") @RequestParam(value = "groupName", required = false) String type,
+								 @ApiParam("md5Tag") @RequestParam(value = "md5Tag", required = false) String md5,
+								 @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+
+								 @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+								 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+								 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+								 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+								 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+								 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+								 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+								 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+								 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+								 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm, @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+								 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+								 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+								 @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+								 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+								 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+								 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                 @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
+	) throws TRSException {
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
@@ -1581,235 +1836,55 @@ public class SpecialChartAnalyzeController {
 		// 这个不用管它是否排重 肯定查md5的
 		try {
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
-			String groupName = specialProject.getSource();//多个以;隔开
-			// 单一数据源排重
-			boolean irSimflag = specialProject.isIrSimflag();
-			//全网排重
-			boolean irSimflagAll = specialProject.isIrSimflagAll();
-			//站内排重
-			boolean sim = specialProject.isSimilar();
+			if(openFiltrate){
+				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+			}
 			// url排重
 			ObjectUtil.assertNull(specialProject, "专题ID");
-			if (StringUtils.isBlank(timeRange)) {
-				timeRange = specialProject.getTimeRange();
-				if (StringUtils.isBlank(timeRange)) {
-					timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
-					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
-				}
-			}
-			String[] timeArray = DateUtil.formatTimeRange(timeRange);
-
+            if (timeRange != null) {
+                String[] timeArray = DateUtil.formatTimeRange(timeRange);
+                if (timeArray != null && timeArray.length == 2) {
+                    specialProject.setStart(timeArray[0]);
+                    specialProject.setEnd(timeArray[1]);
+                }
+            }
 			QueryBuilder statBuilder = null;
-//			if (Const.GROUPNAME_WEIBO.equals(type)) {
-//				statBuilder = specialProject.toNoTimeBuilderWeiBo(0, pageSize);
-//			} else {
-				statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
-//			}
+            statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
 			statBuilder.page(0, pageSize);
-			List<Map> resultList = new ArrayList<>();
 			type = CommonListChartUtil.formatPageShowGroupName(type);
-			switch (type) {
-				case Const.GROUPNAME_WEIBO:
-					//找十个转发数量最多的原发 按时间排序
-					statBuilder.filterField(FtsFieldConst.FIELD_CREATED_AT, timeArray, Operator.Between);
-//					statBuilder.filterByTRSL(FtsFieldConst.FIELD_RETWEETED_MID+":(0 OR \"\")");
-					statBuilder.setPageSize(pageSize);
-//					statBuilder.orderBy(FtsFieldConst.FIELD_RTTCOUNT, true);
-					log.info(statBuilder.asTRSL());
-					statBuilder.setServer(specialProject.isServer());
-//					InfoListResult infoListResult = commonListService.queryPageList(statBuilder,sim,irSimflag,irSimflagAll,Const.GROUPNAME_WEIBO,type,UserUtils.getUser(),true);
-//					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
-
-                    PagedList<FtsDocumentCommonVO> content = commonListService.queryPageListForHotNoFormat(statBuilder, "special", Const.GROUPNAME_WEIBO);
-                    List<FtsDocumentCommonVO> ftsQueryWeiBo = content.getPageItems();
-					SortListAll sortListWeiBo = new SortListAll();
-					//按时间排序
-					Collections.sort(ftsQueryWeiBo, sortListWeiBo);
-					// 防止这个的第一条和时间的那一条重复
-					//微博走势 不走special/chart/trendTime接口，不需要去掉第一条数据
-					for (FtsDocumentCommonVO ftsStatus : ftsQueryWeiBo) {
-						ftsStatus.setSiteName(ftsStatus.getScreenName());
-						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsStatus.getSimCount(), ftsStatus));
-					}
-					return ftsQueryWeiBo;
-				case "新闻网站":
-					List<FtsDocumentCommonVO> listChuan = new ArrayList<>();
-					QueryBuilder queryFts = new QueryBuilder();
-					String trsl = statBuilder.asTRSL();
-					queryFts.filterByTRSL(trsl);
-					queryFts.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-					queryFts.setPageSize(pageSize);
-					queryFts.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-					queryFts.setServer(specialProject.isServer());
-					if(StringUtil.isNotEmpty(md5)){
-						queryFts.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.NotEqual);
-					}
-					GroupResult categoryChuan = commonListService.categoryQuery(queryFts,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_MD5TAG,"special",Const.TYPE_NEWS);
-//				GroupResult categoryChuan = hybase8SearchService.categoryQuery(queryFts, sim, irSimflag,irSimflagAll,
-//						FtsFieldConst.FIELD_MD5TAG,"special", Const.HYBASE_NI_INDEX);
-					log.info(queryFts.asTRSL());
-					List<GroupInfo> groupList = categoryChuan.getGroupList();
-					if (groupList != null && groupList.size() > 0) {
-						for (GroupInfo groupInfo : groupList) {
-							QueryBuilder queryMd5 = new QueryBuilder();
-							// 小时间段里MD5分类统计 时间排序取第一个结果 去查
-							queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
-							queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-							queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-							queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
-							log.info(queryMd5.asTRSL());
-							final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
-							String trslk = "redisKey" + pageId;
-							RedisUtil.setString(trslk, queryMd5.asTRSL());
-							InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5,sim,irSimflag,irSimflagAll,Const.TYPE_NEWS,"special",UserUtils.getUser(),true);
-							PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
-							List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
-							//找原发
-//						List<FtsDocument> ftsQueryChuan = hybase8SearchService.ftsQuery(queryMd5, FtsDocument.class,
-//								sim, irSimflag,irSimflagAll,"special");
-							// 再取第一个MD5结果集的第一个数据
-							if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
-								ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
-								ftsQueryChuan.get(0).setTrslk(trslk);
-								listChuan.add(ftsQueryChuan.get(0));
-							}
-						}
-					}
-					// }
-
-					// 按urltime降序
-					SortListAll sort = new SortListAll();
-					// Collections.sort(listChuan, sort);
-					Collections.sort(listChuan, sort);
-//					// 防止这个的第一条和时间的那一条重复
-//					if (listChuan.size() > 0) {
-//						listChuan.remove(0);
-//					}
-					for (FtsDocumentCommonVO ftsDocument : listChuan) {
-						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
-					}
-					return listChuan;
-				case "微信":
-					List<FtsDocumentCommonVO> listweixin = new ArrayList<>();
-					QueryBuilder queryFts2 = new QueryBuilder();
-					String trsl2 = statBuilder.asTRSL();
-					queryFts2.filterByTRSL(trsl2);
-					// 不同小时间段
-					queryFts2.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-					queryFts2.setPageSize(pageSize);
-					queryFts2.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-					log.info(queryFts2.asTRSL());
-					queryFts2.setServer(specialProject.isServer());
-					if(StringUtil.isNotEmpty(md5)){
-						queryFts2.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.NotEqual);
-					}
-					GroupResult categoryweixin = commonListService.categoryQuery(queryFts2,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_MD5TAG,"special",Const.GROUPNAME_WEIXIN);
-					log.info(queryFts2.asTRSL());
-					List<GroupInfo> groupListweixin = categoryweixin.getGroupList();
-					if (groupListweixin != null && groupListweixin.size() > 0) {
-						for (GroupInfo groupInfo : groupListweixin) {
-							QueryBuilder queryMd5 = new QueryBuilder();
-							// 小时间段里MD5分类统计 时间排序取第一个结果 去查
-							queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
-							queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-							queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-//							queryMd5.setDatabase(Const.WECHAT_COMMON);
-							queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
-							log.info(queryMd5.asTRSL());
-
-							final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
-							String trslk = "redisKey" + pageId;
-							RedisUtil.setString(trslk, queryMd5.asTRSL());
-							if(StringUtil.isNotEmpty(groupName)){
-								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-										.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-							}
-							InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5,sim,irSimflag,irSimflagAll,Const.TYPE_WEIXIN_GROUP,"special",UserUtils.getUser(),true);
-							PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
-							List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
-							// 再取第一个MD5结果集的第一个数据
-							if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
-								ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
-								ftsQueryChuan.get(0).setTrslk(trslk);
-								listweixin.add(ftsQueryChuan.get(0));
-							}
-						}
-					}
-					// }
-
-					// 按urltime降序
-					SortListAll sort2 = new SortListAll();
-					// Collections.sort(listChuan, sort);
-					Collections.sort(listweixin, sort2);
-					// 防止这个的第一条和时间的那一条重复
-//					if (listweixin.size() > 0) {
-//						listweixin.remove(0);
-//					}
-					for (FtsDocumentCommonVO ftsDocument : listweixin) {
-						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
-					}
-					return listweixin;
-				case "自媒体号":
-					List<FtsDocumentCommonVO> listzimeiti = new ArrayList<>();
-					QueryBuilder queryFts3 = new QueryBuilder();
-					String trsl3 = statBuilder.asTRSL();
-					queryFts3.filterByTRSL(trsl3);
-					// 不同小时间段
-					queryFts3.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-					queryFts3.setPageSize(pageSize);
-					queryFts3.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-					queryFts3.setServer(specialProject.isServer());
-					if(StringUtil.isNotEmpty(md5)){
-						queryFts3.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.NotEqual);
-					}
-					GroupResult category = commonListService.categoryQuery(queryFts3,sim,irSimflag,irSimflagAll,FtsFieldConst.FIELD_MD5TAG,"special",Const.GROUPNAME_ZIMEITI);
-					log.info(queryFts3.asTRSL());
-					List<GroupInfo> groupListzi = category.getGroupList();
-					if (groupListzi != null && groupListzi.size() > 0) {
-						for (GroupInfo groupInfo : groupListzi) {
-							QueryBuilder queryMd5 = new QueryBuilder();
-							// 小时间段里MD5分类统计 时间排序取第一个结果 去查
-							queryMd5.filterField(FtsFieldConst.FIELD_MD5TAG, groupInfo.getFieldValue(), Operator.Equal);
-							queryMd5.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-							queryMd5.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-							queryMd5.filterByTRSL(specialProject.toNoPagedAndTimeBuilder().asTRSL());
-							log.info(queryMd5.asTRSL());
-							final String pageId = GUIDGenerator.generate(SpecialChartAnalyzeController.class);
-							String trslk = "redisKey" + pageId;
-							RedisUtil.setString(trslk, queryMd5.asTRSL());
-							if(StringUtil.isNotEmpty(groupName)){
-								queryMd5.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName.replace(";", " OR ")
-										.replace(Const.TYPE_WEIXIN, Const.TYPE_WEIXIN_GROUP).replace("境外媒体", "国外新闻"),Operator.Equal);
-							}
-							InfoListResult infoListResult2 = commonListService.queryPageList(queryMd5,sim,irSimflag,irSimflagAll,Const.GROUPNAME_ZIMEITI,"special",UserUtils.getUser(),true);
-							PagedList<FtsDocumentCommonVO> content2 = (PagedList<FtsDocumentCommonVO>) infoListResult2.getContent();
-							List<FtsDocumentCommonVO> ftsQueryChuan = content2.getPageItems();
-							// 再取第一个MD5结果集的第一个数据
-							if (ftsQueryChuan != null && ftsQueryChuan.size() > 0) {
-								ftsQueryChuan.get(0).setSimCount((int) groupInfo.getCount());
-								ftsQueryChuan.get(0).setTrslk(trslk);
-								listzimeiti.add(ftsQueryChuan.get(0));
-							}
-						}
-					}
-					// 按urltime降序
-					SortListAll sort3 = new SortListAll();
-					// Collections.sort(listChuan, sort);
-					Collections.sort(listzimeiti, sort3);
-					// 防止这个的第一条和时间的那一条重复
-//					if (listzimeiti.size() > 0) {
-//						listzimeiti.remove(0);
-//					}
-					for (FtsDocumentCommonVO ftsDocument : listzimeiti) {
-						resultList.add(MapUtil.putValue(new String[] { "num", "list" }, ftsDocument.getSimCount(), ftsDocument));
-					}
-					return listzimeiti;
-				case "all":
-					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
-				default:
-					statBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray, Operator.Between);
+			QueryBuilder builder = specialProject.toNoPagedBuilder();
+			builder.setPageSize(pageSize);
+			InfoListResult infoListResult = null;
+			Date hyStartDate = new Date();
+			infoListResult = commonListService.queryPageListForHot(builder,CommonListChartUtil.changeGroupName(type),UserUtils.getUser(),"special",false);
+			String trslkall = null;
+			if (ObjectUtil.isEmpty(infoListResult) || ObjectUtil.isEmpty(infoListResult.getContent())) return null;
+			trslkall = infoListResult.getTrslk();
+			PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+			if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
+				return null;
 			}
-			return resultList;
+			List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
+			SortListAll sortList = new SortListAll();
+			//按时间排序
+			Collections.sort(voList, sortList);
+			for (FtsDocumentCommonVO ftsDocument : voList) {
+				ftsDocument.setTrslk(trslkall);
+				ftsDocument.setSimCount(ftsDocument.getSimCount()-1 > 0 ? ftsDocument.getSimCount()-1 : 0);
+			}
+            RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
+            requestTimeLog.setStartHybaseTime(hyStartDate);
+            requestTimeLog.setEndHybaseTime(new Date());
+            requestTimeLog.setStartTime(startDate);
+            requestTimeLog.setEndTime(new Date());
+            requestTimeLog.setRandomNum(randomNum);
+            requestTimeLog.setOperation("事件脉络");
+            requestTimeLogRepository.save(requestTimeLog);
+			return voList;
 		} catch (Exception e) {
 			throw new OperationException("走势计算错误,message: " + e);
 		} finally {
@@ -1832,10 +1907,34 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("热点信息")
 	@RequestMapping(value = "/hotMessage", method = RequestMethod.GET)
 	public Object hotMessage(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-							  @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
-							  @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-							  @RequestParam(value = "groupName", defaultValue = "ALL", required = false) String groupName)
+							 @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
+							 @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+							 @RequestParam(value = "groupName", defaultValue = "ALL", required = false) String groupName,
+
+							 @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate", defaultValue = "true") Boolean openFiltrate,
+							 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+							 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+							 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+							 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+							 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+							 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm, @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							 //@ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+							 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+							 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                             @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
+	)
 			throws TRSException {
+	    Date startDate = new Date();
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
@@ -1853,10 +1952,26 @@ public class SpecialChartAnalyzeController {
 				timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 			}
 		}
+		if(openFiltrate){
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+			specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+		}
 		// 跟统计表格一样 如果来源没选 就不查数据
 		groupName = CommonListChartUtil.changeGroupName(groupName);
+		Date hyStartDate = new Date();
 		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(groupName,
 				specialProject, timeRange,pageSize);
+        RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(specialId);
+		requestTimeLog.setTabName(specialProject.getSpecialName());
+        requestTimeLog.setStartHybaseTime(hyStartDate);
+        requestTimeLog.setEndHybaseTime(new Date());
+        requestTimeLog.setStartTime(startDate);
+        requestTimeLog.setEndTime(new Date());
+        requestTimeLog.setRandomNum(randomNum);
+        requestTimeLog.setOperation("热点信息");
+        requestTimeLogRepository.save(requestTimeLog);
 		return result;
 	}
 	/**
@@ -2351,15 +2466,57 @@ public class SpecialChartAnalyzeController {
 	@ApiOperation("情绪统计")
 	@RequestMapping(value = "/moodStatistics")
 	public Object moodStatistics(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-							@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange) throws Exception {
+								 @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+
+								 @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+								 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+								 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+								 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+								 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+								 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+								 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+								 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+								 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+								 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+								 @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+								 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+								 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+								 @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+								 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+								 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+								 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                 @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
+	) throws Exception {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
 		log.info(loginpool.toString());
 		try {
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
-			return specialChartAnalyzeService.getMoodStatistics(specialProject, timeRange);
+			if(openFiltrate){
+				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+			}
+			Date hyStartDate = new Date();
+			Object object = specialChartAnalyzeService.getMoodStatistics(specialProject, timeRange);
+            RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
+            requestTimeLog.setStartHybaseTime(hyStartDate);
+            requestTimeLog.setEndHybaseTime(new Date());
+            requestTimeLog.setStartTime(startDate);
+            requestTimeLog.setEndTime(new Date());
+            requestTimeLog.setRandomNum(randomNum);
+            requestTimeLog.setOperation("情绪统计");
+            requestTimeLogRepository.save(requestTimeLog);
+			return object;
 		} catch (Exception e) {
 			throw new OperationException("查询出错：" + e);
 		} finally {
@@ -2811,31 +2968,34 @@ public class SpecialChartAnalyzeController {
 
 								   @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
 								   @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
-								   @ApiParam("结果中搜索")@RequestParam(value = "keywords", required = false) String keywords,
-								   @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
+								   @ApiParam("结果中搜索") @RequestParam(value = "keywords", required = false) String keywords,
+								   @ApiParam("结果中搜索的范围") @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
 
-							   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
-							   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
-							   @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
-							   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
-							   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
-							   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-								@ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
-							   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
-							   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
-							   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
-							   @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
-							   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
-							   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
-							   @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
-							   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
-							   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
-							   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
-							   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
-							   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-							   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
+								   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+								   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+								   @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+								   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+								   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+								   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+								   @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+								   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+								   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+								   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+								   @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+								   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+								   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+								   @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+								   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+								   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+								   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+								   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+								   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+								   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+								   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+								   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws TRSException {
 		log.warn("图表分析统计表格stattotal接口开始调用");
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		try {
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			ObjectUtil.assertNull(specialProject, "专题ID");
@@ -2846,71 +3006,26 @@ public class SpecialChartAnalyzeController {
 					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 				}
 			}
-//			String[] timeRange = DateUtil.formatTimeRange(days);
-			//排重
-			if ("netRemove".equals(simflag)) { //单一媒体排重
-				specialProject.setSimilar(true);
-				specialProject.setIrSimflag(false);
-				specialProject.setIrSimflagAll(false);
-			} else if ("urlRemove".equals(simflag)) { //站内排重
-				specialProject.setSimilar(false);
-				specialProject.setIrSimflag(true);
-				specialProject.setIrSimflagAll(false);
-			} else if ("sourceRemove".equals(simflag)) { //全网排重
-				specialProject.setSimilar(false);
-				specialProject.setIrSimflag(false);
-				specialProject.setIrSimflagAll(true);
-			}
-			//命中规则
-			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {
-//				specialProject.setKeyWordIndex(wordIndex);
-				if (SearchScope.TITLE.equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE);
-				}
-				if (SearchScope.TITLE_CONTENT.equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE_CONTENT);
-				}
-				if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE_ABSTRACT);
-				}
-
-			}
-			specialProject.setMonitorSite(monitorSite);
-			specialProject.setExcludeWeb(excludeWeb);
-			//排除关键词
-			specialProject.setExcludeWordIndex(excludeWordIndex);
-			specialProject.setExcludeWords(excludeWord);
-
-			//修改词距 选择修改词距时，才能修改词距
-			if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(specialProject.getTrsl()) && wordFromNum >= 0) {
-				String keywordJson = specialProject.getAnyKeywords();
-				JSONArray jsonArray = JSONArray.parseArray(keywordJson);
-				//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
-				if (jsonArray != null && jsonArray.size() == 1) {
-					Object o = jsonArray.get(0);
-					JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
-					jsonObject.put("wordSpace", wordFromNum);
-					jsonObject.put("wordOrder", wordFromSort);
-					jsonArray.set(0, jsonObject);
-					specialProject.setAnyKeywords(jsonArray.toJSONString());
-				}
-			}
+			simflag = "urlRemove";
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 			// 跟统计表格一样 如果来源没选 就不查数据
-			List<String> specialSource = CommonListChartUtil.formatGroupName(specialProject.getSource());
-			if(!"ALL".equals(groupName)){
-				groupName = CommonListChartUtil.changeGroupName(groupName);
-//				if(!specialSource.contains(groupName)){
-//					return null;
-//				}
-			}else{
-				groupName = StringUtils.join(specialSource,";");
-			}
+			Date hyStartDate = new Date();
 			Object total = specialChartAnalyzeService.getSpecialStattotal(specialProject,groupName,
-					timeRange, emotion, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null,
-					"special", read, mediaLevel, mediaIndustry,
-					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+					timeRange, emotion, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
+					"special", read,  preciseFilter,imgOcr);
 			long end = new Date().getTime();
 			long time = end - start;
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			requestTimeLog.setRandomNum(randomNum);
+			requestTimeLog.setOperation("专题分析-信息列表-数据统计");
+			requestTimeLogRepository.save(requestTimeLog);
 			log.info("专题监测统计后台所需时间" + time);
 			return total;
 		} catch (Exception e) {
@@ -2959,19 +3074,15 @@ public class SpecialChartAnalyzeController {
     }*/
 	/**
 	 * 图表跳列表
-	 * @param specialId
+	 * @param id
 	 * 			专项id
 	 * @param timeRange
 	 * 			高级筛选时间段
-	 * @param industryType
-	 * 			行业类型
-	 * @param area
-	 * 			地域分布
 	 * @param chartType
 	 * 			图表类型
 	 * @param dateTime
 	 * 			数据时间
-	 * @param xType
+	 * @param key
 	 * 			数据参数
 	 * @param source
 	 * 			数据来源
@@ -2985,48 +3096,47 @@ public class SpecialChartAnalyzeController {
 	//@EnableRedis 有文章删除的时候不能用,否则删除无效
 	@FormatResult
 	@ApiOperation("专题图表通用列表跳转方法")
-	@RequestMapping(value = "/chart2list", method = RequestMethod.GET)
-	public Object chart2list(@ApiParam("专题id")@RequestParam(value = "specialId") String specialId,
-							 @ApiParam("高级筛选时间段") @RequestParam(value = "timeRange", defaultValue = "3d") String timeRange,
-							 @ApiParam("行业类型")@RequestParam(value = "industryType", defaultValue = "ALL") String industryType,
-							 @ApiParam("地域分布")@RequestParam(value = "area", defaultValue = "ALL") String area,
+	@RequestMapping(value = "/chart2list", method = RequestMethod.POST)
+	public Object chart2list(@ApiParam("专题id")@RequestParam(value = "id") String id,
 							 @ApiParam("图表类型")@RequestParam(value = "chartType") String chartType,
-							 @ApiParam("热词：用户点击的外圈词（共30个）")@RequestParam(value = "thirdWord", required = false)String thirdWord,
-							 @ApiParam("数据时间")@RequestParam(value = "dateTime", required = false) String dateTime,
-							 @ApiParam("数据参数")@RequestParam(value = "xType",required = false ) String xType,
-							 @ApiParam("数据来源")@RequestParam(value = "source",required = false ) String source,
-							 @ApiParam("通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+							 @ApiParam("高级筛选时间段") @RequestParam(value = "timeRange", defaultValue = "3d") String timeRange,
+							 @ApiParam("数据来源 - 当前列表要展示的数据源")@RequestParam(value = "source",required = false ) String source,
+							 @ApiParam("数据参数 - 被点击的图上的点")@RequestParam(value = "key",required = false ) String key,
+							 @ApiParam("折线图数据时间")@RequestParam(value = "dateTime", required = false) String dateTime,
+							 @ApiParam("词云图 通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+							 @ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false) String mapContrast,
 							 @ApiParam("排序")@RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
-							 @ApiParam("情感")@RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
+							 @ApiParam("微博原发/转发")@RequestParam(value = "forwardPrimary",defaultValue = "") String forwardPrimary,
+							 @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
 							 @ApiParam("结果中搜索") @RequestParam(value="fuzzyValue",required=false) String fuzzyValue,
 							 @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
 							 @ApiParam("页码")@RequestParam(value = "pageNo",defaultValue = "0") int pageNo,
-							 @ApiParam("步长")@RequestParam(value = "pageSize",defaultValue = "10") int pageSize,
-							 @ApiParam("微博原发/转发")@RequestParam(value = "forwarPrimary",defaultValue = "") String forwarPrimary,
-							 @ApiParam("是否导出") @RequestParam(value = "isExport", defaultValue = "false") boolean isExport,
-							 @ApiParam("主回帖")@RequestParam(value = "invitationCard",defaultValue = "") String invitationCard
-	) throws Exception{
+							 @ApiParam("一页多少条")@RequestParam(value = "pageSize",defaultValue = "10") int pageSize,
+
+							 @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate",defaultValue = "true") Boolean openFiltrate,
+							 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+							 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+							 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+							 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+							 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex",defaultValue ="1",required = false) String excludeWordsIndex,
+							 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+							 @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							 @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+							 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+							 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws Exception{
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
-		SpecialProject specialProject = this.specialProjectNewRepository.findOne(specialId);
-		//页面展示 国外新闻 变为 境外网站  2019-12-10
-		if (StringUtil.isNotEmpty(source)){
-			if ("境外网站".equals(source) || "境外媒体".equals(source)){
-				source = "国外新闻";
-			}else if ("微信".equals(source)){
-				source = "国内微信";
-			}else if ("新闻".equals(source)){
-				source = "国内新闻";
-			}else if ("客户端".equals(source)){
-				source = "国内新闻_手机客户端";
-			}else if ("论坛".equals(source)){
-				source = "国内论坛";
-			}else if ("博客".equals(source)){
-				source = "国内博客";
-			}else if ("电子报".equals(source)){
-				source = "国内新闻_电子报";
-			}
-		}
+		SpecialProject specialProject = this.specialProjectNewRepository.findOne(id);
 		if (specialProject != null) {
 			// 初步高级删选时间范围
 			specialProject.setTimeRange(timeRange);
@@ -3035,7 +3145,15 @@ public class SpecialChartAnalyzeController {
 				specialProject.setStart(timeArray[0]);
 				specialProject.setEnd(timeArray[1]);
 			}
-			return this.specialChartAnalyzeService.getDataByChart(specialProject, industryType, area, chartType, dateTime, xType, source, entityType,sort,emotion,fuzzyValue,fuzzyValueScope,pageNo, pageSize,forwarPrimary,invitationCard,isExport,thirdWord);
+			SpecialChartType specialChartType =SpecialChartType.getSpecialChartType(chartType);
+			if(openFiltrate){
+				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+				specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+			}
+			return this.specialChartAnalyzeService.getChartToListData(specialProject,specialChartType,source,key,dateTime,entityType,mapContrast,pageNo,pageSize,sort,
+											fuzzyValue,fuzzyValueScope,forwardPrimary,invitationCard);
+			//return this.specialChartAnalyzeService.getDataByChart(specialProject, industryType, area, chartType, dateTime, xType, source, entityType,sort,emotion,fuzzyValue,fuzzyValueScope,pageNo, pageSize,forwarPrimary,invitationCard,isExport,thirdWord);
 		}
 		return null;
 	}
@@ -3182,15 +3300,115 @@ public class SpecialChartAnalyzeController {
 		}
 
 	}
+    @EnableRedis
+	@FormatResult
+	@ApiOperation("传播分析/站点")
+	@RequestMapping(value = "/spreadAnalysisSiteName", method = RequestMethod.GET)
+	public Object spreadAnalysisSiteName(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
+										 @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+
+										 @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate", defaultValue = "true") Boolean openFiltrate,
+										 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+										 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+										 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+										 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+										 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+										 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+										 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+										 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+										 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+										 @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+										 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+										 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+										 @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+										 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+										 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+										 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+										 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+										 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+										 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                         @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+										 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws OperationException {
+		try {
+Date startDate = new Date();
+			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+			if (specialProject != null) {
+				// url排重
+				long start = new Date().getTime();
+
+				if (StringUtils.isBlank(timeRange)) {
+					timeRange = specialProject.getTimeRange();
+					if (StringUtils.isBlank(timeRange)) {
+						timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+						timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+					}
+				}
+				String[] timeArray = DateUtil.formatTimeRange(timeRange);
+				if (timeArray != null && timeArray.length == 2) {
+					specialProject.setStart(timeArray[0]);
+					specialProject.setEnd(timeArray[1]);
+				}
+				if(openFiltrate){
+					specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+							mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+					specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+				}
+				// 根据时间升序,只要第一条
+				QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
+				Date hyStartDate = new Date();
+				Object object = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
+				long end = new Date().getTime();
+				long time = end - start;
+				log.info("传播分析站点查询所需时间" + time);
+                RequestTimeLog requestTimeLog = new RequestTimeLog();
+				requestTimeLog.setTabId(specialId);
+				requestTimeLog.setTabName(specialProject.getSpecialName());
+                requestTimeLog.setStartHybaseTime(hyStartDate);
+                requestTimeLog.setEndHybaseTime(new Date());
+                requestTimeLog.setStartTime(startDate);
+                requestTimeLog.setEndTime(new Date());
+                requestTimeLog.setRandomNum(randomNum);
+                requestTimeLog.setOperation("传播分析站点");
+                requestTimeLogRepository.save(requestTimeLog);
+				return object;
+			}
+			return null;
+		} catch (Exception e) {
+			throw new OperationException("查询出错：" + e, e);
+		} finally {
+		}
+	}
 	@EnableRedis
 	@FormatResult
 	@ApiOperation("传播分析")
 	@RequestMapping(value = "/spreadAnalysis", method = RequestMethod.GET)
 	public Object spreadAnalysis(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
-								   @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
-								 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
-								   @ApiParam("每日最多展示网站个数，主要配合api，网察页面不需要理会此参数") @RequestParam(value = "isApi", defaultValue = "false",required = false) boolean isApi) throws OperationException {
+								 @ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
+								 @ApiParam("数据源类型") @RequestParam(value = "groupName", required = false) String groupName,
+
+								 @ApiParam("是否启用页面中条件筛选的条件") @RequestParam(value = "openFiltrate", defaultValue = "true") Boolean openFiltrate,
+								 @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+								 @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+								 @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+								 @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+								 @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+								 @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
+								 @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+								 @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+								 @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+								 @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+								 @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+								 @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+								 @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+								 @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+								 @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+								 @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+								 @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+								 @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                 @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+								 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr) throws OperationException {
 		long start = new Date().getTime();
+		Date startDate = new Date();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
@@ -3198,6 +3416,11 @@ public class SpecialChartAnalyzeController {
 		try {
 			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			if (specialProject != null) {
+				if(openFiltrate){
+					specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+							mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
+					specialProject.addFilterCondition(read, preciseFilter, emotion,imgOcr);
+				}
 				// url排重
 				boolean irSimflag = specialProject.isIrSimflag();
 				boolean similar = specialProject.isSimilar();
@@ -3219,15 +3442,24 @@ public class SpecialChartAnalyzeController {
 
 				// 根据时间升序,只要第一条
 				QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, true);
-//				if (specialProject.isServer()) {
-//					searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻%", Operator.Equal);
-//				} else {
-//					searchBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, "国内新闻*", Operator.Equal);
-//				}
 				searchBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				searchBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, false);
-//				searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
-				return specialChartAnalyzeService.spreadAnalysis(searchBuilder, timeArray, similar, irSimflag,irSimflagAll,false,groupName);
+				Date hyStartDate = new Date();
+				Object object = specialChartAnalyzeService.spreadAnalysis(searchBuilder, timeArray, similar, irSimflag,irSimflagAll,false,groupName);
+				long end = new Date().getTime();
+				long time = end - start;
+				log.info("传播分析查询所需时间" + time);
+                RequestTimeLog requestTimeLog = new RequestTimeLog();
+				requestTimeLog.setTabId(specialId);
+				requestTimeLog.setTabName(specialProject.getSpecialName());
+                requestTimeLog.setStartHybaseTime(hyStartDate);
+                requestTimeLog.setEndHybaseTime(new Date());
+                requestTimeLog.setStartTime(startDate);
+                requestTimeLog.setEndTime(new Date());
+                requestTimeLog.setRandomNum(randomNum);
+                requestTimeLog.setOperation("传播分析");
+                requestTimeLogRepository.save(requestTimeLog);
+				return object;
 			}
 			return null;
 		} catch (Exception e) {
@@ -3427,6 +3659,17 @@ public class SpecialChartAnalyzeController {
 		}
 
 	}
-
+	private void systemLogRandom(String randomNum) {
+		try {
+			RequestAttributes ras = RequestContextHolder.getRequestAttributes();
+			if (ras == null)
+				return;
+			HttpServletRequest request = ((ServletRequestAttributes) ras).getRequest();
+			request.setAttribute("randomNum", randomNum);
+		} catch (Exception e) {
+			log.error("获取当前HttpServletRequest失败！");
+			e.printStackTrace();
+		}
+	}
 
 }

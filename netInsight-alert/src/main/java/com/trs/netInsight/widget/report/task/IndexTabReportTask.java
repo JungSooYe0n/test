@@ -6,6 +6,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
+import com.trs.netInsight.handler.exception.TRSSearchException;
+import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.template.ObjectContainer;
 import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
@@ -32,6 +34,7 @@ import com.trs.netInsight.widget.report.entity.ReportDataNew;
 import com.trs.netInsight.widget.report.entity.ReportResource;
 import com.trs.netInsight.widget.report.entity.repository.ReportDataNewRepository;
 import com.trs.netInsight.widget.report.util.ReportUtil;
+import com.trs.netInsight.widget.report.util.SpecialReportUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.docx4j.wml.R;
 
@@ -60,7 +63,7 @@ public class IndexTabReportTask implements Runnable {
         this.reportDataNewRepository = reportDataNewRepository;
     }
     private IDistrictInfoService districtInfoService = (IDistrictInfoService) ObjectContainer.getBean(IDistrictInfoService.class);
-    private ICommonListService commonListService = (ICommonListService) ObjectContainer.getBean(CommonListServiceImpl.class);
+    private ICommonListService commonListService = (ICommonListService) ObjectContainer.getBean(ICommonListService.class);
     private ICommonChartService commonChartService = (ICommonChartService) ObjectContainer.getBean(CommonChartServiceImpl.class);
 
     @Override
@@ -109,7 +112,7 @@ public class IndexTabReportTask implements Runnable {
                                 config.setShowType(showTypes);
                                 config.initSection(tabForOverView, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, tabForOverView.getMediaLevel(), tabForOverView.getMediaIndustry(), tabForOverView.getContentIndustry(), tabForOverView.getFilterInfo(),
-                                        tabForOverView.getContentArea(), tabForOverView.getMediaArea(), null);
+                                        tabForOverView.getContentArea(), tabForOverView.getMediaArea(), null,"");
                                 column.setConfig(config);
                                 Object overViewRtn = column.getColumnData(timerange);
                                 dataTrendRR.setImgComment(ReportUtil.getOverviewOfData(JSON.toJSONString(overViewRtn)));
@@ -119,22 +122,39 @@ public class IndexTabReportTask implements Runnable {
                                 break;
                             case DATATRENDANALYSISkey:
                                 if (StringUtil.isNotEmpty(showTypes)) {
+                                    String[] timeArray = null;
+                                    try {
+                                        timeArray = DateUtil.formatTimeRangeMinus1(timerange);//修改时间格式 时间戳
+                                    } catch (OperationException e) {
+                                        throw new TRSSearchException(e);
+                                    }
+                                    String imgCommentType = "day";
+                                    if(DateUtil.judgeTime24Or48(timeArray[0], timeArray[1], "50") <= 1){
+                                        imgCommentType = "hour";
+                                    }
+                                    Object imgComment = null;
                                     String[] typeArr = showTypes.split(";");
                                     for (String type : typeArr) {
                                         config.setShowType(type);
                                         config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                                 "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                                indexTab.getContentArea(), indexTab.getMediaArea(), null);
+                                                indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                         column.setConfig(config);
                                         Object object = column.getColumnData(timerange);
-                                        mapRet.put(type, object);
+                                        if(ObjectUtil.isNotEmpty(object)){
+                                            mapRet.put(type, object);
+                                            if( imgCommentType.equals(type)){
+                                                imgComment = object;
+                                            }
+                                        }
                                     }
-
-                                    dataTrendRR.setImg_data(JSON.toJSONString(mapRet));
-                                    dataTrendRR.setImgType("brokenLineChart");
-                                    dataTrendRR.setImgComment("暂定！");
-                                    dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                    reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                    if(ObjectUtil.isNotEmpty(mapRet)){
+                                        dataTrendRR.setImg_data(JSON.toJSONString(mapRet));
+                                        dataTrendRR.setImgType("brokenLineChart");
+                                        dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(imgComment), "brokenLineChart", "各舆论场趋势分析"));
+                                        dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                        reportData.setDataTrendAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                    }
                                 }
                                 reportDataNewRepository.saveDataTrendAnalysis(reportData.getDataTrendAnalysis(), reportData.getId());
                                 break;
@@ -142,14 +162,16 @@ public class IndexTabReportTask implements Runnable {
                                 config.setShowType(showTypes);
                                 config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                        indexTab.getContentArea(), indexTab.getMediaArea(), null);
+                                        indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                 column.setConfig(config);
                                 Object object = column.getColumnData(timerange);
-                                dataTrendRR.setImg_data(JSON.toJSONString(object));
-                                dataTrendRR.setImgType("pieGraphChartMeta");
-                                dataTrendRR.setImgComment("暂定");
-                                dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                reportData.setDataSourceAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                if(ObjectUtil.isNotEmpty(object)){
+                                    dataTrendRR.setImg_data(JSON.toJSONString(object));
+                                    dataTrendRR.setImgType("pieChart");
+                                    dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(object), "pieChart", null));
+                                    dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                    reportData.setDataSourceAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                }
                                 reportDataNewRepository.saveDataSourceAnalysis(reportData.getDataSourceAnalysis(), reportData.getId());
                                 break;
 
@@ -157,38 +179,44 @@ public class IndexTabReportTask implements Runnable {
                                 config.setShowType(showTypes);
                                 config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                        indexTab.getContentArea(), indexTab.getMediaArea(), null);
+                                        indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                 column.setConfig(config);
                                 Object objectActiveAccount = column.getColumnData(timerange);
-                                dataTrendRR.setImg_data(JSON.toJSONString(objectActiveAccount));
-                                dataTrendRR.setImgType("activeAccount");
-                                dataTrendRR.setImgComment("暂定！");
-                                dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                reportData.setActiveAccount(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")));
+                                if(ObjectUtil.isNotEmpty(objectActiveAccount)) {
+                                    dataTrendRR.setImg_data(JSON.toJSONString(objectActiveAccount));
+                                    dataTrendRR.setImgType("activeAccount");
+                                    dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(objectActiveAccount), "activeAccount", null));
+                                    dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                    reportData.setActiveAccount(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "")));
+                                }
                                 reportDataNewRepository.saveActiveAccount(reportData.getActiveAccount(), reportData.getId());
                                 break;
                             case EMOTIONANALYSISkey:
                                 config.setShowType(showTypes);
                                 config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                        indexTab.getContentArea(), indexTab.getMediaArea(), null);
+                                        indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                 column.setConfig(config);
                                 Object emotionObj = column.getColumnData(timerange);
+                                if(ObjectUtil.isNotEmpty(emotionObj)) {
                                 dataTrendRR.setImg_data(JSON.toJSONString(emotionObj));
-                                dataTrendRR.setImgType("pieGraphChartMeta");
-                                dataTrendRR.setImgComment("暂定！");
+                                dataTrendRR.setImgType("emotionPieChart");
+                                dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(emotionObj), "emotionPieChart", null));
                                 dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
                                 reportData.setEmotionAnalysis(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                }
                                 reportDataNewRepository.saveEmotionAnalysis(reportData.getEmotionAnalysis(), reportData.getId());
                                 break;
                             case WEIBOHOTTOPICSkey:
                                 config.setShowType(showTypes);
                                 config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                        indexTab.getContentArea(), indexTab.getMediaArea(), null);
+                                        indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                 column.setConfig(config);
                                 Object weiboTopicObj = column.getColumnData(timerange);
-                                reportData.setWeiboHotTopics(ReportUtil.replaceHtml(JSON.toJSONString(weiboTopicObj)));
+                                if(ObjectUtil.isNotEmpty(weiboTopicObj)){
+                                    reportData.setWeiboHotTopics(ReportUtil.replaceHtml(JSON.toJSONString(weiboTopicObj)));
+                                }
                                 reportDataNewRepository.saveWeiboHotTopics(reportData.getWeiboHotTopics(), reportData.getId());
                                 break;
 
@@ -200,16 +228,20 @@ public class IndexTabReportTask implements Runnable {
                                 for (String type : typeArr) {
                                     config.initSection(indexTab, timerange, 0, 10, null, null, type, "", "", "default", "", "",
                                             "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                            indexTab.getContentArea(), indexTab.getMediaArea(), null);
+                                            indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                     column.setConfig(config);
                                     Object itemObj = column.getColumnData(timerange);
-                                    wordCloudRtn.put(type, itemObj);
+                                    if(ObjectUtil.isNotEmpty(itemObj)){
+                                        wordCloudRtn.put(type, itemObj);
+                                    }
                                 }
-                                dataTrendRR.setImg_data(JSON.toJSONString(wordCloudRtn));
-                                dataTrendRR.setImgType("wordCloud");
-                                dataTrendRR.setImgComment("暂定！");
-                                dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                reportData.setWordCloudStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                if(ObjectUtil.isNotEmpty(wordCloudRtn)){
+                                    dataTrendRR.setImg_data(JSON.toJSONString(wordCloudRtn));
+                                    dataTrendRR.setImgType("wordCloud");
+                                    dataTrendRR.setImgComment("");
+                                    dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                    reportData.setWordCloudStatistics(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
+                                }
                                 reportDataNewRepository.saveWordCloudStatistics(reportData.getWordCloudStatistics(), reportData.getId());
                                 break;
                             case AREAkey:
@@ -219,21 +251,29 @@ public class IndexTabReportTask implements Runnable {
                                 String[] keyStrArr = keyStrs.split(";");
                                 HashMap<String, Object> areaMap = new HashMap<>();
                                 config.setShowType(showTypes);
+                                Object comment = null;
                                 int i = 0;
                                 for (String mapContrast : mapContrastArr) {
                                     indexTab.setContrast(mapContrast);
                                     config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                             "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                            indexTab.getContentArea(), indexTab.getMediaArea(), null);
+                                            indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
                                     column.setConfig(config);
                                     Object areaRtn = column.getColumnData(timerange);
-                                    areaMap.put(keyStrArr[i], areaRtn);
+                                    if(i !=0){
+                                        comment = areaRtn;
+                                    }
+                                    if(ObjectUtil.isNotEmpty(areaRtn)){
+                                        areaMap.put(keyStrArr[i], areaRtn);
+                                    }
+                                    i++;
+                                }
+                                if(ObjectUtil.isNotEmpty(areaMap)){
                                     dataTrendRR.setImg_data(JSON.toJSONString(areaMap));
                                     dataTrendRR.setImgType("mapChart");
-                                    dataTrendRR.setImgComment("暂定！");
+                                    dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(comment), "mapChart", null));
                                     dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
                                     reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
-                                    i++;
                                 }
                                 reportDataNewRepository.saveArea(reportData.getArea(), reportData.getId());
                                 break;
@@ -242,7 +282,7 @@ public class IndexTabReportTask implements Runnable {
 
                         }
                     } catch (Exception e) {
-                        ReportUtil.setEmptyData(reportData, item.get("chapterType"), item.get("key"));
+                        //ReportUtil.setEmptyData(reportData, item.get("chapterType"), item.get("key"));
                         log.error(chapterName, e);
                     } finally {
                         try {

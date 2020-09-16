@@ -14,4 +14,6 @@ public class GatherPointOa {
     private String url;
     private String priority;
     private String uniqueId;
+    private String projectname;
+    private String creatorName;
 }

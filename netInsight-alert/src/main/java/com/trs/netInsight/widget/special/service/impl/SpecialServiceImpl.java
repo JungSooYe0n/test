@@ -53,6 +53,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 专项监测服务层
@@ -184,7 +185,7 @@ public class SpecialServiceImpl implements ISpecialService {
 	 */
 	@Override
 	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
-			String anyKeywords, String excludeWords, String trsl,
+			String anyKeywords, String excludeWords,String excludeWordsIndex, String trsl,
 			SearchScope scope, Date startTime, Date endTime, String source, String timerange, boolean similar,
 			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String monitorSite,String mediaLevel,
 										String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea) throws Exception {
@@ -195,6 +196,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setSearchScope(scope);
 		specialProject.setAnyKeywords(anyKeywords);
 		specialProject.setExcludeWords(excludeWords);
+		specialProject.setExcludeWordIndex(excludeWordsIndex);
 		specialProject.setTrsl(trsl);
 		specialProject.setStartTime(startTime);
 		specialProject.setStart(new SimpleDateFormat("yyyyMMddHHmmss").format(startTime));
@@ -216,16 +218,11 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setFilterInfo(filterInfo);
 		specialProject.setMediaArea(mediaArea);
 		specialProject.setContentArea(contentArea);
-		// if (legal(specialProject)) {
 		specialProjectRepository.save(specialProject);
 		reportService.saveMaterialLibrary(specialProject);
 		PerpetualPool.put(specialId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
 		RedisFactory.deleteAllKey(specialId);
-		// RedisFactory.batchClearRedis(specialId);
 		return specialProject;
-		// } else {
-		// throw new OperationException("修改失败");
-		// }
 	}
 	@Override
 	public Integer getMaxSequenceForSpecial(String parentPageId, User user) {
@@ -245,9 +242,9 @@ public class SpecialServiceImpl implements ISpecialService {
 			indexPage = parentPage.getChildrenPage();
 			indexTabMapper = parentPage.getIndexTabMappers();
 		}
-		List<Object> sortColumn = this.sortColumn(indexTabMapper,indexPage,false,false);
+		List<Object> sortColumn = this.sortColumn(new ArrayList<>(),indexTabMapper,indexPage,false,false);
 		if(sortColumn != null && sortColumn.size() > 0){
-			Object column = sortColumn.get(sortColumn.size()-1);
+			Object column = sortColumn.get(0);
 			if (column instanceof SpecialProject) {
 				seq = ((SpecialProject)column).getSequence();
 			} else if (column instanceof SpecialSubject) {
@@ -592,6 +589,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getSource()));
 					map.put("keyWord", tab.getAnyKeywords());
 					map.put("keyWordIndex", tab.getSearchScope());
+					map.put("excludeWordsIndex",tab.getExcludeWordIndex());
 					map.put("weight", tab.isWeight());
 					map.put("excludeWords", tab.getExcludeWords());
 					map.put("excludeWeb", tab.getExcludeWeb());
@@ -634,41 +632,22 @@ public class SpecialServiceImpl implements ISpecialService {
 						}
 					}
 
-					if(StringUtil.isNotEmpty(tab.getMediaLevel())){
-						map.put("mediaLevel", tab.getMediaLevel());
-					}else{
-						map.put("mediaLevel", org.apache.commons.lang.StringUtils.join(Const.MEDIA_LEVEL,";"));
-					}
-					if(StringUtil.isNotEmpty(tab.getMediaIndustry())){
-						map.put("mediaIndustry", tab.getMediaIndustry());
-					}else{
-						map.put("mediaIndustry", org.apache.commons.lang.StringUtils.join(Const.MEDIA_INDUSTRY,";"));
-					}
-					if(StringUtil.isNotEmpty(tab.getContentIndustry())){
-						map.put("contentIndustry", tab.getContentIndustry());
-					}else{
-						map.put("contentIndustry", org.apache.commons.lang.StringUtils.join(Const.CONTENT_INDUSTRY,";"));
-					}
-					if(StringUtil.isNotEmpty(tab.getFilterInfo())){
-						map.put("filterInfo", tab.getFilterInfo());
-					}else{
-						map.put("filterInfo", org.apache.commons.lang.StringUtils.join(Const.FILTER_INFO,";")+";其他");
-					}
-					if(StringUtil.isNotEmpty(tab.getContentArea())){
-						map.put("contentArea", tab.getContentArea());
-					}else{
-						map.put("contentArea", org.apache.commons.lang.StringUtils.join(Const.AREA_LIST,";"));
-					}
-					if(StringUtil.isNotEmpty(tab.getMediaArea())){
-						map.put("mediaArea", tab.getMediaArea());
-					}else{
-						map.put("mediaArea", org.apache.commons.lang.StringUtils.join(Const.AREA_LIST,";"));
-					}
+					map.put("mediaLevel", tab.getMediaLevel());
+					map.put("mediaIndustry", tab.getMediaIndustry());
+					map.put("contentIndustry", tab.getContentIndustry());
+					map.put("filterInfo", tab.getFilterInfo());
+					map.put("contentArea", tab.getContentArea());
+					map.put("mediaArea", tab.getMediaArea());
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
 							map.put("active", true);
 							isGetOne.set(0,true);
+					}
+					if("top".equals(tab.getTopFlag())){
+						map.put("topFlag", true);
+					}else{
+						map.put("topFlag", false);
 					}
 
 				} else if (obj instanceof SpecialSubject) {
@@ -694,15 +673,14 @@ public class SpecialServiceImpl implements ISpecialService {
 						child = this.formatResultSpecial(childColumn,level+1,isGetOne,parentHide);
 					}
 					map.put("children", child);
+					map.put("topFlag", false);
 				}
 				result.add(map);
 			}
 		}
 		return result;
 	}
-	public List<Object> sortColumn(List<SpecialProject> mapperList,List<SpecialSubject> indexPageList,Boolean sortAll,Boolean onlySortPage){
-		List<Object> result = new ArrayList<>();
-
+	public List<Object> sortColumn(List<Object> result,List<SpecialProject> mapperList,List<SpecialSubject> indexPageList,Boolean sortAll,Boolean onlySortPage){
 		List<Map<String,Object>> sortList = new ArrayList<>();
 		if(!onlySortPage){
 			if(mapperList != null && mapperList.size() >0){
@@ -732,7 +710,7 @@ public class SpecialServiceImpl implements ISpecialService {
 			Collections.sort(sortList, (o1, o2) -> {
 				Integer seq1 = (Integer) o1.get("sequence");
 				Integer seq2 = (Integer) o2.get("sequence");
-				return seq1.compareTo(seq2);
+				return seq2.compareTo(seq1);
 			});
 			//sortList 排序过后的数据
 			//只排序当前层，排序过后的数据，按顺序取出并返回
@@ -749,7 +727,7 @@ public class SpecialServiceImpl implements ISpecialService {
 							child_mapper = indexPage.getIndexTabMappers();
 						}
 						if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
-							indexPage.setColumnList(sortColumn(child_mapper,child_page,sortAll,onlySortPage));
+							indexPage.setColumnList(sortColumn(new ArrayList<Object>(),child_mapper,child_page,sortAll,onlySortPage));
 						}
 					}
 					result.add(indexPage);
@@ -767,6 +745,7 @@ public class SpecialServiceImpl implements ISpecialService {
 	public Object selectSpecialReNew(User user) {
 		List<SpecialSubject> oneIndexPage = null;
 		List<SpecialProject> oneIndexTab = null;
+		List<SpecialProject> top = null;
 		Map<String,Object> oneSpecial = this.getOneLevelColumnForMap(user);
 		if (oneSpecial.containsKey("page")) {
 			oneIndexPage = (List<SpecialSubject>) oneSpecial.get("page");
@@ -774,8 +753,15 @@ public class SpecialServiceImpl implements ISpecialService {
 		if (oneSpecial.containsKey("tab")) {
 			oneIndexTab = (List<SpecialProject>) oneSpecial.get("tab");
 		}
+		if (oneSpecial.containsKey("top")) {
+			top = (List<SpecialProject>) oneSpecial.get("top");
+		}
+		List<Object> result = new ArrayList<>();
+		if(top != null && top.size()>0){
+			result.addAll(top);
+		}
 		//获取到了第一层的栏目和分组信息，现在对信息进行排序
-		List<Object> result =  sortColumn(oneIndexTab,oneIndexPage,true,false);
+		result =  sortColumn(result,oneIndexTab,oneIndexPage,true,false);
 		List<Boolean> isGetOne = new ArrayList<>();
 		isGetOne.add(false);
 		return formatResultSpecial(result,0,isGetOne,false);
@@ -834,8 +820,6 @@ public class SpecialServiceImpl implements ISpecialService {
 		map.put("active", true);
 		result.add(map);
 		return result;
-
-
 	}
 
 	@Override
@@ -844,7 +828,6 @@ public class SpecialServiceImpl implements ISpecialService {
 			SpecialSubject movePage = null;
 			SpecialProject moveMapper = null;
 			String parentId = "";
-			String typeId = "";
 			if (flag.equals(SpecialFlag.SpecialProjectFlag)) {
 				moveMapper = specialProjectRepository.findOne(moveId);
 				if(ObjectUtil.isNotEmpty(moveMapper.getSpecialSubject())){
@@ -852,7 +835,6 @@ public class SpecialServiceImpl implements ISpecialService {
 				}
 			} else if (flag.equals(SpecialFlag.SpecialSubjectFlag)) {
 				movePage = specialSubjectRepository.findOne(moveId);
-//				parentId = movePage.getParentId();
 				parentId = movePage.getSubjectId();
 			}
 
@@ -872,21 +854,23 @@ public class SpecialServiceImpl implements ISpecialService {
 				pageList = parentPage.getChildrenPage();
 				mapperList = parentPage.getIndexTabMappers();
 			}
-			List<Object> sortColumn = this.sortColumn(mapperList, pageList, false,false);
-			int seq = 1;
+			List<Object> sortColumn = this.sortColumn(new ArrayList<>(),mapperList, pageList, false,false);
+			int seq = sortColumn.size();
 			for (Object o : sortColumn) {
 				if (o instanceof SpecialProject) {
 					SpecialProject seqMapper = (SpecialProject) o;
-					if (flag.equals(SpecialFlag.SpecialProjectFlag) && !moveMapper.getId().equals(seqMapper.getId())) {
+					if ((flag.equals(SpecialFlag.SpecialProjectFlag) && !moveMapper.getId().equals(seqMapper.getId()))
+							|| flag.equals(SpecialFlag.SpecialSubjectFlag)) {
 						seqMapper.setSequence(seq);
-						seq++;
+						seq--;
 						specialProjectRepository.saveAndFlush(seqMapper);
 					}
 				} else if (o instanceof SpecialSubject) {
 					SpecialSubject seqPage = (SpecialSubject) o;
-					if (flag.equals(SpecialFlag.SpecialSubjectFlag) && !movePage.getId().equals(seqPage.getId())) {
+					if ((flag.equals(SpecialFlag.SpecialSubjectFlag) && !movePage.getId().equals(seqPage.getId()))
+							|| flag.equals(SpecialFlag.SpecialProjectFlag)) {
 						seqPage.setSequence(seq);
-						seq++;
+						seq--;
 						specialSubjectRepository.saveAndFlush(seqPage);
 					}
 				}
@@ -897,8 +881,49 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 	}
 
+
+	@Transactional
+	@Override
+	public void insertPropectToLast(String parentId,User user){
+		List<SpecialProject> mapperList = null;
+		List<SpecialSubject> pageList = null;
+		if (StringUtil.isEmpty(parentId)) {
+			//无父分组，则为一级，直接获取一级的内容
+			Map<String, Object> oneColumn = getOneLevelColumnForMap(user);
+			if (oneColumn.containsKey("page")) {
+				pageList = (List<SpecialSubject>) oneColumn.get("page");
+			}
+			if (oneColumn.containsKey("tab")) {
+				mapperList = (List<SpecialProject>) oneColumn.get("tab");
+			}
+		} else {
+			SpecialSubject parentPage = specialSubjectRepository.findOne(parentId);
+			pageList = parentPage.getChildrenPage();
+			mapperList = parentPage.getIndexTabMappers();
+		}
+		List<Object> sortColumn = this.sortColumn(new ArrayList<>(),mapperList, pageList, false,false);
+		int seq = sortColumn.size()+1;
+		for (Object o : sortColumn) {
+			if (o instanceof SpecialProject) {
+				SpecialProject seqMapper = (SpecialProject) o;
+
+					seqMapper.setSequence(seq);
+					seq--;
+					specialProjectRepository.saveAndFlush(seqMapper);
+
+			} else if (o instanceof SpecialSubject) {
+				SpecialSubject seqPage = (SpecialSubject) o;
+
+					seqPage.setSequence(seq);
+					seq--;
+					specialSubjectRepository.saveAndFlush(seqPage);
+
+			}
+		}
+	}
+
 	public Map<String,Object> getOneLevelColumnForMap(User loginUser){
-		Sort sort = new Sort(Sort.Direction.ASC,"sequence");
+		Sort sort = new Sort(Sort.Direction.DESC,"sequence");
 		Specification<SpecialSubject> criteria_page = new Specification<SpecialSubject>(){
 
 			@Override
@@ -909,10 +934,7 @@ public class SpecialServiceImpl implements ISpecialService {
 				}else {
 					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
 				}
-//				predicate.add(cb.equal(root.get("typeId"),typeId));
 				List<Predicate> predicateParent = new ArrayList<>();
-//				predicateParent.add(cb.isNull(root.get("parentId")));
-//				predicateParent.add(cb.equal(root.get("parentId"),""));
 				predicateParent.add(cb.isNull(root.get("subjectId")));
 				predicateParent.add(cb.equal(root.get("subjectId"),""));
 
@@ -931,10 +953,7 @@ public class SpecialServiceImpl implements ISpecialService {
 				}else {
 					predicate.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
 				}
-//				predicate.add(cb.equal(root.get("typeId"),typeId));
-//				predicate.add(cb.isNull(root.get("specialSubject")));
 				predicate.add(cb.isNull(root.get("groupId")));
-//				predicate.add(cb.equal(root.get("groupId"),""));
 				Predicate[] pre = new Predicate[predicate.size()];
 				return query.where(predicate.toArray(pre)).getRestriction();
 			}
@@ -951,7 +970,21 @@ public class SpecialServiceImpl implements ISpecialService {
 			result.put("page",oneIndexPage);
 		}
 		if(oneIndexTab != null && oneIndexTab.size() >0){
-			result.put("tab",oneIndexTab);
+			List<SpecialProject> topList = new ArrayList<>();
+			List<SpecialProject> otherProjectList = new ArrayList<>();
+			for(SpecialProject specialProject :oneIndexTab){
+				if("top".equals(specialProject.getTopFlag())){
+					topList.add(specialProject);
+				}else{
+					otherProjectList.add(specialProject);
+				}
+			}
+			if(topList != null && topList.size() >0){
+				result.put("top",topList);
+			}
+			if(otherProjectList != null && otherProjectList.size() >0){
+				result.put("tab",otherProjectList);
+			}
 		}
 		return  result;
 	}
@@ -1232,19 +1265,18 @@ public class SpecialServiceImpl implements ISpecialService {
 			JSONObject move = JSONObject.parseObject(moveData);
 			String moveId = move.getString("id");
 			SpecialFlag moveFlag = SpecialFlag.values()[move.getInteger("flag")];
+			Boolean topFlag = move.getBoolean("topFlag");
 			String moveParentId = null;
 
 			//修改同级下的其他分组的顺序
 			if (moveFlag.equals(SpecialFlag.SpecialSubjectFlag)) {
 				SpecialSubject indexPage = specialSubjectRepository.findOne(moveId);
-//				moveParentId = indexPage.getParentId();
 				moveParentId = indexPage.getSubjectId();
 			} else if (moveFlag.equals(SpecialFlag.SpecialProjectFlag)) {
 				SpecialProject mapper = specialProjectRepository.findOne(moveId);
-				if(ObjectUtil.isNotEmpty(mapper.getSpecialSubject())){
-					moveParentId = mapper.getSpecialSubject().getId();
+				if(ObjectUtil.isNotEmpty(mapper.getGroupId())){
+					moveParentId = mapper.getGroupId();
 				}
-
 			}
 			if (parentId == null) {
 				parentId = "";
@@ -1253,25 +1285,23 @@ public class SpecialServiceImpl implements ISpecialService {
 				moveParentId = "";
 			}
 			//被拖拽的元素更换了层级，需要对元素本来的层级的数据重新排序
-			if (!parentId.equals(moveParentId)) {
+			if (!topFlag && !parentId.equals(moveParentId)) {
 				//对原来的同层级的数据排序
 				this.moveSequenceForSpecial(moveId,moveFlag, user);
 			}
-
 			JSONArray array = JSONArray.parseArray(data);
-			Integer sequence = 0;
-			for (Object json : array) {
-				sequence += 1;
+			List<Object> filter = array.stream().filter(json -> topFlag.equals(JSONObject.parseObject(String.valueOf(json)).getBoolean("topFlag")) ).collect(Collectors.toList());
+			Integer sequence = filter.size();
+			for (Object json : filter) {
+
 				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
 				String id = parseObject.getString("id");
 				//如果是分组为0 ，如果是栏目为1
 				SpecialFlag flag = SpecialFlag.values()[parseObject.getInteger("flag")];
 				if (flag.equals(SpecialFlag.SpecialSubjectFlag)) {
 					SpecialSubject indexPage = specialSubjectRepository.findOne(id);
-//					indexPage.setParentId(null);
 					indexPage.setSubjectId(null);
 					if (parent != null) {
-//						indexPage.setParentId(parentId);
 						indexPage.setSubjectId(parentId);
 					}
 					indexPage.setSequence(sequence);
@@ -1288,6 +1318,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					indexTab.setSequence(sequence);
 						specialProjectRepository.save(indexTab);
 				}
+				sequence -= 1;
 			}
 			specialProjectRepository.flush();
 			specialSubjectRepository.flush();

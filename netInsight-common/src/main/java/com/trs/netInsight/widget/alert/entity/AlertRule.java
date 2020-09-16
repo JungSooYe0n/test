@@ -105,11 +105,32 @@ public class AlertRule extends BaseEntity {
 	@Column(name = "exclude_words", columnDefinition = "TEXT")
 	private String excludeWords;
 	/**
+	 * 排除词检索位置 0：标题 1：标题+正文  2：标题+摘要
+	 */
+	@Column(name = "exclude_words_index", columnDefinition = "TEXT")
+	private String excludeWordsIndex = "1";
+	public String getExcludeWordsIndex(){
+		if(StringUtil.isEmpty(this.excludeWordsIndex)){
+			if(SearchScope.TITLE_CONTENT.equals(this.scope)){//标题 + 正文
+				return "1";
+			}
+			if(SearchScope.TITLE.equals(this.scope)){//标题
+				return "0";
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.scope)){//标题 + 摘要
+				return "2";
+			}
+			return "1";
+		}
+		return this.excludeWordsIndex;
+	}
+	/**
 	 * 排除网站
 	 */
 	@Column(name = "exclude_site_name", columnDefinition = "TEXT")
 	private String excludeSiteName;
-
+	@Column(name = "monitor_site", columnDefinition = "TEXT")
+	private String monitorSite;// 监测网站
 	/**
 	 * 关键词位置
 	 */
@@ -281,19 +302,33 @@ public class AlertRule extends BaseEntity {
 			if(SearchScope.TITLE_CONTENT.equals(this.scope)){
 				keywordIndex = "1";//标题+正文
 			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.scope)){
+				keywordIndex = "2";//标题+摘要
+			}
 			//关键词
 			searchBuilder = WordSpacingUtil.handleKeyWords(this.anyKeyword,keywordIndex,this.weight);
 			searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
-			for (String field : this.scope.getField()) {
+
+			String excludeIndex = this.getExcludeWordsIndex();
+			//拼凑排除词
+			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
+			if(StringUtil.isNotEmpty(excludeWordTrsl)){
+				searchBuilder.filterByTRSL(excludeWordTrsl);
+			}
+			/*for (String field : this.scope.getField()) {
 				if (StringUtil.isNotEmpty(this.excludeWords)) {
 					StringBuilder exBuilder = new StringBuilder();
 					exBuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					searchBuilder.filterByTRSL(exBuilder.toString());
 				}
-			}
+			}*/
 
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+			}
+			//监测网站
+			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			break;
 		case SPECIAL:
@@ -351,15 +386,26 @@ public class AlertRule extends BaseEntity {
 			//关键词
 			searchBuilder = WordSpacingUtil.handleKeyWordsToWeiboTF(this.anyKeyword,this.weight);
 			searchBuilder.setDatabase(Const.WEIBO);
-			//拼接排除词
+			//拼凑排除词
+			String excludeIndex = this.getExcludeWordsIndex();
+
+			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
+			if(StringUtil.isNotEmpty(excludeWordTrsl)){
+				searchBuilder.filterByTRSL(excludeWordTrsl);
+			}
+			/*//拼接排除词
 			if (StringUtil.isNotEmpty(this.excludeWords)) {
 				StringBuilder exbuilder = new StringBuilder();
 				exbuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 				searchBuilder.filterByTRSL(exbuilder.toString());
-			}
+			}*/
 			//excludeSiteName 这个字段是排除网站   不应该和 excludeWords一样都拼在 URLTITLE里 或者URLTITLE + CONTENT 里  应该拼在 IR_SITENAME字段里
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+			}
+			//监测网站
+			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			
 			break;
@@ -417,18 +463,32 @@ public class AlertRule extends BaseEntity {
 			if(SearchScope.TITLE_CONTENT.equals(this.scope)){
 				keywordIndex = "1";//标题+正文
 			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.scope)){
+				keywordIndex = "2";//标题+摘要
+			}
 			searchBuilder = WordSpacingUtil.handleKeyWords(this.anyKeyword,keywordIndex,this.weight);
 			searchBuilder.setDatabase(Const.WECHAT);
-			//拼接排除词
+			//拼凑排除词
+			String excludeIndex = this.getExcludeWordsIndex();
+
+			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
+			if(StringUtil.isNotEmpty(excludeWordTrsl)){
+				searchBuilder.filterByTRSL(excludeWordTrsl);
+			}
+			/*//拼接排除词
 			for (String field : this.scope.getField()) {
 				if (StringUtil.isNotEmpty(this.excludeWords)) {
 					StringBuilder exbuilder = new StringBuilder();
 					exbuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 					searchBuilder.filterByTRSL(exbuilder.toString());
 				}
-			}
+			}*/
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+			}
+			//监测网站
+			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			break;
 		case SPECIAL:
@@ -483,20 +543,33 @@ public class AlertRule extends BaseEntity {
 				if(SearchScope.TITLE_CONTENT.equals(this.scope)){
 					keywordIndex = "1";//标题+正文
 				}
+				if(SearchScope.TITLE_ABSTRACT.equals(this.scope)){
+					keywordIndex = "2";//标题+摘要
+				}
 				//关键词
 				QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeyword,keywordIndex,this.weight);
 				searchBuilder.filterByTRSL(builder.asTRSL());
 				searchBuilder.setDatabase(Const.MIX_DATABASE.split(";"));
-				for (String field : this.scope.getField()) {
+				//拼凑排除词
+				String excludeIndex = this.getExcludeWordsIndex();
+				String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
+				if(StringUtil.isNotEmpty(excludeWordTrsl)){
+					searchBuilder.filterByTRSL(excludeWordTrsl);
+				}
+				/*for (String field : this.scope.getField()) {
 					if (StringUtil.isNotEmpty(this.excludeWords)) {
 						StringBuilder exBuilder = new StringBuilder();
 						exBuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
 						searchBuilder.filterByTRSL(exBuilder.toString());
 					}
-				}
+				}*/
 
 				if (StringUtil.isNotEmpty(this.excludeSiteName)) {
 					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+				}
+				//监测网站
+				if (StringUtil.isNotEmpty(this.monitorSite)) {
+					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 				}
 				break;
 			case SPECIAL:

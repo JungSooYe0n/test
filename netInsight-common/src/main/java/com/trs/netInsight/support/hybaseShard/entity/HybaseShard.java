@@ -68,6 +68,11 @@ public class HybaseShard extends BaseEntity {
      */
     @Column(name = "overseas")
     private String overseas;
+    /**
+     * 视频库表名 - 默认为"system2.media_200402"
+     */
+    @Column(name = "video")
+    private String video;
 
     /**
      * 节点所属用户id或用户分组id

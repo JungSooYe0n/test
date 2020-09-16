@@ -19,7 +19,7 @@ public class HybaseShardServiceImpl implements IHybaseShardService {
     @Autowired
     private HybaseShardRepository hybaseShardRepository;
     @Override
-    public void save(String hybaseServer, String hybaseUser, String hybasePwd, String tradition, String weiBo, String weiXin, String overseas, String ownerId,String organizationId) {
+    public void save(String hybaseServer, String hybaseUser, String hybasePwd, String tradition, String weiBo, String weiXin, String overseas,String video ,String ownerId,String organizationId) {
 
         HybaseShard trsHybaseShard;
         if (ObjectUtil.isNotEmpty(ownerId)){
@@ -30,7 +30,7 @@ public class HybaseShardServiceImpl implements IHybaseShardService {
         }
         if (ObjectUtil.isEmpty(trsHybaseShard)){
             //保存
-            trsHybaseShard = new HybaseShard(hybaseServer, hybaseUser, hybasePwd, tradition, weiBo, weiXin, overseas, ownerId,organizationId);
+            trsHybaseShard = new HybaseShard(hybaseServer, hybaseUser, hybasePwd, tradition, weiBo, weiXin, overseas,video, ownerId,organizationId);
             hybaseShardRepository.save(trsHybaseShard);
 
         }else {
@@ -39,6 +39,7 @@ public class HybaseShardServiceImpl implements IHybaseShardService {
             trsHybaseShard.setWeiBo(weiBo);
             trsHybaseShard.setWeiXin(weiXin);
             trsHybaseShard.setOverseas(overseas);
+            trsHybaseShard.setVideo(video);
             hybaseShardRepository.save(trsHybaseShard);
         }
         if (ObjectUtil.isNotEmpty(ownerId)){
@@ -56,5 +57,10 @@ public class HybaseShardServiceImpl implements IHybaseShardService {
     @Override
     public HybaseShard findByOrganizationId(String organizationId) {
         return hybaseShardRepository.findByOrganizationId(organizationId);
+    }
+
+    @Override
+    public void deleteByOrg(String orgId) {
+        hybaseShardRepository.deleteByOrganizationId(orgId);
     }
 }

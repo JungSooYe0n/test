@@ -219,7 +219,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 					if(columnMap.containsKey("page")){
 						indexPages = (List<IndexPage>)columnMap.get("page");
 					}
-					List<Object> pageList = columnService.sortColumn(null,indexPages,true,true);
+					List<Object> pageList = columnService.sortColumn(new ArrayList<>(),null,indexPages,true,true);
 
 					List<Object> list = new ArrayList<>();
 					list.add(pageList);
@@ -481,6 +481,44 @@ public class IndexPageServiceImpl implements IIndexPageService {
 						indexPage.setName(indexPage.getParentName());
 					}
 					indexPage.setParentName(null);
+
+					//修改原来的indepage  ，原来有parent_id，都是虚假的，没用，直接全部删掉
+					indexPage.setParentId(null);
+					if(StringUtil.isNotEmpty(indexPage.getTypeId()) && StringUtil.isEmpty(indexPage.getParentId())){
+						IndexPage parent = indexPageRepository.findOne(indexPage.getTypeId());
+						if(parent != null ){
+							indexPage.setParentId(parent.getId());
+							indexPage.setTypeId("");
+						}
+					}
+					indexPage.setChildrenPage(null);
+					indexPageRepository.save(indexPage);
+					n++;
+					System.out.println("当前执行为第"+n + "个，名字为："+indexPage.getName());
+				}
+				indexPageRepository.flush();
+			}
+
+			return "没毛病，你就放心吧";
+		}catch (Exception e){
+
+			return "修改失败了哦" +e.getMessage();
+		}
+	}
+	@Override
+	@Transactional
+	public Object updateHistortIndexPageForOrganization(String orgId){
+		try {
+			List<IndexPage> list =indexPageRepository.findByOrganizationId(orgId);
+
+			int n =0;
+			if(list != null && list.size() > 0){
+				System.out.println("根据机构信息找到分组数"+list.size());
+				for(IndexPage indexPage : list){
+					if(StringUtil.isEmpty(indexPage.getName())){
+						indexPage.setName(indexPage.getParentName());
+						indexPage.setParentName(null);
+					}
 					//添加层级，现在的
 					List<IndexTabMapper> indexTabList = tabMapperRepository.findByIndexPage(indexPage);
 					// 判断当前的大栏目有没有被排序过
@@ -524,7 +562,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 					indexPage.setChildrenPage(null);
 					indexPageRepository.save(indexPage);
 					n++;
-					System.out.println("当前执行为第"+n + "个，名字为："+indexPage.getName());
+					System.out.println("修改分组 - --当前执行为第"+n + "个，名字为："+indexPage.getName());
 				}
 				indexPageRepository.flush();
 			}
@@ -535,6 +573,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 			return "修改失败了哦" +e.getMessage();
 		}
 	}
+
 }
 
 /**

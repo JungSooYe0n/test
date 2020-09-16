@@ -3,14 +3,14 @@ package com.trs.netInsight.widget.column.service.impl;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.widget.column.entity.CustomChart;
-import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.column.entity.IndexTab;
-import com.trs.netInsight.widget.column.entity.StatisticalChart;
+import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import com.trs.netInsight.widget.column.entity.pageShow.CustomChartDTO;
+import com.trs.netInsight.widget.column.entity.pageShow.IndexTabDTO;
+import com.trs.netInsight.widget.column.entity.pageShow.StatisticalChartDTO;
 import com.trs.netInsight.widget.column.repository.*;
 import com.trs.netInsight.widget.column.service.IColumnChartService;
 import com.trs.netInsight.widget.column.service.IColumnService;
@@ -20,11 +20,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.docx4j.wml.P;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 日常监测栏目对应的图表实现类
@@ -57,112 +61,52 @@ public class ColumnChartServiceImpl implements IColumnChartService {
      */
     @Transactional
     @Override
-    public Object getColumnChart(String id) {
+    public Object getCustomChart(String id,int pageNo,int pageSize) {
+        if (StringUtil.isEmpty(id)) {
+            return null;
+        }
+        Sort sort = new Sort(Sort.Direction.ASC, "sequence");
+        Pageable pageable = new PageRequest(pageNo,pageSize,sort);
+        Page<CustomChart> customChartPage = customChartRepository.findByParentId(id, pageable);
+        List<CustomChartDTO> ccList = null;
+        if (customChartPage != null && customChartPage.getContent() != null && customChartPage.getContent().size() > 0) {
+            ccList = new ArrayList<>();
+            for (CustomChart oneCc : customChartPage.getContent()) {
+                CustomChartDTO customChartDTO = new CustomChartDTO(oneCc);
+                ccList.add(customChartDTO);
+            }
+            return new ColumnPageBean<CustomChartDTO>(pageNo,pageSize,(int)customChartPage.getTotalElements(),ccList);
+        }
+        return null;
+    }
+    /**
+     * 获取当前栏目对应的所有图表，包括统计分析图表和自定义图表
+     *
+     * @param id 栏目id
+     * @return
+     */
+    @Transactional
+    @Override
+    public Object getStatisticalChart(String id) {
         if (StringUtil.isEmpty(id)) {
             return null;
         }
         IndexTabMapper mapper = indexTabMapperRepository.findOne(id);
         String timeRange = mapper.getIndexTab().getTimeRange();
         Sort sort = new Sort(Sort.Direction.ASC, "sequence");
-        Map<String, Object> map = new HashMap<>();
-        map.put("statisticalChart", null);
-        map.put("customChart", null);
         List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentId(id, sort);
-        if (statisticalChartList == null || statisticalChartList.size() == 0) {
-            statisticalChartList = this.initStatisticalChart(id);
-        }
-        List<Object> scList = null;
+        statisticalChartList = this.initStatisticalChart(statisticalChartList,id);
+        List<StatisticalChartDTO> scList = null;
         if (statisticalChartList != null && statisticalChartList.size() > 0) {
             scList = new ArrayList<>();
             for (StatisticalChart oneSc : statisticalChartList) {
-                Map<String, Object> oneScInfo = new HashMap<>();
                 StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(oneSc.getChartType());
-                oneScInfo.put("id", oneSc.getId());
-                oneScInfo.put("name", statisticalChartInfo.getChartName());
-                oneScInfo.put("chartPage", ChartPageInfo.StatisticalChart);
-                oneScInfo.put("chartType", statisticalChartInfo.getChartType());
-                oneScInfo.put("isTop", oneSc.getIsTop());
-                oneScInfo.put("sequence", statisticalChartInfo.getSequence());
-                oneScInfo.put("contrast", statisticalChartInfo.getContrast());
-                oneScInfo.put("timeRange", timeRange);
-                scList.add(oneScInfo);
+                StatisticalChartDTO statisticalChartDTO = new StatisticalChartDTO(oneSc,statisticalChartInfo,timeRange);
+                scList.add(statisticalChartDTO);
             }
         }
-        map.put("statisticalChart", scList);
-        List<CustomChart> customChartList = customChartRepository.findByParentId(id, sort);
-        List<Object> ccList = null;
-        if (customChartList != null && customChartList.size() > 0) {
-            ccList = new ArrayList<>();
-            for (CustomChart oneCc : customChartList) {
-                Map<String, Object> oneCcInfo = new HashMap<>();
-                oneCcInfo.put("id", oneCc.getId());
-                oneCcInfo.put("name", oneCc.getName());
-                oneCcInfo.put("columnType", oneCc.getSpecialType());
-                oneCcInfo.put("chartType", oneCc.getType());
-                oneCcInfo.put("chartPage", ChartPageInfo.CustomChart);
-                oneCcInfo.put("isTop", oneCc.getIsTop());
-                oneCcInfo.put("sequence", oneCc.getSequence());
-                oneCcInfo.put("hide", oneCc.isHide());
-                oneCcInfo.put("contrast", oneCc.getContrast());
-                oneCcInfo.put("groupName", CommonListChartUtil.formatPageShowGroupName(oneCc.getGroupName()));
-                oneCcInfo.put("keyWord", oneCc.getKeyWord());
-                oneCcInfo.put("keyWordIndex", oneCc.getKeyWordIndex());
-                oneCcInfo.put("weight", oneCc.isWeight());
-                oneCcInfo.put("excludeWords", oneCc.getExcludeWords());
-                oneCcInfo.put("excludeWordsIndex", oneCc.getExcludeWordIndex());
-                oneCcInfo.put("excludeWeb", oneCc.getExcludeWeb());
-                oneCcInfo.put("monitorSite", oneCc.getMonitorSite());
-                //排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
-                if (oneCc.isSimilar()) {
-                    oneCcInfo.put("simflag", "netRemove");
-                } else if (oneCc.isIrSimflag()) {
-                    oneCcInfo.put("simflag", "urlRemove");
-                } else if (oneCc.isIrSimflagAll()) {
-                    oneCcInfo.put("simflag", "sourceRemove");
-                } else {
-                    oneCcInfo.put("simflag", "no");
-                }
-                oneCcInfo.put("tabWidth", oneCc.getTabWidth());
-                oneCcInfo.put("timeRange", oneCc.getTimeRange());
-                oneCcInfo.put("trsl", oneCc.getTrsl());
-                oneCcInfo.put("xyTrsl", oneCc.getXyTrsl());
-
-                if(StringUtil.isNotEmpty(oneCc.getMediaLevel())){
-                    oneCcInfo.put("mediaLevel", oneCc.getMediaLevel());
-                }else{
-                    oneCcInfo.put("mediaLevel", StringUtils.join(Const.MEDIA_LEVEL,";"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getMediaIndustry())){
-                    oneCcInfo.put("mediaIndustry", oneCc.getMediaIndustry());
-                }else{
-                    oneCcInfo.put("mediaIndustry", StringUtils.join(Const.MEDIA_INDUSTRY,";"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getContentIndustry())){
-                    oneCcInfo.put("contentIndustry", oneCc.getContentIndustry());
-                }else{
-                    oneCcInfo.put("contentIndustry", StringUtils.join(Const.CONTENT_INDUSTRY,";"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getFilterInfo())){
-                    oneCcInfo.put("filterInfo", oneCc.getFilterInfo());
-                }else{
-                    oneCcInfo.put("filterInfo", StringUtils.join(Const.FILTER_INFO,";")+";其他");
-                }
-                if(StringUtil.isNotEmpty(oneCc.getContentArea())){
-                    oneCcInfo.put("contentArea", oneCc.getContentArea());
-                }else{
-                    oneCcInfo.put("contentArea", StringUtils.join(Const.AREA_LIST,";"));
-                }
-                if(StringUtil.isNotEmpty(oneCc.getMediaArea())){
-                    oneCcInfo.put("mediaArea", oneCc.getMediaArea());
-                }else{
-                    oneCcInfo.put("mediaArea", StringUtils.join(Const.AREA_LIST,";"));
-                }
-                addTypeSeq(oneCcInfo,oneCc.getType());
-                ccList.add(oneCcInfo);
-            }
-        }
-        map.put("customChart", ccList);
-        return map;
+        scList.stream().sorted(Comparator.comparing(StatisticalChartDTO::getSequence)).collect(Collectors.toList());
+        return scList;
     }
 
     /**
@@ -172,7 +116,7 @@ public class ColumnChartServiceImpl implements IColumnChartService {
      * @return
      */
     @Override
-    public Object getTopColumnChartForPage(String pageId) {
+    public Object getTopColumnChartForPage(String pageId,int pageNo,int pageSize) {
         if (StringUtil.isEmpty(pageId)) {
             return null;
         }
@@ -181,7 +125,8 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         if(ObjectUtil.isNotEmpty(indexPage)){
             List<IndexPage> childrenPage = indexPage.getChildrenPage();
             List<IndexTabMapper> childrenMapper = indexPage.getIndexTabMappers();
-            List<Object> columnList = columnService.sortColumn(childrenMapper,childrenPage,true,false);
+            //因为这个是分组下的栏目，top的东西不会在分组下，
+            List<Object> columnList = columnService.sortColumn(new ArrayList<>(),childrenMapper,childrenPage,true,false);
             if(columnList == null || columnList.size() ==0){
                 //当前分组下无数据，直接返回NULL
                 return result;
@@ -189,8 +134,9 @@ public class ColumnChartServiceImpl implements IColumnChartService {
             result = new ArrayList<>();
             // 将当前分组下的栏目 和栏目对应的置顶的统计分析和自定义图表放进来
             formatTopColumnChart(result,columnList);
+            return new ColumnPageBean<Object>(pageNo,pageSize,result.size(),result).subList();
         }
-        return result;
+        return null;
     }
 
     /**
@@ -202,32 +148,17 @@ public class ColumnChartServiceImpl implements IColumnChartService {
      */
     private List<Object> formatTopColumnChart(List<Object> result, List<Object> columnList) {
         if (columnList != null && columnList.size() > 0) {
-            Map<String, Object> oneColumnChart = null;
             for (Object obj : columnList) {
                 if (obj instanceof IndexTabMapper) {
                     IndexTabMapper mapper = (IndexTabMapper) obj;
-                    if (!mapper.isHide()) {
-                        oneColumnChart = new HashMap<>();
-                        IndexTab tab = mapper.getIndexTab();
-                        oneColumnChart.put("id", mapper.getId());
-                        oneColumnChart.put("name", tab.getName());
-                        oneColumnChart.put("chartType", tab.getType());
-                        oneColumnChart.put("tabWidth", mapper.getTabWidth());
-                        oneColumnChart.put("timeRange", tab.getTimeRange());
-                        oneColumnChart.put("chartPage", ChartPageInfo.TabChart);
-                        oneColumnChart.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
-                        oneColumnChart.put("contrast", tab.getContrast());
-                        addTypeSeq(oneColumnChart,tab.getType());
-                        result.add(oneColumnChart);
-                        this.getTopColumnChartForTab(result,mapper);
-                    }
+                    IndexTabDTO indexTabDTO = new IndexTabDTO(mapper);
+                    result.add(indexTabDTO);
+                    this.getTopColumnChartForTab(result, mapper);
                 } else if (obj instanceof IndexPage) {
                     IndexPage page = (IndexPage) obj;
-                    if (!page.isHide()) {
-                        List<Object> childColumn = page.getColumnList();
-                        if (childColumn != null && childColumn.size() > 0) {
-                            this.formatTopColumnChart(result, childColumn);
-                        }
+                    List<Object> childColumn = page.getColumnList();
+                    if (childColumn != null && childColumn.size() > 0) {
+                        this.formatTopColumnChart(result, childColumn);
                     }
                 }
             }
@@ -268,70 +199,31 @@ public class ColumnChartServiceImpl implements IColumnChartService {
         if (ObjectUtil.isEmpty(mapper)) {
             return result;
         }
-        List<Map<String,Object>> columnChartList = new ArrayList<>();
+        List<Object> columnChartList = new ArrayList<>();
         String timeRange = mapper.getIndexTab().getTimeRange();
         Sort sort = new Sort(Sort.Direction.ASC, "topSequence");
         //获取统计分析中被置顶的数据
         List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentIdAndIsTop(mapper.getId(), true, sort);
         if (statisticalChartList != null && statisticalChartList.size() > 0) {
             for (StatisticalChart oneSc : statisticalChartList) {
-                Map<String, Object> oneScInfo = new HashMap<>();
                 StatisticalChartInfo statisticalChartInfo = StatisticalChartInfo.getStatisticalChartInfo(oneSc.getChartType());
-                oneScInfo.put("id", oneSc.getId());
-                oneScInfo.put("name", statisticalChartInfo.getChartName());
-                oneScInfo.put("columnType", null);
-                oneScInfo.put("chartPage", ChartPageInfo.StatisticalChart);
-                oneScInfo.put("chartType", statisticalChartInfo.getChartType());
-                oneScInfo.put("contrast", statisticalChartInfo.getContrast());
-                oneScInfo.put("isTop", oneSc.getIsTop());
-                oneScInfo.put("timeRange", timeRange);
-                oneScInfo.put("topSequence", oneSc.getTopSequence());
-                oneScInfo.put("tabWidth", 50);
-                if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)
-                        || StatisticalChartInfo.MAP.equals(statisticalChartInfo)
-                        || StatisticalChartInfo.CHART_LINE.equals(statisticalChartInfo)){
-                    oneScInfo.put("tabWidth", 100);
-                }
-                addTypeSeq(oneScInfo,statisticalChartInfo.getChartType());
+                StatisticalChartDTO statisticalChartDTO = new StatisticalChartDTO(oneSc,statisticalChartInfo,timeRange);
                 //拿到统计分析图的基本数据
-                columnChartList.add(oneScInfo);
+                columnChartList.add(statisticalChartDTO);
             }
         }
         //获取当前栏目被置顶的自定义图表
         List<CustomChart> customChartList = customChartRepository.findByParentIdAndIsTop(mapper.getId(), true, sort);
         if (customChartList != null && customChartList.size() > 0) {
             for (CustomChart oneCc : customChartList) {
-                if(!oneCc.isHide()){
-                    Map<String, Object> oneCcInfo = new HashMap<>();
-                    oneCcInfo.put("id", oneCc.getId());
-                    oneCcInfo.put("name", oneCc.getName());
-                    oneCcInfo.put("columnType", oneCc.getSpecialType());
-                    oneCcInfo.put("chartType", oneCc.getType());
-                    oneCcInfo.put("chartPage", ChartPageInfo.CustomChart);
-                    oneCcInfo.put("isTop", oneCc.getIsTop());
-                    oneCcInfo.put("topSequence", oneCc.getTopSequence());
-                    oneCcInfo.put("tabWidth", oneCc.getTabWidth());
-                    oneCcInfo.put("timeRange", oneCc.getTimeRange());
-                    oneCcInfo.put("contrast", oneCc.getContrast());
-                    oneCcInfo.put("groupName", CommonListChartUtil.formatPageShowGroupName(oneCc.getGroupName()));
-                    addTypeSeq(oneCcInfo,oneCc.getType());
-                    //拿到基本数据
-                    columnChartList.add(oneCcInfo);
-                }
+                CustomChartDTO customChartDTO = new CustomChartDTO(oneCc);
+                columnChartList.add(customChartDTO);
             }
         }
         if(columnChartList.size() ==0 ){
             return result;
         }
-        //根据置顶顺序进行排序
-        Collections.sort(columnChartList, (o1, o2) -> {
-            Integer seq1 = (Integer) o1.get("topSequence");
-            Integer seq2 = (Integer) o2.get("topSequence");
-            return seq1.compareTo(seq2);
-        });
-        for(Map<String,Object> oneChart: columnChartList){
-            result.add(oneChart);
-        }
+        result.addAll(columnChartList);
         return result;
     }
 
@@ -344,13 +236,6 @@ public class ColumnChartServiceImpl implements IColumnChartService {
      */
     @Override
     public Integer getMaxTopSequence(String id) {
-        /*
-        Collections.sort(sortList, (o1, o2) -> {
-				Integer seq1 = (Integer) o1.get("sequence");
-				Integer seq2 = (Integer) o2.get("sequence");
-				return seq1.compareTo(seq2);
-			});
-         */
         if (StringUtil.isEmpty(id)) {
             return null;
         }
@@ -379,18 +264,30 @@ public class ColumnChartServiceImpl implements IColumnChartService {
     /**
      * 初始化统计图表信息
      *
-     * @param id  栏目id
      * @return
      */
     @Transactional
     @Override
-    public List<StatisticalChart> initStatisticalChart(String id) {
-        List<StatisticalChart> statisticalChartList = new ArrayList<>();
-        for (StatisticalChartInfo statisticalChartInfo : StatisticalChartInfo.values()) {
-            StatisticalChart statisticalChart = new StatisticalChart(statisticalChartInfo.getChartType(),
-                    statisticalChartInfo.getSequence(), false, statisticalChartInfo.getChartName(), id);
-            statisticalChart = statisticalChartRepository.save(statisticalChart);
-            statisticalChartList.add(statisticalChart);
+    public List<StatisticalChart> initStatisticalChart(List<StatisticalChart> statisticalChartList, String indexTabId) {
+        if(statisticalChartList == null){
+            statisticalChartList = new ArrayList<>();
+        }
+        if(statisticalChartList.size() < StatisticalChartInfo.values().length){
+            Set<String> chartTypeSet = new HashSet<>();
+            if(statisticalChartList.size() >0 ){
+                for(StatisticalChart statisticalChart :statisticalChartList){
+                    chartTypeSet.add(statisticalChart.getChartType());
+                }
+            }
+
+            for (StatisticalChartInfo statisticalChartInfo : StatisticalChartInfo.values()) {
+                if( !chartTypeSet.contains(statisticalChartInfo.getChartType())){
+                    StatisticalChart statisticalChart = new StatisticalChart(statisticalChartInfo.getChartType(),
+                            statisticalChartInfo.getSequence(), false, statisticalChartInfo.getChartName(), indexTabId);
+                    statisticalChart = statisticalChartRepository.save(statisticalChart);
+                    statisticalChartList.add(statisticalChart);
+                }
+            }
         }
         return statisticalChartList;
     }

@@ -40,6 +40,8 @@ public class HelpService {
 
     @Autowired
     private IndexPageRepository indexPageRepository;
+    @Autowired
+    private IndexTabMapperRepository indexTabMapperRepository;
 
     @Autowired
     private IndexTabMapperRepository tabMapperRepository;
@@ -132,20 +134,135 @@ public class HelpService {
             }
         }
     }
+    public void addSpecialSubjectAndProject(String id,SubGroup subGroup,String parentId){
+        SpecialSubject subject = specialSubjectRepository.findOne(id);
+        if (ObjectUtil.isNotEmpty(subject.getIndexTabMappers())){
+            for (SpecialProject specialProject : subject.getIndexTabMappers()){
+                SpecialProject newSpecial = specialProject.copyForSubGroup(subGroup.getId());
+                newSpecial.setOrganizationId(subGroup.getOrganizationId());
+                newSpecial.setUserId("dataSync");
+                newSpecial.setGroupId(parentId);
+                this.specialProjectRepository.save(newSpecial);
+            }
+        }
+        if (ObjectUtil.isNotEmpty(subject.getChildrenPage())){
+                for (SpecialSubject specialSubject : subject.getChildrenPage()){
+                    SpecialSubject subject1 = specialSubject.pageCopy();
+                    subject1.setSubGroupId(subGroup.getId());
+                    subject1.setSubjectId(parentId);
+                    subject1.setUserId("dataSync");
+                    subject1.setOrganizationId(subGroup.getOrganizationId());
+                    this.specialSubjectRepository.save(subject1);
 
-    public void copySomeSpecialToUserGroup(String[] specialSync, String specialSyncLevel, SubGroup subGroup) {
+                    addSpecialSubjectAndProject(specialSubject.getId(),subGroup,subject1.getId());
+                }
+        }
+    }
+    public void addCloumPageAndTab(String id,SubGroup subGroup,String parentId){
+        IndexPage indexPage = indexPageRepository.findOne(id);
+        if (ObjectUtil.isNotEmpty(indexPage.getIndexTabMappers())){
+            for (IndexTabMapper indexTabMapper : indexPage.getIndexTabMappers()){
+                IndexTab indexTab = indexTabMapper.getIndexTab().tabCopy();
+                indexTab.setOrganizationId(subGroup.getOrganizationId());
+                indexTab.setUserId("dataSync");
+                indexTab.setSubGroupId(subGroup.getId());
+                indexTab.setParentId(parentId);
+                IndexTab save = indexTabRepository.save(indexTab);
+                // 保存映射表
+                IndexTabMapper mapper = save.mapper(false);
+                if(StringUtil.isNotEmpty(save.getParentId())){
+                    IndexPage indexPage2 = indexPageRepository.findOne(save.getParentId());
+                    mapper.setIndexPage(indexPage2);
+                }
+                mapper.setTypeId(indexTab.getTypeId());
+                mapper.setSubGroupId(subGroup.getId());
+                mapper.setUserId("dataSync");
+                mapper.setOrganizationId(subGroup.getOrganizationId());
+                indexTabMapperRepository.save(mapper);
+            }
+        }
+        if (ObjectUtil.isNotEmpty(indexPage.getChildrenPage())){
+            for (IndexPage indexPage1 : indexPage.getChildrenPage()){
+                IndexPage indexPage2 = indexPage1.pageCopy();
+                indexPage2.setSubGroupId(subGroup.getId());
+                indexPage2.setSubGroupId(subGroup.getId());
+                indexPage2.setUserId("dataSync");
+                indexPage2.setOrganizationId(subGroup.getOrganizationId());
+                indexPage2.setParentId(parentId);
+                this.indexPageRepository.save(indexPage2);
+                addCloumPageAndTab(indexPage1.getId(),subGroup,indexPage2.getId());
+            }
+        }
+    }
+    public void copySomePageAndTabToUserGroupNew(String[] columnSync,String[] columnSyncLevel, SubGroup subGroup) {
+        if (ObjectUtil.isNotEmpty(columnSync)){
+            //同步无分组专题
+            List<IndexTabMapper> mappers = indexTabMapperRepository.findByIdIn(Arrays.asList(columnSync));
+            for (IndexTabMapper indexTabMapper : mappers){
+                IndexTab indexTab = indexTabMapper.getIndexTab().tabCopy();
+                indexTab.setOrganizationId(subGroup.getOrganizationId());
+                indexTab.setUserId("dataSync");
+                indexTab.setSubGroupId(subGroup.getId());
+                IndexTab save = indexTabRepository.save(indexTab);
+                // 保存映射表
+                IndexTabMapper mapper = save.mapper(false);
+                mapper.setSequence(indexTabMapper.getSequence());
+                mapper.setTopFlag(indexTabMapper.getTopFlag());
+                if(indexTabMapper.getIndexPage() != null){
+                    mapper.setIndexPage(indexTabMapper.getIndexPage());
+                }
+                mapper.setTypeId(indexTab.getTypeId());
+                mapper.setSubGroupId(subGroup.getId());
+                mapper.setOrganizationId(subGroup.getOrganizationId());
+                indexTabMapperRepository.save(mapper);
+            }
+        }
+        if (ObjectUtil.isNotEmpty(columnSyncLevel)){
+            List<IndexPage> indexPageList = indexPageRepository.findByIdIn(Arrays.asList(columnSyncLevel));
+            if (ObjectUtil.isNotEmpty(indexPageList)){
+                for (IndexPage indexPage : indexPageList) {
+                    if (0 == indexPage.getFlag() && StringUtil.isNotEmpty(indexPage.getId())) {
+                        //分组
+                        IndexPage indexPage2 = indexPage.pageCopy();
+                        indexPage2.setSubGroupId(subGroup.getId());
+                        indexPage2.setUserId("dataSync");
+                        indexPage2.setOrganizationId(subGroup.getOrganizationId());
+                        this.indexPageRepository.save(indexPage2);
+                        addCloumPageAndTab(indexPage.getId(),subGroup,indexPage2.getId());
+                    }
+                }
+            }
+        }
+    }
+    public void copySomeSpecialToUserGroup(String[] specialSync, String[] specialSyncLevel, SubGroup subGroup) {
         if (ObjectUtil.isNotEmpty(specialSync)){
             //同步无分组专题
             List<SpecialProject> projects = specialProjectRepository.findByIdIn(Arrays.asList(specialSync));
             for (SpecialProject project : projects) {
-                SpecialProject newSpecial = project.newInstanceForSubGroup(subGroup.getId());
+                SpecialProject newSpecial = project.copyForSubGroup(subGroup.getId());
                 newSpecial.setOrganizationId(subGroup.getOrganizationId());
                 newSpecial.setUserId("dataSync");
                 this.specialProjectRepository.save(newSpecial);
             }
         }
-
-        //有级别
+        if (ObjectUtil.isNotEmpty(specialSyncLevel)){
+            //只有专题分组
+            List<SpecialSubject> dataSyncSpecials = specialSubjectRepository.findByIdIn(Arrays.asList(specialSyncLevel));
+            if (ObjectUtil.isNotEmpty(dataSyncSpecials)){
+                for (SpecialSubject dataSyncSpecial : dataSyncSpecials) {
+                    if (0 == dataSyncSpecial.getFlag() && StringUtil.isNotEmpty(dataSyncSpecial.getId())) {
+                        SpecialSubject subject1 = dataSyncSpecial.pageCopy();
+                        subject1.setSubGroupId(subGroup.getId());
+                        subject1.setOrganizationId(subGroup.getOrganizationId());
+                        subject1.setUserId("dataSync");
+                        this.specialSubjectRepository.save(subject1);
+                        //分组
+                      addSpecialSubjectAndProject(dataSyncSpecial.getId(),subGroup,subject1.getId());
+                    }
+                }
+            }
+        }
+     /*   //有级别
         if (StringUtil.isNotEmpty(specialSyncLevel)){
             //同步 有 分组 专题
             List<DataSyncSpecial> dataSyncSpecials = JSONArray.parseArray(specialSyncLevel, DataSyncSpecial.class);
@@ -208,7 +325,7 @@ public class HelpService {
                 }
 
             }
-        }
+        }*/
     }
 
     public int getSubGroupColumnCountForSubGroup(String subGroupId) {

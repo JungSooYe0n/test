@@ -247,8 +247,7 @@ public interface IChartAnalyzeService {
 									 String area, String foreign) throws TRSException;
 
 	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
-									  String notKeyWords, String type,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-									  String contentArea,String mediaArea,String preciseFilter) throws TRSException;
+									   String type,String read,String preciseFilter,String imgOcr) throws TRSException;
 
 	/**
 	 * 普通搜索统计表格 选几个来源统计几个来源
@@ -506,6 +505,7 @@ public interface IChartAnalyzeService {
 													  boolean irSimflag,boolean irSimflagAll,boolean isApi) throws TRSSearchException;
 	public List<Map<String, Object>> spreadAnalysis(QueryBuilder searchBuilder, String[] timeArray, boolean similar,
 													  boolean irSimflag,boolean irSimflagAll,boolean isApi,String groupName) throws TRSSearchException;
+	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder) throws TRSSearchException, TRSException;
 	HashMap<String, Object> getUserViewsData(SpecialProject specialProject, String timeRange, String industry, String area, SpecialParam specParam) throws Exception;
 
 	ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange) throws Exception;
@@ -565,6 +565,19 @@ public interface IChartAnalyzeService {
 	 */
 	public List<Map<String, String>> emotionOption(QueryBuilder searchBuilder, SpecialProject specialProject);
 	public int getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException;
+
+	/**
+	 * 获取专题内图表列表数据
+	 *
+	 * @param specialProject
+	 *            专题对象
+
+	 * @return
+	 * @throws Exception
+	 */
+	public Object getChartToListData(SpecialProject specialProject,SpecialChartType specialChartType,String source,String key,String dateTime,String entityType,String mapContrast,
+									 int pageNo,int pageSize,String sort,String fuzzyValue,String fuzzyValueScope,String forwarPrimary,String invitationCard) throws Exception;
+
 }
 
 /**

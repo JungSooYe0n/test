@@ -6,24 +6,23 @@ import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
-import com.trs.netInsight.widget.column.entity.CustomChart;
 import com.trs.netInsight.widget.column.entity.IndexTabType;
-import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.special.SpecialCustomChart;
+import com.trs.netInsight.widget.special.entity.SpecialCustomChart;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.service.ISpecialCustomChartService;
 import com.trs.netInsight.widget.special.service.ISpecialProjectService;
-import com.trs.netInsight.widget.special.service.ISpecialService;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
@@ -37,22 +36,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  * 专题分析自定义图表接口
  */
 @RestController
-@RequestMapping("/special/chart")
+@RequestMapping("/special/customChart")
 @Api(description = "专题分析自定义图表接口")
 @Slf4j
-public class SpecialChartController {
+public class SpecialCustomChartController {
     @Autowired
     private ISpecialCustomChartService specialCustomChartService;
     @Autowired
     private ISpecialProjectService specialProjectService;
     @Autowired
     private OrganizationRepository organizationRepository;
+    @Autowired
+    private RequestTimeLogRepository requestTimeLogRepository;
 
 
     /**
@@ -67,14 +69,18 @@ public class SpecialChartController {
     @RequestMapping(value = "/selectSpecialChartList", method = RequestMethod.GET)
     @ApiOperation("查找当前专题分析对应的图表 - 自定义图表")
     public Object selectTabChartList(HttpServletRequest request,
-                                     @ApiParam("专题分析栏目id") @RequestParam(value = "id") String id)
+                                     @ApiParam("专题分析栏目id") @RequestParam(value = "id") String id,
+                                     @ApiParam("当前页显示多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                     @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0") int pageNo)
             throws TRSException {
         User user = UserUtils.getUser();
         SpecialProject specialProject = specialProjectService.findOne(id);
         if (ObjectUtil.isEmpty(specialProject)) {
             throw new TRSException(CodeUtils.FAIL,"当前专题栏目不存在");
         }
-        Object result = specialCustomChartService.getCustomChart(id);
+        pageNo = pageNo < 0 ? 0 : pageNo;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+        Object result = specialCustomChartService.getCustomChart(id,pageNo,pageSize);
         return result;
     }
 
@@ -107,6 +113,7 @@ public class SpecialChartController {
             @ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
@@ -129,6 +136,7 @@ public class SpecialChartController {
                                  @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
                                  @RequestParam(value = "keyWord", required = false) String keyWord,
                                  @RequestParam(value = "excludeWords", required = false) String excludeWords,
+                                 @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
                                  @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
                                  @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
                                  @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -223,10 +231,10 @@ public class SpecialChartController {
             } else {
                 trsl = null;
                 xyTrsl = null;
-                if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
-                        && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
+                if (StringUtil.isEmpty(contrast) && (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)
+                        || IndexTabType.CHART_LINE.equals(indexTabType))) {
                     throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
-                }else if(IndexTabType.HOT_LIST.equals(indexTabType) &&IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType) || IndexTabType.WORD_CLOUD.equals(indexTabType)){
                     contrast = null;
                 }
             }
@@ -237,6 +245,7 @@ public class SpecialChartController {
             SpecialCustomChart customChart = new SpecialCustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb,monitorSite, timeRange, keyWord, excludeWords,
                     keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, specialId, sequence, specialType1,mediaLevel, mediaIndustry, contentIndustry,
                     filterInfo, contentArea, mediaArea);
+            customChart.setExcludeWordsIndex(excludeWordsIndex);
             customChart = specialCustomChartService.saveSpecialCustomChart(customChart);
             result.add(customChart);
         }
@@ -281,6 +290,7 @@ public class SpecialChartController {
             @ApiImplicitParam(name = "trsl", value = "检索表达式", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "keyWord", value = "关键词", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置(0:标题,1:标题+正文,2:标题+摘要)", dataType = "String", paramType = "query", required = false),
@@ -303,6 +313,7 @@ public class SpecialChartController {
                                     @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
                                     @RequestParam(value = "keyWord", required = false) String keyWord,
                                     @RequestParam(value = "excludeWords", required = false) String excludeWords,
+                                    @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
                                     @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
                                     @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
                                     @RequestParam(value = "timeRange", required = false) String timeRange,
@@ -375,10 +386,10 @@ public class SpecialChartController {
             } else {
                 trsl = null;
                 xyTrsl = null;
-                if (StringUtil.isEmpty(contrast) && !IndexTabType.HOT_LIST.equals(indexTabType) && !IndexTabType.LIST_NO_SIM.equals(indexTabType)
-                        && !IndexTabType.WORD_CLOUD.equals(indexTabType) && !IndexTabType.MAP.equals(indexTabType)) {
+                if (StringUtil.isEmpty(contrast) && (IndexTabType.CHART_BAR.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType)
+                        || IndexTabType.CHART_LINE.equals(indexTabType))) {
                     throw new TRSException(CodeUtils.FAIL,"普通模式下" + indexTabType.getTypeName() + "时，必须传对比类型");
-                }else if(IndexTabType.HOT_LIST.equals(indexTabType) &&IndexTabType.LIST_NO_SIM.equals(indexTabType)){
+                }else if(IndexTabType.HOT_LIST.equals(indexTabType) || IndexTabType.LIST_NO_SIM.equals(indexTabType) || IndexTabType.WORD_CLOUD.equals(indexTabType)){
                     contrast = null;
                 }
             }
@@ -400,6 +411,7 @@ public class SpecialChartController {
             customChart.setTimeRange(timeRange);
             customChart.setKeyWord(keyWord);
             customChart.setExcludeWords(excludeWords);
+            customChart.setExcludeWordsIndex(excludeWordsIndex);
             customChart.setKeyWordIndex(keyWordIndex);
             customChart.setGroupName(groupName);
             customChart.setSimilar(isSimilar);
@@ -411,13 +423,7 @@ public class SpecialChartController {
             customChart.setFilterInfo(filterInfo);
             customChart.setContentArea(contentArea);
             customChart.setMediaArea(mediaArea);
-
-            // 栏目从标题+正文修改为仅标题的时候不设置权重，但传的weight还是=true
-            if ("0".equals(keyWordIndex)) {
-                customChart.setWeight(false);
-            } else {
-                customChart.setWeight(weight);
-            }
+            customChart.setWeight(weight);
             customChart.setTabWidth(tabWidth);
 
             return specialCustomChartService.saveSpecialCustomChart(customChart);
@@ -463,16 +469,73 @@ public class SpecialChartController {
                               @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
                               @ApiParam("折线图展示类型") @RequestParam(value = "showType", required = false) String showType,
                               @ApiParam("词云的类型") @RequestParam(value = "entityType", defaultValue = "keywords", required = false) String entityType,
+                              @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
                               @ApiParam("对比类型主要是针对地图") @RequestParam(value = "contrast", required = false) String contrast)
+            throws TRSException {
+        Date startDate = new Date();
+        User user = UserUtils.getUser();
+        Date sqlStartDate = new Date();
+        SpecialCustomChart customChart = specialCustomChartService.findOneSpecialCustomChart(id);
+        if (ObjectUtil.isEmpty(customChart)) {
+            throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
+        }
+        String operation = "专题分析 - 自定义分析-"+customChart.getName();
+        Date sqlEndDate = new Date();
+        Date hyStartDate = new Date();
+        Object result = specialCustomChartService.selectChartData(customChart, timeRange,showType, entityType, contrast);
+        RequestTimeLog requestTimeLog = new RequestTimeLog();
+        requestTimeLog.setTabId(id);
+        requestTimeLog.setTabName(customChart.getName());
+        requestTimeLog.setStartMysqlTime(sqlStartDate);
+        requestTimeLog.setEndMsqlTime(sqlEndDate);
+        requestTimeLog.setStartHybaseTime(hyStartDate);
+        requestTimeLog.setEndHybaseTime(new Date());
+        requestTimeLog.setStartTime(startDate);
+        requestTimeLog.setEndTime(new Date());
+        requestTimeLog.setRandomNum(randomNum);
+        requestTimeLog.setOperation(operation);
+        requestTimeLogRepository.save(requestTimeLog);
+        return result;
+    }
+
+    /**
+     * 点击自定义图表跳转到的列表
+     *
+     * @param request
+     * @param id
+     * @return
+     * @throws TRSException
+     */
+    @FormatResult
+    @RequestMapping(value = "/list", method = RequestMethod.POST)
+    @ApiOperation("获取自定义图表某个点对应的列表")
+    public Object list(HttpServletRequest request,
+                       @ApiParam("自定义图表的id") @RequestParam(value = "id") String id,
+                       @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+                       @ApiParam("数据来源 - 当前列表要展示的数据源")@RequestParam(value = "source",required = false ) String source,
+                       @ApiParam("数据参数 - 被点击的图上的点")@RequestParam(value = "key",required = false ) String key,
+                       @ApiParam("折线图数据时间")@RequestParam(value = "dateTime", required = false) String dateTime,
+                       @ApiParam("词云图 通用：keywords；人物：people；地域：location；机构：agency") @RequestParam(value = "entityType", defaultValue = "keywords") String entityType,
+                       @ApiParam("对比类型，地域图需要，通过文章还是媒体地域") @RequestParam(value = "mapContrast", required = false) String mapContrast,
+                       @ApiParam("排序")@RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
+                       @ApiParam("微博原发/转发")@RequestParam(value = "forwardPrimary",defaultValue = "") String forwardPrimary,
+                       @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+                       @ApiParam("结果中搜索") @RequestParam(value="fuzzyValue",required=false) String fuzzyValue,
+                       @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
+                       @ApiParam("页码")@RequestParam(value = "pageNo",defaultValue = "0") int pageNo,
+                       @ApiParam("一页多少条")@RequestParam(value = "pageSize",defaultValue = "10") int pageSize)
             throws TRSException {
         User user = UserUtils.getUser();
         SpecialCustomChart customChart = specialCustomChartService.findOneSpecialCustomChart(id);
         if (ObjectUtil.isEmpty(customChart)) {
             throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
         }
-        Object result = specialCustomChartService.selectChartData(customChart, timeRange,showType, entityType, contrast);
+        if(StringUtil.isNotEmpty(timeRange)){
+            customChart.setTimeRange(timeRange);
+        }
+        Object result = specialCustomChartService.selectChar2ListtData(customChart, source, key, dateTime, entityType, mapContrast, sort, pageNo, pageSize, forwardPrimary, invitationCard,
+                                    fuzzyValue, fuzzyValueScope);
         return result;
     }
-
 
 }

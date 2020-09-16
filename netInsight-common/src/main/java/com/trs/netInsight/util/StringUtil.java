@@ -36,6 +36,17 @@ public final class StringUtil {
 	public static final String img3 = "(?=&lt;IMAGE&nbsp;IDX=).+?(?=&nbsp;&gt;)";
 	public static final String img4 = "(?=&lt;img&nbsp;src=).+?(?=&nbsp;&gt;)";
 	public static final String img5 = "(?=&lt;img&nbsp;src=).+?(?=&quot;&gt;)";
+
+	public static final String img6 = "(?=&lt;IMAGE&nbsp;ALT=).+?(?=&nbsp;&gt;)";
+	public static final String img7 = "(?=&lt;IMAGE&nbsp;ALT=).+?(?=&quot;&gt;)";
+	public static final String img8 = "(?=&lt;img&nbsp;alt=).+?(?=&nbsp;&gt;)";
+	public static final String img9 = "(?=&lt;img&nbsp;alt=).+?(?=&quot;&gt;)";
+
+	public static final String img11 = "(?=&lt;IMAGE&nbsp;ALT=).+?(?=&nbsp;/&gt;)";
+	public static final String img12 = "(?=&lt;IMAGE&nbsp;ALT=).+?(?=&quot;/&gt;)";
+	public static final String img13 = "(?=&lt;img&nbsp;alt=).+?(?=&nbsp;/&gt;)";
+	public static final String img14 = "(?=&lt;img&nbsp;alt=).+?(?=&quot;/&gt;)";
+
 	public static final String video1 = "(?=&lt;video&nbsp;src=).+?(?=&quot;&gt;)";
 	public static final String video2 = "(?=&lt;AUDIO&nbsp;SRC=).+?(?=&quot;&gt;)";
 	public static final String videoSuffix1 = "&lt;/video&gt;";
@@ -261,6 +272,16 @@ public final class StringUtil {
 		content = content.replaceAll(img3,"");
 		content = content.replaceAll(img4,"");
 		content = content.replaceAll(img5,"");
+
+		content = content.replaceAll(img6,"");
+		content = content.replaceAll(img7,"");
+		content = content.replaceAll(img8,"");
+		content = content.replaceAll(img9,"");
+		content = content.replaceAll(img11,"");
+		content = content.replaceAll(img12,"");
+		content = content.replaceAll(img13,"");
+		content = content.replaceAll(img14,"");
+
 		content = content.replaceAll(video1,"");
 		content = content.replaceAll(video2,"");
 		content = content.replaceAll(videoSuffix1,"");
@@ -1065,6 +1086,7 @@ public final class StringUtil {
 	public static String filterEmoji(String source) {
 		if(source != null)
 		{
+			source = source.replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "");
 			Pattern emoji = Pattern.compile ("[\ud83c\udc00-\ud83c\udfff]|[\ud83d\udc00-\ud83d\udfff]|[\u2600-\u27ff]|[\ue000-\uf8ff]",Pattern.UNICODE_CASE | Pattern . CASE_INSENSITIVE ) ;
 			Matcher emojiMatcher = emoji.matcher(source);
 			if ( emojiMatcher.find())

@@ -15,6 +15,8 @@ package com.trs.netInsight.widget.column.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.trs.jpa.utils.Criteria;
+import com.trs.jpa.utils.Restrictions;
 import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
@@ -25,15 +27,18 @@ import com.trs.netInsight.support.cache.RedisFactory;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
+import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
@@ -45,6 +50,7 @@ import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
+import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -55,16 +61,14 @@ import com.trs.netInsight.widget.user.repository.SubGroupRepository;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.search.SearchException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 栏目操作接口
@@ -109,6 +113,9 @@ public class ColumnController {
 	private ICommonChartService commonChartService;
 	@Autowired
 	private IColumnChartService columnChartService;
+
+	@Autowired
+	private RequestTimeLogRepository requestTimeLogRepository;
 	/**
 	 * 刚加载页面时查询所有栏目（分组）
 	 */
@@ -340,6 +347,38 @@ public class ColumnController {
 		return "success";
 	}
 
+	/**
+	 * 新提出置顶接口
+	 */
+	@FormatResult
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_MOVE_ONE, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "栏目置顶：${id}")
+	@RequestMapping(value = "/topFlag", method = RequestMethod.GET)
+	public Object topFlag(@ApiParam("栏目id") @RequestParam(value = "id") String id) throws TRSException {
+		try {
+			// 查这个用户或用户分组下有多少个已经置顶的专题 新置顶的排前边 查找专题列表的时候按照sequence正序排
+			User loginUser = UserUtils.getUser();
+			return columnService.topColumn(id,loginUser);
+		} catch (Exception e) {
+			throw new OperationException(String.format("[id=%s]置顶失败,message: %s", id, e));
+		}
+	}
+
+	/**
+	 * 取消置顶
+	 *
+	 */
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_MOVE_ONE, systemLogType = SystemLogType.COLUMN,  systemLogOperationPosition = "取消栏目置顶：${id}")
+	@FormatResult
+	@RequestMapping(value = "/noTopFlag", method = RequestMethod.GET)
+	public Object noTopFlag(@ApiParam("栏目id") @RequestParam(value = "id") String id) throws TRSException {
+		try {
+			User user = UserUtils.getUser();
+
+			return columnService.noTopColumn(id,user);
+		} catch (Exception e) {
+			throw new OperationException(String.format("获取[id=%s]取消置顶失败,message: %s", id, e));
+		}
+	}
 
 	/**
 	 * 三级栏目（图表）添加接口（分组）
@@ -386,7 +425,8 @@ public class ColumnController {
 			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})
 	public Object addThree(@RequestParam("name") String name, @RequestParam(value = "indexPageId",required = false) String indexPageId,
 						   @RequestParam(value = "navigationId", defaultValue = "") String navigationId,
 						   @RequestParam("columnType") String columnType,
@@ -410,7 +450,8 @@ public class ColumnController {
 						   @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
 						   @RequestParam(value = "filterInfo", required = false) String filterInfo,
 						   @RequestParam(value = "contentArea", required = false) String contentArea,
-						   @RequestParam(value = "mediaArea", required = false) String mediaArea,HttpServletRequest request)
+						   @RequestParam(value = "mediaArea", required = false) String mediaArea,
+						   @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
 			throws TRSException {
 
 		//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受可创建资源数量的限制）
@@ -612,7 +653,8 @@ public class ColumnController {
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "share", value = "栏目共享标记", dataType = "boolean", paramType = "query", required = false),
-			@ApiImplicitParam(name = "copy", value = "另存为标记", dataType = "boolean", paramType = "query", required = false) })
+			@ApiImplicitParam(name = "copy", value = "另存为标记", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "boolean", paramType = "query", required = false)})
 	public Object updateThree(@RequestParam("id") String id, @RequestParam("name") String name,
 							  @RequestParam(value = "indexPageId",required = false) String indexPageId,
 							  @RequestParam(value = "navigationId",required = false, defaultValue = "") String navigationId,
@@ -638,7 +680,8 @@ public class ColumnController {
 							  @RequestParam(value = "contentArea", required = false) String contentArea,
 							  @RequestParam(value = "mediaArea", required = false) String mediaArea,
 							  @RequestParam(value = "share", defaultValue = "false") boolean share,
-							  @RequestParam(value = "copy", defaultValue = "false") boolean copy, HttpServletRequest request)
+							  @RequestParam(value = "copy", defaultValue = "false") boolean copy,
+							  @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
 			throws TRSException {
 
 		User loginUser = UserUtils.getUser();
@@ -742,12 +785,7 @@ public class ColumnController {
 			indexTab.setFilterInfo(filterInfo);
 			indexTab.setMediaArea(mediaArea);
 			indexTab.setContentArea(contentArea);
-			// 栏目从标题+正文修改为仅标题的时候不设置权重，但传的weight还是=true
-			if ("0".equals(keyWordIndex)) {
-				indexTab.setWeight(false);
-			} else {
-				indexTab.setWeight(weight);
-			}
+			indexTab.setWeight(weight);
 			IndexPage indexPage = null;
 			// 根据另存为标识选择另存为与修改操作
 			if (copy) {
@@ -825,8 +863,9 @@ public class ColumnController {
 			@ApiImplicitParam(name = "indexMapperId", value = "三级栏目映射id", dataType = "String", paramType = "query") })
 	public Object deleteThree(@RequestParam("indexMapperId") String indexMapperId, HttpServletRequest request)
 			throws TRSException {
+		Object result = columnService.selectNextShowColumn(indexMapperId, ColumnFlag.IndexTabFlag);
 		indexTabMapperService.deleteMapper(indexMapperId);
-		return "success";
+		return result;
 	}
 
 
@@ -872,8 +911,10 @@ public class ColumnController {
 			@ApiImplicitParam(name = "indexPageId", value = "一级栏目id", dataType = "String", paramType = "query") })
 	public Object deleteOne(@ApiParam("一级栏目id") @RequestParam("indexPageId") String indexPageId,
 							HttpServletRequest request) throws OperationException {
+		Object reslut = columnService.selectNextShowColumn(indexPageId, ColumnFlag.IndexPageFlag);
 		//已修改，递归删除分组下的所有数据
-		return columnService.deleteOne(indexPageId);
+		columnService.deleteOne(indexPageId);
+		return reslut;
 	}
 
 	/**
@@ -928,7 +969,8 @@ public class ColumnController {
 	@RequestMapping(value = "/selectColumn", method = RequestMethod.GET)
 	@ApiOperation("查找所有栏目接口")
 	public Object selectColumn(HttpServletRequest request,
-							   @ApiParam("自定义导航栏的id") @RequestParam(value = "typeId", defaultValue = "") String typeId)
+							   @ApiParam("自定义导航栏的id") @RequestParam(value = "typeId", defaultValue = "") String typeId,
+							   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws OperationException {
 		User user = UserUtils.getUser();
 		return columnService.selectColumn(user, typeId);
@@ -980,7 +1022,9 @@ public class ColumnController {
 			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query")})
+			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "imgOcr", value = "OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})
 	public Object selectChart(@RequestParam("id") String id,
 							  @RequestParam(value = "chartPage", defaultValue = "TabChart") String chartPage,
 							  @RequestParam(value = "showType", required = false, defaultValue = "") String showType,
@@ -1007,9 +1051,14 @@ public class ColumnController {
 							  @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							  @RequestParam(value = "contentArea", required = false) String contentArea,
 							  @RequestParam(value = "mediaArea", required = false) String mediaArea,
-							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							  @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr,
+							  @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws SearchException, TRSException {
+		log.info("【日常监测图表查询】随机数： "+randomNum);
+		Date startDate = new Date();
 		IndexTab indexTab = null;
+		String operation = "日常监测 图表查询 - 栏目";
 		ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
 		if(ChartPageInfo.CustomChart.equals(chartPageInfo)){
 			CustomChart customChart = columnChartService.findOneCustomChart(id);
@@ -1018,6 +1067,7 @@ public class ColumnController {
 			}
 			//待写， 需要通过自定义图表的类生成一个indextab
 			indexTab = customChart.indexTab();
+			operation = "日常监测 - 自定义图表-"+customChart.getName();
 		}else if(ChartPageInfo.StatisticalChart.equals(chartPageInfo)){
 			StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
 			if(ObjectUtil.isEmpty(statisticalChart)){
@@ -1031,6 +1081,7 @@ public class ColumnController {
 			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
 				indexTab.setTabWidth(100);
 			}
+			operation = "日常监测 - 统计分析 - "+statisticalChartInfo.getChartName();
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
@@ -1103,11 +1154,11 @@ public class ColumnController {
 		ColumnConfig config = new ColumnConfig();
 		if(openFiltrate != null && openFiltrate){
 			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default", "", "",
-					"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+					"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 		}else{
 			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default",  "", "",
 					"", "",read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
+					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter,imgOcr);
 		}
 		// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，用统计分析的StatisticalChart，其他图用tabChart
 		config.setChartPage(chartPageInfo);
@@ -1116,8 +1167,20 @@ public class ColumnController {
 		column.setCommonListService(commonListService);
 		column.setCommonChartService(commonChartService);
 		column.setConfig(config);
+		Date hyStartDate = new Date();
 		//因折线图 关系 需要将时间参数往后传
-		return column.getColumnData(timerange);
+		Object object =  column.getColumnData(timerange);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(startDate);
+		requestTimeLog.setEndTime(new Date());
+		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation(operation);
+		requestTimeLogRepository.save(requestTimeLog);
+		return object;
 	}
 
 	public void tradition(String[] tradition, QueryBuilder indexBuilder, QueryBuilder countBuiler,
@@ -1238,8 +1301,12 @@ public class ColumnController {
 			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr,
+			@ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws TRSException, SearchException {
+		log.info("【日常监测图跳列表数据】随机数： "+randomNum);
+		Date startDate = new Date();
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 		IndexTab indexTab = null;
@@ -1263,6 +1330,8 @@ public class ColumnController {
 			indexTab.setContrast(statisticalChartInfo.getContrast());
 			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
 				indexTab.setTabWidth(100);
+			}else if(StatisticalChartInfo.HOT_TOPIC_SORT.equals(statisticalChartInfo)){
+				indexTab.setGroupName(Const.GROUPNAME_WEIBO);
 			}
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
@@ -1330,13 +1399,33 @@ public class ColumnController {
 				}
 				indexTab.setGroupName(groupName);
 			}
-			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
+			Date hyStartDate = new Date();
+			Object object =  columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
 					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, mediaLevel, mediaIndustry,
-					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			requestTimeLog.setRandomNum(randomNum);
+			requestTimeLog.setOperation("日常监测 图表跳列表页");
+			requestTimeLogRepository.save(requestTimeLog);
+			return object;
 		}else{
-			return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
+			Date hyStartDate = new Date();
+			Object object =  columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
 					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(),
-					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter);
+					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter,imgOcr);
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			requestTimeLog.setRandomNum(randomNum);
+			requestTimeLog.setOperation("日常监测 图表跳列表页");
+			requestTimeLogRepository.save(requestTimeLog);
+			return object;
 		}
 	}
 
@@ -1372,9 +1461,12 @@ public class ColumnController {
 			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr,
+			@ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum
 	) throws TRSException, SearchException {
-
+		Date startDate = new Date();
+		log.info("【日常监测信息列表数据】随机数： "+randomNum);
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 
@@ -1435,9 +1527,21 @@ public class ColumnController {
 			}
 			indexTab.setGroupName(groupName);
 		}
-		return columnService.selectList(indexTab, pageNo, pageSize, source, emotion, "", "", "",
+		Date hyStartDate = new Date();
+		Object object =  columnService.selectList(indexTab, pageNo, pageSize, source, emotion, "", "", "",
 				sort, "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
-				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(startDate);
+		requestTimeLog.setEndTime(new Date());
+		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("日常监测 信息列表 - 信息列表");
+		requestTimeLogRepository.save(requestTimeLog);
+		return object;
 	}
 
 	@FormatResult
@@ -1465,8 +1569,12 @@ public class ColumnController {
 			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter)
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
+			@ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws TRSException, SearchException {
+		Date startDate = new Date();
+		log.info("【日常监测信息列表数据统计】随机数： "+randomNum);
 		//查询一个栏目的列表（不是通过点击图跳转的列表）时，其实就是把当前栏目当成普通列表，不受当前栏目类型的影响
 		IndexTabMapper mapper = indexTabMapperService.findOne(id);
 		if(ObjectUtil.isEmpty(mapper)){
@@ -1478,20 +1586,12 @@ public class ColumnController {
 			indexTab.setTimeRange(timeRange);
 		}
 		indexTab.setType(ColumnConst.LIST_NO_SIM);
-		//排重
-		if ("netRemove".equals(simflag)) { //单一媒体排重
-			indexTab.setSimilar(true);
-			indexTab.setIrSimflag(false);
-			indexTab.setIrSimflagAll(false);
-		} else if ("urlRemove".equals(simflag)) { //站内排重
-			indexTab.setSimilar(false);
-			indexTab.setIrSimflag(true);
-			indexTab.setIrSimflagAll(false);
-		} else if ("sourceRemove".equals(simflag)) { //全网排重
-			indexTab.setSimilar(false);
-			indexTab.setIrSimflag(false);
-			indexTab.setIrSimflagAll(true);
-		}
+
+		//排重  -- 信息列表的统计改为 固定按站内排重
+		indexTab.setSimilar(false);
+		indexTab.setIrSimflag(true);
+		indexTab.setIrSimflagAll(false);
+
 		//命中规则
 		if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
 			indexTab.setKeyWordIndex(wordIndex);
@@ -1527,20 +1627,33 @@ public class ColumnController {
 		ColumnConfig config = new ColumnConfig();
 		//这个页面中的筛选条件，前端会将回显数据传回来，所以直接用回显数据
 		config.initSection(indexTab, indexTab.getTimeRange(), 0, 15, null, emotion, null, "", "", "default",  "", "",
-				"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+				"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 		column.setDistrictInfoService(districtInfoService);
 		column.setCommonListService(commonListService);
 		column.setCommonChartService(commonChartService);
 		column.setConfig(config);
 		//因折线图 关系 需要将时间参数往后传
-		return column.getListStattotal();
+		Date hyStartDate = new Date();
+		Object object = column.getListStattotal();
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabId(id);
+		requestTimeLog.setTabName(indexTab.getName());
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(startDate);
+		requestTimeLog.setEndTime(new Date());
+		requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("日常监测 信息列表 - 数据统计");
+		requestTimeLogRepository.save(requestTimeLog);
+		return object;
 	}
 
 	@ApiOperation("日常监测图表导出 - 所有图表都走这一个")
 	@PostMapping("/exportChartData")
 	public void exportChartData(HttpServletResponse response,
 								@ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType") String chartType,
-								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data") String data) {
+								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data") String data,
+								@ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum) {
 		try {
 			IndexTabType indexTabType = ColumnFactory.chooseType(chartType);
 			ServletOutputStream outputStream = response.getOutputStream();

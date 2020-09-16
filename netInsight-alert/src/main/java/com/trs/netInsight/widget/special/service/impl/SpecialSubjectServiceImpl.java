@@ -87,6 +87,7 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 	@Override
 	public void deleteProject(String projectId) throws TRSException {
 		try {
+			User user = UserUtils.getUser();
 			if (StringUtils.isNotBlank(projectId)) {
 				// 多个删除用;分割
 				String[] idsplit = projectId.split(";");
@@ -94,11 +95,11 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 					SpecialProject specialProject = specialProjectRepository.findOne(ids);
 					// 修改顺序
 					if (specialProject != null) {
-						User user = userService.findOne(specialProject.getUserId());
-
 						//对同层级的数据重新排序 - 去掉自己
 						//栏目类型为1，
-						specialService.moveSequenceForSpecial(specialProject.getId(), SpecialFlag.SpecialProjectFlag, user);
+						if(!"top".equals(specialProject.getTopFlag())){
+							specialService.moveSequenceForSpecial(specialProject.getId(), SpecialFlag.SpecialProjectFlag, user);
+						}
 						//删除当前栏目对应的自定义图表
 						Integer deleteColumnChart = specialCustomChartService.deleteCustomChart(specialProject.getId());
 //						Log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
@@ -122,7 +123,7 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 				throw new OperationException("当前分组不存在");
 			}
 			//重新排序
-			User user = userService.findOne(indexPage.getUserId());
+			User user = UserUtils.getUser();
 			specialService.moveSequenceForSpecial(subjectId,SpecialFlag.SpecialSubjectFlag, user);
 			List<SpecialSubject> list = new ArrayList<>();
 			list.add(indexPage);
@@ -292,11 +293,9 @@ public class SpecialSubjectServiceImpl implements ISpecialSubjectService {
 		int seq = 0;
 		seq = specialService.getMaxSequenceForSpecial(parentId,loginUser);
 		if(StringUtil.isNotEmpty(parentId)){
-
 			List<SpecialSubject> parentList = specialSubjectRepository.findById(parentId);
 			if(parentList!= null && parentList.size() >0){
 				SpecialSubject parent = parentList.get(0);
-//				indexPage.setParentId(parent.getId());
 				indexPage.setSubjectId(parent.getId());
 			}
 		}

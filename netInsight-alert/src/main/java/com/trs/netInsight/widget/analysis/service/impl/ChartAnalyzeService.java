@@ -1099,7 +1099,8 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope, String notKeyWords, String type, String read, String mediaLevel, String mediaIndustry, String contentIndustry, String filterInfo, String contentArea, String mediaArea, String preciseFilter) {
+	public Object getSpecialStattotal(SpecialProject specialProject, String source, String time, String emotion, String invitationCard, String forwarPrimary, String keywords, String fuzzyValueScope,
+									  String type, String read, String preciseFilter,String imgOcr) {
 		return null;
 	}
 
@@ -3039,7 +3040,12 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
         return null;
     }
 
-    @Override
+	@Override
+	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder) throws TRSSearchException, TRSException {
+		return null;
+	}
+
+	@Override
 	public ArrayList<HashMap<String, Object>> getMoodStatistics(SpecialProject specialProject, String timeRange) {
 		return null;
 	}
@@ -3286,6 +3292,21 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 			groupName = groupName.replaceAll("境外媒体","国外新闻");
 		}
 		return groupName;
+	}
+
+	/**
+	 * 获取专题内图表列表数据
+	 *
+	 * @param specialProject
+	 *            专题对象
+
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public Object getChartToListData(SpecialProject specialProject,SpecialChartType specialChartType,String source,String key,String dateTime,String entityType,String mapContrast,
+									 int pageNo,int pageSize,String sort,String fuzzyValue,String fuzzyValueScope,String forwarPrimary,String invitationCard) throws Exception{
+		return null;
 	}
 
 }

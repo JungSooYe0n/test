@@ -73,8 +73,7 @@ public interface ISpecialReportService {
      * @param chapterName
      * @param sid
      */
-    void delReportResource(String reportId, String chapterName,
-                                  String sid) throws Exception ;
+    void delReportResource(String reportId, String chapterName) throws Exception ;
 
     /**
      * 专报报告生成

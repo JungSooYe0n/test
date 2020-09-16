@@ -1239,45 +1239,43 @@ public class Hybase8SearchImpl implements FullTextSearch {
 		log.debug("------>"+!indices.contains(Const.SINAUSERS));
 		if (StringUtil.isNotEmpty(indices) && !indices.contains(Const.SINAUSERS))
 			indices = indices + ";" + Const.INSERT;
-		String ownerId = user.getId();
-		if (StringUtil.isNotEmpty(user.getSubGroupId())){
-			ownerId = user.getSubGroupId();
-		}
-        HybaseShard trsHybaseShard = null;
-        if (UserUtils.isRolePlatform()){
-            //运维
-			String valueFromRedis = "";
-			valueFromRedis = RedisFactory.getValueFromRedis(ownerId+"xiaoku");
-			if (StringUtil.isNotEmpty(valueFromRedis)) {
-				trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
-			}else {
-				trsHybaseShard = hybaseShardService.findByOwnerUserId(ownerId);
-			}
-        }else {
-			String valueFromRedis = "";
-			valueFromRedis = RedisFactory.getValueFromRedis(user.getOrganizationId()+"xiaoku");
-			if (StringUtil.isNotEmpty(valueFromRedis)) {
-				trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
-			}else {
-				if(StringUtil.isNotEmpty(user.getOrganizationId())) trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
-			}
+		if (UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(user)){
+			Organization org = organizationRepository.findOne(user.getOrganizationId());
+			if (ObjectUtil.isNotEmpty(org) && org.isExclusiveHybase()){
+				HybaseShard trsHybaseShard = null;
+				String valueFromRedis = "";
+				valueFromRedis = RedisFactory.getValueFromRedis(user.getOrganizationId() + "xiaoku");
+				if (StringUtil.isNotEmpty(valueFromRedis)) {
+					trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
+				} else {
+					if (StringUtil.isNotEmpty(user.getOrganizationId())){
+						trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+						if(ObjectUtil.isNotEmpty(trsHybaseShard)){
+							RedisFactory.setValueToRedis(user.getOrganizationId() + "xiaoku",trsHybaseShard);
+						}
+					}
+				}
+				if (ObjectUtil.isNotEmpty(trsHybaseShard)) {
 
-        }
-		if (ObjectUtil.isNotEmpty(trsHybaseShard)){
-
-			if (indices.contains(Const.HYBASE_NI_INDEX) && StringUtil.isNotEmpty(trsHybaseShard.getTradition())){
-				indices = indices.replaceAll(Const.HYBASE_NI_INDEX,trsHybaseShard.getTradition());
-			}
-			if (indices.contains(Const.WEIBO) && StringUtil.isNotEmpty(trsHybaseShard.getWeiBo())){
-				indices = indices.replaceAll(Const.WEIBO,trsHybaseShard.getWeiBo());
-			}
-			if (indices.contains(Const.WECHAT) && StringUtil.isNotEmpty(trsHybaseShard.getWeiXin())){
-				indices = indices.replaceAll(Const.WECHAT,trsHybaseShard.getWeiXin());
-			}
-			if (indices.contains(Const.HYBASE_OVERSEAS) && StringUtil.isNotEmpty(trsHybaseShard.getOverseas())){
-				indices = indices.replaceAll(Const.HYBASE_OVERSEAS,trsHybaseShard.getOverseas());
+					if (indices.contains(Const.HYBASE_NI_INDEX) && StringUtil.isNotEmpty(trsHybaseShard.getTradition())) {
+						indices = indices.replaceAll(Const.HYBASE_NI_INDEX, trsHybaseShard.getTradition());
+					}
+					if (indices.contains(Const.WEIBO) && StringUtil.isNotEmpty(trsHybaseShard.getWeiBo())) {
+						indices = indices.replaceAll(Const.WEIBO, trsHybaseShard.getWeiBo());
+					}
+					if (indices.contains(Const.WECHAT) && StringUtil.isNotEmpty(trsHybaseShard.getWeiXin())) {
+						indices = indices.replaceAll(Const.WECHAT, trsHybaseShard.getWeiXin());
+					}
+					if (indices.contains(Const.HYBASE_OVERSEAS) && StringUtil.isNotEmpty(trsHybaseShard.getOverseas())) {
+						indices = indices.replaceAll(Const.HYBASE_OVERSEAS, trsHybaseShard.getOverseas());
+					}
+					if (indices.contains(Const.HYBASE_VIDEO) && StringUtil.isNotEmpty(trsHybaseShard.getVideo())) {
+						indices = indices.replaceAll(Const.HYBASE_VIDEO, trsHybaseShard.getVideo());
+					}
+				}
 			}
 		}
+
 		return indices;
 	}
 private String isArticleDelete(String startTrsl,String... indices){
@@ -1794,6 +1792,69 @@ private String isArticleDelete(String startTrsl,String... indices){
 	@Override
 	public <T extends IDocument> List<T> ftsQuery(QueryBuilder query, Class<T> resultClass) throws com.trs.netInsight.handler.exception.TRSException, TRSSearchException {
 		return null;
+	}
+
+	@Override
+	public <T extends IDocument> PagedList<T> ftsAlertList(QueryBuilder query, Class<T> resultClass) throws  TRSSearchException {
+		queryCount();
+
+		TRSConnection connection = null;
+		String trsl = query.asTRSL();
+		String orderBy = query.getOrderBy();
+		long pageNo = query.getPageNo();
+		int pageSize = query.getPageSize();
+		try {
+			String startConnect = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+			connection = HybaseFactory.getClient();
+			String endConnect = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+			int connectTime = Integer.parseInt(endConnect.substring(8, 17))
+					- Integer.parseInt(startConnect.substring(8, 17));
+			SearchParams searchParams = new SearchParams();
+			searchParams.setSortMethod(StringUtil.avoidNull(query.getOrderBy()));
+			searchParams.setReadColumns(String.join(";", FtsParser.getSearchField(resultClass)));
+			searchParams.setColorColumns(String.join(";", FtsParser.getHighLightField(resultClass)));
+			searchParams.setTimeOut(60);
+			String search = extractByTrsl(trsl, true,"alert");
+
+			log.warn(trsl);
+			if (search != null) {
+				searchParams.setProperty("search.range.filter", search);
+			}
+
+			long from = (pageNo < 0) ? 0 : pageNo * pageSize;
+			long recordNum = (pageSize < 0) ? MAX_PAGE_SIZE : pageSize;
+			if (recordNum == 0) {
+				recordNum = 20;
+			}
+
+			// 微博的话 加上IR_RETWEETED_MID:(0 OR "") 标示原发
+			log.info(trsl);
+			long startHybase = new Date().getTime();
+			String db = query.getDatabase();
+			log.info(db);
+			TRSResultSet resultSet = connection.executeSelect(db, trsl, from, recordNum, searchParams);
+			// 系统日志记录
+			systemLogRecord(trsl);
+			long endHybase = new Date().getTime();
+			int queryTime = (int) (endHybase - startHybase);
+			queryTime(startHybase, endHybase, trsl, queryTime, connectTime, db, connection.getURL(), false);
+			List<T> entities = new ArrayList<>();
+			for (int i = 0; i < resultSet.size(); i++) {
+				if (resultSet.moveTo(i)) {
+					TRSRecord trsRecord = resultSet.get();
+					entities.add(FtsParser.toEntity(trsRecord, resultClass));
+				}
+			}
+			long count = resultSet.getNumFound();
+			return new PagedList<T>(pageSize < 0 ? 0 : (int) pageNo, (int) (pageSize < 0 ? MAX_PAGE_SIZE : pageSize),
+					(int) (count - Math.max(0, 0)), entities, 1);
+		} catch (Exception e) {
+			log.error("fail to search by hybase: [" + trsl + "],order:[" + orderBy + "],page number:[" + pageNo
+					+ "],size:[" + pageSize + "]", e);
+			throw new TRSSearchException("检索异常", e);
+		} finally {
+			HybaseFactory.clean();
+		}
 	}
 
 	/**

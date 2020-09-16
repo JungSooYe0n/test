@@ -25,14 +25,14 @@ import com.trs.netInsight.widget.config.entity.SystemConfig;
  */
 public interface ISystemConfigService {
 
-	String queryOneHybaseDatabase(String type);
+	/*String queryOneHybaseDatabase(String type);*/
 
 	HybaseDatabaseConfig queryHybaseDatabases();
 
 	SystemConfig findSystemConfig();
 
 	void updateSystemConfig(String orgName, String logoName, Boolean deleteOrg, Boolean needOperation);
-	void updateHybaseDatabaseConfig(String traditional, String weibo, String weixin, String overseas, String insert, String sinaweiboUsers);
+	void updateHybaseDatabaseConfig(String traditional, String weibo, String weixin, String overseas,String video, String insert, String sinaweiboUsers);
 }
 
 /**

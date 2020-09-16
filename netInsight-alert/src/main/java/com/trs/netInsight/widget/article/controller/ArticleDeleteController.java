@@ -16,7 +16,9 @@ package com.trs.netInsight.widget.article.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.trs.netInsight.support.hybaseRedis.HybaseReadUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.widget.report.service.IMaterialLibraryNewService;
 import com.trs.netInsight.widget.report.service.IReportService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +64,8 @@ public class ArticleDeleteController {
 
 	@Autowired
 	private IReportService reportService;
+	@Autowired
+	private IMaterialLibraryNewService materialLibraryNewService;
 
 	/**
 	 * 添加文章删除
@@ -108,8 +112,12 @@ public class ArticleDeleteController {
 			// 同时需要删除收藏
 			String sidsJoined = StringUtil.join(sids, SEMICOLON);
 			reportService.delFavourites(sidsJoined, userId);
+			materialLibraryNewService.delLibraryResourceForIds(sidsJoined);
 			if(StringUtils.isNotBlank(id)){
 				RedisFactory.deleteAllKey(id);
+			}
+			if(sids != null && sids.length >0){
+				HybaseReadUtil.remaveHybaseReadRedisKey(UserUtils.getUser());
 			}
 			return list;
 		}

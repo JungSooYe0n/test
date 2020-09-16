@@ -13,9 +13,11 @@
  */
 package com.trs.netInsight.config.constant;
 
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.config.entity.HybaseDatabaseConfig;
 import com.trs.netInsight.widget.config.service.ISystemConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.util.StringUtils;
 
@@ -144,6 +146,31 @@ public class Const {
     public static final String EXPORT_VIEW = "EXPORT_VIEW";
     public static final String NETIZEN_VIEW = "NETIZEN_VIEW";
 
+    //	已发预警详情库 - 默认的
+    public static final String DEFAULT_ALERT = "system2.alert";
+    //	已发预警 类型 主要是 微信与APP  -- 默认的
+    public static final String DEFAULT_ALERTTYPE = "system2.alert_type";
+
+    //	已发预警详情库
+    public static  String ALERT = "system2.alert";
+    @Value("${alert.database}")
+    public void setALERT(String alertDatabse) {
+        if(StringUtil.isNotEmpty(alertDatabse)){
+            this.ALERT = alertDatabse;
+        }else{
+            this.ALERT = this.DEFAULT_ALERT;
+        }
+    }
+    //	已发预警 类型 主要是 微信与APP
+    public static  String ALERTTYPE = "system2.alert_type";
+    @Value("${alert.type.database}")
+    public void setALERTTYPE(String alertTypeDatabse) {
+        if(StringUtil.isNotEmpty(alertTypeDatabse)){
+            this.ALERTTYPE = alertTypeDatabse;
+        }else{
+            this.ALERTTYPE = this.DEFAULT_ALERTTYPE;
+        }
+    }
 
 /**hybase库名区间结束
  * ********************************************************************************************************************************************
@@ -270,6 +297,16 @@ public class Const {
      * 论坛 按照 IR_SRCNAME=(0 OR "") 判断为新闻原发
      */
     public static final String SRCNAME_XINWEN = FtsFieldConst.FIELD_SRCNAME + ":(0 OR \"\")";
+
+    /**
+     *  IR_OCR_CONTENT 不为空
+     */
+    public static final String OCR_INCLUDE = "*:* -"+FtsFieldConst.FIELD_OCR_CONTENT + ":(\"\")";
+
+    /**
+     * IR_OCR_CONTENT 为空
+     */
+    public static final String OCR_NOT_INCLUDE = FtsFieldConst.FIELD_OCR_CONTENT + ":(\"\")";
 
     /**
      * 预警标题长度
@@ -497,39 +534,6 @@ public class Const {
             put("app", "国内新闻_手机客户端");
         }
     };
-
-    /**
-     * 数据来源
-     */
-   /* public static final Map<String, String> DATA_SOURCES = new HashMap<String, String>() {
-
-        private static final long serialVersionUID = 1L;
-
-        {
-            put("国内新闻", Const.GROUPNAME_XINWEN);
-            put("新闻", Const.GROUPNAME_XINWEN);
-            put("微博", Const.GROUPNAME_WEIBO);
-            put("微信", Const.GROUPNAME_WEIXIN);
-            put("国内微信", Const.GROUPNAME_WEIXIN);
-            put("客户端", Const.GROUPNAME_KEHUDUAN);
-            put("手机客户端", Const.GROUPNAME_KEHUDUAN);
-            put("国内新闻_手机客户端", Const.GROUPNAME_KEHUDUAN);
-            put("论坛", Const.GROUPNAME_LUNTAN);
-            put("国内论坛", Const.GROUPNAME_LUNTAN);
-            put("博客", Const.GROUPNAME_BOKE);
-            put("国内博客", Const.GROUPNAME_BOKE);
-            put("电子报", Const.GROUPNAME_DIANZIBAO);
-            put("国内新闻_电子报", Const.GROUPNAME_DIANZIBAO);
-            put("国外新闻", Const.GROUPNAME_GUOWAIXINWEN);
-            put("境外媒体", Const.GROUPNAME_GUOWAIXINWEN);
-            put("境外网站", Const.GROUPNAME_GUOWAIXINWEN);
-            put("境外新闻", Const.GROUPNAME_GUOWAIXINWEN);
-            put("Twitter", Const.GROUPNAME_TWITTER);
-            put("twitter", Const.GROUPNAME_TWITTER);
-            put("Facebook", Const.GROUPNAME_FACEBOOK);
-            put("FaceBook", Const.GROUPNAME_FACEBOOK);
-        }
-    };*/
 
     /**
      * 微信网址的配置项
@@ -835,6 +839,9 @@ public class Const {
             put(GROUPNAME_TWITTER, SHEET_TWITTER);
             put(GROUPNAME_FACEBOOK, SHEET_FACEBOOK);
             put("FaceBook", SHEET_FACEBOOK);
+            put(SHEET_ZIMEITI, GROUPNAME_ZIMEITI);
+            put(SHEET_DUANSHIPIN, GROUPNAME_DUANSHIPIN);
+            put(SHEET_CHANGSHIPIN, GROUPNAME_CHANGSHIPIN);
         }
     };
     /**
@@ -1311,6 +1318,7 @@ public class Const {
             put("新疆", "中国\\\\新疆自治区");// hybase中是这个 正确是新疆维吾尔自治区
             put("香港", "中国\\\\香港特别行政区");
             put("澳门", "中国\\\\澳门特别行政区");
+            put("其他", "其他");
         }
     };
     /**
@@ -1354,6 +1362,7 @@ public class Const {
             put("新疆", "新疆维吾尔族自治区");
             put("香港", "香港特别行政区");
             put("澳门", "澳门特别行政区");
+            put("其他", "其他");
         }
     };
     @Autowired
@@ -1371,6 +1380,7 @@ public class Const {
         SINAUSERS = hybaseDatabaseConfig.getSinaweiboUsers();
         INSERT = hybaseDatabaseConfig.getInsert();
         HYBASE_OVERSEAS = hybaseDatabaseConfig.getOverseas();
+        HYBASE_VIDEO = hybaseDatabaseConfig.getVideo();
     }
 
     public static final List<String> PAGE_SHOW_DATASOURCE_SORT = Arrays.asList(Const.PAGE_SHOW_XINWEN,  Const.PAGE_SHOW_KEHUDUAN,Const.PAGE_SHOW_DIANZIBAO,Const.PAGE_SHOW_WEIBO, Const.PAGE_SHOW_WEIXIN,
@@ -1392,9 +1402,16 @@ public class Const {
      * 内容行业
      */
     public static final List<String> CONTENT_INDUSTRY = Arrays.asList("财经","医疗","科技","军事","体育","汽车","房产","旅游","法治","文化","食品","其他");
+    /**
+     * 地域信息
+     */
     public static final List<String> AREA_LIST = Arrays.asList( "北京", "天津", "上海", "重庆", "河北", "山西", "辽宁", "吉林", "黑龙江", "江苏", "浙江", "安徽", "福建", "江西", "山东",
             "河南", "湖北", "湖南", "广东", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "台湾", "内蒙古", "广西", "西藏", "宁夏", "新疆", "香港", "澳门","其他");
 
+    /**
+     * 信息不过滤  当等于这个值的时候，代表信息不过滤
+     */
+    public static final String NOT_FILTER_INFO ="notFilter";
     /**
      * 信息过滤
      */
@@ -1416,6 +1433,7 @@ public class Const {
     public static final List<String> GATHER_TYPE_TWITTER = Arrays.asList("Twitter", "twitter");
     public static final List<String> GATHER_TYPE_FACEBOOK = Arrays.asList("FaceBook", "Facebook", "facebook");
     public static final List<String> GATHER_YUAN = Arrays.asList("元搜索");
+    public static final String GATHER_QITA = "其它";
     public static final String GATHER_NO_AUDIT = "未审核";
     public static final String GATHER_AUDITED = "已审核";
     public static final String GATHER_AUDITING = "审核中";

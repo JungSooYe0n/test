@@ -1,5 +1,6 @@
 package com.trs.netInsight.support.api.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.ColumnConst;
@@ -286,7 +287,7 @@ public class ApiController {
             ColumnConfig config = new ColumnConfig();
             config.initSection(indexTab, timerange, 0, pageSize, "", "", entityType, "", "", "default",
                     "", "", "","","", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                    indexTab.getContentArea(), indexTab.getMediaArea(), "");
+                    indexTab.getContentArea(), indexTab.getMediaArea(), "","");
             //column.setChartAnalyzeService(chartAnalyzeService);
             column.setDistrictInfoService(districtInfoService);
             column.setCommonListService(commonListService);
@@ -347,7 +348,7 @@ public class ApiController {
                 }
                 config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort, invitationCard, "", "",forwarPrimary,
                         "", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                        indexTab.getContentArea(), indexTab.getMediaArea(), "");
+                        indexTab.getContentArea(), indexTab.getMediaArea(), "","");
                 column.setDistrictInfoService(districtInfoService);
                 column.setCommonListService(commonListService);
                 column.setCommonChartService(commonChartService);
@@ -423,7 +424,9 @@ public class ApiController {
         if (pageSize > maxPageSize){
             pageSize = maxPageSize;
         }
-        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"","","","","",false,0,false,"","","","","","","","");
+        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"",
+                "","","","",false,0,false,"","",
+                "","","","","","","","");
     }
 
     /**
@@ -507,7 +510,9 @@ public class ApiController {
     @GetMapping("/getStatusOption")
     public Object getStatusOption(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.weiboOption(specialId, "", "ALL", "ALL");
+        return specialChartAnalyzeController.weiboOption(specialId, "", false,null,null,null,null,
+                null,null,null,null,null,null,
+                null,null,null,null,null,null,null,null,null,null,null);
     }
 
 
@@ -641,7 +646,9 @@ public class ApiController {
     public Object getWordCloud(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId,
                                @RequestParam(value = "entityType") String entityType) throws Exception {
-        return specialChartAnalyzeController.getWordYun(specialId, "ALL", "ALL", "", entityType, "all");
+        return specialChartAnalyzeController.getWordYun(specialId, "",entityType,"all",false,null,null,null,null,
+                null,null,null,null,null,null,
+                null,null,null,null,null,null,null,null,null,null,null);
     }
 
     /**
@@ -766,9 +773,16 @@ public class ApiController {
         if (pageSize > maxPageSize){
             pageSize = maxPageSize;
         }
-        return infoListController.searchList(pageNo,pageSize,time,simflag,"positioCon",false,sort,"ALL",keywords,
-                null,emotion,null,null,"ALL",null,null,"ALL","ALL",invitationCard,
-                forwarPrimary,null,null,"","",groupName);
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("keyWords",keywords);
+        jsonObject.put("wordSpace",0);
+        jsonObject.put("wordOrder",false);
+        jsonArray.add(jsonObject);
+        keywords = jsonArray.toJSONString();
+        return infoListController.searchList(pageNo,pageSize,sort,keywords,"precise",time,simflag,"1",false,"","",emotion,
+                0,false,"","","1","ALL","","","",
+                "","","","","",invitationCard,forwarPrimary,"","",groupName);
     }
 
     /**

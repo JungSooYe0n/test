@@ -33,6 +33,8 @@ import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.entity.IndexTabType;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
+import com.trs.netInsight.widget.column.entity.pageShow.IndexPageDTO;
+import com.trs.netInsight.widget.column.entity.pageShow.IndexTabDTO;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
@@ -47,16 +49,11 @@ import com.trs.netInsight.widget.column.service.IIndexTabService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.microblog.entity.SpreadObject;
-import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
-import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.annotation.Obsolete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -123,6 +120,206 @@ public class ColumnServiceImpl implements IColumnService {
 	private IColumnChartService columnChartService;
 
 
+	public Object selectNextShowColumn(String id,ColumnFlag columnFlag){
+		User user = UserUtils.getUser();
+		IndexPage parent = null;
+		String topFlag = null;
+		Map<String,Object> map = new HashMap<>();
+		if(ColumnFlag.IndexPageFlag.equals(columnFlag)){
+			IndexPage indexPage = indexPageRepository.findOne(id);
+			if(indexPage != null){
+				if(StringUtil.isNotEmpty(indexPage.getParentId())){
+					parent = indexPageRepository.findOne(indexPage.getParentId());
+				}
+			}
+		}else if(ColumnFlag.IndexTabFlag.equals(columnFlag)){
+			IndexTabMapper mapper = tabMapperRepository.findOne(id);
+			if(mapper!=null){
+				topFlag = mapper.getTopFlag();
+				parent = mapper.getIndexPage();
+			}
+		}
+		Object result = null;
+		if(parent != null){  //在分组下
+
+			List<IndexPage> oneIndexPage = parent.getChildrenPage();
+			List<IndexTabMapper> oneIndexTab = parent.getIndexTabMappers();
+			List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
+			if(sortColumn == null || sortColumn.size() <=1){
+				result = parent;
+			}else{
+				result = getNextNode(sortColumn,id,columnFlag);
+			}
+		}else{ // 第一层的数据， 置顶的和不置顶的分开
+			List<IndexPage> oneIndexPage = null;
+			List<IndexTabMapper> oneIndexTab = null;
+			List<IndexTabMapper> top = null;
+			Map<String,Object> oneColumn = this.getOneLevelColumnForMap("",user);
+			if (oneColumn.containsKey("page")) {
+				oneIndexPage = (List<IndexPage>) oneColumn.get("page");
+			}
+			if (oneColumn.containsKey("tab")) {
+				oneIndexTab = (List<IndexTabMapper>) oneColumn.get("tab");
+			}
+			if (oneColumn.containsKey("top")) {
+				top = (List<IndexTabMapper>) oneColumn.get("top");
+			}
+			List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
+			if("top".equals(topFlag)){
+				//List<IndexTabMapper> findTop = getTopIndexTabMapper(user);
+				if(top != null && top.size() >1){
+					int index = 0;
+					for(int i = 0;i <top.size();i++){
+						if(id.equals(top.get(i).getId())){
+							index = i;
+							break;
+						}
+					}
+					if(index == top.size()-1){ // 这里是用的下标判断，判断当前这个是否是整个top的最后一个下标，是则拿前一个
+						result = top.get(index-1);
+					}else{
+						result = top.get(index+1);
+					}
+				}else{
+					// 找到所有元素中的第一个
+					if(sortColumn == null || sortColumn.size() ==0){
+						result = null;
+					}else{
+						result = sortColumn.get(0);
+					}
+				}
+			}else{
+				// 找到当前元素的下一个有东西的元素 下一个没有就找上一个 不直接用seq 判断是因为可能存在seq错误的情况，但是都是按照上面的方法排序后的数据，跟页面一致
+				// 找到所有元素中的第一个
+				if(sortColumn == null || sortColumn.size() <=1){
+					//如果第一层只有当前一个，看他上面有没有置顶的
+					if(top != null && top.size() >0){
+						result = top.get(top.size() -1);
+					}else{
+						result = null;
+					}
+				}else{
+					result = getNextNode(sortColumn,id,columnFlag);
+				}
+			}
+		}
+		if(result == null){
+			map.put("id",null);
+			map.put("flag",null);
+			map.put("name",null);
+		}else{
+			if (result instanceof IndexTabMapper) {
+				IndexTabMapper mapper = (IndexTabMapper)result;
+				map.put("id",mapper.getId());
+				map.put("flag",1);
+				map.put("name",mapper.getIndexTab().getName());
+			} else if (result instanceof IndexPage) {
+				IndexPage page = (IndexPage)result;
+				map.put("id",page.getId());
+				map.put("flag",0);
+				map.put("name",page.getName());
+			}
+		}
+		return map;
+	}
+
+	private Object getNextNode(List<Object> sortColumn,String id,ColumnFlag columnFlag){
+		if(sortColumn != null && sortColumn.size() >0){
+			int index = -1;
+			for(int i = 0;i <sortColumn.size();i++){
+				if (sortColumn.get(i) instanceof IndexTabMapper) {
+					IndexTabMapper mapper = (IndexTabMapper)sortColumn.get(i);
+					if(id.equals(mapper.getId())  && ColumnFlag.IndexTabFlag.equals(columnFlag)){
+						index = i;
+						break;
+					}
+				} else if (sortColumn.get(i) instanceof IndexPage) {
+					IndexPage page = (IndexPage)sortColumn.get(i);
+					if(id.equals(page.getId())  && ColumnFlag.IndexPageFlag.equals(columnFlag)){
+						index = i;
+						break;
+					}
+				}
+			}
+			if(index != -1){
+				if(index == sortColumn.size()-1){ // 这里是用的下标判断，判断当前这个是否是整个数据的最后一个下标，是则拿前一个
+					return sortColumn.get(index-1);
+				}else{
+					return sortColumn.get(index+1);
+				}
+			}else{
+				return null;
+			}
+		}
+		return null;
+	}
+
+
+	private List<IndexTabMapper> getTopIndexTabMapper(User user){
+		List<Sort.Order> orders=new ArrayList<Sort.Order>();
+		orders.add( new Sort.Order(Sort.Direction.ASC, "sequence"));
+		orders.add( new Sort.Order(Sort.Direction.ASC, "createdTime"));
+		Criteria<IndexTabMapper> criteria = new Criteria<>();
+		criteria.add(Restrictions.eq("topFlag", "top"));
+		if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
+			criteria.add(Restrictions.eq("userId", user.getId()));
+		}else {
+			criteria.add(Restrictions.eq("subGroupId", user.getSubGroupId()));
+		}
+		 return tabMapperRepository.findAll(criteria,new Sort(orders));
+	}
+
+	/**
+	 * 置顶一个栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	public Object topColumn(String id,User user){
+		List<IndexTabMapper> findTop = getTopIndexTabMapper(user);
+		if(findTop != null && findTop.size() >0){
+			int i =2;
+			for (IndexTabMapper mapper : findTop) {
+				mapper.setSequence(i);
+				i++;
+				tabMapperRepository.save(mapper);
+			}
+		}
+		IndexTabMapper findOne = tabMapperRepository.findOne(id);
+		if(findOne.getIndexPage()!= null){
+			findOne.setBakParentId(findOne.getIndexPage().getId());
+		}
+		findOne.setIndexPage(null);
+		findOne.setSequence(1);
+		findOne.setTopFlag("top");
+		tabMapperRepository.save(findOne);
+		return findOne;
+	}
+
+	/**
+	 * 取消置顶栏目
+	 * @param user 当前用户信息
+	 * @return
+	 */
+	public Object noTopColumn(String id,User user){
+		IndexTabMapper findOne = tabMapperRepository.findOne(id);
+		findOne.setTopFlag(null);
+		String parentId = null;
+		if(StringUtil.isNotEmpty(findOne.getBakParentId())){
+			IndexPage parent = indexPageRepository.findOne(findOne.getBakParentId());
+			if(parent != null && StringUtil.isNotEmpty(parent.getId())){
+				parentId = parent.getId();
+				findOne.setIndexPage(parent);
+			}
+		}
+		Integer  seq = this.getMaxSequenceForColumn(parentId,"",user) +1;
+		findOne.setSequence(seq);
+		findOne.setBakParentId(null);
+		// 放在原来列表最后一个 查找时按照sequence排列
+		tabMapperRepository.save(findOne);
+		return findOne;
+	}
+
+
 	/**
 	 * 获取层级下最的排序值
 	 * @param parentPageId 要获取排序值的对象的上级分组id ，如果没有上级分组，则为空
@@ -147,7 +344,7 @@ public class ColumnServiceImpl implements IColumnService {
 			indexPage = parentPage.getChildrenPage();
 			indexTabMapper = parentPage.getIndexTabMappers();
 		}
-		List<Object> sortColumn = this.sortColumn(indexTabMapper,indexPage,false,false);
+		List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),indexTabMapper,indexPage,false,false);
 		if(sortColumn != null && sortColumn.size() > 0){
 			Object column = sortColumn.get(sortColumn.size()-1);
 			if (column instanceof IndexTabMapper) {
@@ -156,21 +353,21 @@ public class ColumnServiceImpl implements IColumnService {
 				seq = ((IndexPage)column).getSequence();
 			}
 		}
-
 		return seq;
 	}
 
 
 	/**
 	 * 对日常监测分组和栏目进行排序展示
+	 * @param result 这是排序后的结果放到这个中，这个是结果对象，因为 top的东西肯定是在前面，是在外面添加的，写这个是因为方便把top的数据先放进去
 	 * @param mapperList  栏目数据List
 	 * @param indexPageList 分组数据List
 	 * @param sortAll 是否对所有层进行排序，包括当前数据及其子类， 查询列表时对整个列表排序，则为true，如果只是拖拽修改顺序则只排一层即可，为false
 	 * @param onlySortPage 是否只对分组进行排序，因为有时需要获取日常监测下的所有分组，但不需要栏目
 	 * @return
 	 */
-	public List<Object> sortColumn(List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
-		List<Object> result = new ArrayList<>();
+	public List<Object> sortColumn(List<Object> result,List<IndexTabMapper> mapperList,List<IndexPage> indexPageList,Boolean sortAll,Boolean onlySortPage){
+
 
 		List<Map<String,Object>> sortList = new ArrayList<>();
 		if(!onlySortPage){
@@ -218,7 +415,7 @@ public class ColumnServiceImpl implements IColumnService {
 							child_mapper = indexPage.getIndexTabMappers();
 						}
 						if( (child_mapper != null && child_mapper.size()>0) || (child_page != null && child_page.size() >0) ){
-							indexPage.setColumnList(sortColumn(child_mapper,child_page,sortAll,onlySortPage));
+							indexPage.setColumnList(sortColumn(new ArrayList<Object>(),child_mapper,child_page,sortAll,onlySortPage));
 						}
 					}
 					result.add(indexPage);
@@ -234,9 +431,10 @@ public class ColumnServiceImpl implements IColumnService {
 	}
 
 	@Override
-	public List<Object> selectColumn(User user,String typeId) throws OperationException {
+	public Object selectColumn(User user,String typeId) throws OperationException {
 		List<IndexPage> oneIndexPage = null;
 		List<IndexTabMapper> oneIndexTab = null;
+		List<IndexTabMapper> top = null;
 		Map<String,Object> oneColumn = this.getOneLevelColumnForMap(typeId,user);
 		if (oneColumn.containsKey("page")) {
 			oneIndexPage = (List<IndexPage>) oneColumn.get("page");
@@ -244,11 +442,18 @@ public class ColumnServiceImpl implements IColumnService {
 		if (oneColumn.containsKey("tab")) {
 			oneIndexTab = (List<IndexTabMapper>) oneColumn.get("tab");
 		}
+		if (oneColumn.containsKey("top")) {
+			top = (List<IndexTabMapper>) oneColumn.get("top");
+		}
+		List<Object> result = new ArrayList<>();
+		if(top != null && top.size()>0){
+			result.addAll(top);
+		}
 		//获取到了第一层的栏目和分组信息，现在对信息进行排序
-		List<Object> result =  sortColumn(oneIndexTab,oneIndexPage,true,false);
+		List<Object> column =  sortColumn(result,oneIndexTab,oneIndexPage,true,false);
 		List<Boolean> isGetOne = new ArrayList<>();
 		isGetOne.add(false);
-		return formatResultColumn(result,0,isGetOne,false);
+		return formatResultColumn(column,0,isGetOne,null);
 	}
 
 	/**
@@ -258,7 +463,7 @@ public class ColumnServiceImpl implements IColumnService {
 	 * @param isGetOne  是否找到了要显示的第一个栏目
 	 * @return
 	 */
-	private List<Object> formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne,Boolean parentHide) {
+	private Object formatResultColumn(List<Object> list,Integer level,List<Boolean> isGetOne ,IndexPageDTO returnResult) {
 		//前端需要字段
 		/*
 		id
@@ -269,138 +474,32 @@ public class ColumnServiceImpl implements IColumnService {
 		children
 		 */
 		List<Object> result = new ArrayList<>();
-		Map<String, Object> map = null;
 		if (list != null && list.size() > 0) {
 			for (Object obj : list) {
-				map = new HashMap<>();
 				if (obj instanceof IndexTabMapper) {
-
 					IndexTabMapper mapper = (IndexTabMapper) obj;
-					IndexTab tab = mapper.getIndexTab();
-					map.put("id", mapper.getId());
-					map.put("name", tab.getName());
-					map.put("columnType", tab.getSpecialType());
-					map.put("flag", ColumnFlag.IndexTabFlag.ordinal());
-					map.put("flagSort", level);
-					map.put("show", false);//前端需要，与后端无关
-					map.put("hide", mapper.isHide());
-					map.put("isMe", mapper.isMe());
-					map.put("share", mapper.getShare());
-
-					map.put("type", tab.getType());
-					map.put("contrast", tab.getContrast());
-					map.put("groupName", CommonListChartUtil.formatPageShowGroupName(tab.getGroupName()));
-
-					//获取词距信息
-					String keywordJson = tab.getKeyWord();
-					map.put("updateWordForm", false);
-					map.put("wordFromNum", 0);
-					map.put("wordFromSort",false);
-					if(StringUtil.isNotEmpty(keywordJson)){
-						JSONArray jsonArray = JSONArray.parseArray(keywordJson);
-						//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
-						if(jsonArray!= null && jsonArray.size() ==1 ){
-							Object o = jsonArray.get(0);
-							JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
-							String key = jsonObject.getString("keyWords");
-							if(StringUtil.isNotEmpty(key) && key.contains(",")){
-								String wordFromNum = jsonObject.getString("wordSpace");
-								Boolean wordFromSort = jsonObject.getBoolean("wordOrder");
-								map.put("updateWordForm", true);
-								map.put("wordFromNum", wordFromNum);
-								map.put("wordFromSort",wordFromSort);
-							}
+					IndexTabDTO indexTabDTO = new IndexTabDTO(mapper,level);
+					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
+						isGetOne.set(0,true);
+						if(returnResult == null){
+							indexTabDTO.setActive(true);
+							isGetOne.set(0,true);
+						}else{
+							returnResult.setActive(true);
 						}
 					}
-					map.put("keyWord", keywordJson);
-					map.put("keyWordIndex", tab.getKeyWordIndex());
-					map.put("weight", tab.isWeight());
-					map.put("excludeWords", tab.getExcludeWords());
-					map.put("excludeWordsIndex", tab.getExcludeWordIndex());
-					map.put("excludeWeb", tab.getExcludeWeb());
-					map.put("monitorSite", tab.getMonitorSite());
-					//排重方式 不排 no，单一媒体排重 netRemove,站内排重 urlRemove,全网排重 sourceRemove
-					if (tab.isSimilar()) {
-						map.put("simflag", "netRemove");
-					} else if (tab.isIrSimflag()) {
-						map.put("simflag", "urlRemove");
-					} else if (tab.isIrSimflagAll()) {
-						map.put("simflag", "sourceRemove");
-					} else {
-						map.put("simflag", "no");
-					}
-					map.put("tabWidth", mapper.getTabWidth());
-					map.put("timeRange", tab.getTimeRange());
-					map.put("trsl", tab.getTrsl());
-					map.put("xyTrsl", tab.getXyTrsl());
-
-					if(StringUtil.isNotEmpty(tab.getMediaLevel())){
-						map.put("mediaLevel", tab.getMediaLevel());
-					}else{
-						map.put("mediaLevel", StringUtils.join(Const.MEDIA_LEVEL,";"));
-					}
-					if(StringUtil.isNotEmpty(tab.getMediaIndustry())){
-						map.put("mediaIndustry", tab.getMediaIndustry());
-					}else{
-						map.put("mediaIndustry", StringUtils.join(Const.MEDIA_INDUSTRY,";"));
-					}
-					if(StringUtil.isNotEmpty(tab.getContentIndustry())){
-						map.put("contentIndustry", tab.getContentIndustry());
-					}else{
-						map.put("contentIndustry", StringUtils.join(Const.CONTENT_INDUSTRY,";"));
-					}
-					if(StringUtil.isNotEmpty(tab.getFilterInfo())){
-						map.put("filterInfo", tab.getFilterInfo());
-					}else{
-						map.put("filterInfo", StringUtils.join(Const.FILTER_INFO,";")+";其他");
-					}
-					if(StringUtil.isNotEmpty(tab.getContentArea())){
-						map.put("contentArea", tab.getContentArea());
-					}else{
-						map.put("contentArea", StringUtils.join(Const.AREA_LIST,";"));
-					}
-					if(StringUtil.isNotEmpty(tab.getMediaArea())){
-						map.put("mediaArea", tab.getMediaArea());
-					}else{
-						map.put("mediaArea", StringUtils.join(Const.AREA_LIST,";"));
-					}
-
-					map.put("active", false);
-
-					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
-						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
-						//if(!mapper.isHide() && !parentHide){
-							map.put("active", true);
-							isGetOne.set(0,true);
-						//}
-					}
+					result.add(indexTabDTO);
 
 				} else if (obj instanceof IndexPage) {
 					IndexPage page = (IndexPage) obj;
-					map.put("id", page.getId());
-					map.put("name", page.getName());
-					map.put("flag", ColumnFlag.IndexPageFlag.ordinal());
-					map.put("flagSort", level);
-					map.put("show", false);//前端需要，与后端无关
-					map.put("hide", page.isHide());
-					map.put("active", false);
+					IndexPageDTO indexPageDTO = new IndexPageDTO(page,level);
 					List<Object> childColumn = page.getColumnList();
-					List<Object> child = new ArrayList<>();
-					/*//如果父级被隐藏，这一级也会被隐藏，直接用父级的隐藏值
-					//如果父级没被隐藏，当前级被隐藏，则用当前级的隐藏值
-					//如果父级没隐藏，当前级没隐藏，用没隐藏，父级则可
-					if(!parentHide){
-						if(page.isHide()){
-							parentHide = true;
-						}
-					}
-					//如果分组被隐藏了，前端不会显示，所以这里不查询了*/
 					if (childColumn != null && childColumn.size() > 0) {
-						child = this.formatResultColumn(childColumn,level+1,isGetOne,false);
+						Object child = this.formatResultColumn(childColumn,level+1,isGetOne,indexPageDTO);
+						indexPageDTO.setChildren(child);
 					}
-					map.put("children", child);
+					result.add(indexPageDTO);
 				}
-				result.add(map);
 			}
 		}
 		return result;
@@ -460,23 +559,23 @@ public class ColumnServiceImpl implements IColumnService {
 			result.put("page",oneIndexPage);
 		}
 		if(oneIndexTab != null && oneIndexTab.size() >0){
-			result.put("tab",oneIndexTab);
+			List<IndexTabMapper> topList = new ArrayList<>();
+			List<IndexTabMapper> otherIndexTab = new ArrayList<>();
+			for(IndexTabMapper mapper :oneIndexTab){
+				if("top".equals(mapper.getTopFlag())){
+					topList.add(mapper);
+				}else{
+					otherIndexTab.add(mapper);
+				}
+			}
+			if(topList != null && topList.size() >0){
+				result.put("top",topList);
+			}
+			if(otherIndexTab != null && otherIndexTab.size() >0){
+				result.put("tab",otherIndexTab);
+			}
 		}
 		return  result;
-	}
-
-	@Override
-	public Object getOneLevelColumn(String typeId,User user){
-
-		Map<String,Object> map = getOneLevelColumnForMap(typeId,user);
-		List<Object> result = new ArrayList<>();
-		if(map.containsKey("page")){
-			result.addAll((List<Object>)map.get("page"));
-		}
-		if(map.containsKey("tab")){
-			result.addAll((List<Object>)map.get("tab"));
-		}
-		return result;
 	}
 
 	@Override
@@ -514,14 +613,15 @@ public class ColumnServiceImpl implements IColumnService {
 				pageList = parentPage.getChildrenPage();
 				mapperList = parentPage.getIndexTabMappers();
 			}
-			List<Object> sortColumn = this.sortColumn(mapperList, pageList, false,false);
+			List<Object> sortColumn = this.sortColumn(new ArrayList<>(),mapperList, pageList, false,false);
 			int seq = 1;
 			for (Object o : sortColumn) {
 				if (o instanceof IndexTabMapper) {
 					IndexTabMapper seqMapper = (IndexTabMapper) o;
-					if (flag.equals(ColumnFlag.IndexTabFlag) && !moveMapper.getId().equals(seqMapper.getId())) {
+					if ((flag.equals(ColumnFlag.IndexTabFlag) && !moveMapper.getId().equals(seqMapper.getId()))
+							|| flag.equals(ColumnFlag.IndexPageFlag)) {
 						seqMapper.setSequence(seq);
-						if(seqMapper.isMe()){
+						if (seqMapper.isMe()) {
 							IndexTab seqTab = seqMapper.getIndexTab();
 							seqTab.setSequence(seq);
 							indexTabRepository.saveAndFlush(seqTab);
@@ -531,7 +631,8 @@ public class ColumnServiceImpl implements IColumnService {
 					}
 				} else if (o instanceof IndexPage) {
 					IndexPage seqPage = (IndexPage) o;
-					if (flag.equals(ColumnFlag.IndexPageFlag) && !movePage.getId().equals(seqPage.getId())) {
+					if ((flag.equals(ColumnFlag.IndexPageFlag) && !movePage.getId().equals(seqPage.getId()))
+							|| flag.equals(ColumnFlag.IndexTabFlag)) {
 						seqPage.setSequence(seq);
 						seq++;
 						indexPageRepository.saveAndFlush(seqPage);
@@ -557,6 +658,7 @@ public class ColumnServiceImpl implements IColumnService {
 			JSONObject move = JSONObject.parseObject(moveData);
 			String moveId = move.getString("id");
 			ColumnFlag moveFlag = ColumnFlag.values()[move.getInteger("flag")];
+			Boolean topFlag = move.getBoolean("topFlag");
 			String moveParentId = null;
 
 			//修改同级下的其他分组的顺序
@@ -577,14 +679,15 @@ public class ColumnServiceImpl implements IColumnService {
 				moveParentId = "";
 			}
 			//被拖拽的元素更换了层级，需要对元素本来的层级的数据重新排序
-			if (!parentId.equals(moveParentId)) {
+			if (!topFlag &&!parentId.equals(moveParentId)) {
 				//对原来的同层级的数据排序
 				this.moveSequenceForColumn(moveId,moveFlag, user);
 			}
 
 			JSONArray array = JSONArray.parseArray(data);
+			List<Object> filter = array.stream().filter(json -> topFlag.equals(JSONObject.parseObject(String.valueOf(json)).getBoolean("topFlag")) ).collect(Collectors.toList());
 			Integer sequence = 0;
-			for (Object json : array) {
+			for (Object json : filter) {
 				sequence += 1;
 				JSONObject parseObject = JSONObject.parseObject(String.valueOf(json));
 				String id = parseObject.getString("id");
@@ -668,7 +771,7 @@ public class ColumnServiceImpl implements IColumnService {
 				throw new OperationException("当前分组不存在");
 			}
 			//重新排序
-			User user = userService.findOne(indexPage.getUserId());
+			User user = UserUtils.getUser();
 			this.moveSequenceForColumn(indexPageId, ColumnFlag.IndexPageFlag, user);
 			List<IndexPage> list = new ArrayList<>();
 			list.add(indexPage);
@@ -1517,7 +1620,7 @@ public class ColumnServiceImpl implements IColumnService {
 	public Object selectList(IndexTab indexTab, int pageNo, int pageSize, String source, String emotion, String entityType,
 							 String dateTime, String key, String sort,  String invitationCard,
 							 String forwarPrimary, String keywords, String fuzzyValueScope,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-							 String contentArea,String mediaArea,String preciseFilter) {
+							 String contentArea,String mediaArea,String preciseFilter,String imgOcr) {
 		String userName = UserUtils.getUser().getUserName();
 		long start = new Date().getTime();
 		if (indexTab != null) {
@@ -1527,7 +1630,7 @@ public class ColumnServiceImpl implements IColumnService {
 				ColumnConfig config = new ColumnConfig();
 				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort,  invitationCard,
-						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
 				column.setCommonListService(commonListService);
 				column.setCommonChartService(commonChartService);
 				column.setCommonListService(commonListService);
@@ -1542,92 +1645,7 @@ public class ColumnServiceImpl implements IColumnService {
 					InfoListResult infoListResult = (InfoListResult) list;
 					String trslk = infoListResult.getTrslk();
 					if (infoListResult.getContent() != null) {
-						PagedList<Object> resultContent = null;
-						List<Object> resultList = new ArrayList<>();
-						PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
-						if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
-							List<FtsDocumentCommonVO> voList = pagedList.getPageItems();
-							for (FtsDocumentCommonVO vo : voList) {
-								Map<String, Object> map = new HashMap<>();
-								String groupName = CommonListChartUtil.formatPageShowGroupName(vo.getGroupName());
-								map.put("id", vo.getSid());
-								map.put("groupName", groupName);
-								map.put("time", vo.getUrlTime());
-								map.put("md5", vo.getMd5Tag());
-								String title= vo.getTitle();
-								map.put("title", title);
-								if(StringUtil.isNotEmpty(title)){
-									title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
-								}
-								map.put("copyTitle", title); //前端复制功能需要用到
-								if("1".equals(wordIndex)){
-									//摘要
-									map.put("abstracts", vo.getContent());
-								}else{
-									//摘要
-									map.put("abstracts", vo.getAbstracts());
-								}
-								if(vo.getKeywords() != null && vo.getKeywords().size() >3){
-									map.put("keyWordes", vo.getKeywords().subList(0,3));
-								}else{
-									map.put("keyWordes", vo.getKeywords());
-								}
-								String voEmotion =  vo.getAppraise();
-								if(StringUtil.isNotEmpty(voEmotion)){
-									map.put("emotion",voEmotion);
-								}else{
-									map.put("emotion","中性");
-									map.put("isEmotion",null);
-								}
-
-								map.put("nreserved1", null);
-								map.put("hkey", null);
-								if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
-									map.put("nreserved1", vo.getNreserved1());
-									map.put("hkey", vo.getHkey());
-								}
-								map.put("urlName", vo.getUrlName());
-								map.put("favourite", vo.isFavourite());
-								String fullContent = vo.getExportContent();
-								if(StringUtil.isNotEmpty(fullContent)){
-									fullContent = ReportUtil.calcuHit("",fullContent,true);
-								}
-                                map.put("siteName", vo.getSiteName());
-                                map.put("author", vo.getAuthors());
-                                map.put("srcName", vo.getSrcName());
-								//微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
-								if (Const.PAGE_SHOW_WEIBO.equals(groupName)) {
-									map.put("title", vo.getContent());
-									map.put("abstracts", vo.getContent());
-									map.put("copyTitle", fullContent); //前端复制功能需要用到
-
-									map.put("author", vo.getScreenName());
-									map.put("srcName", vo.getRetweetedScreenName());
-								} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
-									map.put("title", vo.getContent());
-									map.put("abstracts", vo.getContent());
-									map.put("copyTitle", fullContent); //前端复制功能需要用到
-									map.put("author", vo.getAuthors());
-									map.put("srcName", vo.getRetweetedScreenName());
-								} else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)){
-									map.put("title", vo.getContent());
-									map.put("abstracts", vo.getContent());
-									map.put("author", vo.getAuthors());
-									map.put("srcName", vo.getSrcName());
-									map.put("copyTitle", fullContent); //前端复制功能需要用到
-								}
-								map.put("trslk", trslk);
-								map.put("channel", vo.getChannel());
-								map.put("img", null);
-								//前端页面显示需要，与后端无关
-								map.put("isImg", false);
-								map.put("simNum", 0);
-
-								resultList.add(map);
-							}
-							resultContent = new PagedList<Object>(pagedList.getPageIndex(),
-									pagedList.getPageSize(), pagedList.getTotalItemCount(), resultList, 1);
-						}
+						PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslk,wordIndex);
 						infoListResult.setContent(resultContent);
 					}
 					list = infoListResult;

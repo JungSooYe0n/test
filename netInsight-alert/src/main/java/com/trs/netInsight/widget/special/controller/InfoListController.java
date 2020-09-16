@@ -3,6 +3,7 @@ package com.trs.netInsight.widget.special.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
+import com.trs.hybase.client.TRSInputRecord;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.ESFieldConst;
 import com.trs.netInsight.config.constant.FtsFieldConst;
@@ -10,6 +11,7 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.support.cache.RedisFactory;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
@@ -17,9 +19,14 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.fts.util.TrslUtil;
+import com.trs.netInsight.support.hybaseShard.entity.HybaseShard;
+import com.trs.netInsight.support.hybaseShard.service.IHybaseShardService;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.util.alert.AlertUtil;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
@@ -40,20 +47,25 @@ import com.trs.netInsight.widget.microblog.task.HotReviewsTask;
 import com.trs.netInsight.widget.microblog.task.HotReviewsWeiboTask;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
+import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.JunkData;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.enums.SearchPage;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
+import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.special.service.IJunkDataService;
 import com.trs.netInsight.widget.special.service.ISearchRecordService;
 import com.trs.netInsight.widget.special.service.ISpecialProjectService;
+import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
+import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -93,7 +105,7 @@ public class InfoListController {
 	private ISpecialProjectService specialProjectService;
 
 	@Autowired
-	private AlertRepository alertRepository;
+	private IHybaseShardService hybaseShardService;
 
 	@Autowired
 	private FavouritesRepository favouritesRepository;
@@ -108,6 +120,11 @@ public class InfoListController {
 	private ICommonListService commonListService;
 	@Autowired
 	private SingleMicroblogDataRepository singleMicroblogDataRepository;
+	@Autowired
+	private RequestTimeLogRepository requestTimeLogRepository;
+
+	@Autowired
+	private OrganizationRepository organizationRepository;
 	/**
 	 * 是否走独立预警服务
 	 */
@@ -118,7 +135,8 @@ public class InfoListController {
 	 */
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
-
+	@Autowired
+	private FullTextSearch hybase8SearchServiceNew;
 	// @Autowired
 	// private LogPrintUtil loginpool;
 	/**
@@ -161,31 +179,16 @@ public class InfoListController {
 	@Log(systemLogOperation = SystemLogOperation.SPECIAL_SELECT_ZHUANTI_LIST, systemLogType = SystemLogType.SPECIAL, systemLogOperationPosition = "查询专题数据列表：${specialId}")
 	@FormatResult
 	@ApiOperation("专项检测信息列表")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "specialId", value = "专项ID", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "pageNo", value = "页码", dataType = "int", paramType = "query", required = false),
-			@ApiImplicitParam(name = "pageSize", value = "步长", dataType = "int", paramType = "query", required = false),
-			@ApiImplicitParam(name = "source", value = "来源", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "time", value = "时间", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "area", value = "内容地域", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "industry", value = "行业类型", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "emotion", value = "情感", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "sort", value = " 排序方式", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "keywords", value = " 在结果查询", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "fuzzyValueScope", value = "结果中搜索de范围", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "foreign", value = "欧洲  美国", dataType = "String", paramType = "query", required = false)
-
-	})
 	@RequestMapping(value = "/info", method = RequestMethod.POST)
-	public Object dataList(@RequestParam(value = "specialId") String specialId,
-			@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-			@RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-			@RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
-			@RequestParam(value = "sort", defaultValue = "", required = false) String sort,
-			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
-			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
-			@ApiParam("结果中搜索")@RequestParam(value = "keywords", required = false) String keywords,
-			@ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
+	public Object dataList(@ApiParam("专题id")@RequestParam(value = "specialId") String specialId,
+						   @ApiParam("页码")@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+						   @ApiParam("当前页显示条数")@RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+						   @ApiParam("数据源 -当前列表的")@RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
+						   @ApiParam("排序")@RequestParam(value = "sort", defaultValue = "", required = false) String sort,
+						   @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+						   @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
+						   @ApiParam("结果中搜索") @RequestParam(value = "keywords", required = false) String keywords,
+						   @ApiParam("结果中搜索的范围") @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
 
 						   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
 						   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
@@ -194,9 +197,9 @@ public class InfoListController {
 						   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
 						   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 						   @ApiParam("监测网站  替换栏目条件") @RequestParam(value = "monitorSite", required = false) String monitorSite,
-						   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
-						   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
-						   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
+						   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+						   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordsIndex", defaultValue = "1", required = false) String excludeWordsIndex,
+						   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
 						   @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
 						   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
 						   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
@@ -206,9 +209,12 @@ public class InfoListController {
 						   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
 						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
+						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+						   @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+						   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr) throws TRSException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
+		Date startDate = new Date();
 		long start = new Date().getTime();
 		long id = Thread.currentThread().getId();
 		LogPrintUtil loginpool = new LogPrintUtil();
@@ -228,56 +234,10 @@ public class InfoListController {
 					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 				}
 			}
-			//排重
-			if ("netRemove".equals(simflag)) { //单一媒体排重
-				specialProject.setSimilar(true);
-				specialProject.setIrSimflag(false);
-				specialProject.setIrSimflagAll(false);
-			} else if ("urlRemove".equals(simflag)) { //站内排重
-				specialProject.setSimilar(false);
-				specialProject.setIrSimflag(true);
-				specialProject.setIrSimflagAll(false);
-			} else if ("sourceRemove".equals(simflag)) { //全网排重
-				specialProject.setSimilar(false);
-				specialProject.setIrSimflag(false);
-				specialProject.setIrSimflagAll(true);
-			}
-			//命中规则
-			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {
-//				specialProject.setKeyWordIndex(wordIndex);
-				if (SearchScope.TITLE.equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE);
-				}
-				if (SearchScope.TITLE_CONTENT.equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE_CONTENT);
-				}
-				if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)){
-					specialProject.setSearchScope(SearchScope.TITLE_ABSTRACT);
-				}
-
-			}
-			specialProject.setMonitorSite(monitorSite);
-			specialProject.setExcludeWeb(excludeWeb);
-			//排除关键词
-			specialProject.setExcludeWordIndex(excludeWordIndex);
-			specialProject.setExcludeWords(excludeWord);
-
-			//修改词距 选择修改词距时，才能修改词距
-			if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(specialProject.getTrsl()) && wordFromNum >= 0) {
-				String keywordJson = specialProject.getAnyKeywords();
-				JSONArray jsonArray = JSONArray.parseArray(keywordJson);
-				//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
-				if (jsonArray != null && jsonArray.size() == 1) {
-					Object o = jsonArray.get(0);
-					JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
-					jsonObject.put("wordSpace", wordFromNum);
-					jsonObject.put("wordOrder", wordFromSort);
-					jsonArray.set(0, jsonObject);
-					specialProject.setAnyKeywords(jsonArray.toJSONString());
-				}
-			}
+			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
+					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 			// 跟统计表格一样 如果来源没选 就不查数据
-			List<String> specialSource = CommonListChartUtil.formatGroupName(specialProject.getSource());
+			List<String> specialSource = CommonListChartUtil.formatGroupName(groupName);
 			if(!"ALL".equals(source)){
 				source = CommonListChartUtil.changeGroupName(source);
 				if(!specialSource.contains(source)){
@@ -286,14 +246,22 @@ public class InfoListController {
 			}else{
 				source = StringUtils.join(specialSource,";");
 			}
-//			String keyWordIndex = "positioCon";// 标题加正文 与日常监测统一
-
-				Object documentCommonSearch = infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
-						timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null,
-						"special", read, mediaLevel, mediaIndustry,
-						contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+			Date hyStartDate = new Date();
+			Object documentCommonSearch =  infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
+						timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
+						"special", read, preciseFilter,imgOcr);
 				long endTime = System.currentTimeMillis();
 				log.warn("间隔时间："+(endTime - startTime));
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(specialId);
+			requestTimeLog.setTabName(specialProject.getSpecialName());
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			requestTimeLog.setRandomNum(randomNum);
+			requestTimeLog.setOperation("专题分析-信息列表-列表查询");
+			requestTimeLogRepository.save(requestTimeLog);
 				return documentCommonSearch;
 
 
@@ -396,61 +364,86 @@ public class InfoListController {
 	@FormatResult
 	@RequestMapping(value = "/searchStattotal", method = RequestMethod.POST)
 	public Object searchStattotal(
+			@ApiParam("关键词组") @RequestParam(value = "keywords", required = false) String keywords,
+			@ApiParam("查询类型：精准precise、模糊fuzzy") @RequestParam(value = "searchType",defaultValue = "fuzzy",required = false) String searchType,
 			@ApiParam("时间设置") @RequestParam(value = "time", required = false, defaultValue = "7d") String time,
 			@ApiParam("排重选择") @RequestParam(value = "simflag", required = false) String simflag,
-			@ApiParam("关键词位置") @RequestParam(value = "keyWordIndex", defaultValue = "positioCon", required = false) String keyWordIndex,
+			@ApiParam("关键词位置") @RequestParam(value = "keyWordIndex", defaultValue = "1", required = false) String keyWordIndex,
 			@ApiParam("排序规则 - 是时间排序，还是优先标题命中") @RequestParam(value = "weight", defaultValue = "false", required = false) boolean weight,
-			@ApiParam("排序") @RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
-			@ApiParam("媒体类型") @RequestParam(value = "source", defaultValue = "ALL") String source,
-			@ApiParam("关键词组") @RequestParam(value = "keywords", required = false) String keywords,
-			@ApiParam("排除关键词") @RequestParam(value = "notKeyWords", required = false) String notKeyWords,
-			@ApiParam("情绪选择") @RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
-			@ApiParam("来源网站") @RequestParam(value = "fromWebSite", required = false) String fromWebSite,
+			@ApiParam("来源网站") @RequestParam(value = "monitorSite", required = false) String monitorSite,
 			@ApiParam("排除网站") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-			@ApiParam("新闻信息资质") @RequestParam(value = "newsInformation", required = false) String newsInformation,
-			@ApiParam("可供转载网站") @RequestParam(value = "reprintPortal", required = false) String reprintPortal,
-			@ApiParam("门户类型") @RequestParam(value = "portalType", required = false) String portalType,
-			@ApiParam("网站类型") @RequestParam(value = "siteType", required = false) String siteType,
-			@ApiParam("媒体地域") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
-			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
-			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary
+			@ApiParam("情绪选择") @RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
+			@ApiParam("词距范围") @RequestParam(value = "wordFromNum", defaultValue = "0", required = false) Integer wordFromNum,
+			@ApiParam("词距是否排序") @RequestParam(value = "wordFromSort", defaultValue = "false", required = false) Boolean wordFromSort,
+			@ApiParam("阅读标记") @RequestParam(value = "read", defaultValue = "ALL") String read,
+			@ApiParam("排除关键词") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+			@ApiParam("排除关键词命中位置") @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
+
+			@ApiParam("媒体类型") @RequestParam(value = "source", defaultValue = "ALL") String source,
+			@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+			@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
+
+
+			/*@ApiParam("新闻信息资质") @RequestParam(value = "newsInformation", required = false) String newsInformation,
+			@ApiParam("可供转载网站 - 与门户类型是同一个字段") @RequestParam(value = "reprintPortal", required = false) String reprintPortal,
+			@ApiParam("门户类型 - 与可供转载网站是一个字段") @RequestParam(value = "portalType", required = false) String portalType,
+			@ApiParam("网站类型") @RequestParam(value = "siteType", required = false) String siteType,@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary*/
 	) throws TRSException {
 		log.warn("图表分析统计表格stattotal接口开始调用");
 		try {
-			if(StringUtil.isEmpty(keywords)){
+			//高级搜索只有一个关键词组
+			JSONArray jsonArray = JSONArray.parseArray(keywords);
+			String searchKey = "";
+			if (jsonArray != null && jsonArray.size() == 1) {
+				Object o = jsonArray.get(0);
+				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+				searchKey = jsonObject.getString("keyWords");
+				searchKey = searchKey.replaceAll("\\s+", "");
+				jsonObject.put("keyWords", searchKey);
+				if(wordFromNum == null ){
+					wordFromNum = 0;
+				}
+				if(wordFromNum == 0){
+					wordFromSort = false;
+				}
+				jsonObject.put("wordSpace", wordFromNum);
+				jsonObject.put("wordOrder", wordFromSort);
+				jsonArray.set(0, jsonObject);
+				keywords = jsonArray.toJSONString();
+			}
+			//只有 关键词、排除网站、监测网站、排除词 这四个都为空时才返回空
+			if(StringUtil.isEmpty(searchKey) && StringUtil.isEmpty(excludeWeb) && StringUtil.isEmpty(excludeWords) && StringUtil.isEmpty(monitorSite)){
 				return null;
 			}
 			// 默认不排重
 			boolean isSimilar = false;
-			boolean irSimflag = false;
+			boolean irSimflag = true;
 			boolean irSimflagAll = false;
-			if ("netRemove".equals(simflag)) {
+			/*if ("netRemove".equals(simflag)) {
 				isSimilar = true;
 			} else if ("urlRemove".equals(simflag)) {
 				irSimflag = true;
 			} else if ("sourceRemove".equals(simflag)) {
 				irSimflagAll = true;
-			}
-			if(StringUtil.isNotEmpty(portalType) && !"ALL".equals(portalType)){
-				if(StringUtil.isNotEmpty(reprintPortal)&& !"ALL".equals(reprintPortal)){
-					if(reprintPortal.endsWith(";")){
-						reprintPortal = reprintPortal + portalType;
-					}else{
-						reprintPortal = reprintPortal +";"+ portalType;
-					}
-				}else{
-					reprintPortal = portalType;
-				}
-			}
+			}*/
 			if("positioCon".equals(keyWordIndex)){
 				keyWordIndex = "1";
 			}else if("positionKey".equals(keyWordIndex)){
 				keyWordIndex= "0";
 			}
-			keywords = keywords.replaceAll("\\s+", ",");
-			Object total = infoListService.searchstattotal(isSimilar, irSimflag, irSimflagAll, 0, 20, source, time,
-					mediaIndustry, emotion, sort, invitationCard, forwardPrimary, keywords, notKeyWords, keyWordIndex, weight,
-					fromWebSite, excludeWeb, newsInformation, reprintPortal, siteType, "advance");
+			if(excludeWordsIndex == null){
+				excludeWordsIndex = keyWordIndex;
+			}
+			Object total = infoListService.searchstattotal(isSimilar, irSimflag, irSimflagAll, source,searchType,
+					keywords,keyWordIndex,time,weight,monitorSite,excludeWeb,emotion,read,excludeWords,excludeWordsIndex,
+					mediaLevel,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea,preciseFilter, imgOcr,"advance");
 			return total;
 		} catch (Exception e) {
 			throw new OperationException("统计表格错误,message: " + e, e);
@@ -464,62 +457,115 @@ public class InfoListController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "pageNo", value = "页码", dataType = "int", paramType = "query", required = false),
 			@ApiImplicitParam(name = "pageSize", value = "步长", dataType = "int", paramType = "query", required = false),
-
-			@ApiImplicitParam(name = "time", value = "时间", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排,跨数据源排", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "keyWordIndex", value = "关键词位置", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "weight", value = "标题权重-排序规则", dataType = "boolean", paramType = "query", required = false),
 			@ApiImplicitParam(name = "sort", value = "排序", dataType = "boolean", paramType = "query", required = false),
+            @ApiImplicitParam(name = "keywords", value = "关键词组", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "searchType", value = "搜索类型 - 模糊、精准", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "time", value = "时间", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排,跨数据源排", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "keyWordIndex", value = "关键词位置", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "weight", value = "标题权重-排序规则", dataType = "boolean", paramType = "query", required = false),
+            @ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "emotion", value = "情绪选择", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWords", value = "排除关键词", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "excludeWordsIndex", value = "排除关键词位置", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "wordFromNum", value = "词距", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "wordFromSort", value = "词组是否排序", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "read", value = "阅读标记", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "source", value = "媒体类型", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "keywords", value = "关键词组", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "notKeyWords", value = "排除关键词", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "emotion", value = "情绪选择", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "fromWebSite", value = "来源网站", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "newsInformation", value = "新闻信息资质", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "reprintPortal", value = "可供转载网站", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "portalType", value = "可供转载网站", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "siteType", value = "网站类型", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "mediaIndustry", value = "媒体行业", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "contentArea", value = "内容地域", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "imgOcr", value = "OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "fuzzyValueScope", value = "结果中搜索de范围", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "fuzzyValue", value = "结果中搜索", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "invitationCard", value = "论坛主贴 0 /回帖 1 所有=主贴+回帖+转帖", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "invitationCard1", value = "二级筛选 论坛主贴 0 /回帖 1 所有=主贴+回帖+转帖", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "forwardPrimary", value = "微博 原发 primary / 转发 forward", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "forwardPrimary1", value = "二级筛选 微博 原发 primary / 转发 forward", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "checkedSource", value = "当前列表页对应的的媒体类型", dataType = "String", paramType = "query", required = false)})
 	@RequestMapping(value = "/searchList", method = RequestMethod.POST)
-	public Object searchList(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-							 @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+    public Object searchList(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+                             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+                             @RequestParam(value = "sort", defaultValue = "relevance", required = false) String sort,
 
-							 @RequestParam(value = "time", required = false, defaultValue = "7d") String time,
-							 @RequestParam(value = "simflag", required = false) String simflag,
-							 @RequestParam(value = "keyWordIndex", defaultValue = "positioCon", required = false) String keyWordIndex,
-							 @RequestParam(value = "weight", defaultValue = "false", required = false) boolean weight,
-							 @RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
-							 @RequestParam(value = "source", defaultValue = "ALL") String source,
-							 @RequestParam(value = "keywords", required = false) String keywords,
-							 @RequestParam(value = "notKeyWords", required = false) String notKeyWords,
-							 @RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
-							 @RequestParam(value = "fromWebSite", required = false) String fromWebSite,
-							 @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-							 @RequestParam(value = "newsInformation", required = false) String newsInformation,
-							 @RequestParam(value = "reprintPortal", required = false) String reprintPortal,
-							 @RequestParam(value = "portalType", required = false) String portalType,
-							 @RequestParam(value = "siteType", required = false) String siteType,
-							 @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
-							 @RequestParam(value = "invitationCard", required = false) String invitationCard,
-							 @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary,
-							 @RequestParam(value = "invitationCard1", required = false) String invitationCard1,
-							 @RequestParam(value = "forwardPrimary1", required = false) String forwardPrimary1,
-							 @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
-							 @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
-							 @RequestParam(value = "checkedSource", defaultValue = "ALL") String checkedSource
-	) throws TRSException {
+                             @RequestParam(value = "keywords", required = false) String keywords,
+                             @RequestParam(value = "searchType", required = false) String searchType,
+                             @RequestParam(value = "time", required = false, defaultValue = "7d") String time,
+                             @RequestParam(value = "simflag", required = false) String simflag,
+                             @RequestParam(value = "keyWordIndex", defaultValue = "positioCon", required = false) String keyWordIndex,
+                             @RequestParam(value = "weight", defaultValue = "false", required = false) boolean weight,
+                             @RequestParam(value = "monitorSite", required = false) String monitorSite,
+                             @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+                             @RequestParam(value = "emotion", defaultValue = "ALL", required = false) String emotion,
+
+                             @RequestParam(value = "wordFromNum", defaultValue = "0", required = false) Integer wordFromNum,
+                             @RequestParam(value = "wordFromSort", defaultValue = "false", required = false) Boolean wordFromSort,
+                             @RequestParam(value = "read", defaultValue = "ALL") String read,
+                             @RequestParam(value = "excludeWords", required = false) String excludeWords,
+                             @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
+
+                             @RequestParam(value = "source", defaultValue = "ALL") String source,
+                             @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+                             @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+                             @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+                             @RequestParam(value = "filterInfo", required = false) String filterInfo,
+                             @RequestParam(value = "contentArea", required = false) String contentArea,
+                             @RequestParam(value = "mediaArea", required = false) String mediaArea,
+                             @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							 @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr,
+
+                             @RequestParam(value = "invitationCard", required = false) String invitationCard,
+                             @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary,
+                             @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
+                             @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
+                             @RequestParam(value = "checkedSource", defaultValue = "ALL") String checkedSource
+    ) throws TRSException {
 		log.warn("专项检测信息列表  开始调用接口");
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
+
+
 		try {
+			//判断当前选择数据源和该次搜索选择的全部数据源是否是包含关系，不包含则无法查询
+			if (!"ALL".equals(checkedSource)) {
+				List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+				checkedSource = CommonListChartUtil.changeGroupName(checkedSource);
+				if (!sourceList.contains(checkedSource)) {
+					return null;
+				} else {
+					source = checkedSource;
+				}
+			}
+
+            //高级搜索只有一个关键词组
+            JSONArray jsonArray = JSONArray.parseArray(keywords);
+			String searchKey = "";
+            if (jsonArray != null && jsonArray.size() == 1) {
+                Object o = jsonArray.get(0);
+                JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+				searchKey = jsonObject.getString("keyWords");
+
+                searchKey = searchKey.replaceAll("\\s+", "");
+                jsonObject.put("keyWords", searchKey);
+                if(wordFromNum == null ){
+                    wordFromNum = 0;
+                }
+                if(wordFromNum == 0){
+                    wordFromSort = false;
+                }
+                jsonObject.put("wordSpace", wordFromNum);
+                jsonObject.put("wordOrder", wordFromSort);
+                jsonArray.set(0, jsonObject);
+                keywords = jsonArray.toJSONString();
+            }
+			//只有 关键词、排除网站、监测网站、排除词 这四个都为空时才返回空
+			if(StringUtil.isEmpty(searchKey) && StringUtil.isEmpty(excludeWeb) && StringUtil.isEmpty(excludeWords) && StringUtil.isEmpty(monitorSite)){
+				return null;
+			}
+
 			// 默认不排重
 			boolean isSimilar = false;
 			boolean irSimflag = false;
@@ -531,36 +577,19 @@ public class InfoListController {
 			}else if ("sourceRemove".equals(simflag)){
 				irSimflagAll = true;
 			}
-			String searchType = "precise";
 
-			keywords = keywords.replaceAll("\\s+", ",");
-			//判断当前选择数据源和该次搜索选择的全部数据源是否是包含关系，不包含则无法查询
-			if(!"ALL".equals(source) && !"ALL".equals(checkedSource)){
-				List<String> sourceList = Arrays.asList(source.split(";"));
-				if(!sourceList.contains(checkedSource)){
-					return null;
-				}
-			}
-			if(StringUtil.isNotEmpty(portalType) && !"ALL".equals(portalType)){
-				if(StringUtil.isNotEmpty(reprintPortal)&& !"ALL".equals(reprintPortal)){
-					if(reprintPortal.endsWith(";")){
-						reprintPortal = reprintPortal + portalType;
-					}else{
-						reprintPortal = reprintPortal +";"+ portalType;
-					}
-				}else{
-					reprintPortal = portalType;
-				}
-			}
-			source = checkedSource;
 			if("positioCon".equals(keyWordIndex)){
 				keyWordIndex = "1";
 			}else if("positionKey".equals(keyWordIndex)){
 				keyWordIndex= "0";
 			}
-			return infoListService.advancedSearchList(isSimilar, irSimflag,irSimflagAll, pageNo, pageSize, source, time,
-						mediaIndustry, emotion, sort, invitationCard,invitationCard1,forwardPrimary,forwardPrimary1, keywords, notKeyWords, keyWordIndex, weight,
-						fuzzyValue,fuzzyValueScope,fromWebSite,excludeWeb,newsInformation,reprintPortal,siteType,"advance",UserUtils.getUser().getId()+"AdvancedSearch",searchType);
+            if(excludeWordsIndex == null){
+                excludeWordsIndex = keyWordIndex;
+            }
+			return infoListService.advancedSearchList(isSimilar, irSimflag, irSimflagAll, pageNo, pageSize, sort,
+					keywords, searchType, time, keyWordIndex, weight, monitorSite, excludeWeb, emotion, read, excludeWords, excludeWordsIndex, source,
+					mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,
+					preciseFilter, invitationCard, forwardPrimary, fuzzyValue, fuzzyValueScope, imgOcr,"advance");
 
 			//return null;
 		} catch (Exception e) {
@@ -580,11 +609,11 @@ public class InfoListController {
 	@FormatResult                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 	@ApiOperation("相似文章列表 做统一列表  返回格式和日常监测跳的列表页一样")
 	@RequestMapping(value = "/listsim", method = RequestMethod.GET)
-	public Object simList(@ApiParam("当前搜索页面，普通搜索、其他") @RequestParam(value = "searchPage", required = false,defaultValue = "COMMON_SEARCH") String searchPage,
-			@ApiParam("来源") @RequestParam("source") String source,
-			@ApiParam("md5标示") @RequestParam(value = "md5Tag", required = false) String md5Tag,
-			@ApiParam("推荐文章排除自己") @RequestParam(value = "id", required = false) String id,
-			@ApiParam("表达式") @RequestParam("trslk") String trslk,
+	public Object simList(
+			@ApiParam("来源，当前列表页的数据源") @RequestParam("source") String source,
+			@ApiParam("md5标示-点击的信息的id") @RequestParam(value = "md5Tag", required = false) String md5Tag,
+			@ApiParam("推荐文章排除自己-点击的信息的id") @RequestParam(value = "id", required = false) String id,
+			@ApiParam("表达式-当前列表的查询的表达式") @RequestParam("trslk") String trslk,
 			@ApiParam("排序方式") @RequestParam(value = "sort", defaultValue = "default") String sort,
 			@ApiParam("情感") @RequestParam(value = "emotion", defaultValue = "ALL") String emotion,
 			@ApiParam("结果中搜索") @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
@@ -595,27 +624,27 @@ public class InfoListController {
 			@ApiParam("一页多少条") @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize)
 			throws TRSException {
 		//Twitter和Facebook没有MD5TAG标，所以不计算相似文章数
-		String typeSim = "detail";//默认时间一年，用到的情况：①trslk失效；②trlk对应的trsl表达式没有时间范围控制 20191107
+		String typeSim = "detail";//默认时间一年，用到的情况：①trslk失效；②trlk对应的trsl表达式没有时间范围控制
 		boolean sim = false;// 默认走相似文章列表
 		Boolean irsimflag = true; // 相似文章计算  要先站内排重之后再筛选  为true  要站内排重
-		// 为了防止前台的来源名和数据库里边不对应
-		if ("电子报".equals(source)) {
-			source = "国内新闻_电子报";
-		} else if ("论坛".equals(source)) {
-			source = "国内论坛";
-		} else if ("新闻".equals(source)) {
-			source = "国内新闻";
-		} else if ("博客".equals(source)) {
-			source = "国内博客";
-		} else if ("微信".equals(source)) {
-			source = "国内微信";
-		}
 		trslk = RedisUtil.getString(trslk);
 		if(StringUtil.isNotEmpty(trslk)){
+			//相似文章计算要先去掉排重
 			trslk = removeSimflag(trslk);
 			trslk = trslk.replaceAll("AND \\(IR_SIMFLAGALL:\\(\"0\" OR \"\"\\)\\)"," ");
 		}
 		log.info("redis" + trslk);
+		if(!"ALL".equals(source)){
+			source = CommonListChartUtil.changeGroupName(source);
+		}else{
+			if(StringUtil.isNotEmpty(trslk)) {
+				String[] groupNameArr = TrslUtil.getGroupNameByTrsl(trslk);
+				if(groupNameArr != null && groupNameArr.length >0){
+					source = StringUtil.join(groupNameArr,";");
+				}
+			}
+			//TrslUtil.chooseDatabases(groupNameSet.toArray(new String[] {}));
+		}
 		// 时间倒叙
 		QueryBuilder builder = new QueryBuilder();
 		builder.page(pageNo, pageSize);
@@ -625,18 +654,12 @@ public class InfoListController {
 		} else {// 若MD5为空 则走推荐文章列表
 			sim = true;
 		}
-		QueryBuilder countBuilder = new QueryBuilder();// 算数的
-		countBuilder.filterByTRSL(trslk);
-		if (StringUtil.isNotEmpty(md5Tag)) {
-			countBuilder.filterChildField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
-		}
 		User loginUser = UserUtils.getUser();
 		if (!"ALL".equals(emotion)) { // 情感
 			builder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
-			countBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, emotion, Operator.Equal);
 		}
 
-		if ("国内论坛".equals(source)) {
+		if (Const.GROUPNAME_LUNTAN.equals(source)) {
 			//可以加主回帖筛选
 			StringBuffer sb = new StringBuffer();
 			if ("0".equals(invitationCard)) {// 主贴
@@ -646,18 +669,15 @@ public class InfoListController {
 			}
 			if (StringUtil.isNotEmpty(sb.toString())) {
 				builder.filterByTRSL(sb.toString());
-				countBuilder.filterByTRSL(sb.toString());
 			}
 		}
-		if ("微博".equals(source)) {
+		if (Const.GROUPNAME_WEIBO.equals(source)) {
 			if ("primary".equals(forwarPrimary)) {
 				// 原发
 				builder.filterByTRSL(Const.PRIMARY_WEIBO);
-				countBuilder.filterByTRSL(Const.PRIMARY_WEIBO);
 			} else if ("forward".equals(forwarPrimary)) {
 				// 转发
 				builder.filterByTRSL_NOT(Const.PRIMARY_WEIBO);
-				countBuilder.filterByTRSL_NOT(Const.PRIMARY_WEIBO);
 			}
 		}
 		// 结果中搜索
@@ -683,11 +703,9 @@ public class InfoListController {
 					break;
 			}
 			builder.filterByTRSL(trsl.toString());
-			countBuilder.filterByTRSL(trsl.toString());
 		}
 
-		//20200326 单独修改的普通搜索相似文章数去掉自身，如果之后全部列表页做了修改，去掉即可
-		if(StringUtil.isNotEmpty(id) && searchPage.equals(SearchPage.ORDINARY_SEARCH.toString())){
+		if(StringUtil.isNotEmpty(id)){
 			//id不为空，则去掉当前文章
 			StringBuffer idBuffer = new StringBuffer();
 			if(Const.MEDIA_TYPE_WEIBO.contains(source)){
@@ -699,28 +717,51 @@ public class InfoListController {
 			}
 			builder.filterByTRSL_NOT(idBuffer.toString());
 		}
+
+		InfoListResult infoListResult = null;
+		if("hot".equals(sort)){
+			infoListResult= commonListService.queryPageListForHot(builder, source, loginUser, typeSim, false);
+		}else{
+			switch (sort) { // 排序
+				case "desc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+					break;
+				case "asc":
+					builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+					break;
+				default:
+					builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+					break;
+			}
+			infoListResult =  commonListService.queryPageList(builder, sim, irsimflag, false, source, typeSim, loginUser, false);
+		}
+		if (infoListResult != null) {
+			if (infoListResult.getContent() != null) {
+				String trslkForPage = infoListResult.getTrslk();
+				PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslkForPage,null);
+				infoListResult.setContent(resultContent);
+			}
+		}
+		return infoListResult;
+
+		/*switch (sort) { // 排序
+			case "desc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "asc":
+				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
+				break;
+			case "hot":
+				return infoListService.getHotList(builder, null, loginUser,typeSim);
+			default:
+				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
+				break;
+		}
+
+
 		if (trslk != null && trslk.contains(
 				"(IR_SITENAME:(\"新华网\" OR \"中国网\" OR \"央视网\"  OR \"中国新闻网\" OR  \"新浪网\" OR  \"网易\" OR \"搜狐网\" OR  \"凤凰网\") "
 						+ "NOT IR_CHANNEL:(游戏)" + "AND IR_GROUPNAME:国内新闻 )NOT IR_URLTITLE:(吴君如 OR 汽车 OR 新车 OR 优惠)")) {
-			// 结果中搜索
-			/*
-			if (StringUtil.isNotEmpty(fuzzyValue)) {
-				String trsl = new StringBuffer().append(FtsFieldConst.FIELD_TITLE).append(":").append(fuzzyValue)
-						.append(" OR ").append(FtsFieldConst.FIELD_ABSTRACTS).append(":").append(fuzzyValue)
-						.append(" OR ").append(FtsFieldConst.FIELD_CONTENT).append(":").append(fuzzyValue)
-						.append(" OR ").append(FtsFieldConst.FIELD_KEYWORDS).append(":").append(fuzzyValue).toString();
-				builder.filterByTRSL(trsl);
-				countBuilder.filterByTRSL(trsl);
-			}*/
-			// 来源首页
-			// 已经有来源了
-			// 如果在去拼来源
-			// 查不出东西
-			// builder.filterField(FtsFieldConst.FIELD_SID, id,
-			// Operator.NotEqual);
-			log.info(builder.asTRSL());
-			// builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			// countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
 			switch (sort) { // 排序
 			case "desc":
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
@@ -729,12 +770,11 @@ public class InfoListController {
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				break;
 			case "hot":
-				return infoListService.getHotList(builder, countBuilder, loginUser,typeSim);
+				return infoListService.getHotList(builder, null, loginUser,typeSim);
 			default:
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 				break;
 			}
-
 			return infoListService.getDocList(builder, loginUser, sim, irsimflag,false,false,typeSim);
 		} else if (Const.MEDIA_TYPE_WEIXIN.contains(source)) {
 			switch (sort) { // 排序
@@ -745,13 +785,12 @@ public class InfoListController {
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				break;
 			case "hot":
-				return infoListService.getHotListWeChat(builder, countBuilder, loginUser,typeSim);
+				return infoListService.getHotListWeChat(builder, null, loginUser,typeSim);
 			default:
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 				break;
 			}
-			// builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			// countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+
 			return infoListService.getWeChatList(builder, loginUser, false, irsimflag,false,false,typeSim);
 		} else if (Const.MEDIA_TYPE_WEIBO.contains(source)) {
 			switch (sort) { // 排序
@@ -762,14 +801,12 @@ public class InfoListController {
 				builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, false);
 				break;
 			case "hot":
-				return infoListService.getHotListStatus(builder, countBuilder, loginUser,typeSim);
+				return infoListService.getHotListStatus(builder, null, loginUser,typeSim);
 			default:
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 				break;
 			}
-			log.info(builder.asTRSL());
-			// builder.orderBy(FtsFieldConst.FIELD_CREATED_AT, true);
-			// countBuilder.orderBy(FtsFieldConst.FIELD_CREATED_AT, true);
+
 			return infoListService.getStatusList(builder, loginUser, false, irsimflag,false,false,typeSim);
 		} else if (Const.MEDIA_TYPE_NEWS.contains(source)) {
 			switch (sort) { // 排序
@@ -780,31 +817,25 @@ public class InfoListController {
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				break;
 			case "hot":
-				return infoListService.getHotList(builder, countBuilder, loginUser,typeSim);
+				return infoListService.getHotList(builder, null, loginUser,typeSim);
 			default:
 				builder.orderBy(FtsFieldConst.FIELD_RELEVANCE, true);
 				break;
 			}
-			log.info(builder.asTRSL());
 			if (!builder.asTRSL().contains("IR_GROUPNAME") && !source.equals("传统媒体")) {
 				if ("国内新闻".equals(source)) {
 					String trsl = new StringBuffer(FtsFieldConst.FIELD_GROUPNAME).append(":国内新闻 ").toString();
 					builder.filterByTRSL(trsl);
-					countBuilder.filterByTRSL(trsl);
 				} else if ("国内论坛".equals(source)) {
 					String trsl = new StringBuffer(FtsFieldConst.FIELD_GROUPNAME).append(":国内论坛 ").toString();
 					builder.filterByTRSL(trsl);
-					countBuilder.filterByTRSL(trsl);
 				} else {
 					builder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
-					countBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
 				}
 			}
-			// builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
-			// countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
 			return infoListService.getDocList(builder, loginUser, sim, irsimflag,false,false,typeSim);
 		}
-		return null;
+		return null;*/
 	}
 
 
@@ -902,7 +933,7 @@ public class InfoListController {
 							 @ApiParam("trslk") @RequestParam(value = "trslk", required = false) String trslk,
 							 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
 							 @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "nreserved1", required = false) String nreserved1)
-            throws TRSSearchException, TRSException {
+            throws TRSSearchException, TRSException, com.trs.hybase.client.TRSException{
     	User user = UserUtils.getUser();
         String userId = user.getId();
         String trsl = RedisUtil.getString(trslk);
@@ -924,6 +955,12 @@ public class InfoListController {
         PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
         List<FtsDocumentCommonVO> ftsQuery = content.getPageItems();
         if (null != ftsQuery && ftsQuery.size() > 0) {
+
+//        	加上已读 / 未读 标
+			for (FtsDocumentCommonVO ftsDocumentCommonVO : ftsQuery) {
+				readArticle(ftsDocumentCommonVO);
+			}
+
             FtsDocumentCommonVO ftsDocument = ftsQuery.get(0);
 
             // 判断是否收藏
@@ -949,6 +986,9 @@ public class InfoListController {
                 ftsDocument.setFavourite(false);
             }
             ftsDocument.setTrslk(trslk);
+            if(StringUtil.isEmpty(ftsDocument.getAppraise())){
+            	ftsDocument.setAppraise("中性");
+			}
 
             if (Const.GROUPNAME_WEIBO.equals(groupName)){
 				realInfoThreadPool.execute(()->infoListService.getRealTimeInfoOfStatus(ftsDocument.getUrlName(),ftsDocument.getSid()));
@@ -982,10 +1022,12 @@ public class InfoListController {
                 if (null != nreserved1) {
                     QueryBuilder builder = new QueryBuilder();
                     HashMap<String, Object> returnMap = new HashMap<>();
-                    builder.filterField(FtsFieldConst.FIELD_HKEY, ftsDocument.getHkey(), Operator.Equal);
+                    builder.setPageSize(20);
+//                    builder.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.Equal);
+					builder.filterField(FtsFieldConst.FIELD_HKEY, ftsDocument.getHkey(), Operator.Equal);
                     if ("1".equals(nreserved1)) {
                         //直接查回帖的详情 加trsl
-                        builder.filterByTRSL(trsl);//不加trsl,导致前端直接取主贴标题，关键词不描红问题
+//                        builder.filterByTRSL(trsl);//不加trsl,导致前端直接取主贴标题，关键词不描红问题
                         //若查主贴的详情，下面仅用来查询该主贴的回帖数，为和/getreplyCards保持一致，也与实际值保持一致，不许加trsl
                     }
 //                ftsDocuments = hybase8SearchService.ftsPageList(builder, FtsDocument.class, false, false,false,null);
@@ -1004,14 +1046,30 @@ public class InfoListController {
                                 }
                             }
                         }
-                        list.add(ftsDocument);
+						list.add(ftsDocument);
                         returnMap.put("replyCard", list);
                         return returnMap;
                     } else if ("0".equals(nreserved1)) {// 主贴
-                        ftsDocument.setReplyCount(content2.getTotalItemCount() - 1);// 回帖个数
-                        // 把主贴刨去
-                        returnMap.put("mainCard", ftsDocument);
-                        return returnMap;
+						List list = new ArrayList<>();
+						if (null != ftsDocuments && ftsDocuments.size() > 0) {
+							for (FtsDocumentCommonVO document : ftsDocuments) {
+								log.info(document.getNreserved1() + "主回帖");
+								if ("0".equals(document.getNreserved1())) {// 说明这个是回帖对应的主贴
+									document.setReplyCount(content2.getTotalItemCount() - 1);// 回帖个数
+									// 把主贴刨去
+									returnMap.put("mainCard", document);
+								}else {
+									list.add(document);
+								}
+							}
+						}
+
+						returnMap.put("replyCard", list);
+						return returnMap;
+//                        ftsDocument.setReplyCount(content2.getTotalItemCount() - 1);// 回帖个数
+//                        // 把主贴刨去
+//                        returnMap.put("mainCard", ftsDocument);
+//                        return returnMap;
                     }
                 }
             }
@@ -1189,16 +1247,29 @@ public class InfoListController {
 	@ApiOperation("文章详情查看是否预警的单独接口")
 	@FormatResult
 	@RequestMapping(value = "/hasAlert", method = RequestMethod.GET)
-	public Object hasAlert(@ApiParam("文章sid/hkey/mid") @RequestParam("sid") String sid) throws OperationException{
-          List<AlertEntity> alert = AlertUtil.getAlerts(UserUtils.getUser().getId(),sid,alertNetinsightUrl);
-		  Map<String,Boolean> map = new HashMap<>();
-		  if (ObjectUtil.isNotEmpty(alert)) {
-			  map.put("send", true);
-//				ftsDocument.setSend(true);
-			} else {
-//				ftsDocument.setSend(false);
+	public Object hasAlert(@ApiParam("文章sid/hkey/mid") @RequestParam("sid") String sid) throws TRSException {
+//          List<AlertEntity> alert = AlertUtil.getAlerts(UserUtils.getUser().getId(),sid,alertNetinsightUrl);
+		User user = UserUtils.getUser();
+		String userId = user.getId();
+		QueryBuilder queryBuilder = new QueryBuilder();
+		queryBuilder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
+		queryBuilder.setPageNo(0);
+		queryBuilder.setPageSize(1);
+		queryBuilder.setDatabase(Const.ALERT);
+		queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
+		queryBuilder.filterField(FtsFieldConst.FIELD_SID,sid,Operator.Equal);
+		PagedList<FtsDocumentAlert> ftsDocumentAlertPagedList = hybase8SearchServiceNew.ftsAlertList(queryBuilder, FtsDocumentAlert.class);
+		Map<String,Boolean> map = new HashMap<>();
+		if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())) {
+			List<FtsDocumentAlert> pageItems = ftsDocumentAlertPagedList.getPageItems();
+			if (ObjectUtil.isNotEmpty(pageItems)){
+				map.put("send", true);
+			}else {
 				map.put("send", false);
 			}
+		}else {
+			map.put("send", false);
+		}
 		return map;
 	}
 	/**
@@ -1662,21 +1733,72 @@ public class InfoListController {
 		//查询微博用户信息
 //		List<StatusUser> statusUsers = hybase8SearchService.ftsQuery(queryStatusUser, StatusUser.class, false, false,false,null);
 		PagedList<StatusUser> infoListResult = commonListService.queryPageListForClass(queryStatusUser, StatusUser.class, false, false,false,null);
-		List<StatusUser> statusUsers = infoListResult.getPageItems();
-		if (ObjectUtil.isEmpty(statusUsers)){
-			QueryBuilder queryStatusUser1 = new QueryBuilder();
-			queryStatusUser1.filterField(FtsFieldConst.FIELD_UID,"\""+uid+"\"",Operator.Equal);
-			queryStatusUser1.setDatabase(Const.SINAUSERS);
-			//查询微博用户信息
+		if (ObjectUtil.isNotEmpty(infoListResult)) {
+			List<StatusUser> statusUsers = infoListResult.getPageItems();
+			if (ObjectUtil.isEmpty(statusUsers)) {
+				QueryBuilder queryStatusUser1 = new QueryBuilder();
+				queryStatusUser1.filterField(FtsFieldConst.FIELD_UID, "\"" + uid + "\"", Operator.Equal);
+				queryStatusUser1.setDatabase(Const.SINAUSERS);
+				//查询微博用户信息
 //			statusUsers = hybase8SearchService.ftsQuery(queryStatusUser1, StatusUser.class, false, false,false,null);
-			PagedList<StatusUser> infoListResult1 = commonListService.queryPageListForClass(queryStatusUser1, StatusUser.class, false, false,false,null);
-			statusUsers = infoListResult1.getPageItems();
-		}
-		if (ObjectUtil.isNotEmpty(statusUsers)){
-			//放入该条微博对应的 发布人信息
-			return statusUsers.get(0);
+				PagedList<StatusUser> infoListResult1 = commonListService.queryPageListForClass(queryStatusUser1, StatusUser.class, false, false, false, null);
+				statusUsers = infoListResult1.getPageItems();
+			}
+			if (ObjectUtil.isNotEmpty(statusUsers)) {
+				//放入该条微博对应的 发布人信息
+				return statusUsers.get(0);
+			}
 		}
 		return null;
+
+	}
+//	加入已读 标 针对用户
+	private void readArticle(FtsDocumentCommonVO ftsDocumentCommonVO) throws com.trs.hybase.client.TRSException,TRSException{
+		User user = UserUtils.getUser();
+		if (ObjectUtil.isNotEmpty(user)){
+			Organization organization = organizationRepository.findOne(user.getOrganizationId());
+			if (ObjectUtil.isNotEmpty(organization) && organization.isExclusiveHybase()){
+				//			有小库情况下  才能使用已读标
+				if (ObjectUtil.isNotEmpty(ftsDocumentCommonVO)){
+					String groupName = ftsDocumentCommonVO.getGroupName();
+					String userId = user.getId();
+
+					TRSInputRecord trsInputRecord = new TRSInputRecord();
+					trsInputRecord.setUid(ftsDocumentCommonVO.getSysUid());
+					String read = ftsDocumentCommonVO.getRead();
+					if (StringUtils.isNotBlank(read)) {
+						String[] split = read.split(";");
+						List<String> asList = Arrays.asList(split);
+						if (!asList.contains(userId)) {
+							asList = new ArrayList<>(asList);
+							asList.add(userId);
+						}
+						String join = String.join(";", asList);
+						trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, join);
+					} else {
+						trsInputRecord.addColumn(FtsFieldConst.FIELD_READ, userId);
+					}
+
+					if (StringUtil.isNotEmpty(user.getOrganizationId())){
+						HybaseShard trsHybaseShard = hybaseShardService.findByOrganizationId(user.getOrganizationId());
+						if(ObjectUtil.isNotEmpty(trsHybaseShard)){
+
+							String database = trsHybaseShard.getTradition();
+							if (Const.MEDIA_TYPE_WEIBO.contains(groupName)) {
+								database = trsHybaseShard.getWeiBo();
+							} else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
+								database = trsHybaseShard.getWeiXin();
+							} else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
+								database = trsHybaseShard.getOverseas();
+							} else if (Const.MEDIA_TYPE_VIDEO.contains(groupName)){
+								database = trsHybaseShard.getVideo();
+							}
+							hybase8SearchService.updateRecords(database, trsInputRecord);
+						}
+					}
+				}
+			}
+		}
 
 	}
 }

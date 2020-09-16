@@ -20,6 +20,7 @@ import com.trs.netInsight.widget.user.entity.User;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,25 +48,55 @@ public class PieColumn extends AbstractColumn {
 			builder.setPageSize(8);
 			ChartResultField resultField = new ChartResultField("name", "value");
 			if (StringUtils.isNotBlank(indexTab.getContrast())) {// 对比类别不为空,断言简单模式
-				String contrastField = FtsFieldConst.FIELD_GROUPNAME;
-				String type = indexTab.getType();
-				// 来源分类对比图
-				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_GROUP)) {
-					builder.setPageSize(20);
-				}
-				// 站点对比图
-				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_SITE)) {
-					contrastField = FtsFieldConst.FIELD_SITENAME;
-				}
-				//微信公众号对比
-				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT)) {
-					contrastField = FtsFieldConst.FIELD_SITENAME;
-				}
 				// 正负面对比
 				if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_EMOTION)) {
-					contrastField = FtsFieldConst.FIELD_APPRAISE;
+					String contrastField = FtsFieldConst.FIELD_APPRAISE;
+					list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,groupName,null,contrastField,"column",resultField);
+					builder.filterField(FtsFieldConst.FIELD_APPRAISE,"中性 OR \"\"",Operator.Equal);
+					Long ftsCount = commonListService.ftsCount(builder,sim,irSimflag,irSimflagAll,"column",groupName);
+					Map<String, Object> midMap = new HashMap<>();
+					midMap.put(resultField.getContrastField(),"中性");
+					midMap.put(resultField.getCountField(),ftsCount);
+
+					if(list == null && ftsCount != null && ftsCount>0){
+						list = new ArrayList<>();
+					}
+					if(list != null){
+						if(list.size() == 0){
+							if(ftsCount == 0){
+								return null;
+							}
+							list.add(midMap);
+						}else{
+							Boolean containsMid = false;
+							for(Map<String, Object> map :list){
+								if("中性".equals(map.get(resultField.getContrastField()))){
+									map.put(resultField.getCountField(),ftsCount);
+									containsMid = true;
+								}
+							}
+							if(!containsMid){
+								list.add(midMap);
+							}
+						}
+					}
+				}else{
+					String contrastField = FtsFieldConst.FIELD_GROUPNAME;
+					String type = indexTab.getType();
+					// 来源分类对比图
+					if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_GROUP)) {
+						builder.setPageSize(20);
+					}
+					// 站点对比图
+					if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_SITE)) {
+						contrastField = FtsFieldConst.FIELD_SITENAME;
+					}
+					//微信公众号对比
+					if (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT)) {
+						contrastField = FtsFieldConst.FIELD_SITENAME;
+					}
+					list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,groupName,null,contrastField,"column",resultField);
 				}
-				list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,groupName,null,contrastField,"column",resultField);
 			} else {// 专家模式
 				list = (List<Map<String, Object>>)commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,groupName, indexTab.getXyTrsl(),null,"column",resultField);
 			}
@@ -126,18 +157,20 @@ public class PieColumn extends AbstractColumn {
 					}
 				}
 			}else{
-				if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {// 舆论来源对比
-					String key = StringUtils.join(CommonListChartUtil.formatGroupName(super.config.getKey()), ";");
-					commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);
-				}else if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {//站点对比
-					commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
-				}else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {//微信公众号对比
-					commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
-				}else if(ColumnConst.CHART_PIE_EMOTION.equals(type)){
+				if(ColumnConst.CHART_PIE_EMOTION.equals(type)){
 					commonBuilder.filterField(FtsFieldConst.FIELD_APPRAISE, super.config.getKey(), Operator.Equal);
-				}else {
-					//除去专家模式，柱状图只有三种模式，如果不是这三种，则无对比模式
-					throw new TRSSearchException("未获取到检索条件");
+				}else{
+					if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {// 舆论来源对比
+						String key = StringUtils.join(CommonListChartUtil.formatGroupName(super.config.getKey()), ";");
+						commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);
+					}else if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {//站点对比
+						commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, "\""+super.config.getKey()+"\"", Operator.Equal);
+					}else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {//微信公众号对比
+						commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, "\""+super.config.getKey()+"\"", Operator.Equal);
+					}else {
+						//除去专家模式，柱状图只有三种模式，如果不是这三种，则无对比模式
+						throw new TRSSearchException("未获取到检索条件");
+					}
 				}
 			}
 			if("hot".equals(this.config.getOrderBy())){

@@ -183,6 +183,7 @@ public class ConfigurationController {
 			@ApiParam("hybase库设置 -- 传统库") @RequestParam(value = "traditional", required = false) String traditional,
 			@ApiParam("hybase库设置 -- 微信库") @RequestParam(value = "weixin", required = false) String weixin,
 			@ApiParam("hybase库设置 -- 海外 TF库") @RequestParam(value = "overseas", required = false) String overseas,
+			@ApiParam("hybase库设置 -- 视频库") @RequestParam(value = "video", required = false) String video,
 			@ApiParam("hybase库设置 -- 手工录入库") @RequestParam(value = "insert", required = false) String insert,
 			@ApiParam("hybase库设置 -- 微博用户库") @RequestParam(value = "sinaweiboUsers", required = false) String sinaweiboUsers
 	) throws TRSException {
@@ -216,7 +217,7 @@ public class ConfigurationController {
 		systemConfigService.updateSystemConfig(organizationName,fileName,deleteOrg,needOperation);
 
 		//hybase库设置，如果为空设置成默认 或不改变
-		systemConfigService.updateHybaseDatabaseConfig(traditional,weibo,weixin,overseas,insert,sinaweiboUsers);
+		systemConfigService.updateHybaseDatabaseConfig(traditional,weibo,weixin,overseas,video,insert,sinaweiboUsers);
 		return "success";
 	}
 }

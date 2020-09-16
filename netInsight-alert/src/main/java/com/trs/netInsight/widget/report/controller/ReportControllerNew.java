@@ -9,6 +9,7 @@ import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.widget.report.constant.Chapter;
 import com.trs.netInsight.widget.report.entity.TemplateNew;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
@@ -18,12 +19,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
@@ -67,6 +63,7 @@ public class ReportControllerNew {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "templateName", value = "模板名称", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "reportName", value = "报告名称", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "templateList", value = "具体模板数据", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "templateType", value = "报告类型", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "totalIssue", value = "总期号", dataType = "String", paramType = "query", required = false),
@@ -77,14 +74,18 @@ public class ReportControllerNew {
 	@FormatResult
 	public Object saveTemplate(String templateId,
 							   String templateName,
+							   String reportName,
 							   String templateList,
 							   String templateType,
 							   String totalIssue,
 							   String thisIssue,
 							   String preparationUnits,
 							   String preparationAuthors,
-							   String statisticsTime) {
-		return reportServiceNew.saveTemplate(templateId, templateName,
+							   String statisticsTime) throws OperationException{
+		if(StringUtil.isEmpty(templateType)){
+			throw new OperationException("没有选择模板类型");
+		}
+		return reportServiceNew.saveTemplate(templateId, templateName,reportName,
 				templateList, templateType, totalIssue, thisIssue, preparationUnits, preparationAuthors, statisticsTime);
 	}
 
@@ -151,7 +152,7 @@ public class ReportControllerNew {
 	 * @returnf
 	 * @throws TRSException
 	 */
-	@ApiOperation("显示所有的报告资源，在添加日报、周报、月报时显示")
+	@ApiOperation("显示所有的报告资源，在添加日报、周报、月报时显示 - 是在制作报告页面的数据，当前页面的数据不是生产报告中的资源")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportType", value = "报告类型", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true) })
@@ -178,49 +179,45 @@ public class ReportControllerNew {
 	@ApiOperation("添加到我的资源池/已生成的报告，单选、多选公用1个接口")
 	@FormatResult
 	@ApiImplicitParams({
-			@ApiImplicitParam(name = "sids", value = "需要增加到资源池的sid集合，用分号（;）隔开", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "groupName", value = "来源 查库用 传多个的时候用（;）隔开", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "sids", value = "需要增加到资源池的sid集合，用分号（;）隔开", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "groupName", value = "来源 查库用 传多个的时候用（;）隔开", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "trslk", value = "列表查询表达式，查数据用", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "chapter", value = "章节", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "img_data", value = "图片资源数据", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "img_type", value = "图片资源数据类型", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "reportType", value = "报告类型", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "chapterPosition", value = "章节位置", dataType = "Integer", paramType = "query", required = true),
-			@ApiImplicitParam(name = "reportId", value = "报告id(此时为已生成的报告)", dataType = "reportId", paramType = "query", required = true)})
+			@ApiImplicitParam(name = "reportId", value = "报告id(此时为已生成的报告)", dataType = "reportId", paramType = "query", required = false)})
 	@Log(systemLogOperation = SystemLogOperation.REPORT_ADD_REPORT_RESOURCE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@RequestMapping(value = "/addReportResource", method = RequestMethod.POST)
 	public Object addReportResource(
-			@RequestParam(value = "sids") String sids,
-			@RequestParam(value = "groupName") String groupName,
+			@RequestParam(value = "sids",required = false) String sids,
+			@RequestParam(value = "groupName",required = false) String groupName,
+			@RequestParam(value = "trslk",required = false) String trslk,
 			@RequestParam(value = "chapter") String chapter,
 			// 二级标题暂时不用
-			@RequestParam(value = "secondaryChapter", required = false) String secondaryChapter,
 			@RequestParam(value = "img_data", required = false) String img_data,
 			@RequestParam(value = "img_type", required = false) String img_type,
 			@RequestParam(value = "reportType") String reportType,
 			@RequestParam(value = "templateId") String templateId,
 			@RequestParam(value = "chapterPosition") Integer chapterPosition,
-			@RequestParam(value = "reportId") String reportId) throws Exception {
+			@RequestParam(value = "reportId",required = false) String reportId) throws Exception {
 		try {
 			//页面栏目数据未加载出来就点“加入简报”操作，造成传空入库后，模板内前端页面无法显示
 			if (StringUtil.isNotEmpty(img_type) && StringUtil.isEmpty(img_data)){
 				throw new OperationException("已知是图表类模块，图表数据为空！");
 			}
-			String[] split = groupName.split(";");
-			for (int i = 0; i < split.length; i++) {
-				if (split[i].equals("国内新闻_手机客户端")
-						|| split[i].equals("国内新闻_电子报")) {
-					split[i] = split[i].substring(split[i].length() - 3,
-							split[i].length());
+			if(StringUtil.isNotEmpty(groupName)){
+				String[] split = groupName.split(";");
+				for (int i = 0; i < split.length; i++) {
+					split[i] = Const.SOURCE_GROUPNAME_CONTRAST.get(split[i]);
 				}
-				if ("微信".equals(split[i])) {
-					split[i] = "国内微信";
-				}
+				groupName = StringUtils.join(split, ";");
 			}
-			groupName = StringUtils.join(split, ";");
 			String userId = UserUtils.getUser().getId();
-			Object result = reportServiceNew.saveReportResource(sids, userId,
-					groupName, chapter, img_data, secondaryChapter, reportType,
+			Object result = reportServiceNew.saveReportResource(sids,trslk, userId,
+					groupName, chapter, img_data, reportType,
 					templateId, img_type, chapterPosition, reportId);
 			if ("fail".equals(result)) {
 				throw new OperationException("请检查sid和md5tag及groupName的数量是否一致");
@@ -241,12 +238,13 @@ public class ReportControllerNew {
 	 */
 	@ApiOperation("删除资源池中的资源")
 	@ApiImplicitParams({
-	@ApiImplicitParam(name = "resourceId", value = "需要删除的报告资源id，多选时用 ; 分隔", dataType = "String", paramType = "query", required = false) })
+	@ApiImplicitParam(name = "resourceId", value = "需要删除的报告资源id，多选时用 ; 分隔", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "reportId", value = "报告id", dataType = "String", paramType = "query", required = false)})
 	@Log(systemLogOperation = SystemLogOperation.REPORT_DELETE_REPORT_RESOURCE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@FormatResult
 	@RequestMapping(value = "/delReportResource", method = RequestMethod.POST)
 	public Object deleteReportResource(
-			@RequestParam(value = "resourceId") String resourceId) throws OperationException {
+			@RequestParam(value = "resourceId") String resourceId,@RequestParam(value = "reportId",required = false) String reportId) throws OperationException {
 		try {
 			return reportServiceNew.delReportResource(resourceId);
 		} catch (Exception e) {
@@ -351,14 +349,9 @@ public class ReportControllerNew {
 	/**
 	 * 创建专报(分组）
 	 * @author shao.guangze
-	 * @param reportId
-	 * @param templateId
-	 * @param reportIntro
-	 * @param jsonImgElements
 	 * @return
 	 * @throws Exception
 	 */
-	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE_SPECIAL, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@ApiOperation("生成报告, 专报")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true),
@@ -373,7 +366,17 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "preparationAuthors", value = "编辑作者", dataType = "String", paramType = "query", required = true)})
 	@RequestMapping(value = "/createSpecial", method = RequestMethod.POST)
 	@FormatResult
-	public Object createReport(String reportId, String templateId, String reportIntro, String jsonImgElements, String statisticsTime,String reportName, String thisIssue, String totalIssue, String preparationUnits, String preparationAuthors) throws Exception{
+	public Object createReport(
+			@RequestParam(value = "reportId", required = false) String reportId,
+			@RequestParam(value = "templateId", required = false) String templateId,
+			@RequestParam(value = "reportIntro", required = false) String reportIntro,
+			@RequestParam(value = "jsonImgElements", required = false) String jsonImgElements,
+			@RequestParam(value = "statisticsTime", required = false) String statisticsTime,
+			@RequestParam(value = "reportName", required = false) String reportName,
+			@RequestParam(value = "thisIssue", required = false) String thisIssue,
+			@RequestParam(value = "totalIssue", required = false) String totalIssue,
+			@RequestParam(value = "preparationUnits", required = false) String preparationUnits,
+			@RequestParam(value = "preparationAuthors", required = false) String preparationAuthors, javax.servlet.http.HttpServletRequest request) throws Exception {
 		return sepcialReportService.createSepcial(reportId, templateId, jsonImgElements, reportIntro, statisticsTime, reportName, thisIssue, totalIssue, preparationUnits, preparationAuthors);
 	}
 	
@@ -429,11 +432,12 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "searchText", value = "结果中搜索", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "groupName", value = "专报分组名称", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "pageNum", value = "分页第几页", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "pageSize", value = "分页每页显示多少条", dataType = "String", paramType = "query", required = true)})
+			@ApiImplicitParam(name = "pageSize", value = "分页每页显示多少条", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "time", value = "筛选时间", dataType = "String", paramType = "query", required = false)})
 	@RequestMapping(value = "/listAllReport", method = RequestMethod.POST)
 	@FormatResult
-	public Object listAllReport(String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize){
-		return reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize);
+	public Object listAllReport(String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize,String time){
+		return reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize,time);
 	}
 	
 	/**
@@ -625,21 +629,19 @@ public class ReportControllerNew {
 	 * @param reportId
 	 * @param chapterDetail
 	 * @return
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@ApiOperation("删除专报列表数据中的1条数据")
 	@Log(systemLogOperation = SystemLogOperation.REPORT_DEL_SPECIAL_RESOURCE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "chapterDetail", value = "章节名称", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "resourceId", value = "章节中资源ID", dataType = "String", paramType = "query", required = true)})
+			@ApiImplicitParam(name = "chapterDetail", value = "章节名称", dataType = "String", paramType = "query", required = true)})
 	@RequestMapping(value = "/delSpecialResource", method = RequestMethod.POST)
 	@FormatResult
-	public Object deleteReportResource(
-			@ApiParam("专报id")@RequestParam(value = "reportId", required = false)String reportId, 
-			@ApiParam("模块类型")@RequestParam(value = "chapterDetail", required = true)String chapterDetail, 
-			@ApiParam("该条资源的id（不是sid）")@RequestParam(value = "resourceId", required = false)String resourceId) throws Exception{
-		sepcialReportService.delReportResource(reportId, chapterDetail, resourceId);
+	public Object delSpecialResource(
+			@ApiParam("专报id")@RequestParam(value = "reportId", required = false)String reportId,
+			@ApiParam("模块类型")@RequestParam(value = "chapterDetail", required = true)String chapterDetail) throws Exception{
+		sepcialReportService.delReportResource(reportId, chapterDetail);
 		return Const.SUCCESS;
 	}
 
@@ -795,7 +797,7 @@ public class ReportControllerNew {
 		if (StringUtil.isNotEmpty(resourceId)){
 			reportServiceNew.updateReportResource(resourceId,imgComment);
 		}else if (StringUtil.isNotEmpty(templateId)){
-			reportServiceNew.saveOverView( UserUtils.getUser().getId(), "数据统计概述", imgComment, reportType, templateId);
+			reportServiceNew.saveOverView( UserUtils.getUser().getId(), Chapter.Statistics_Summarize.toString(), imgComment, reportType, templateId);
 		}
 		return Const.SUCCESS;
 	}

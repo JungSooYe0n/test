@@ -274,7 +274,7 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     newAdd.setAbstracts(abstracts);
                     String fullContent = fav.getExportContent();
                     if (StringUtil.isNotEmpty(fullContent)) {
-                        fullContent = StringUtil.filterEmoji(StringUtil.replaceImg(fullContent));
+                        fullContent = StringUtil.filterEmoji(StringUtil.replaceImg(fullContent)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "");
                     }
                     newAdd.setFullContent(fullContent);
                     newAdd.setHkey(null);
@@ -295,9 +295,15 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     newAdd.setAppraise(StringUtil.isEmpty(fav.getAppraise()) ? "中性":fav.getAppraise());
                     newAdd.setKeywords(fav.getKeywords());
                     newAdd.setChannel(fav.getChannel());
+                    if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
+                        newAdd.setImgSrc(null);
+                    }else{
+                        newAdd.setImgSrc(fav.getImgSrc());
+                    }
 
                     String authors = fav.getAuthors();
-                    newAdd.setAbstracts(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+                    newAdd.setAuthors(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+                    newAdd.setAuthor(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
                     String screenName = fav.getScreenName();
                     String srcName = fav.getSrcName();
 
@@ -313,8 +319,10 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                         srcName = fav.getRetweetedScreenName();
                         newAdd.setAbstracts(content);
                     }else if(Const.GROUPNAME_DUANSHIPIN.equals(oneGroupName) || Const.GROUPNAME_CHANGSHIPIN.equals(oneGroupName)){
-                        newAdd.setTitle(content);
-                        newAdd.setUrlTitle(content);
+                        if(StringUtil.isEmpty(title)){
+                            newAdd.setTitle(content);
+                            newAdd.setUrlTitle(content);
+                        }
                         newAdd.setAbstracts(content);
                     }
                     screenName =  StringUtil.filterEmoji(StringUtil.replaceImg(screenName));
@@ -473,7 +481,7 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
 
     @Override
     public String delLibraryResource(String sids, String libraryId) {
-        String[] sidArry = sids.split(SEMICOLON);
+        String[] sidArry = sids.split("[,|;]");
         Criteria<Favourites> criteria = new Criteria<Favourites>();
         criteria.add(Restrictions.in("sid", Arrays.asList(sidArry)));
         User loginUser = UserUtils.getUser();
@@ -484,7 +492,27 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
         }
         criteria.add(Restrictions.eq("libraryId",libraryId));
         List<Favourites> all = favouritesRepository.findAll(criteria);
-        favouritesRepository.delete(favouritesRepository.findAll(criteria));
+        if(all != null && all.size() > 0){
+            favouritesRepository.delete(all);
+        }
+        return Const.SUCCESS;
+    }
+    //
+    @Override
+    public String delLibraryResourceForIds(String sids) {
+        String[] sidArry = sids.split("[,|;]");
+        Criteria<Favourites> criteria = new Criteria<Favourites>();
+        criteria.add(Restrictions.in("sid", Arrays.asList(sidArry)));
+        User loginUser = UserUtils.getUser();
+        if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+            criteria.add(Restrictions.eq("userId",loginUser.getId()));
+        }else {
+            criteria.add(Restrictions.eq("subGroupId",loginUser.getSubGroupId()));
+        }
+        List<Favourites> all = favouritesRepository.findAll(criteria);
+        if(all!= null && all.size()>0){
+            favouritesRepository.delete(all);
+        }
         return Const.SUCCESS;
     }
 
@@ -1190,20 +1218,20 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
     }
 
     public Object findMaterialSourceByCondition(String libraryId, int pageNo, int pageSize,
-                                          List<String> groupNameList, String keyword,String fuzzyValueScope, String invitationCard,
-                                          String forwarPrimary,String time) throws TRSException{
+                                                List<String> groupNameList, String keyword, String fuzzyValueScope, String invitationCard,
+                                                String forwarPrimary, String time, Boolean isExport) throws TRSException {
         User loginUer = UserUtils.getUser();
         String start = DateUtil.formatTimeRange(time)[0];
         String end = DateUtil.formatTimeRange(time)[1];
-        Date startTime = time == null?new Date():DateUtil.stringToDate(start,DateUtil.yyyyMMddHHmmss);
-        Date endTime = time == null?new Date():DateUtil.stringToDate(end,DateUtil.yyyyMMddHHmmss);
+        Date startTime = time == null ? new Date() : DateUtil.stringToDate(start, DateUtil.yyyyMMddHHmmss);
+        Date endTime = time == null ? new Date() : DateUtil.stringToDate(end, DateUtil.yyyyMMddHHmmss);
         //获取用户可查询的数据源
-        String groupNames = StringUtils.join(groupNameList,";");
+        String groupNames = StringUtils.join(groupNameList, ";");
         List<String> groupName = SourceUtil.getGroupNameList(groupNames);
-        if(groupName == null || groupName.size() ==0){
+        if (groupName == null || groupName.size() == 0) {
             return null;
         }
-        String source = StringUtils.join(groupName,";");
+        String source = StringUtils.join(groupName, ";");
         Sort sort = new Sort(Sort.Direction.DESC, "urltime");
         PageRequest pageable = new PageRequest(pageNo, pageSize, sort);
         Page<Favourites> list = null;
@@ -1212,76 +1240,76 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             public Predicate toPredicate(Root<Favourites> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 List<Predicate> predicate = new ArrayList<>();
                 predicate.add(cb.equal(root.get("libraryId"), libraryId));
-                predicate.add(cb.between(root.get("createdTime"),startTime,endTime));
-                if(StringUtil.isNotEmpty(keyword) && StringUtil.isNotEmpty(fuzzyValueScope)){
+                predicate.add(cb.between(root.get("createdTime"), startTime, endTime));
+                if (StringUtil.isNotEmpty(keyword) && StringUtil.isNotEmpty(fuzzyValueScope)) {
                     List<Predicate> predicateKeyWord = new ArrayList<>();
 
-                    switch (fuzzyValueScope){
+                    switch (fuzzyValueScope) {
                         case "title":
-                            predicateKeyWord.add(cb.like(root.get("title"),"%"+keyword+"%"));
+                            predicateKeyWord.add(cb.like(root.get("title"), "%" + keyword + "%"));
                             break;
                         case "source":
-                            predicateKeyWord.add(cb.like(root.get("siteName"),"%"+keyword+"%"));
+                            predicateKeyWord.add(cb.like(root.get("siteName"), "%" + keyword + "%"));
                             break;
                         case "author":
-                            predicateKeyWord.add(cb.like(root.get("authors"),"%"+keyword+"%"));
+                            predicateKeyWord.add(cb.like(root.get("authors"), "%" + keyword + "%"));
                             break;
                         case "fullText":
-                            predicateKeyWord.add(cb.like(root.get("title"),"%"+keyword+"%"));
-                            predicateKeyWord.add(cb.like(root.get("content"),"%"+keyword+"%"));
+                            predicateKeyWord.add(cb.like(root.get("title"), "%" + keyword + "%"));
+                            predicateKeyWord.add(cb.like(root.get("content"), "%" + keyword + "%"));
                             break;
                     }
 
                     predicate.add(cb.or(predicateKeyWord.toArray(new Predicate[predicateKeyWord.size()])));
                 }
-                if( (StringUtil.isNotEmpty(forwarPrimary) && source.contains("微博")) ||
-                        StringUtil.isNotEmpty(invitationCard) && source.contains("国内论坛")){
+                if ((StringUtil.isNotEmpty(forwarPrimary) && source.contains("微博")) ||
+                        StringUtil.isNotEmpty(invitationCard) && source.contains("国内论坛")) {
                     List<Predicate> predicateGroupName = new ArrayList<>();
 
-                    if(StringUtil.isNotEmpty(forwarPrimary) && source.contains("微博")){
+                    if (StringUtil.isNotEmpty(forwarPrimary) && source.contains("微博")) {
                         List<Predicate> predicateWeibo = new ArrayList<>();
                         predicateWeibo.add(cb.equal(root.get("groupName"), "微博"));
                         if ("primary".equals(forwarPrimary)) {
                             // 原发
                             predicateWeibo.add(cb.isNull(root.get("retweetedMid")));
-                        }else  if ("forward".equals(forwarPrimary)){
+                        } else if ("forward".equals(forwarPrimary)) {
                             //转发
                             predicateWeibo.add(cb.isNotNull(root.get("retweetedMid")));
                         }
-                        for(int i = 0;i < groupName.size() ;i++){
-                            if("微博".equals(groupName.get(i))){
+                        for (int i = 0; i < groupName.size(); i++) {
+                            if ("微博".equals(groupName.get(i))) {
                                 groupName.remove(i);
                             }
                         }
                         predicateGroupName.add(cb.and(predicateWeibo.toArray(new Predicate[predicateWeibo.size()])));
                     }
 
-                    if(StringUtil.isNotEmpty(invitationCard)  && source.contains("国内论坛")){
+                    if (StringUtil.isNotEmpty(invitationCard) && source.contains("国内论坛")) {
                         List<Predicate> predicateLuntan = new ArrayList<>();
                         predicateLuntan.add(cb.equal(root.get("groupName"), "国内论坛"));
                         if ("0".equals(invitationCard)) {
                             // 主贴
                             List<Predicate> predicateLuntan_zhutie = new ArrayList<>();
                             predicateLuntan_zhutie.add(cb.isNull(root.get("nreserved1")));
-                            predicateLuntan_zhutie.add(cb.equal(root.get("nreserved1"),"0"));
-                            predicateLuntan_zhutie.add(cb.equal(root.get("nreserved1"),""));
+                            predicateLuntan_zhutie.add(cb.equal(root.get("nreserved1"), "0"));
+                            predicateLuntan_zhutie.add(cb.equal(root.get("nreserved1"), ""));
                             predicateLuntan.add(cb.or(predicateLuntan_zhutie.toArray(new Predicate[predicateLuntan_zhutie.size()])));
-                        }else  if ("1".equals(invitationCard)){
+                        } else if ("1".equals(invitationCard)) {
                             //回帖
-                            predicateLuntan.add(cb.equal(root.get("nreserved1"),"1"));
+                            predicateLuntan.add(cb.equal(root.get("nreserved1"), "1"));
                         }
-                        for(int i = 0;i < groupName.size() ;i++){
-                            if("国内论坛".equals(groupName.get(i))){
+                        for (int i = 0; i < groupName.size(); i++) {
+                            if ("国内论坛".equals(groupName.get(i))) {
                                 groupName.remove(i);
                             }
                         }
                         predicateGroupName.add(cb.and(predicateLuntan.toArray(new Predicate[predicateLuntan.size()])));
                     }
 
-                    if(groupName.size() > 0){
+                    if (groupName.size() > 0) {
                         List<Predicate> predicatOtherGroupName = new ArrayList<>();
                         CriteriaBuilder.In<String> in = cb.in(root.get("groupName").as(String.class));
-                        for(int i = 0; i<groupName.size();i++){
+                        for (int i = 0; i < groupName.size(); i++) {
                             in.value(groupName.get(i));
                         }
                         predicatOtherGroupName.add(in);
@@ -1289,9 +1317,9 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     }
                     predicate.add(cb.or(predicateGroupName.toArray(new Predicate[predicateGroupName.size()])));
 
-                }else{
+                } else {
                     CriteriaBuilder.In<String> in = cb.in(root.get("groupName").as(String.class));
-                    for(int i = 0; i<groupName.size();i++){
+                    for (int i = 0; i < groupName.size(); i++) {
                         in.value(groupName.get(i));
                     }
                     predicate.add(in);
@@ -1301,84 +1329,109 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             }
         };
 
-        list = favouritesRepository.findAll(criteria,pageable);
+        list = favouritesRepository.findAll(criteria, pageable);
+        if (isExport) {
+            if (ObjectUtil.isNotEmpty(list)) {
+                list.forEach(item -> {
+                    if (item.getGroupName().equals("Twitter") || item.getGroupName().equals("Facebook") || item.getGroupName().equals("国内微信")) {
+                        item.setScreenName(item.getAuthors());
+                    }
+                    if (StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null)
+                        item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
+                    item.setUrlTitle(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getUrlTitle())), Const.CONTENT_LENGTH));
+                    item.setStatusContent(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getStatusContent())), Const.CONTENT_LENGTH));
+                    item.setContent(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getContent())), Const.CONTENT_LENGTH));
+                    item.setTitle(StringUtil.cutContentPro(StringUtil.replaceImg(subString(item.getTitle())), Const.CONTENT_LENGTH));
+                });
+            }
 
-        if (ObjectUtil.isNotEmpty(list)) {
-            List<Object> resultList = new ArrayList<>();
-            list.forEach(item -> {
-                Map<String, Object> map = new HashMap<>();
+            return new InfoListResult<>(list.getContent(), (int) list.getTotalElements(), list.getTotalPages());
+        } else {
+            if (ObjectUtil.isNotEmpty(list)) {
+                List<Object> resultList = new ArrayList<>();
+                list.forEach(item -> {
+                    Map<String, Object> map = new HashMap<>();
 
-                String oneGroup = CommonListChartUtil.formatPageShowGroupName(item.getGroupName());
-                map.put("id", item.getSid());
-                map.put("groupName", oneGroup);
-                map.put("urltime", item.getUrlTime());
-                map.put("md5", item.getMdsTag());
+                    String oneGroup = CommonListChartUtil.formatPageShowGroupName(item.getGroupName());
+                    map.put("id", item.getSid());
+                    map.put("groupName", oneGroup);
+                    map.put("urltime", item.getUrlTime());
+                    map.put("md5", item.getMdsTag());
 
-                if(StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null) item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
-                item.setUrlTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getUrlTitle())),Const.CONTENT_LENGTH));
-                item.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getContent())),Const.CONTENT_LENGTH));
-                item.setTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getTitle())),Const.CONTENT_LENGTH));
+                    if (StringUtil.isEmpty(item.getUrltime()) && item.getUrlTime() != null)
+                        item.setUrltime(DateUtil.getDataToTime(item.getUrlTime()));//前端需要Urltime
+                    item.setUrlTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getUrlTitle())), Const.CONTENT_LENGTH));
+                    item.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getContent())), Const.CONTENT_LENGTH));
+                    item.setTitle(StringUtil.cutContentByFont(StringUtil.replaceImg(subString(item.getTitle())), Const.CONTENT_LENGTH));
 
-                String title= item.getTitle();
-                map.put("title", title);
-                if(StringUtil.isNotEmpty(title)){
-                    title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
-                }
-                map.put("copyTitle", title); //前端复制功能需要用到
-                //摘要
-                map.put("abstracts", item.getContent());
-                if(item.getKeywords() != null && item.getKeywords().size() >3){
-                    map.put("keyWordes", item.getKeywords().subList(0,3));
-                }else{
-                    map.put("keyWordes", item.getKeywords());
-                }
-                String voEmotion =  item.getAppraise();
-                if(StringUtil.isNotEmpty(voEmotion)){
-                    map.put("emotion",voEmotion);
-                }else{
-                    map.put("emotion","中性");
-                    map.put("isEmotion",null);
-                }
-                map.put("nreserved1", null);
-                map.put("hkey", item.getHkey());
-                if (Const.PAGE_SHOW_LUNTAN.equals(oneGroup)) {
-                    map.put("nreserved1", item.getNreserved1());
-                }
-                map.put("urlName", item.getUrlName());
-                map.put("favourite", item.isFavourite());
-                String fullContent = item.getFullContent();
-                if(StringUtil.isNotEmpty(fullContent)){
-                    fullContent = ReportUtil.calcuHit("",fullContent,true);
-                }
-                map.put("siteName", item.getSiteName());
-                map.put("author", item.getAuthors());
-                map.put("srcName", item.getSrcName());
-                //微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
-                if (Const.PAGE_SHOW_WEIBO.equals(oneGroup)) {
-                    map.put("title", item.getContent());
+                    String title = item.getTitle();
+                    map.put("title", title);
+                    if (StringUtil.isNotEmpty(title)) {
+                        title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+                    }
+                    map.put("copyTitle", title); //前端复制功能需要用到
+                    //摘要
                     map.put("abstracts", item.getContent());
-                    map.put("copyTitle", fullContent); //前端复制功能需要用到
-
-                    map.put("author", item.getScreenName());
-                } else if (Const.PAGE_SHOW_FACEBOOK.equals(oneGroup) || Const.PAGE_SHOW_TWITTER.equals(oneGroup)) {
-                    map.put("title", item.getContent());
-                    map.put("abstracts", item.getContent());
-                    map.put("copyTitle", fullContent); //前端复制功能需要用到
+                    if (item.getKeywords() != null && item.getKeywords().size() > 3) {
+                        map.put("keyWordes", item.getKeywords().subList(0, 3));
+                    } else {
+                        map.put("keyWordes", item.getKeywords());
+                    }
+                    String voEmotion = item.getAppraise();
+                    if (StringUtil.isNotEmpty(voEmotion)) {
+                        map.put("emotion", voEmotion);
+                    } else {
+                        map.put("emotion", "中性");
+                        map.put("isEmotion", null);
+                    }
+                    map.put("nreserved1", null);
+                    map.put("hkey", item.getHkey());
+                    if (Const.PAGE_SHOW_LUNTAN.equals(oneGroup)) {
+                        map.put("nreserved1", item.getNreserved1());
+                    }
+                    map.put("urlName", item.getUrlName());
+                    map.put("favourite", item.isFavourite());
+                    String fullContent = item.getFullContent();
+                    if (StringUtil.isNotEmpty(fullContent)) {
+                        if (fullContent.indexOf("<font color=red>") != -1) {
+                            fullContent = ReportUtil.calcuHit("", fullContent, true);
+                        }
+                        fullContent = StringUtil.replaceImg(StringUtil.replaceFont(fullContent));
+                    }
+                    map.put("siteName", item.getSiteName());
                     map.put("author", item.getAuthors());
-                } else if(Const.PAGE_SHOW_DUANSHIPIN.equals(oneGroup) || Const.PAGE_SHOW_CHANGSHIPIN.equals(oneGroup)){
-                    map.put("title", item.getContent());
-                    map.put("abstracts", item.getContent());
-                    map.put("author", item.getAuthors());
-                    map.put("copyTitle", fullContent); //前端复制功能需要用到
-                }
-                map.put("img", null);
-                map.put("channel", item.getChannel());
-                //前端页面显示需要，与后端无关
-                map.put("isImg", false);
-                map.put("simNum", 0);
-                resultList.add(map);
-            });
-            return new InfoListResult<>(resultList, (int)list.getTotalElements(), list.getTotalPages());
+                    map.put("srcName", item.getSrcName());
+                    //微博、Facebook、Twitter、短视频等没有标题，应该用正文当标题
+                    if (Const.PAGE_SHOW_WEIBO.equals(oneGroup)) {
+                        map.put("title", item.getContent());
+                        map.put("abstracts", item.getContent());
+                        map.put("copyTitle", fullContent); //前端复制功能需要用到
+
+                        map.put("author", item.getScreenName());
+                    } else if (Const.PAGE_SHOW_FACEBOOK.equals(oneGroup) || Const.PAGE_SHOW_TWITTER.equals(oneGroup)) {
+                        map.put("title", item.getContent());
+                        map.put("abstracts", item.getContent());
+                        map.put("copyTitle", fullContent); //前端复制功能需要用到
+                        map.put("author", item.getAuthors());
+                    } else if (Const.PAGE_SHOW_DUANSHIPIN.equals(oneGroup) || Const.PAGE_SHOW_CHANGSHIPIN.equals(oneGroup)) {
+                        if(StringUtil.isEmpty(title)){
+                            map.put("title", item.getContent());
+                        }
+                        map.put("abstracts", item.getContent());
+                        map.put("author", item.getAuthors());
+                        map.put("copyTitle", fullContent); //前端复制功能需要用到
+                    }
+
+                    map.put("channel", item.getChannel());
+                    //前端页面显示需要，与后端无关
+                    map.put("img", item.getImgSrc());
+                    //前端页面显示需要，与后端无关
+                    map.put("isImg", StringUtil.isEmpty(item.getImgSrc())? false:true);
+                    map.put("simNum", 0);
+                    resultList.add(map);
+                });
+                return new InfoListResult<>(resultList, (int) list.getTotalElements(), list.getTotalPages());
+            }
         }
         return null;
     }

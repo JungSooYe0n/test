@@ -45,7 +45,11 @@ public final class FtsParser {
             return indices;
         }else{
             FtsHybaseType hybaseType = ftsClient.hybaseType();
-            if(hybaseType.equals(FtsHybaseType.TRADITIONAL)){
+            if(hybaseType.equals(FtsHybaseType.ALERT)){
+                indices = Const.ALERT;
+            }else if(hybaseType.equals(FtsHybaseType.ALERT_TYPE)){
+                indices = Const.ALERTTYPE;
+            }else if(hybaseType.equals(FtsHybaseType.TRADITIONAL)){
                 indices = Const.HYBASE_NI_INDEX;
             }else if(hybaseType.equals(FtsHybaseType.WEIBO)){
                 indices = Const.WEIBO;
@@ -58,7 +62,7 @@ public final class FtsParser {
             }else if(hybaseType.equals(FtsHybaseType.SINAUSER)){
                 indices = Const.SINAUSERS;
             } else if(hybaseType.equals(FtsHybaseType.MIX)){
-                indices = Const.HYBASE_NI_INDEX+";"+Const.WECHAT_COMMON+";"+Const.WEIBO+";"+Const.HYBASE_OVERSEAS;
+                indices = Const.MIX_DATABASE;
             }else {
                 indices = Const.HYBASE_NI_INDEX;
             }

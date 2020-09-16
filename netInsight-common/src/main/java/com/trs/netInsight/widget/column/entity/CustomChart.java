@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.column.entity;
 
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
@@ -8,10 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * 日常监测自定义图表实体类
@@ -36,7 +36,18 @@ public class CustomChart extends BaseEntity {
      */
     @Column(name = "special_type")
     @ApiModelProperty(notes = "专项类型")
+    @Enumerated(EnumType.ORDINAL)
     private SpecialType specialType;
+    public SpecialType getSpecialType(){
+        if(this.specialType == null) {
+            if (StringUtil.isNotEmpty(this.getXyTrsl()) || StringUtil.isNotEmpty(this.getTrsl())) {
+                this.specialType = SpecialType.SPECIAL;
+            } else {
+                this.specialType = SpecialType.COMMON;
+            }
+        }
+        return this.specialType;
+    }
 
     @Column(name = "trsl", columnDefinition = "TEXT")
     private String trsl;// trs表达式
@@ -111,7 +122,13 @@ public class CustomChart extends BaseEntity {
      */
     @Column(name = "ir_simflag")
     private boolean irSimflag = false;
-
+    public boolean isIrSimflag(){
+        if(similar == false && irSimflagAll == false){
+            return true;
+        }else{
+            return irSimflag;
+        }
+    }
     /**
      * 跨数据源排重
      */
@@ -128,6 +145,9 @@ public class CustomChart extends BaseEntity {
      */
     @Column(name = "tab_width")
     private int tabWidth = 50;
+    public String getTabWidth(){
+        return String.valueOf(this.tabWidth);
+    }
 
 
     /**
@@ -135,31 +155,84 @@ public class CustomChart extends BaseEntity {
      */
     @Column(name = "media_level")
     private String mediaLevel;
+    public String getMediaLevel(){
+        if(StringUtil.isNotEmpty(this.mediaLevel)){
+            return this.mediaLevel.replaceAll("其他","其它");
+        }else{
+            return StringUtils.join(Const.MEDIA_LEVEL,";").replaceAll("其他","其它");
+        }
+    }
     /**
      * 媒体行业
      */
     @Column(name = "media_industry")
     private String mediaIndustry;
+    public String getMediaIndustry(){
+        if(StringUtil.isNotEmpty(this.mediaIndustry)){
+            return this.mediaIndustry.replaceAll("其他","其它");
+        }else{
+            return StringUtils.join(Const.MEDIA_INDUSTRY,";").replaceAll("其他","其它");
+        }
+    }
     /**
      * 内容行业
      */
     @Column(name = "content_industry")
     private String contentIndustry;
+    public String getContentIndustry(){
+        if(StringUtil.isNotEmpty(this.contentIndustry)){
+            return this.contentIndustry.replaceAll("其他","其它");
+        }else{
+            return StringUtils.join(Const.CONTENT_INDUSTRY,";").replaceAll("其他","其它");
+        }
+    }
     /**
      * 信息过滤  -  信息性质打标，如抽奖
      */
     @Column(name = "filter_info")
     private String filterInfo;
+    public String getFilterInfo(){
+        if(StringUtil.isNotEmpty(this.filterInfo)){
+            if(this.filterInfo.contains("其他") || this.filterInfo.contains("其它")){
+                this.filterInfo = this.filterInfo.replaceAll(";其他","").replaceAll(";其它","")
+                        .replaceAll("其他;","").replaceAll("其它;","")
+                        .replaceAll("其他","").replaceAll("其它","");
+                if(StringUtil.isEmpty(this.filterInfo)){
+                    return Const.NOT_FILTER_INFO;
+                }else{
+                    return this.filterInfo;
+                }
+            }else{
+                return this.filterInfo;
+            }
+        }else{
+            return StringUtils.join(Const.FILTER_INFO,";");
+        }
+    }
     /**
      * 内容所属地域
      */
     @Column(name = "content_area")
     private String contentArea;
+    public String getContentArea(){
+        if(StringUtil.isNotEmpty(this.contentArea)){
+            return this.contentArea.replaceAll("其他","其它");
+        }else{
+            return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+        }
+    }
     /**
      * 媒体所属地域
      */
     @Column(name = "media_area")
     private String mediaArea;
+    public String getMediaArea(){
+        if(StringUtil.isNotEmpty(this.mediaArea)){
+            return this.mediaArea.replaceAll("其他","其它");
+        }else{
+            return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+        }
+    }
 
     /**
      * 对应的日常监测的栏目id

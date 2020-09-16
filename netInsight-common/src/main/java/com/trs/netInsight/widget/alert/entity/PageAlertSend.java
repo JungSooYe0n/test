@@ -2,7 +2,7 @@ package com.trs.netInsight.widget.alert.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-
+import com.trs.netInsight.support.fts.entity.FtsDocumentAlertType;
 import java.util.List;
 
 /**
@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 public class PageAlertSend {
-    private List<AlertSend> content;//存储结果集
+    private List<FtsDocumentAlertType> content;//存储结果集
 
     private boolean first;//是不是第一页
 

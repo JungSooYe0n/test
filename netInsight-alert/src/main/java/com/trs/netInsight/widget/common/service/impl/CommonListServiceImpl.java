@@ -35,7 +35,10 @@ import com.trs.netInsight.widget.special.entity.AsyncInfo;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -48,13 +51,16 @@ import java.util.concurrent.Executors;
  */
 @Service
 @Slf4j
+//@EnableAspectJAutoProxy(exposeProxy = true)
 public class CommonListServiceImpl implements ICommonListService {
 
     @Autowired
     private FullTextSearch hybase8SearchServiceNew;
     @Autowired
     private IFavouritesService favouritesService;
-
+    @Autowired
+    @Lazy
+    private ICommonListService commonListService;
 
     /**
      * 线程池跑任务
@@ -89,8 +95,12 @@ public class CommonListServiceImpl implements ICommonListService {
             for (FtsDocumentCommonVO document : list) {
                 String content = "";
                 if (StringUtil.isNotEmpty(document.getContent())) {
+                    List<String> imgSrcList = StringUtil.getImgStr(document.getContent());
+                    if (imgSrcList != null && imgSrcList.size() > 0) {
+                        document.setImgSrc(imgSrcList.get(0));
+                    }
+                    document.setExportContent(document.getContent());
                     content = StringUtil.replaceImg(document.getContent());
-                    document.setExportContent(content);
                     document.setContent(StringUtil.cutContentByFont(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
                     document.setStatusContent(StringUtil.cutContentByFont(StringUtil.replaceImg(document.getContent()), Const.CONTENT_LENGTH));
                 }
@@ -161,7 +171,7 @@ public class CommonListServiceImpl implements ICommonListService {
             if (StringUtil.isNotEmpty(groupName)) {
                 builder = (QueryCommonBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 1);
             } else {
-                builder = CommonListChartUtil.formatQueryCommonBuilder(builder);
+                builder = CommonListChartUtil.formatQueryCommonBuilder(queryBuilder);
             }
             if (builder == null) {
                 return null;
@@ -211,7 +221,7 @@ public class CommonListServiceImpl implements ICommonListService {
         if (StringUtil.isNotEmpty(groupName)) {
             builder = (QueryCommonBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 1);
         } else {
-            builder = CommonListChartUtil.formatQueryCommonBuilder(builder);
+            builder = CommonListChartUtil.formatQueryCommonBuilder(queryBuilder);
         }
         if (builder == null) {
             return null;
@@ -327,7 +337,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 builder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 0);
 
             } else {
-                builder = CommonListChartUtil.formatQueryBuilder(builder);
+                builder = CommonListChartUtil.formatQueryBuilder(queryBuilder);
             }
             if (builder == null) {
                 return null;
@@ -382,7 +392,7 @@ public class CommonListServiceImpl implements ICommonListService {
             builder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(queryBuilder, groupName, 0);
 
         } else {
-            builder = CommonListChartUtil.formatQueryBuilder(builder);
+            builder = CommonListChartUtil.formatQueryBuilder(queryBuilder);
         }
         if (builder == null) {
             return null;
@@ -427,13 +437,12 @@ public class CommonListServiceImpl implements ICommonListService {
 
             List<FtsDocumentCommonVO> ftsDocumentCommonVOS = new ArrayList<>();
             // hybase不能直接分页 每次都统计出50条 然后再取
-
+            long startTime = System.currentTimeMillis();
             List<GroupInfo> groupList = new ArrayList();
             builder.page(0, 50);
             //单独算法,已修改
-            GroupResult md5TAG = hybase8SearchServiceNew.categoryQuery(builder, sim, irSimflag,
-                    irSimflagAll, "MD5TAG", type,
-                    builder.getDatabase());
+            GroupResult md5TAG = commonListService.categoryQuery(builder, sim, irSimflag,
+                    irSimflagAll, "MD5TAG", type);
             groupList = md5TAG.getGroupList();
 
             int start = (int) (pageSize * pageNo);
@@ -464,6 +473,8 @@ public class CommonListServiceImpl implements ICommonListService {
                     ftsDocumentCommonVOS.add(vo);
                 }
             }
+            long endTime = System.currentTimeMillis();
+            log.error("间隔HY时间：" + (endTime - startTime));
             if (0 == ftsDocumentCommonVOS.size()) {
                 return null;
             }
@@ -471,7 +482,7 @@ public class CommonListServiceImpl implements ICommonListService {
                     (int) (pageSize < 0 ? 15 : pageSize), pageListSize, ftsDocumentCommonVOS, 1);
             return pagedList;
         } catch (Exception e) {
-            throw new OperationException("listByHot error:" + e);
+            throw new OperationException("热点列表计算失败:" + e);
         }
     }
 
@@ -534,8 +545,11 @@ public class CommonListServiceImpl implements ICommonListService {
             return null;
         }
         queryBuilder.setPageSize(queryBuilder.getPageSize() >= 1 ? queryBuilder.getPageSize() : 15);
-        GroupResult groupResult = categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, FtsFieldConst.FIELD_GROUPNAME, type, null);
+        GroupResult groupResult = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, FtsFieldConst.FIELD_GROUPNAME, type);
 
+        if(groupResult == null || groupResult.getGroupList()==null || groupResult.getGroupList().size() ==0){
+            return null;
+        }
         Map<String, Long> map = new LinkedHashMap<>();
         if(groupResult != null){
             for (GroupInfo groupInfo : groupResult.getGroupList()) {
@@ -571,7 +585,7 @@ public class CommonListServiceImpl implements ICommonListService {
     private void calculateSimNum(String database, String pageId, final List<FtsDocumentCommonVO> documentList,
                                  String trslk, String type, Boolean isCalculateSitename) {
         try {
-            log.info("相似文章数计算：" + "async:" + pageId + "开始");
+            //log.info("相似文章数计算：" + "async:" + pageId + "开始");
             //热度排序按站内排重查询 - 热度为按相似文章数计算，相似文章数代表热度值
             Boolean sim = false;
             Boolean irSimflag = true;
@@ -613,7 +627,7 @@ public class CommonListServiceImpl implements ICommonListService {
 
                     searchBuilder.setPageSize(1);
 
-                    long ftsCount = ftsCount(searchBuilder, sim, irSimflag, irSimflagAll, type);
+                    Long ftsCount = commonListService.ftsCount(searchBuilder, sim, irSimflag, irSimflagAll, type);
                     //现在计算相似文章数，默认按照减去自身
                     asyncDocument.setSimNum(ftsCount);
                 } else {
@@ -627,7 +641,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 asyncInfo.setGroupName(document.getGroupName());
                 asyncInfoList.add(asyncInfo);
             }
-            log.info("相似文章数计算：" + "async:" + pageId + "完成，数据为：" + asyncList.size());
+            //log.info("相似文章数计算：" + "async:" + pageId + "完成，数据为：" + asyncList.size());
             TimingCachePool.put("async:" + pageId, asyncList);
             RedisFactory.setValueToRedis("async:" + pageId, asyncList);
             //现在只针对普通搜索页面做了相似文章发文网站的检索
@@ -653,7 +667,7 @@ public class CommonListServiceImpl implements ICommonListService {
         //五大商业媒体 ：IR_INDUSTRY    =1 时
         //网信办白名单 ： IR_WXB_LIST =0
         try {
-            log.info("相似文章的发文网站计算：" + "asySiteName:" + pageId + "开始");
+            //log.info("相似文章的发文网站计算：" + "asySiteName:" + pageId + "开始");
             String trsl = RedisUtil.getString(trslk);
             if (StringUtil.isNotEmpty(trsl)) {
                 trsl = TrslUtil.removeSimflag(trsl);
@@ -710,8 +724,8 @@ public class CommonListServiceImpl implements ICommonListService {
                         GroupResult categoryInfos = null;
                         try {
                             //计算网信办白名单的
-                            categoryInfos = categoryQuery(searchBuilder_wxb, sim, irSimflag, irSimflagAll,
-                                    FtsFieldConst.FIELD_SITENAME, type, null);
+                            categoryInfos = commonListService.categoryQuery(searchBuilder_wxb, sim, irSimflag, irSimflagAll,
+                                    FtsFieldConst.FIELD_SITENAME, type);
                         } catch (TRSSearchException e) {
                             throw new TRSSearchException(e);
                         }
@@ -728,8 +742,8 @@ public class CommonListServiceImpl implements ICommonListService {
                             searchBuilder_industry.page(0, 3);
                             try {
                                 //计算五大商业媒体
-                                categoryInfos = categoryQuery(searchBuilder_industry, sim, irSimflag, irSimflagAll,
-                                        FtsFieldConst.FIELD_SITENAME, type, null);
+                                categoryInfos = commonListService.categoryQuery(searchBuilder_industry, sim, irSimflag, irSimflagAll,
+                                        FtsFieldConst.FIELD_SITENAME, type);
                             } catch (TRSSearchException e) {
                                 throw new TRSSearchException(e);
                             }
@@ -744,8 +758,8 @@ public class CommonListServiceImpl implements ICommonListService {
                             searchBuilder.page(0, 3);
                             try {
                                 //计算普通媒体的
-                                categoryInfos = categoryQuery(searchBuilder, sim, irSimflag, irSimflagAll,
-                                        FtsFieldConst.FIELD_SITENAME, type, null);
+                                categoryInfos = commonListService.categoryQuery(searchBuilder, sim, irSimflag, irSimflagAll,
+                                        FtsFieldConst.FIELD_SITENAME, type);
                             } catch (TRSSearchException e) {
                                 throw new TRSSearchException(e);
                             }
@@ -779,7 +793,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 }
                 resultList.add(asySiteNameDocument);
             }
-            log.info("相似文章的发文网站计算：" + "asySiteName:" + pageId + "完成，数据为：" + resultList.size());
+            //log.info("相似文章的发文网站计算：" + "asySiteName:" + pageId + "完成，数据为：" + resultList.size());
             TimingCachePool.put("asySiteName:" + pageId, resultList);
             RedisFactory.setValueToRedis("asySiteName:" + pageId, resultList);
         } catch (Exception e) {
@@ -812,6 +826,7 @@ public class CommonListServiceImpl implements ICommonListService {
         if (queryBuilder == null) {
             return null;
         }
+        queryBuilder.page(0,1);
         return ftsCount(queryBuilder, isSimilar, irSimflag, irSimflagAll, type);
 
     }
@@ -831,12 +846,13 @@ public class CommonListServiceImpl implements ICommonListService {
     @Override
     @HybaseRead
     public <T extends IQueryBuilder> Long ftsCount(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String type) throws TRSSearchException {
-        long count = 0L;
+        Long count = 0L;
         try {
             QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
             if (queryBuilder == null) {
                 return null;
             }
+            queryBuilder.page(0,1);
             count = hybase8SearchServiceNew.ftsCount(queryBuilder, isSimilar, irSimflag, irSimflagAll, type);
             return count;
         } catch (Exception e) {
@@ -859,6 +875,7 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSSearchException
      */
     @Override
+    @HybaseRead
     public <T extends IQueryBuilder> GroupResult categoryQuery(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String groupField, String type, String groupName) throws TRSException {
         QueryBuilder queryBuilder = null;
         if (StringUtil.isNotEmpty(groupName)) {
@@ -887,6 +904,7 @@ public class CommonListServiceImpl implements ICommonListService {
      * @throws TRSSearchException
      */
     @Override
+    @HybaseRead
     public <T extends IQueryBuilder> GroupResult categoryQuery(T builder, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, String groupField, String type) throws TRSException {
         try {
             QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
@@ -895,7 +913,6 @@ public class CommonListServiceImpl implements ICommonListService {
                 return null;
             }
             GroupResult groupInfos = hybase8SearchServiceNew.categoryQuery(queryBuilder, isSimilar, irSimflag, irSimflagAll, groupField, type, queryBuilder.getDatabase());
-
             return groupInfos;
         } catch (Exception e) {
             throw new TRSSearchException("分类统计失败:" + e);

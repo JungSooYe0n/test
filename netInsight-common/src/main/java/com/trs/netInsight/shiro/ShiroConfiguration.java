@@ -389,6 +389,10 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/home/netSearch", "anon");
 		// 登录页 政企申请试用
 		filterChainDefinitionMap.put("/home/applyForTry", "anon");
+		// 广告页申请试用
+		filterChainDefinitionMap.put("/home/applyForAdvertising", "anon");
+		// 申请信息入库
+		filterChainDefinitionMap.put("/apply/addApplyUser", "anon");
 		//返乡日记
 		filterChainDefinitionMap.put("/homecoming/**", "anon");
 
@@ -414,9 +418,13 @@ public class ShiroConfiguration {
 		//舆情智库详情
 		filterChainDefinitionMap.put("/thinkTank/pdf/*", "anon");
 		filterChainDefinitionMap.put("/thinkTank/png/*", "anon");
+		// 日常监测修改数据
+		filterChainDefinitionMap.put("/column/history/*", "anon");
 		//filterChainDefinitionMap.put("/index.html/**", "anon");
 		//知识库录入
 		filterChainDefinitionMap.put("/knowledgeBase/saveKnowledge", "anon");
+		//修改栏目数据的方法
+		filterChainDefinitionMap.put("/column/history/*", "anon");
 		// 从数据库获得权限 --->过滤器中的权限,登录/同意用户在线...
 		List<Permission> permissions = permissionRepository.findAll();
 		if (permissions != null && permissions.size() > 0) {

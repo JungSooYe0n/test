@@ -18,6 +18,7 @@ import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.gather.entity.GatherPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,12 +51,6 @@ public class CommonChartServiceImpl implements ICommonChartService {
      */
     private <T extends IQueryBuilder> GroupResult getCategoryQueryData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
                                                                        String xyTrsl, String contrastField, String type) throws TRSException {
-        /*QueryBuilder queryBuilder = CommonListChartUtil.formatQueryBuilder(builder);
-        List<String> sourceList = CommonListChartUtil.formatGroupName(groupName);
-        String[] groupArray = sourceList.toArray(new String[sourceList.size()]);
-        String groupTrsl = "(" + StringUtil.join(groupArray, " OR ") + ")";
-        queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupTrsl, Operator.Equal);
-        String[] database = TrslUtil.chooseDatabases(groupArray);*/
         T newBuilder = builder;
         QueryBuilder queryBuilder = (QueryBuilder) CommonListChartUtil.addGroupNameForQueryBuilder(newBuilder,groupName,0);
         if(queryBuilder == null){
@@ -86,6 +81,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 Long count = commonListService.ftsCount(specialBuilder, sim, irSimflag, irSimflagAll, type);
                 groupResult.addGroup(categoryBean.getKey(), count);
             }
+          groupResult.sort();
         } else {
             QueryBuilder ordinaryBuilder = new QueryBuilder();
             ordinaryBuilder.filterByTRSL(trsl);
@@ -135,19 +131,40 @@ public class CommonChartServiceImpl implements ICommonChartService {
                     if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
                         List<GroupInfo> groupList = groupInfos.getGroupList();
                         if (FtsFieldConst.FIELD_GROUPNAME.equals(contrastField)) {
-                            List<String> allList = Const.ALL_GROUPNAME_SORT;
-                            for (String oneGroupName : allList) {
-                                if (sourceList.contains(oneGroupName)) {
+//                            List<String> allList = Const.ALL_GROUPNAME_SORT;
+//                            for (String oneGroupName : allList) {
+//                                if (sourceList.contains(oneGroupName)) {
+//                                    Map<String, Object> putValue = new HashMap<>();
+//                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
+//                                    putValue.put(resultKey.getContrastField(), pageGroupName);
+//                                    putValue.put(resultKey.getCountField(), 0);
+//                                    for (GroupInfo groupInfo : groupList) {
+//                                        if (oneGroupName.equals(groupInfo.getFieldValue())) {
+//                                            putValue.put(resultKey.getCountField(), groupInfo.getCount());
+//                                            break;
+//                                        }
+//                                    }
+//                                    list.add(putValue);
+//                                }
+//                            }
+                            for (GroupInfo groupInfo : groupList) {
+                                Map<String, Object> putValue = MapUtil.putValue(new String[]{resultKey.getContrastField(), resultKey.getCountField()},
+                                        Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()),  String.valueOf(groupInfo.getCount()));
+                                list.add(putValue);
+                            }
+                            for (String oneGroupName:sourceList) {
+                                int isIn = 0;
+                                for (GroupInfo groupInfo : groupList) {
+                                    if (oneGroupName.equals(groupInfo.getFieldValue())) {
+                                        isIn = 1;
+                                        break;
+                                    }
+                                }
+                                if (isIn == 0){
                                     Map<String, Object> putValue = new HashMap<>();
                                     String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
                                     putValue.put(resultKey.getContrastField(), pageGroupName);
                                     putValue.put(resultKey.getCountField(), 0);
-                                    for (GroupInfo groupInfo : groupList) {
-                                        if (oneGroupName.equals(groupInfo.getFieldValue())) {
-                                            putValue.put(resultKey.getCountField(), groupInfo.getCount());
-                                            break;
-                                        }
-                                    }
                                     list.add(putValue);
                                 }
                             }
@@ -203,19 +220,40 @@ public class CommonChartServiceImpl implements ICommonChartService {
                     if (groupInfos != null && groupInfos.getGroupList().size() > 0) {
                         List<GroupInfo> groupList = groupInfos.getGroupList();
                         if (FtsFieldConst.FIELD_GROUPNAME.equals(contrastField)) {
-                            List<String> allList = Const.ALL_GROUPNAME_SORT;
-                            for (String oneGroupName : allList) {
-                                if (sourceList.contains(oneGroupName)) {
+//                            List<String> allList = Const.ALL_GROUPNAME_SORT;
+//                            for (String oneGroupName : allList) {
+//                                if (sourceList.contains(oneGroupName)) {
+//                                    Map<String, Object> putValue = new HashMap<>();
+//                                    String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
+//                                    putValue.put(resultKey.getContrastField(), pageGroupName);
+//                                    putValue.put(resultKey.getCountField(), 0);
+//                                    for (GroupInfo groupInfo : groupList) {
+//                                        if (oneGroupName.equals(groupInfo.getFieldValue())) {
+//                                            putValue.put(resultKey.getCountField(), groupInfo.getCount());
+//                                            break;
+//                                        }
+//                                    }
+//                                    list.add(putValue);
+//                                }
+//                            }
+                            for (GroupInfo groupInfo : groupList) {
+                                Map<String, Object> putValue = MapUtil.putValue(new String[]{resultKey.getContrastField(), resultKey.getCountField()},
+                                        Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(groupInfo.getFieldValue()),  String.valueOf(groupInfo.getCount()));
+                                list.add(putValue);
+                            }
+                            for (String oneGroupName:sourceList) {
+                                int isIn = 0;
+                                for (GroupInfo groupInfo : groupList) {
+                                    if (oneGroupName.equals(groupInfo.getFieldValue())) {
+                                        isIn = 1;
+                                        break;
+                                    }
+                                }
+                                if (isIn == 0){
                                     Map<String, Object> putValue = new HashMap<>();
                                     String pageGroupName = Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName);
                                     putValue.put(resultKey.getContrastField(), pageGroupName);
                                     putValue.put(resultKey.getCountField(), 0);
-                                    for (GroupInfo groupInfo : groupList) {
-                                        if (oneGroupName.equals(groupInfo.getFieldValue())) {
-                                            putValue.put(resultKey.getCountField(), groupInfo.getCount());
-                                            break;
-                                        }
-                                    }
                                     list.add(putValue);
                                 }
                             }
@@ -264,7 +302,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
             try {
                 //地图部分专家或者普通，因为没有分类对比表达式
                 GroupResult categoryInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName,  "", contrastField, type);
-                if(categoryInfos == null){
+                if(categoryInfos == null || categoryInfos.getGroupList().size() ==0){
                     return null;
                 }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
@@ -320,27 +358,32 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 GroupResult people = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("people"), type);
                 GroupResult location = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("location"), type);
                 GroupResult agency = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get("agency"), type);
-                List<GroupInfo> peopleList = people.getGroupList();
-                List<GroupInfo> locationList = location.getGroupList();
-                List<GroupInfo> agencyList = agency.getGroupList();
 
-                for (GroupInfo groupInfo : peopleList) {
-                    wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "people");
+                if(people != null && people.getGroupList().size()>0){
+                    List<GroupInfo> peopleList = people.getGroupList();
+                    for (GroupInfo groupInfo : peopleList) {
+                        wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "people");
+                    }
                 }
-
-                for (GroupInfo groupInfo : locationList) {
-                    wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "location");
+                if(location != null && location.getGroupList().size()>0){
+                    List<GroupInfo> locationList = location.getGroupList();
+                    for (GroupInfo groupInfo : locationList) {
+                        wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "location");
+                    }
                 }
-
-                for (GroupInfo groupInfo : agencyList) {
-                    wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "agency");
+                if(agency != null && agency.getGroupList().size()>0){
+                    List<GroupInfo> agencyList = agency.getGroupList();
+                    for (GroupInfo groupInfo : agencyList) {
+                        wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), "agency");
+                    }
                 }
-
             } else {
                 GroupResult result = commonListService.categoryQuery(queryBuilder, sim, irSimflag, irSimflagAll, Const.PARAM_MAPPING.get(entityType), type);
-                List<GroupInfo> groupList = result.getGroupList();
-                for (GroupInfo groupInfo : groupList) {
-                    wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), entityType);
+                if(result != null && result.getGroupList().size()>0){
+                    List<GroupInfo> groupList = result.getGroupList();
+                    for (GroupInfo groupInfo : groupList) {
+                        wordInfos.addGroup(groupInfo.getFieldValue(), groupInfo.getCount(), entityType);
+                    }
                 }
             }
             wordInfos.sort();

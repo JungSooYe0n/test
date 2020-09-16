@@ -147,7 +147,7 @@ public interface IIndexTabService {
 
 	public List<IndexTab> findMapIndexTab(String groupName);
 
-	Object updateHistortColumnField();
+	Object updateHistortColumnField(String orgId);
 
 }
 

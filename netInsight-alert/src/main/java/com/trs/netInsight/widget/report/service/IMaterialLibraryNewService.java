@@ -64,6 +64,12 @@ public interface IMaterialLibraryNewService {
      * @return
      */
     public String delLibraryResource(String sids,String libraryId);
+    /**
+     * 删除 去掉某条信息，从所有素材库中
+     * @param sids
+     * @return
+     */
+    String delLibraryResourceForIds(String sids);
 
     /**
      * 获取素材库下数据，按条数
@@ -74,7 +80,7 @@ public interface IMaterialLibraryNewService {
      */
     public Object findMaterialSourceByCondition(String libraryId, int pageNo, int pageSize,
                                                     List<String> groupName, String fuzzyValue, String fuzzyValueScope,String invitationCard,
-                                                    String forwarPrimary, String time) throws TRSException;
+                                                    String forwarPrimary, String time,Boolean isExport) throws TRSException;
 
     public Object changeHistoryMaterial();
 }

@@ -15,6 +15,8 @@ package com.trs.netInsight.support.kafka.factory;
 
 import java.util.Optional;
 
+import com.alibaba.fastjson.JSONObject;
+import com.trs.netInsight.support.kafka.entity.KafkaMessage;
 import com.trs.netInsight.support.log.entity.SystemLog;
 import com.trs.netInsight.support.log.repository.MysqlSystemLogRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -39,8 +41,9 @@ public class KafkaReceiverFactory {
 		if (kafkaMessage.isPresent()) {
 			Object data = kafkaMessage.get();
 			if (data != null) {
+				String dataString = String.valueOf(data);
+				SystemLog systemLog = JSONObject.parseObject(dataString, SystemLog.class);
 				try {
-					SystemLog systemLog = (SystemLog)data;
 					mysqlLogRepository.saveAndFlush(systemLog);
 				} catch (Exception e) {
 					log.error("kafka报错！", e);

@@ -21,6 +21,7 @@ public class ChartResultField {
         this.contrastField = contrastField;
         this.countField = countField;
     }
+    public ChartResultField(){}
 
     public String toString(){
         StringBuilder sb = new StringBuilder();

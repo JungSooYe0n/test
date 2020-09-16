@@ -1,5 +1,7 @@
 package com.trs.netInsight.widget.special.entity;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -12,8 +14,10 @@ import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import io.swagger.annotations.ApiModelProperty;
@@ -25,10 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.persistence.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 专项实体
@@ -87,20 +88,21 @@ public class SpecialProject extends BaseEntity {
 	 */
 	@Column(name = "exclude_word_index", columnDefinition = "TEXT")
 	private String excludeWordIndex = "1";
-//	public String getExcludeWordIndex(){
-//		if(StringUtil.isEmpty(this.excludeWordIndex)){
-//			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
-//				return "1";
-//			}
-//			if(SearchScope.TITLE.equals(this.searchScope)){//标题
-//				return "0";
-//			}
-//			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
-//				return "2";
-//			}
-//		}
-//		return this.excludeWordIndex;
-//	}
+	public String getExcludeWordIndex(){
+		if(StringUtil.isEmpty(this.excludeWordIndex)){
+			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
+				return "1";
+			}
+			if(SearchScope.TITLE.equals(this.searchScope)){//标题
+				return "0";
+			}
+			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
+				return "2";
+			}
+			return "1";
+		}
+		return this.excludeWordIndex;
+	}
 
 	/**
 	 * 排除网站
@@ -221,8 +223,12 @@ public class SpecialProject extends BaseEntity {
 	 * 置顶（新提出置顶字段）
 	 */
 	private String topFlag;
-//	private String read;//  阅读标记
-	private String preciseFilter;//精准筛选
+
+	/**
+	 * 上级id备份，主要是为了置顶存在，置顶元素取消置顶时回到原来分组下
+	 */
+	@Column(name = "bak_parent_id")
+	private String bakParentId;
 
 	/**
 	 * 是否排重
@@ -253,6 +259,13 @@ public class SpecialProject extends BaseEntity {
      */
     @Column(name = "ir_simflag")
     private boolean irSimflag = false;
+	public boolean isIrSimflag(){
+		if(similar == false && irSimflagAll == false){
+			return true;
+		}else{
+			return irSimflag;
+		}
+	}
     
     /**
      * 专家模式情况下  是否转换为server表达式
@@ -278,31 +291,92 @@ public class SpecialProject extends BaseEntity {
 	 */
 	@Column(name = "media_level")
 	private String mediaLevel;
+	public String getMediaLevel(){
+		if(StringUtil.isNotEmpty(this.mediaLevel)){
+			return this.mediaLevel.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.MEDIA_LEVEL,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 媒体行业
 	 */
 	@Column(name = "media_industry")
 	private String mediaIndustry;
+	public String getMediaIndustry(){
+		if(StringUtil.isNotEmpty(this.mediaIndustry)){
+			return this.mediaIndustry.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.MEDIA_INDUSTRY,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 内容行业
 	 */
 	@Column(name = "content_industry")
 	private String contentIndustry;
+	public String getContentIndustry(){
+		if(StringUtil.isNotEmpty(this.contentIndustry)){
+			return this.contentIndustry.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.CONTENT_INDUSTRY,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 信息过滤  -  信息性质打标，如抽奖
 	 */
 	@Column(name = "filter_info")
 	private String filterInfo;
+	public String getFilterInfo(){
+		if(StringUtil.isNotEmpty(this.filterInfo)){
+			if(this.filterInfo.contains("其他") || this.filterInfo.contains("其它")){
+				this.filterInfo = this.filterInfo.replaceAll(";其他","").replaceAll(";其它","")
+						.replaceAll("其他;","").replaceAll("其它;","")
+						.replaceAll("其他","").replaceAll("其它","");
+				if(StringUtil.isEmpty(this.filterInfo)){
+					return Const.NOT_FILTER_INFO;
+				}else{
+					return this.filterInfo;
+				}
+			}else{
+				return this.filterInfo;
+			}
+		}else{
+			return StringUtils.join(Const.FILTER_INFO,";");
+		}
+	}
 	/**
 	 * 内容所属地域
 	 */
 	@Column(name = "content_area")
 	private String contentArea;
+	public String getContentArea(){
+		if(StringUtil.isNotEmpty(this.contentArea)){
+			return this.contentArea.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+		}
+	}
 	/**
 	 * 媒体所属地域
 	 */
 	@Column(name = "media_area")
 	private String mediaArea;
+	public String getMediaArea(){
+		if(StringUtil.isNotEmpty(this.mediaArea)){
+			return this.mediaArea.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+		}
+	}
+
+	/**
+	 * 是否有条件筛选  -  例如现在列表页中的条件筛选页面
+	 * 因为在没有条件筛选的情况下，专家模式只拼接trsl，不拼接跟普通模式相同的参数
+	 * 添加这个参数是防止普通模式和专家模式的参数污染
+	 */
+	@Transient
+	private Boolean conditionScreen = false;
 
 	public void setStart(String start) throws ParseException {
 		this.start = start;
@@ -323,7 +397,7 @@ public class SpecialProject extends BaseEntity {
 	public SpecialProject(String userId, SpecialType specialType, String specialName,
 						  String anyKeywords, String excludeWords, String trsl,
 						  SearchScope searchScope, Date startTime, Date endTime, String source, String groupName,
-						  String groupId,String timeRange,int sequence,boolean isSimilar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb) {
+						  String groupId,String timeRange,int sequence,boolean similar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb) {
 		this.setUserId(userId);
 		this.specialType = specialType;
 		this.specialName = specialName;
@@ -339,7 +413,7 @@ public class SpecialProject extends BaseEntity {
 		this.currentTheme = false;
 		this.timeRange=timeRange;
 		this.sequence = sequence;
-		this.similar = isSimilar;
+		this.similar = similar;
 		this.irSimflag = irSimflag;
 		this.weight = weight;
 		this.server = server;
@@ -348,6 +422,50 @@ public class SpecialProject extends BaseEntity {
 		super.setCreatedTime(new Date());
 		super.setLastModifiedTime(new Date());
 	}
+    /**
+     * 构造函数
+     */
+    public SpecialProject(String userId,String subGroupId, SpecialType specialType, String specialName,
+                          String anyKeywords, String excludeWords,String excludeWordIndex, String trsl,
+                          SearchScope searchScope, Date startTime, Date endTime, String source, String groupName,
+                          String groupId,String timeRange,int sequence,boolean similar,boolean irSimflag,boolean weight,boolean server,boolean irSimflagAll,String excludeWeb,
+                          String imgUrl,String monitorSite,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,String mediaArea,String contentArea,String topFlag) {
+
+        this.setUserId(userId);
+        this.setSubGroupId(subGroupId);
+        this.specialType = specialType;
+        this.specialName = specialName;
+        this.anyKeywords = anyKeywords;
+        this.excludeWords = excludeWords;
+        this.excludeWordIndex = excludeWordIndex;
+        this.trsl = trsl;
+        this.searchScope = searchScope;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.source = source;
+        this.groupName = groupName;
+        this.groupId = groupId;
+        this.currentTheme = false;
+        this.timeRange=timeRange;
+        this.sequence = sequence;
+        this.similar = similar;
+        this.irSimflag = irSimflag;
+        this.weight = weight;
+        this.server = server;
+        this.irSimflagAll = irSimflagAll;
+        this.excludeWeb =excludeWeb;
+        super.setCreatedTime(new Date());
+        super.setLastModifiedTime(new Date());
+        this.imgUrl = imgUrl;
+        this.monitorSite = monitorSite;
+        this.mediaLevel = mediaLevel;
+        this.mediaIndustry = mediaIndustry;
+        this.contentIndustry = contentIndustry;
+        this.filterInfo = filterInfo;
+        this.mediaArea = mediaArea;
+        this.contentArea = contentArea;
+		this.topFlag = topFlag;
+    }
 	/**
 	 * 构造函数
 	 */
@@ -518,19 +636,6 @@ public class SpecialProject extends BaseEntity {
 		switch (this.specialType) {
 		case COMMON:
 			setNewFilter();
-			String keyWordindex = "1";
-			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
-				keyWordindex =  "1";
-			}
-			if(SearchScope.TITLE.equals(this.searchScope)){//标题
-				keyWordindex = "0";
-			}
-			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
-				keyWordindex = "2";
-			}
-			createFilter(queryBuilder,anyKeywords,keyWordindex,excludeWords,excludeWordIndex,weight);
-
-
 			String keywordIndex = "0";//仅标题
 			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)) {//标题 + 正文
 				keywordIndex = "1";//标题+正文
@@ -540,21 +645,36 @@ public class SpecialProject extends BaseEntity {
 			}
 			QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeywords, keywordIndex, this.weight);
 			queryBuilder.filterByTRSL(builder.asTRSL());
+			break;
+		case SPECIAL:
+			queryBuilder.filterByTRSL(this.trsl);
+			if(server){
+				queryBuilder.setServer(true);
+			}
+			break;
+		default:
+			break;
+		}
+		if(conditionScreen || SpecialType.COMMON.equals(this.specialType)){
 			//监测网站
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
-				queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
-			}
-			//拼凑排除词
-			for (String field : this.searchScope.getField()) {
-				StringBuilder childBuilder = new StringBuilder();
-				if (StringUtil.isNotEmpty(this.excludeWords)) {
-					childBuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					queryBuilder.filterByTRSL(childBuilder.toString());
+				String addMonitorSite = addMonitorSite(this.monitorSite);
+				if(StringUtil.isNotEmpty(addMonitorSite)){
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
 				}
+			}
+			String excludeIndex = this.getExcludeWordIndex();
+			//拼凑排除词
+			String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
+			if(StringUtil.isNotEmpty(excludeWordTrsl)){
+				queryBuilder.filterByTRSL(excludeWordTrsl);
 			}
 			//排除网站
 			if (StringUtil.isNotEmpty(this.excludeWeb)) {
-				queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeWeb.replaceAll(";|；", " OR "), Operator.NotEqual);
+				String Site = addMonitorSite(this.excludeWeb);
+				if(StringUtil.isNotEmpty(Site)){
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Site, Operator.NotEqual);
+				}
 			}
 			//媒体等级
 			if(StringUtil.isNotEmpty(mediaLevel)){
@@ -577,35 +697,134 @@ public class SpecialProject extends BaseEntity {
 				addAreaFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
 			}
 			//信息过滤
-			if(StringUtil.isNotEmpty(filterInfo )){
+			if(StringUtil.isNotEmpty(filterInfo )&& !filterInfo.equals(Const.NOT_FILTER_INFO)){
 				String trsl = queryBuilder.asTRSL();
 				StringBuilder sb = new StringBuilder(trsl);
 				String[] valueArr = filterInfo.split(";");
-				List<String> valueArrList = new ArrayList<>();
+				Set<String> valueArrList = new HashSet<>();
 				for(String v : valueArr){
 					if(Const.FILTER_INFO.contains(v)){
 						valueArrList.add(v);
 					}
 				}
-				if(valueArrList.size() >0){
+				if (valueArrList.size() > 0 /*&& valueArrList.size() < Const.FILTER_INFO.size()*/) {
 					sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
 					queryBuilder = new QueryBuilder();
 					queryBuilder.filterByTRSL(sb.toString());
 				}
 			}
-			break;
-		case SPECIAL:
-			queryBuilder.filterByTRSL(this.trsl);
-			if(server){
-				queryBuilder.setServer(true);
+
+			// 情感值
+			if (StringUtils.isNoneBlank(emotion) && !"ALL".equals(emotion)) {
+				addFieldFilter(queryBuilder,FtsFieldConst.FIELD_APPRAISE,emotion,Const.ARRAY_APPRAISE);
 			}
-			break;
-		default:
-			break;
+			// 是否查看OCR_CONTENT 数据
+			if (StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)) {
+				if ("img".equals(imgOcr)) { // 看有ocr的
+					queryBuilder.filterByTRSL(Const.OCR_INCLUDE);
+				} else if ("noimg".equals(imgOcr)) {  // 不看有ocr的
+					queryBuilder.filterByTRSL(Const.OCR_NOT_INCLUDE);
+				}
+			}
+			//	阅读标记	已读/未读
+			if ("已读".equals(read)){//已读
+				queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+			}else if ("已读".equals(read)){//未读
+				queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
+			}
+			// 精准筛选
+			if (StringUtils.isNoneBlank(preciseFilter) && !"ALL".equals(preciseFilter)) {
+
+				List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+				//精准筛选 与上面论坛的主回帖和微博的原转发类似 ，都需要在数据源的基础上进行修改
+				if (sourceList.contains(Const.GROUPNAME_XINWEN) || sourceList.contains(Const.GROUPNAME_WEIBO) || sourceList.contains(Const.GROUPNAME_LUNTAN)) {
+					String[] arr = preciseFilter.split(";");
+					if (arr != null && arr.length > 0) {
+						List<String> preciseFilterList = new ArrayList<>();
+						for (String filter : arr) {
+							preciseFilterList.add(filter);
+						}
+						StringBuffer buffer = new StringBuffer();
+						// 新闻筛选  --- 屏蔽新闻转发 就是新闻 不要新闻不为空的时候，也就是要新闻原发
+						if (sourceList.contains(Const.GROUPNAME_XINWEN) && preciseFilterList.contains("notNewsForward")) {
+
+							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_XINWEN + ")");
+							buffer.append(" AND (").append(Const.SRCNAME_XINWEN).append(")");
+							buffer.append(")");
+							sourceList.remove(Const.GROUPNAME_XINWEN);
+						}
+
+						//论坛筛选  ---  屏蔽论坛主贴  -  为回帖  、屏蔽论坛回帖为主贴
+						if (sourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
+							if (buffer.length() > 0) {
+								buffer.append(" OR ");
+							}
+							buffer.append("(");
+							buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+							if (preciseFilterList.contains("notLuntanForward")) { //屏蔽论坛回帖 -- 主贴
+								buffer.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+							}
+							if (preciseFilterList.contains("notLuntanPrimary")) { //屏蔽论坛主贴
+								buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
+							}
+							buffer.append(")");
+
+							sourceList.remove(Const.GROUPNAME_LUNTAN);
+						}
+
+						//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
+						if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
+						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
+						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
+						)) {
+
+							if (buffer.length() > 0) {
+								buffer.append(" OR ");
+							}
+							buffer.append("(");
+							buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+							if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
+								buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
+							}
+							if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
+								buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
+							}
+							if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
+
+							}
+							if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
+
+							}
+							if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
+
+							}
+							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+
+							}
+							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+
+							}
+							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+
+							}
+							buffer.append(")");
+
+							sourceList.remove(Const.GROUPNAME_WEIBO);
+						}
+						if (buffer.length() > 0) {
+							if (sourceList.size() > 0) {
+								if (buffer.length() > 0) {
+									buffer.append(" OR ");
+								}
+								buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+							}
+							queryBuilder.filterByTRSL(buffer.toString());
+						}
+					}
+				}
+			}
 		}
-//		if(irSimflag){
-//			searchBuilder.filterByTRSL(Const.IR_SIMFLAG_TRSL);
-//		}
 		if (pageNo != -1) {
 			queryBuilder.setPageNo(pageNo);
 			queryBuilder.setPageSize(pageSize);
@@ -869,7 +1088,15 @@ public class SpecialProject extends BaseEntity {
 				subjectId, timeRange,similar,irSimflag,weight,server,irSimflagAll,excludeWeb);
 		return project;
 	}
+	public SpecialProject copyForSubGroup(String commonSubGroupId) {
+		SpecialProject project = new SpecialProject( null, commonSubGroupId, specialType,  specialName,
+				 anyKeywords,  excludeWords,excludeWordIndex,  trsl,
+				 searchScope,  startTime,  endTime,  source,  groupName,
+				 null, timeRange, sequence, similar, irSimflag, weight, server, irSimflagAll, excludeWeb,  imgUrl,
+				monitorSite, mediaLevel, mediaIndustry, contentIndustry, filterInfo, mediaArea, contentArea,topFlag);
 
+		return project;
+	}
 	/**
 	 * 构造新实例
 	 * @param commonSubGroupId
@@ -879,6 +1106,7 @@ public class SpecialProject extends BaseEntity {
 		SpecialProject project = new SpecialProject(null,commonSubGroupId, specialType, specialName, allKeywords, anyKeywords,
 				excludeWords, trsl, statusTrsl, weChatTrsl, searchScope, startTime, endTime, source, groupName,
 				groupId, timeRange,similar,irSimflag,weight,server,irSimflagAll,excludeWeb);
+
 		return project;
 	}
 	public QueryCommonBuilder toCommonBuilder(int pageNo, int pageSize, boolean withTime) {
@@ -894,46 +1122,6 @@ public class SpecialProject extends BaseEntity {
 		case COMMON:
 			// 根据关键词位置，任意关键词，排除词，拼凑表达式
 			//关键词
-
-//			setNewFilter();
-//
-//			//媒体等级
-//			if(StringUtil.isNotEmpty(mediaLevel)){
-//				addFieldFilter(FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
-//			}
-//			//媒体行业
-//			if(StringUtil.isNotEmpty(mediaIndustry )){
-//				addFieldFilter(FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
-//			}
-//			//内容行业
-//			if(StringUtil.isNotEmpty(contentIndustry )){
-//				addFieldFilter(FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
-//			}
-//			//内容地域
-//			if(StringUtil.isNotEmpty(contentArea )){
-//				addAreaFilter(FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
-//			}
-//			//媒体地域
-//			if(StringUtil.isNotEmpty(mediaArea )){
-//				addAreaFilter(FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
-//			}
-//			//信息过滤
-//			if(StringUtil.isNotEmpty(filterInfo )){
-//				String trsl = searchBuilder.asTRSL();
-//				StringBuilder sb = new StringBuilder(trsl);
-//				String[] valueArr = filterInfo.split(";");
-//				List<String> valueArrList = new ArrayList<>();
-//				for(String v : valueArr){
-//					if(Const.FILTER_INFO.contains(v)){
-//						valueArrList.add(v);
-//					}
-//				}
-//				sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
-//				searchBuilder = new QueryCommonBuilder();
-//				searchBuilder.filterByTRSL(sb.toString());
-//			}
-
-
 			String keywordIndex = "0";//仅标题
 			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)) {//标题 + 正文
 				keywordIndex = "1";//标题+正文
@@ -974,120 +1162,49 @@ public class SpecialProject extends BaseEntity {
 		}
 		return searchBuilder;
 	}
-	public QueryBuilder toSpecialBuilder(int pageNo, int pageSize, boolean withTime) {
-		String[] timeArray = new String[2];
-		try {
-			timeArray = DateUtil.formatTimeRangeMinus1(timeRange);
-		} catch (OperationException e) {
-			e.printStackTrace();
-		}
-		QueryBuilder queryBuilder = new QueryBuilder();
 
-		switch (this.specialType) {
-			case COMMON:
-				// 根据关键词位置，任意关键词，排除词，拼凑表达式
-				//关键词
-				setNewFilter();
-				String keyWordindex = "1";
-			if(SearchScope.TITLE_CONTENT.equals(this.searchScope)){//标题 + 正文
-				keyWordindex =  "1";
+	/**
+	 * 增加监测站点
+	 *
+	 * @Return : void
+	 */
+	private String addMonitorSite(String monitorSite) {
+		if(StringUtil.isNotEmpty(monitorSite)){
+			String[] splitArr  = monitorSite.split("[;|；]");
+			List<String> list = new ArrayList<>();
+			for(String split:splitArr){
+				if(StringUtil.isNotEmpty(split)){
+					list.add(split);
+				}
 			}
-			if(SearchScope.TITLE.equals(this.searchScope)){//标题
-				keyWordindex = "0";
+			if(list.size()>0){
+				return StringUtils.join(list," OR ");
+			}else{
+				return "";
 			}
-			if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)){//标题 + 摘要
-				keyWordindex = "2";
-			}
-				createFilter(queryBuilder,anyKeywords,keyWordindex,excludeWords,excludeWordIndex,weight);
-
-
-				String keywordIndex = "0";//仅标题
-				if(SearchScope.TITLE_CONTENT.equals(this.searchScope)) {//标题 + 正文
-					keywordIndex = "1";//标题+正文
-				}
-				if(SearchScope.TITLE_ABSTRACT.equals(this.searchScope)) {//标题 + 正文
-					keywordIndex = "2";//标题+摘要
-				}
-				QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeywords, keywordIndex, this.weight);
-				queryBuilder.filterByTRSL(builder.asTRSL());
-				//拼凑排除词
-				for (String field : this.searchScope.getField()) {
-					StringBuilder childBuilder = new StringBuilder();
-					if (StringUtil.isNotEmpty(this.excludeWords)) {
-						childBuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-						queryBuilder.filterByTRSL(childBuilder.toString());
-					}
-				}
-				//排除网站
-				if (StringUtil.isNotEmpty(this.excludeWeb)) {
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeWeb.replaceAll(";|；", " OR "), Operator.NotEqual);
-				}
-				//媒体等级
-				if(StringUtil.isNotEmpty(mediaLevel)){
-					addFieldFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
-				}
-				//媒体行业
-				if(StringUtil.isNotEmpty(mediaIndustry )){
-					addFieldFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
-				}
-				//内容行业
-				if(StringUtil.isNotEmpty(contentIndustry )){
-					addFieldFilter(queryBuilder,FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
-				}
-				//内容地域
-				if(StringUtil.isNotEmpty(contentArea )){
-					addAreaFilter(queryBuilder,FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
-				}
-				//媒体地域
-				if(StringUtil.isNotEmpty(mediaArea )){
-					addAreaFilter(queryBuilder,FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
-				}
-				//信息过滤
-				if(StringUtil.isNotEmpty(filterInfo )){
-					String trsl = queryBuilder.asTRSL();
-					StringBuilder sb = new StringBuilder(trsl);
-					String[] valueArr = filterInfo.split(";");
-					List<String> valueArrList = new ArrayList<>();
-					for(String v : valueArr){
-						if(Const.FILTER_INFO.contains(v)){
-							valueArrList.add(v);
-						}
-					}
-					sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
-					queryBuilder = new QueryBuilder();
-					queryBuilder.filterByTRSL(sb.toString());
-				}
-				break;
-			case SPECIAL:
-				queryBuilder.filterByTRSL(this.trsl);
-				break;
-			default:
-				break;
+		}else{
+			return "";
 		}
-
-		if (pageNo != -1) {
-			queryBuilder.setPageNo(pageNo);
-			queryBuilder.setPageSize(pageSize);
-		}
-		if (withTime) {
-			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, timeArray,
-					Operator.Between);
-		}
-		return queryBuilder;
 	}
 	private void addFieldFilter(QueryBuilder queryBuilder,String field,String value,List<String> allValue){
 		if(StringUtil.isNotEmpty(value)){
+			if(value.contains("其它")){
+				value = value.replaceAll("其它","其他");
+			}
 			String[] valueArr = value.split(";");
-			List<String> valueArrList = new ArrayList<>();
+			Set<String> valueArrList = new HashSet<>();
 			for(String v : valueArr){
-				if("其他".equals(v)|| "中性".equals(v)){
+				if ("其他".equals(v) || "中性".equals(v)) {
 					valueArrList.add("\"\"");
 				}
-				if(allValue.contains(v)){
+				if (allValue.contains(v)) {
 					valueArrList.add(v);
 				}
 			}
-			queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+			//如果list中有其他，则其他为 其他+“”。依然是算两个
+			if(valueArrList.size() >0  &&  valueArrList.size() < allValue.size() +1){
+				queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+			}
 		}
 	}
 	private void addAreaFilter(QueryBuilder queryBuilder,String field,String areas){
@@ -1098,8 +1215,11 @@ public class SpecialProject extends BaseEntity {
 			areaMap = Const.CONTTENT_PROVINCE_NAME;
 		}
 		if(StringUtil.isNotEmpty(areas) && areaMap!= null){
+			if(areas.contains("其它")){
+				areas = areas.replaceAll("其它","其他");
+			}
 			String[] areaArr = areas.split(";");
-			List<String> areaList = new ArrayList<>();
+			Set<String> areaList = new HashSet<>();
 			for(String area : areaArr){
 				if("其他".equals(area)){
 					areaList.add("\"\"");
@@ -1108,22 +1228,23 @@ public class SpecialProject extends BaseEntity {
 					areaList.add(areaMap.get(area));
 				}
 			}
-			queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+			//如果list中有其他，则其他为 其他+“”。依然是算两个
+			if(areaList.size() >0  &&  areaList.size() < areaMap.size() +1){
+				queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+			}
 		}
 	}
 	/**
 	 * 添加筛选条件信息
-	 * @param read  阅读标记
 	 * @param mediaLevel  媒体等级
 	 * @param mediaIndustry  媒体行业
 	 * @param contentIndustry  内容行业
 	 * @param filterInfo  过滤信息
 	 * @param contentArea  内容行业
 	 * @param mediaArea  媒体行业
-	 * @param preciseFilter  精准筛选
 	 */
-	public void addFilterCondition(String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-								   String contentArea,String mediaArea,String preciseFilter){
+	public void addFilterCondition(String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
+								   String contentArea,String mediaArea){
 		//媒体等级
 		if(StringUtil.isNotEmpty(mediaLevel)){
 			if("ALL".equals(mediaLevel)){
@@ -1148,14 +1269,12 @@ public class SpecialProject extends BaseEntity {
 				filterInfo = org.thymeleaf.util.StringUtils.join(Const.FILTER_INFO,";");
 			}
 		}
-//		this.read = read;
 		this.mediaLevel = mediaLevel;
 		this.mediaIndustry = mediaIndustry;
 		this.contentIndustry = contentIndustry;
 		this.filterInfo = filterInfo;
 		this.contentArea = contentArea;
 		this.mediaArea = mediaArea;
-		this.preciseFilter = preciseFilter;
 	}
 	public void setNewFilter(){
 		//媒体等级
@@ -1184,44 +1303,90 @@ public class SpecialProject extends BaseEntity {
 		}
 	}
 
-	private void createFilter(QueryBuilder queryBuilder,String keyWords, String keyWordindex, String excludeWords,String excludeWordsIndex, boolean weight) {
-		if (StringUtil.isNotEmpty(keyWordindex) && (StringUtil.isNotEmpty(keyWords) || StringUtil.isNotEmpty(excludeWords))) {// 普通模式
+	@Transient
+	private String read;//  阅读标记
+	@Transient
+	private String preciseFilter;//精准筛选
+	@Transient
+	private String emotion;//  阅读标记
+	@Transient
+	private String imgOcr;//  阅读标记
 
-			queryBuilder = WordSpacingUtil.handleKeyWords(keyWords, keyWordindex, this.weight);
-			//拼接排除词
-			if("0".equals(excludeWordsIndex)){ //标题
-				if (StringUtil.isNotEmpty(excludeWords)) {
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					queryBuilder.filterByTRSL(exbuilder.toString());
-				}
-			} else if ("1".equals(excludeWordsIndex)) {// 标题加正文
-				if (StringUtil.isNotEmpty(excludeWords)) {
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					queryBuilder.filterByTRSL(exbuilder.toString());
-					StringBuilder exbuilder2 = new StringBuilder();
-					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_CONTENT).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-					queryBuilder.filterByTRSL(exbuilder2.toString());
-				}
-			}else if("2".equals(excludeWordsIndex)){ //标题 +摘要
-				if (StringUtil.isNotEmpty(excludeWords)) {
-					StringBuilder exbuilder = new StringBuilder();
-					exbuilder.append("*:* -").append(FtsFieldConst.FIELD_URLTITLE).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
-					queryBuilder.filterByTRSL(exbuilder.toString());
-					StringBuilder exbuilder2 = new StringBuilder();
-					exbuilder2.append("*:* -").append(FtsFieldConst.FIELD_ABSTRACTS).append(":(\"")
-							.append(excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");;
-					queryBuilder.filterByTRSL(exbuilder2.toString());
-				}
-			}
-		} else {// 专家模式
-			queryBuilder.filterByTRSL(this.trsl);// 专家模式
-		}
+	/**
+	 * 添加筛选条件信息
+	 * @param read  媒体等级
+	 * @param preciseFilter  媒体行业
+	 * @param emotion  内容行业
+	 */
+	public void addFilterCondition(String read,String preciseFilter,String emotion,String imgOcr){
+		this.read = read;
+		this.preciseFilter = preciseFilter;
+		this.emotion = emotion;
+		this.imgOcr = imgOcr;
 
 	}
+
+	public void formatSpecialProject(String simflag,String wordIndex,String excludeWeb,String monitorSite,
+									  String excludeWord, String excludeWordIndex,Boolean updateWordForm,Integer wordFromNum,Boolean wordFromSort,String mediaLevel,
+									  String groupName,String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea){
+		//暂时修改专题分析栏目的属性值，这些条件来自页面上的条件筛选，只是这次作为筛选规则
+		this.conditionScreen =true;
+
+		this.similar = false;
+		this.irSimflag = true;
+		this.irSimflagAll = false;
+		//排重
+		if ("netRemove".equals(simflag)) { //单一媒体排重
+			this.similar = true;
+			this.irSimflag = false;
+			this.irSimflagAll = false;
+		} else if ("urlRemove".equals(simflag)) { //站内排重
+			this.similar = false;
+			this.irSimflag = true;
+			this.irSimflagAll = false;
+		} else if ("sourceRemove".equals(simflag)) { //全网排重
+			this.similar = false;
+			this.irSimflag = false;
+			this.irSimflagAll = true;
+		}
+		//命中规则
+		if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(this.trsl)) {
+			if (SearchScope.TITLE.equals(wordIndex) || "0".equals(wordIndex)){
+				this.searchScope = SearchScope.TITLE;
+			}
+			if (SearchScope.TITLE_CONTENT.equals(wordIndex)|| "1".equals(wordIndex)){
+				this.searchScope = SearchScope.TITLE_CONTENT;
+			}
+			if (SearchScope.TITLE_ABSTRACT.equals(wordIndex)|| "2".equals(wordIndex)){
+				this.searchScope = SearchScope.TITLE_ABSTRACT;
+			}
+
+		}
+		this.monitorSite = monitorSite;
+		this.excludeWeb = excludeWeb;
+		//排除关键词
+		this.excludeWordIndex = excludeWordIndex;
+		this.excludeWords = excludeWord;
+
+		//修改词距 选择修改词距时，才能修改词距
+		if (updateWordForm != null && updateWordForm && StringUtil.isEmpty(this.trsl) && wordFromNum >= 0) {
+			JSONArray jsonArray = JSONArray.parseArray(this.anyKeywords);
+			//现在词距修改情况为：只有一个关键词组时，可以修改词距等，多个时不允许
+			if (jsonArray != null && jsonArray.size() == 1) {
+				Object o = jsonArray.get(0);
+				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
+				jsonObject.put("wordSpace", wordFromNum);
+				jsonObject.put("wordOrder", wordFromSort);
+				jsonArray.set(0, jsonObject);
+				this.anyKeywords = jsonArray.toJSONString();
+			}
+		}
+		if(StringUtil.isNotEmpty(groupName)){
+			this.source = groupName;
+		}
+		this.addFilterCondition(mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
+	}
+
+
+
 }

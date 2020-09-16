@@ -61,34 +61,42 @@ public class BarColumn extends AbstractColumn {
 
 					List<String> allList = Const.ALL_GROUPNAME_SORT;
 					List<Object> result = new ArrayList<>();
-
-					for(String oneGroupName : allList){
+					Boolean resultFlag = true;
+					Integer active = 0;
+					for (String oneGroupName : allList) {
 						//只显示选择的数据源
-						if(sourceList.contains(oneGroupName)){
+						if (sourceList.contains(oneGroupName)) {
 							String contrastField = FtsFieldConst.FIELD_SITENAME;
-							if(Const.GROUPNAME_WEIBO.equals(oneGroupName)){
+							if (Const.GROUPNAME_WEIBO.equals(oneGroupName)) {
 								contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
-							}else if(Const.MEDIA_TYPE_TF.contains(oneGroupName)){
+							} else if (Const.MEDIA_TYPE_TF.contains(oneGroupName)) {
 								contrastField = FtsFieldConst.FIELD_AUTHORS;
 							}
+							QueryBuilder queryBuilder = new QueryBuilder();
+							queryBuilder.filterByTRSL(builder.asTRSL());
+							if (Const.GROUPNAME_XINWEN.equals(oneGroupName)){
+								//去掉新闻里的这类号
+								queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
+										"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+							}
 							Map<String,Object> oneInfo = new HashMap<>();
-							Object list = commonChartService.getBarColumnData(builder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"column",resultField);
-							List<Map<String, Object>> changeList = new ArrayList<>();
-							if(list != null ){
-								changeList = (List<Map<String, Object>>)list;
-								if(changeList.size() <10){
-									for(int i = changeList.size();i <10;i++){
-										Map<String, Object> addInfo = new HashMap<>();
-										addInfo.put("name","");
-										addInfo.put("value",0);
-										changeList.add(addInfo);
-									}
+							Object list = commonChartService.getBarColumnData(queryBuilder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"column",resultField);
+                            List<Map<String, Object>> changeList = new ArrayList<>();
+							if (list != null) {
+								changeList = (List<Map<String, Object>>) list;
+								if (changeList.size() > 0) {
+									resultFlag = false;
+									active++;
 								}
 							}
 							oneInfo.put("name", Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));
-							oneInfo.put("info",changeList);
+							oneInfo.put("info", list);
+							oneInfo.put("active", active == 1 ? true : false);
 							result.add(oneInfo);
 						}
+					}
+					if (resultFlag) {
+						return null;
 					}
 					return result;
 				}
@@ -167,21 +175,31 @@ public class BarColumn extends AbstractColumn {
 					}
 				}
 			}else{
-				if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {// 舆论来源对比
-					String key = StringUtils.join(CommonListChartUtil.formatGroupName(super.config.getKey()), ";");
-					commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);
-				}else if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {//站点对比
-					commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
-				}else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {//微信公众号对比
-					commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
-				}else if (ColumnConst.HOT_TOPIC_SORT.equals(type)) {//微博热点话题
-					commonBuilder.filterField(FtsFieldConst.FIELD_TAG, super.config.getKey(), Operator.Equal);
+				String key = super.config.getKey();
+				String contrastField = FtsFieldConst.FIELD_SITENAME;
+				if (ColumnConst.HOT_TOPIC_SORT.equals(type)) {//微博热点话题
+					contrastField = FtsFieldConst.FIELD_TAG;
 				}else if (ColumnConst.CHART_BAR_CROSS.equals(type)) {//活跃账号对比
-					commonBuilder.filterField(FtsFieldConst.FIELD_SITENAME, super.config.getKey(), Operator.Equal);
-				} else {
-					//除去专家模式，柱状图只有三种模式，+两种特殊的图，如果不是这5种，则无对比模式
-					throw new TRSSearchException("未获取到检索条件");
+					contrastField = FtsFieldConst.FIELD_SITENAME;
+					if(Const.GROUPNAME_WEIBO.equals(checkGroupName)){
+						contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+					}else if(Const.MEDIA_TYPE_TF.contains(checkGroupName)){
+						contrastField = FtsFieldConst.FIELD_AUTHORS;
+					}
+				}else{
+					if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {// 舆论来源对比
+						key = StringUtils.join(CommonListChartUtil.formatGroupName(key), ";");
+						contrastField = FtsFieldConst.FIELD_GROUPNAME;
+					}else if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast())) {//站点对比
+						contrastField = FtsFieldConst.FIELD_SITENAME;
+					}else if (ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {//微信公众号对比
+						contrastField = FtsFieldConst.FIELD_SITENAME;
+					} else {
+						//除去专家模式，柱状图只有三种模式，+两种特殊的图，如果不是这5种，则无对比模式
+						throw new TRSSearchException("未获取到检索条件");
+					}
 				}
+				commonBuilder.filterField(contrastField, "\""+key+"\"", Operator.Equal);
 			}
 			if("hot".equals(this.config.getOrderBy())){
 				return commonListService.queryPageListForHot(commonBuilder,checkGroupName,loginUser,"column",true);

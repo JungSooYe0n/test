@@ -1,5 +1,6 @@
 package com.trs.netInsight.support.hybaseRedis;
 
+import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.support.api.entity.ApiAccessToken;
 import com.trs.netInsight.support.api.exception.ApiException;
 import com.trs.netInsight.support.api.handler.Api;
@@ -8,8 +9,7 @@ import com.trs.netInsight.support.api.result.ApiResultType;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
-import com.trs.netInsight.util.DateUtil;
-import com.trs.netInsight.util.RedisUtil;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.user.entity.User;
@@ -51,25 +51,41 @@ public class HybaseReadAround {
      */
     @Around("@annotation(hybaseRead)")
     public Object before(ProceedingJoinPoint point, HybaseRead hybaseRead) throws Throwable {
-        Object result = null;
         try {
-            MethodSignature methodSign = (MethodSignature)point.getSignature();
-            Class returnClazz = methodSign.getReturnType();
+            Object result = null;
+            User user = UserUtils.getUser();
             // 获取参数列表及参数值
             Object[] paramValues = point.getArgs();
+            if (ObjectUtil.isNotEmpty(user)){
+                user = UserUtils.checkOrganization(user);
+//                小库 涉及 已读 / 未读，情绪标的修改 与 筛选，为保证列表页统计数据与信息数据一致， 不走缓存
+                if (user.isExclusiveHybase()){
+                    return point.proceed(paramValues);// 方法运行;
+
+                }
+            }
+
+            MethodSignature methodSign = (MethodSignature)point.getSignature();
+            Class returnClazz = methodSign.getReturnType();
+
             //参数必须注意,否则可能缓存无效
             String paramsStr = getParamsStr(paramValues);
             Integer redisKeyHash = paramsStr.hashCode();
             String redisKey = "hybaseRedis_"+redisKeyHash;
             String redisKeyAddTime = "hybaseRedisAddTime_"+redisKeyHash;
+            if(user!= null && StringUtil.isNotEmpty(user.getId())){
+                //先一个用户一个缓存，之后可以尝试当前用户存缓存的key，然后再删除对应的key
+                redisKey = "hybaseRedis_"+user.getId()+"_"+redisKeyHash;
+                redisKeyAddTime = "hybaseRedisAddTime_"+user.getId()+"_"+redisKeyHash;
+            }
             Object rt = RedisUtil.getObject(redisKey);
             String addTime = RedisUtil.getString(redisKeyAddTime);
             //key存放redis中的时间(分)
             long alreadyAddMin = 1000l;
             if(addTime != null) alreadyAddMin = DateUtil.getDateTimeMin(addTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"),"min");
 //          // redis有数据并且小于10分钟直接去redis数据
-            if(rt != null && alreadyAddMin<10){
-                log.info("从redis获取该信息----------");
+            if(rt != null && alreadyAddMin<11){
+                //log.info("从redis获取该信息----------");
                 if(returnClazz == java.lang.Long.class ){
                     rt = Long.parseLong(rt.toString());
                 }
@@ -101,11 +117,12 @@ public class HybaseReadAround {
                 RedisUtil.setObject(redisKey,result);
                 RedisUtil.setString(redisKeyAddTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
             }
-
+            return result;
         } catch (Exception e) {
             log.error("Api调用失败,请返回重试或联系管理员!e=[" + e.getMessage() + "]", e);
+            throw new TRSException("检索Hybase失败："+ e);
         }
-        return result;
+        //return result;
     }
     public String getParamsStr(Object[] paramValues){
         StringBuilder sb = new StringBuilder();
@@ -127,7 +144,10 @@ public class HybaseReadAround {
         String res = sb.toString();
         if(res.contains("IR_URLTIME")){
             int t1 = res.indexOf("IR_URLTIME");
-            res = res.substring(0,t1)+res.substring(t1+45);
+            StringBuilder resBuilder = new StringBuilder(res);
+            resBuilder.replace(t1+22,t1+26,"0000");
+            resBuilder.replace(t1+40,t1+44,"0000");
+            res = resBuilder.toString();
         }
         return res;
     }

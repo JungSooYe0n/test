@@ -135,7 +135,7 @@ public class OrganAutoRegisterController {
                     5,500, dataSource,
                     90,365,90,null,"网察",
                     "网察大数据分析平台","010-64859900",null,
-                    null,true,true,isAdmin,isAutoAdd,tenantId,null,null,null,null);
+                    null,true,true,isAdmin,isAutoAdd,tenantId,false,null,null,null,null,null);
 
             //修改状态
             List<Organization> organizations = organizationService.findByOrganizationName(tenantName);
@@ -260,7 +260,7 @@ public class OrganAutoRegisterController {
                     5,500, dataSource,
                     90,365,90,null,"网察",
                     "网察大数据分析平台","010-64859900",null,
-                    null,true,true,isAdmin,isAutoAdd,tenantId,null,null,null,null);
+                    null,true,true,isAdmin,isAutoAdd,tenantId,false,null,null,null,null,null);
 
             //修改状态
             List<Organization> organizations = organizationService.findByOrganizationName(tenantName);
@@ -416,7 +416,7 @@ public class OrganAutoRegisterController {
         String userjson = jrAll.toString();
         log.info("自动添加json--->"+userjson);
         subGroupService.save(isAutoAdd,organizationId,name,null,roleIds,50,10,10,5,
-                expireAt,null,null,null,1,userjson);
+                expireAt,null,null,null,null,1,userjson);
     }
     //添加管理员格式化参数
     public User addUser(String userName,String displayName,String organizationId){

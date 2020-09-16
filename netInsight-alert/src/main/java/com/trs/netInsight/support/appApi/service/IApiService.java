@@ -46,5 +46,5 @@ public interface IApiService {
      * @param alertId
      * @return
      */
-    public PageAlertSend getOneAlertData(String alertId, String userId);
+    public PageAlertSend getOneAlertData(String alertId, String userId) throws TRSException;
 }

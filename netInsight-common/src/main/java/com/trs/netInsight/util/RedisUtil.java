@@ -331,6 +331,17 @@ public class RedisUtil {
 	}
 
 
+	public static boolean deleteKeyForFuzzy(String key){
+		Set<String> keys = stringRedisTemplate.keys(key + "*");
+		System.out.println("要删除的对应用户的缓存key为："+key);
+		if(keys != null && keys.size()>0){
+			for(String oneKey :keys){
+				System.out.println("删除的："+oneKey);
+			}
+			stringRedisTemplate.delete(keys);
+		}
+		return true;
+	}
 	/**
 	 * 将key信息删除
 	 *

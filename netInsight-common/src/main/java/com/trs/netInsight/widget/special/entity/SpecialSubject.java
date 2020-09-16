@@ -104,7 +104,7 @@ public class SpecialSubject extends BaseEntity {
 	 */
 	@JsonIgnore
 	@OneToMany(mappedBy = "groupId", cascade = CascadeType.DETACH)
-	@OrderBy("sequence asc")
+	@OrderBy("sequence desc")
 	private List<SpecialProject> indexTabMappers = new ArrayList<>();
 
 	/**
@@ -126,12 +126,18 @@ public class SpecialSubject extends BaseEntity {
 	 * @return
 	 */
 	public SpecialSubject pageCopy() {
-		return new SpecialSubject(name,sequence);
+		return new SpecialSubject(name,sequence,subjectId);
 	}
 	public SpecialSubject(String name, int sequence) {
 		super();
 		this.name = name;
 		this.sequence = sequence;
+	}
+	public SpecialSubject(String name, int sequence,String subjectId) {
+		super();
+		this.name = name;
+		this.sequence = sequence;
+		this.subjectId = subjectId;
 	}
 /*	*//**
 	 * 新建专题

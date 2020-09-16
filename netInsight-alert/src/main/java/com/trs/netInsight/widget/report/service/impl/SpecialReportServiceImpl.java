@@ -378,73 +378,92 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     }
 
     @Override
-    public void delReportResource(String reportId, String chapterDetail,
-                                  String resourceId) throws Exception {
+    public void delReportResource(String reportId, String chapterDetail) throws Exception {
         ReportNew report = reportNewRepository.findOne(reportId);
         ReportDataNew reportData = reportDataNewRepository.findOne(report.getReportDataId());
-        String result = "";
-        String jsonData = reportData.getClass().getDeclaredMethod(CHAPTERS2METHODNEW.get(chapterDetail)).invoke(reportData).toString();
-        List<ReportResource> reportResources = JSONObject.parseObject(jsonData, new TypeReference<List<ReportResource>>(){});
-        AtomicInteger i = new AtomicInteger(0);
-        //filter 指的是过滤出满足某条件的数据。而不是将满足某条件的数据过滤走。
-        List<ReportResource> reportResourcesResult = reportResources.stream()
-                .filter(e -> ! e.getId().equals(resourceId))
-                .sorted(Comparator.comparing(ReportResource::getDocPosition))
-                .map(e ->{
-                    e.setDocPosition(i.incrementAndGet());
-                    return e;
-                })
-                .collect(Collectors.toList());
-        result = JSON.toJSONString(reportResourcesResult);
+
         switch (chapterDetail) {
             case OVERVIEWOFDATANew:
-                reportDataNewRepository.saveOverviewOfdata(null, reportData.getId());
+                // 数据统计概述 暂时不可以删除
+                //reportDataNewRepository.saveOverviewOfdata(null, reportData.getId());
                 break;
-            case NEWSTOP10New:
-                reportDataNewRepository.saveNewsTop10(result, reportData.getId());
+            case SITUATIONACCESSMENTkey:
+                //态势评估
+                reportDataNewRepository.saveSituationAccessment(null, reportData.getId());
                 break;
-            case WEIBOTOP10New:
-                reportDataNewRepository.saveWeiboTop10(result, reportData.getId());
-                break;
-            case WECHATTOP10New:
-                reportDataNewRepository.saveWechatTop10(result, reportData.getId());
-                break;
-            case DATATRENDANALYSISNew:
+            case DATATRENDANALYSISkey:
+                //日常监测报 + 专题分析报
+                //各舆论场趋势分析
                 reportDataNewRepository.saveDataTrendAnalysis(null, reportData.getId());
                 break;
-            case DATASOURCEANALYSISNew:
+            case DATASOURCEANALYSISkey:
+                //日常监测报 + 专题分析报
+                //各舆论场发布统计
                 reportDataNewRepository.saveDataSourceAnalysis(null, reportData.getId());
                 break;
-            case WEBSITESOURCETOP10New:
-                reportDataNewRepository.saveWebsiteSourceTop10(null, reportData.getId());
+            case OPINIONANALYSISkey:
+                //观点分析
+                reportDataNewRepository.saveOpinionAnalysis(null, reportData.getId());
                 break;
-            case WEIBOACTIVETOP10New:
-                reportDataNewRepository.saveWeiboActiveTop10(null, reportData.getId());
-                break;
-            case WECHATACTIVETOP10New:
-                reportDataNewRepository.saveWechatActiveTop10(null, reportData.getId());
-                break;
-            case AREANew:
-                reportDataNewRepository.saveArea(null, reportData.getId());
-                break;
-            case EMOTIONANALYSISNew:
+            case EMOTIONANALYSISkey:
+                //日常监测报 + 专题分析报
+                //情感分析 饼图
                 reportDataNewRepository.saveEmotionAnalysis(null, reportData.getId());
                 break;
-            case NEWSHOTTOPICSNew:
-                reportDataNewRepository.saveNewsHotTopics(result, reportData.getId());
+            case MOODSTATISTICSkey:
+                //情绪分析 饼图
+                reportDataNewRepository.saveMoodStatistics(null, reportData.getId());
                 break;
-            case NEWSHOTTOP10New://（修复专题报 改造遗留bug 20191227）
-                reportDataNewRepository.saveNewsHotTopics(result, reportData.getId());
+            case WORDCLOUDSTATISTICSkey:
+                //日常监测报 + 专题分析报
+                //词云统计
+                reportDataNewRepository.saveWordCloudStatistics(null, reportData.getId());
                 break;
-            case WEIBOHOTTOP10New://（修复专题报 改造遗留bug 20191227）
-                reportDataNewRepository.saveWeiboHotTopics(result, reportData.getId());
+            case AREAkey:
+                //日常监测报 + 专题分析报
+                //地图
+                reportDataNewRepository.saveArea(null, reportData.getId());
                 break;
-            case WEIBOHOTTOPICSNew:
-                reportDataNewRepository.saveWeiboHotTopics(result, reportData.getId());
+
+            case NEWSHOTTOPICSkey:
+                //热点信息
+                //列表，新闻热点TOP10
+                reportDataNewRepository.saveNewsHotTopics(null, reportData.getId());
+                //列表，微博热点TOP10
+                reportDataNewRepository.saveWeiboTop10(null, reportData.getId());
+                //列表，微信热点TOP10
+                reportDataNewRepository.saveWechatHotTop10(null, reportData.getId());
+                //列表，自媒体报热点
+                reportDataNewRepository.saveWeMediaHot(null, reportData.getId());
                 break;
-            case WECHATHOTTOP10New://（修复专题报 改造遗留bug 20191227）
-                reportDataNewRepository.saveWechatHotTop10(result, reportData.getId());
+            case NEWSEVENTCONTEXTkey:
+                //事件脉络
+                //列表，新闻网站事件脉络
+                reportDataNewRepository.saveNewsEventContex(null, reportData.getId());
+                //列表，微博事件脉络
+                reportDataNewRepository.saveWeiboEventContex(null, reportData.getId());
+                //列表，微信事件脉络
+                reportDataNewRepository.saveWechatEventContex(null, reportData.getId());
+                //列表，自媒体号事件脉络
+                reportDataNewRepository.saveWemediaEventContex(null, reportData.getId());
                 break;
+            case ACTIVEACCOUNTkey:
+                //日常监测报 + 专题分析报
+                //活跃账号 新
+                reportDataNewRepository.saveActiveAccount(null, reportData.getId());
+                break;
+            case PROPAFATIONANALYSISkey:
+                //传播分析
+                reportDataNewRepository.saveSpreadAnalysisSiteName(null, reportData.getId());
+                //新闻传播分析时间轴
+                reportDataNewRepository.saveNewsSpreadAnalysisTimeList(null, reportData.getId());
+                //自媒体传播分析时间轴
+                reportDataNewRepository.saveWemediaSpreadAnalysisTimeList(null, reportData.getId());
+                break;
+            case WEIBOHOTTOPICSkey:
+                reportDataNewRepository.saveWeiboHotTopics(null, reportData.getId());
+                break;
+
             default:
                 break;
         }
@@ -777,6 +796,18 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
                             break;
                         case EMOTIONANALYSISNew:
                             reportDataNewRepository.saveEmotionAnalysis(toJSONString, reportData.getId());
+                            break;
+                        case PROPAFATIONANALYSIS:
+                            //传播分析
+                            reportDataNewRepository.saveSpreadAnalysisSiteName(toJSONString, reportData.getId());
+                            break;
+                        case NEWSPROPAFATIONANALYSISTIMELIST:
+                            //新闻传播分析时间轴
+                            reportDataNewRepository.saveNewsSpreadAnalysisTimeList(toJSONString, reportData.getId());
+                            break;
+                        case WEMEDIAPROPAFATIONANALYSISTIMELIST:
+                            //自媒体传播分析时间轴
+                            reportDataNewRepository.saveWemediaSpreadAnalysisTimeList(toJSONString, reportData.getId());
                             break;
                         default:
                             break;

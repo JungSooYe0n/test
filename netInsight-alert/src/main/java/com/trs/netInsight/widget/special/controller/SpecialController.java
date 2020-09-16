@@ -15,6 +15,7 @@ import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.column.entity.emuns.SpecialFlag;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
@@ -33,6 +34,7 @@ import net.sf.json.JSONArray;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -98,6 +100,9 @@ public class SpecialController {
 			// 查这个用户或用户分组下有多少个已经置顶的专题 新置顶的排前边 查找专题列表的时候按照sequence正序排
 			User loginUser = UserUtils.getUser();
 
+			List<Sort.Order> orders=new ArrayList<Sort.Order>();
+			orders.add( new Sort.Order(Sort.Direction.DESC, "sequence"));
+			orders.add( new Sort.Order(Sort.Direction.ASC, "createdTime"));
 			Criteria<SpecialProject> criteria = new Criteria<>();
 			criteria.add(Restrictions.eq("topFlag", "top"));
 			if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
@@ -105,18 +110,19 @@ public class SpecialController {
 			}else {
 				criteria.add(Restrictions.eq("subGroupId", loginUser.getSubGroupId()));
 			}
-			List<SpecialProject> findByUserId = specialProjectService.findAll(criteria);
-			for (SpecialProject special : findByUserId) {
-				special.setSequence(special.getSequence() + 1);
-				specialProjectService.save(special);
-			}
+			List<SpecialProject> findTop = specialProjectService.findAll(criteria,new Sort(orders));
+
 			SpecialProject findOne = specialProjectService.findOne(specialId);
-			// findOne.setTopFlag("top");
-			// 后边查找非top的
-			// specialProjectService.save(findOne);
-			// 把要置顶专题后边的同一级的专题主题和二级都往前提一位
-			specialProjectService.beforeDelete(findOne);
-			findOne.setSequence(1);
+			//这里要做一步操作，把置顶的专题信息原来的东西重新排序
+			//specialService.moveSequenceForSpecial(findOne.getId(), SpecialFlag.SpecialProjectFlag, loginUser);
+			findOne.setBakParentId(findOne.getGroupId());
+			findOne.setGroupId(null);
+			findOne.setSpecialSubject(null);
+			int seq =1;
+			if(findTop != null &&findTop.size() >0){
+				seq = findTop.get(0).getSequence()+1;
+			}
+			findOne.setSequence(seq);
 			findOne.setTopFlag("top");
 			specialProjectService.save(findOne);
 			return findOne;
@@ -140,9 +146,23 @@ public class SpecialController {
 	@RequestMapping(value = "/noTopFlag", method = RequestMethod.GET)
 	public Object noTopFlag(@ApiParam("专题id") @RequestParam(value = "specialId") String specialId) throws TRSException {
 		try {
+			User user = UserUtils.getUser();
 			SpecialProject findOne = specialProjectService.findOne(specialId);
-			findOne.setTopFlag("");
-			specialSequence(findOne.getGroupId(), findOne, "end");
+			findOne.setTopFlag(null);
+			String parentId = null;
+			if(StringUtil.isNotEmpty(findOne.getBakParentId())){
+				SpecialSubject parent = specialSubjectService.findOne(findOne.getBakParentId());
+				if(parent != null && StringUtil.isNotEmpty(parent.getId())){
+					parentId = parent.getId();
+					findOne.setGroupId(parentId);
+				}
+			}
+
+			//Integer  seq = specialService.getMaxSequenceForSpecial(parentId,user) +1;
+			//原本排序为正序，现在排序方式改为倒序
+			specialService.insertPropectToLast(parentId,user);
+			findOne.setSequence(1);
+			findOne.setBakParentId(null);
 			// 放在原来列表最后一个 查找时按照sequence排列
 			specialProjectService.save(findOne);
 			return findOne;
@@ -178,6 +198,7 @@ public class SpecialController {
 			@ApiImplicitParam(name = "timeRange", value = "时间范围[yyyy-MM-dd HH:mm:ss;yyyy-MM-dd HH:mm:ss]", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "anyKeywords", value = "任意关键词[中国,河北;美国,洛杉矶]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWords", value = "排除词[雾霾;沙尘暴]", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "excludeWordsIndex", value = "排除词命中位置：0标题、1标题+正文、2标题+摘要", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "trsl", value = "专家模式传统库表达式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "searchScope", value = "搜索范围[TITLE，TITLE_ABSTRACT, TITLE_CONTENT]", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "specialType", value = "专项模式[COMMON, SPECIAL]", dataType = "String", paramType = "query", required = false),
@@ -200,6 +221,7 @@ public class SpecialController {
 							 @RequestParam("timeRange") String timeRange,
 							 @RequestParam(value = "anyKeywords", required = false) String anyKeywords,
 							 @RequestParam(value = "excludeWords", required = false) String excludeWords,
+							 @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
 							 @RequestParam(value = "trsl", required = false) String trsl,
 							 @RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
 							 @RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
@@ -298,6 +320,7 @@ public class SpecialController {
 				SpecialProject specialProject = new SpecialProject(userId, type, specialName, anyKeywords,
 						excludeWords, trsl, scope, startTime, endTime, source, groupName,
 						groupId, timerange,Integer.valueOf(sequence),isSimilar, irSimflag, weight, server,irSimflagAll,excludeWeb);
+				specialProject.setExcludeWordIndex(excludeWordsIndex);
 				String imgUrl = "";
 				specialProject.setImgUrl(imgUrl);
 				specialProject.setMonitorSite(monitorSite);
@@ -796,18 +819,19 @@ public class SpecialController {
 	})
 	@RequestMapping(value = "/update", method = RequestMethod.POST)
 	public Object updateSpecial(@RequestParam("specialId") String specialId,
-			@RequestParam("specialName") String specialName, @RequestParam("timeRange") String timeRange,
-			@RequestParam(value = "anyKeywords", required = false) String anyKeywords,
-			@RequestParam(value = "excludeWords", required = false) String excludeWords,
-			@RequestParam(value = "trsl", required = false) String trsl,
-			@RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
-			@RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
-			@RequestParam(value = "weight", required = false) boolean weight,
-			@RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-			@RequestParam(value = "monitorSite", required = false) String monitorSite,
-			@RequestParam(value = "simflag", required = false) String simflag,
-			@RequestParam(value = "server", required = false) boolean server,
-			@RequestParam(value = "source", required = false) String source,
+								@RequestParam("specialName") String specialName, @RequestParam("timeRange") String timeRange,
+								@RequestParam(value = "anyKeywords", required = false) String anyKeywords,
+								@RequestParam(value = "excludeWords", required = false) String excludeWords,
+								@RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
+								@RequestParam(value = "trsl", required = false) String trsl,
+								@RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
+								@RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
+								@RequestParam(value = "weight", required = false) boolean weight,
+								@RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+								@RequestParam(value = "monitorSite", required = false) String monitorSite,
+								@RequestParam(value = "simflag", required = false) String simflag,
+								@RequestParam(value = "server", required = false) boolean server,
+								@RequestParam(value = "source", required = false) String source,
 								@RequestParam(value = "mediaLevel", required = false) String mediaLevel,
 								@RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
 								@RequestParam(value = "contentIndustry", required = false) String contentIndustry,
@@ -869,7 +893,7 @@ public class SpecialController {
 				server = false;
 			}
 			SpecialProject updateSpecial = specialService.updateSpecial(specialId, type, specialName,
-					anyKeywords, excludeWords, trsl, scope, startTime, endTime, source,
+					anyKeywords, excludeWords,excludeWordsIndex, trsl, scope, startTime, endTime, source,
 					timerange, isSimilar, weight, irSimflag, server,irSimflagAll,excludeWeb, monitorSite,mediaLevel,
 					 mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 
@@ -900,34 +924,35 @@ public class SpecialController {
 	}
 	@RequestMapping(value = "/specialList", method = RequestMethod.POST)
 	public Object specialList(@RequestParam(value = "specialId") String specialId,
-						   @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-						   @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-						   @RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
-						   @RequestParam(value = "sort", defaultValue = "", required = false) String sort,
-						   @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
-						   @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
-						   @ApiParam("结果中搜索")@RequestParam(value = "keywords", required = false) String keywords,
-						   @ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
+							  @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+							  @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+							  @RequestParam(value = "source", defaultValue = "ALL", required = false) String source,
+							  @RequestParam(value = "sort", defaultValue = "", required = false) String sort,
+							  @ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
+							  @ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
+							  @ApiParam("结果中搜索") @RequestParam(value = "keywords", required = false) String keywords,
+							  @ApiParam("结果中搜索的范围") @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
 
-						   @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
-						   @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
-						   @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
-						   @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
-						   @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
-						   @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-						   @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
-						   @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex",defaultValue ="1",required = false) String excludeWordIndex,
-						   @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm",defaultValue = "false",required = false) Boolean updateWordForm,
-						   @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
-						   @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
-						   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
-						   @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
-						   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
-						   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
-						   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
-						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
-						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
-						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
+							  @ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
+							  @ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
+							  @ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
+							  @ApiParam("情感倾向") @RequestParam(value = "emotion", required = false) String emotion,
+							  @ApiParam("阅读标记") @RequestParam(value = "read", required = false) String read,
+							  @ApiParam("排除网站  替换栏目条件") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+							  @ApiParam("排除关键词  替换栏目条件") @RequestParam(value = "excludeWord", required = false) String excludeWord,
+							  @ApiParam("排除词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "excludeWordIndex", defaultValue = "1", required = false) String excludeWordIndex,
+							  @ApiParam("修改词距标记 替换栏目条件") @RequestParam(value = "updateWordForm", defaultValue = "false", required = false) Boolean updateWordForm,
+							  @ApiParam("词距间隔字符 替换栏目条件") @RequestParam(value = "wordFromNum", required = false) Integer wordFromNum,
+							  @ApiParam("词距是否排序  替换栏目条件") @RequestParam(value = "wordFromSort", required = false) Boolean wordFromSort,
+							  @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+							  @ApiParam("数据源  替换栏目条件") @RequestParam(value = "groupName", required = false) String groupName,
+							  @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+							  @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+							  @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+							  @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+							  @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							  @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+							  @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr) throws TRSException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
 		long start = new Date().getTime();
@@ -965,7 +990,6 @@ public class SpecialController {
 			}
 			//命中规则
 			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {
-//				specialProject.setKeyWordIndex(wordIndex);
 				if (SearchScope.TITLE.equals(wordIndex)){
 					specialProject.setSearchScope(SearchScope.TITLE);
 				}
@@ -1006,12 +1030,12 @@ public class SpecialController {
 			}else{
 				source = StringUtils.join(specialSource,";");
 			}
-//			String keyWordIndex = "positioCon";// 标题加正文 与日常监测统一
+			specialProject.setConditionScreen(true);
+			specialProject.addFilterCondition( mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 
 			Object documentCommonSearch = infoListService.documentCommonSearch(specialProject, pageNo, pageSize, source,
-					timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,null,
-					"special", read, mediaLevel, mediaIndustry,
-					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
+					timeRange, emotion, sort, invitationCard,forwarPrimary, keywords, fuzzyValueScope,
+					"special", read, preciseFilter,imgOcr);
 			long endTime = System.currentTimeMillis();
 			log.warn("间隔时间："+(endTime - startTime));
 			return documentCommonSearch;
