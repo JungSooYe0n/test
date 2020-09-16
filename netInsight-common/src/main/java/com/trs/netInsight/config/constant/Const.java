@@ -1147,6 +1147,9 @@ public class Const {
             put("正文", "exportContent");
             put("命中词", "hitWord");
             put("命中句", "hit");
+            put("转发数", "rttCount");
+            put("评论数", "commtCount");
+            put("点赞数", "prcount");
         }
     };
     /**
@@ -1171,6 +1174,9 @@ public class Const {
             put("正文", "exportContent");
             put("命中词", "hitWord");
             put("命中句", "hit");
+            put("转发数", "rttCount");
+            put("评论数", "commtCount");
+            put("点赞数", "prcount");
         }
     };
 
