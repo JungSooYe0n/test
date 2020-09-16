@@ -139,6 +139,7 @@ public class LoginController {
 			}
 		}
 
+		password = MD5.getFromBase64(MD5.getFromBase64(password)).replace("ZEhKelRtVjBhVzV6YVdkb2RBPT0=","");
 		UsernamePasswordToken token = new UsernamePasswordToken(userName, password, rememberMe);
 		return loginService.login(token, userName, NetworkUtil.getIpAddress(request));
 	}
