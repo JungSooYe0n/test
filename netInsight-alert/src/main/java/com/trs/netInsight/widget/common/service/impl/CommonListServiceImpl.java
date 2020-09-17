@@ -642,53 +642,150 @@ public class CommonListServiceImpl implements ICommonListService {
             String trsl = RedisUtil.getString(trslk);
             List<AsyncDocument> asyncList = new ArrayList<>();
             List<AsyncInfo> asyncInfoList = new ArrayList<>();
-            for (FtsDocumentCommonVO document : documentList) {
-                String id = document.getSid();
-                String md5Tag = document.getMd5Tag();
-                AsyncDocument asyncDocument = new AsyncDocument();
-                asyncDocument.setId(id);
-
-                if (StringUtil.isNotEmpty(md5Tag)) { // 获取相似文章数
-                    QueryBuilder searchBuilder = new QueryBuilder();
-                    searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
-
-                    String trslpro = TrslUtil.removeSimflag(trsl);
-                    searchBuilder.filterByTRSL(trslpro);
-                    // 根据文章的groupName选择对应库检索
-                    if (StringUtil.isEmpty(database)) {
-                        searchBuilder.setDatabase(TrslUtil.chooseDatabases(document.getGroupName()));
-                    } else {
-                        searchBuilder.setDatabase(database);
-                    }
-                    if (StringUtil.isNotEmpty(id)) {
-                        //id不为空，则去掉当前文章
-                        StringBuffer idBuffer = new StringBuffer();
-                        if (Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())) {
-                            idBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id).append(")");
-                        } else if (Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())) {
-                            idBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id).append(")");
-                        } else {
-                            idBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id).append(")");
-                        }
-                        searchBuilder.filterByTRSL_NOT(idBuffer.toString());
-                    }
-
-                    searchBuilder.setPageSize(1);
-
-                    Long ftsCount = commonListService.ftsCount(searchBuilder, sim, irSimflag, irSimflagAll, type);
-                    //现在计算相似文章数，默认按照减去自身
-                    asyncDocument.setSimNum(ftsCount);
-                } else {
-                    asyncDocument.setSimNum(0L);
+            List<String> md5List = new ArrayList<>();
+            StringBuffer midBuffer = new StringBuffer();
+            StringBuffer hkeyBuffer = new StringBuffer();
+            StringBuffer sidBuffer = new StringBuffer();
+            Set<String> groupNames = new HashSet<>();
+            for (int i = 0; i < documentList.size(); i++) {
+                FtsDocumentCommonVO ftsDocumentCommonVO = documentList.get(i);
+                if (StringUtil.isNotEmpty(ftsDocumentCommonVO.getMd5Tag())){
+                    md5List.add(ftsDocumentCommonVO.getMd5Tag());
                 }
-                asyncList.add(asyncDocument);
-                AsyncInfo asyncInfo = new AsyncInfo();
-                asyncInfo.setAsyncDocument(asyncDocument);
-                asyncInfo.setMd5(md5Tag);
-                asyncInfo.setDatabase(database);
-                asyncInfo.setGroupName(document.getGroupName());
-                asyncInfoList.add(asyncInfo);
+                String id = ftsDocumentCommonVO.getSid();
+                String groupName = ftsDocumentCommonVO.getGroupName();
+                groupNames.add(groupName);
+                if (StringUtil.isNotEmpty(id)) {
+                    //id不为空，则去掉当前文章
+                    if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())) {
+                        if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
+                            midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id);
+                        } else {
+                            midBuffer.append(" OR ").append(id);
+                        }
+                    } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())) {
+                        if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
+                            hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id);
+                        } else {
+                            hkeyBuffer.append(" OR ").append(id);
+                        }
+                    } else {
+                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)){
+                            sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
+                        } else {
+                            sidBuffer.append(" OR ").append(id);
+                        }
+                    }
+                }
             }
+            if (ObjectUtil.isNotEmpty(md5List)){
+                QueryBuilder searchBuilder = new QueryBuilder();
+//                所有md5
+                searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5List.toArray(new String[md5List.size()]), Operator.Equal);
+//                查询条件
+                String trslpro = TrslUtil.removeSimflag(trsl);
+                searchBuilder.filterByTRSL(trslpro);
+                // 根据文章的groupName选择对应库检索
+                if (StringUtil.isEmpty(database)) {
+                    if (ObjectUtil.isNotEmpty(groupNames)){
+                        searchBuilder.setDatabase(String.join(";",TrslUtil.chooseDatabases(groupNames.toArray(new String[groupNames.size()]))));
+                    }else {
+                        searchBuilder.setDatabase(Const.MIX_DATABASE);
+                    }
+                } else {
+                    searchBuilder.setDatabase(database);
+                }
+//                排除所属ID
+                if (ObjectUtil.isNotEmpty(midBuffer.toString())){
+                    midBuffer.append(")");
+                    searchBuilder.filterByTRSL_NOT(midBuffer.toString());
+                }
+                if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
+                    hkeyBuffer.append(")");
+                    searchBuilder.filterByTRSL_NOT(hkeyBuffer.toString());
+                }
+                if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
+                    sidBuffer.append(")");
+                    searchBuilder.filterByTRSL_NOT(sidBuffer.toString());
+                }
+                searchBuilder.setPageSize(50);
+                GroupResult groupInfos = commonListService.categoryQuery(searchBuilder, sim, irSimflag, irSimflagAll,FtsFieldConst.FIELD_MD5TAG, type);
+                if (ObjectUtil.isNotEmpty(groupInfos)){
+                    List<GroupInfo> groupList = groupInfos.getGroupList();
+                    if (ObjectUtil.isNotEmpty(groupList)){
+                        for (FtsDocumentCommonVO document : documentList) {
+                            AsyncDocument asyncDocument = new AsyncDocument();
+                            AsyncInfo asyncInfo = new AsyncInfo();
+
+                            asyncDocument.setId(document.getSid());
+                            //现在计算相似文章数，默认按照减去自身
+                            for (GroupInfo groupInfo : groupList) {
+                                if (StringUtil.isNotEmpty(document.getMd5Tag()) && document.getMd5Tag().equals(groupInfo.getFieldValue())){
+                                    asyncDocument.setSimNum(groupInfo.getCount());
+                                    break;
+                                }
+                            }
+                            if (ObjectUtil.isEmpty(asyncDocument.getSimNum())){
+                                asyncDocument.setSimNum(0L);
+                            }
+                            asyncList.add(asyncDocument);
+                            asyncInfo.setAsyncDocument(asyncDocument);
+                            asyncInfo.setMd5(document.getMd5Tag());
+                            asyncInfo.setDatabase(database);
+                            asyncInfo.setGroupName(document.getGroupName());
+                            asyncInfoList.add(asyncInfo);
+                        }
+                    }
+                }
+            }
+
+//            for (FtsDocumentCommonVO document : documentList) {
+//                String id = document.getSid();
+//                String md5Tag = document.getMd5Tag();
+//                AsyncDocument asyncDocument = new AsyncDocument();
+//                asyncDocument.setId(id);
+//
+//                if (StringUtil.isNotEmpty(md5Tag)) { // 获取相似文章数
+//                    QueryBuilder searchBuilder = new QueryBuilder();
+//                    searchBuilder.filterField(FtsFieldConst.FIELD_MD5TAG, md5Tag, Operator.Equal);
+//
+//                    String trslpro = TrslUtil.removeSimflag(trsl);
+//                    searchBuilder.filterByTRSL(trslpro);
+//                    // 根据文章的groupName选择对应库检索
+//                    if (StringUtil.isEmpty(database)) {
+//                        searchBuilder.setDatabase(TrslUtil.chooseDatabases(document.getGroupName()));
+//                    } else {
+//                        searchBuilder.setDatabase(database);
+//                    }
+//                    if (StringUtil.isNotEmpty(id)) {
+//                        //id不为空，则去掉当前文章
+//                        StringBuffer idBuffer = new StringBuffer();
+//                        if (Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())) {
+//                            idBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id).append(")");
+//                        } else if (Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())) {
+//                            idBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id).append(")");
+//                        } else {
+//                            idBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id).append(")");
+//                        }
+//                        searchBuilder.filterByTRSL_NOT(idBuffer.toString());
+//                    }
+//
+//                    searchBuilder.setPageSize(1);
+//
+//                    Long ftsCount = commonListService.ftsCount(searchBuilder, sim, irSimflag, irSimflagAll, type);
+//                    //现在计算相似文章数，默认按照减去自身
+//                    asyncDocument.setSimNum(ftsCount);
+//                } else {
+//                    asyncDocument.setSimNum(0L);
+//                }
+//                asyncList.add(asyncDocument);
+//                AsyncInfo asyncInfo = new AsyncInfo();
+//                asyncInfo.setAsyncDocument(asyncDocument);
+//                asyncInfo.setMd5(md5Tag);
+//                asyncInfo.setDatabase(database);
+//                asyncInfo.setGroupName(document.getGroupName());
+//                asyncInfoList.add(asyncInfo);
+//            }
             //log.info("相似文章数计算：" + "async:" + pageId + "完成，数据为：" + asyncList.size());
             TimingCachePool.put("async:" + pageId, asyncList);
             RedisFactory.setValueToRedis("async:" + pageId, asyncList);
