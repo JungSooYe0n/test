@@ -297,7 +297,7 @@ public final class StringUtil {
 
 		pat = Pattern.compile(nbsp);
 		mat = pat.matcher(content);
-		content = mat.replaceAll("");
+		content = mat.replaceAll(" ");
 
 		pat = Pattern.compile(nbsp1);
 		mat = pat.matcher(content);
