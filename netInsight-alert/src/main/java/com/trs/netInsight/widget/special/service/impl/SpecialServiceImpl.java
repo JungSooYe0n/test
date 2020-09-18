@@ -767,6 +767,140 @@ public class SpecialServiceImpl implements ISpecialService {
 		return formatResultSpecial(result,0,isGetOne,false);
 	}
 
+
+	@Override
+	public Object selectNextShowSpecial(String id, SpecialFlag specialFlag) {
+		User user = UserUtils.getUser();
+		SpecialSubject parent = null;
+		String topFlag = null;
+		Map<String,Object> map = new HashMap<>();
+		if(SpecialFlag.SpecialSubjectFlag.equals(specialFlag)){
+			SpecialSubject indexPage = specialSubjectRepository.findOne(id);
+			if(indexPage != null){
+				if(StringUtil.isNotEmpty(indexPage.getParentId())){
+					parent = specialSubjectRepository.findOne(indexPage.getParentId());
+				}
+			}
+		}else if(SpecialFlag.SpecialProjectFlag.equals(specialFlag)){
+			SpecialProject mapper = specialProjectRepository.findOne(id);
+			if(mapper!=null){
+				topFlag = mapper.getTopFlag();
+				parent = mapper.getSpecialSubject();
+			}
+		}
+		Object result = null;
+		if(parent != null){  //在分组下
+
+			List<SpecialSubject> oneIndexPage = parent.getChildrenPage();
+			List<SpecialProject> oneIndexTab = parent.getIndexTabMappers();
+			List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
+			if(sortColumn == null || sortColumn.size() <=1){
+				result = parent;
+			}else{
+				result = getNextNode(sortColumn,id,specialFlag);
+			}
+		}else{ // 第一层的数据， 置顶的和不置顶的分开
+			List<SpecialSubject> oneIndexPage = null;
+			List<SpecialProject> oneIndexTab = null;
+			List<SpecialProject> top = null;
+			Map<String,Object> oneColumn = this.getOneLevelColumnForMap(user);
+			if (oneColumn.containsKey("page")) {
+				oneIndexPage = (List<SpecialSubject>) oneColumn.get("page");
+			}
+			if (oneColumn.containsKey("tab")) {
+				oneIndexTab = (List<SpecialProject>) oneColumn.get("tab");
+			}
+			if (oneColumn.containsKey("top")) {
+				top = (List<SpecialProject>) oneColumn.get("top");
+			}
+			List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
+			if("top".equals(topFlag)){
+				//List<IndexTabMapper> findTop = getTopIndexTabMapper(user);
+				if(top != null && top.size() >1){
+					int index = 0;
+					for(int i = 0;i <top.size();i++){
+						if(id.equals(top.get(i).getId())){
+							index = i;
+							break;
+						}
+					}
+					if(index == top.size()-1){ // 这里是用的下标判断，判断当前这个是否是整个top的最后一个下标，是则拿前一个
+						result = top.get(index-1);
+					}else{
+						result = top.get(index+1);
+					}
+				}else{
+					// 找到所有元素中的第一个
+					if(sortColumn == null || sortColumn.size() ==0){
+						result = null;
+					}else{
+						result = sortColumn.get(0);
+					}
+				}
+			}else{
+				// 找到当前元素的下一个有东西的元素 下一个没有就找上一个 不直接用seq 判断是因为可能存在seq错误的情况，但是都是按照上面的方法排序后的数据，跟页面一致
+				// 找到所有元素中的第一个
+				if(sortColumn == null || sortColumn.size() <=1){
+					//如果第一层只有当前一个，看他上面有没有置顶的
+					if(top != null && top.size() >0){
+						result = top.get(top.size() -1);
+					}else{
+						result = null;
+					}
+				}else{
+					result = getNextNode(sortColumn,id,specialFlag);
+				}
+			}
+		}
+		if(result == null){
+			map.put("id",null);
+			map.put("flag",null);
+			map.put("name",null);
+		}else{
+			if (result instanceof SpecialProject) {
+				SpecialProject mapper = (SpecialProject)result;
+				map.put("id",mapper.getId());
+				map.put("flag",1);
+				map.put("name",mapper.getSpecialName());
+			} else if (result instanceof SpecialSubject) {
+				SpecialSubject page = (SpecialSubject)result;
+				map.put("id",page.getId());
+				map.put("flag",0);
+				map.put("name",page.getName());
+			}
+		}
+		return map;
+	}
+	private Object getNextNode(List<Object> sortColumn,String id,SpecialFlag columnFlag){
+		if(sortColumn != null && sortColumn.size() >0){
+			int index = -1;
+			for(int i = 0;i <sortColumn.size();i++){
+				if (sortColumn.get(i) instanceof SpecialProject) {
+					SpecialProject mapper = (SpecialProject)sortColumn.get(i);
+					if(id.equals(mapper.getId())  && SpecialFlag.SpecialProjectFlag.equals(columnFlag)){
+						index = i;
+						break;
+					}
+				} else if (sortColumn.get(i) instanceof SpecialSubject) {
+					SpecialSubject page = (SpecialSubject)sortColumn.get(i);
+					if(id.equals(page.getId())  && SpecialFlag.SpecialSubjectFlag.equals(columnFlag)){
+						index = i;
+						break;
+					}
+				}
+			}
+			if(index != -1){
+				if(index == sortColumn.size()-1){ // 这里是用的下标判断，判断当前这个是否是整个数据的最后一个下标，是则拿前一个
+					return sortColumn.get(index-1);
+				}else{
+					return sortColumn.get(index+1);
+				}
+			}else{
+				return null;
+			}
+		}
+		return null;
+	}
 	@Override
 	public Object selectSpecialNew(User user) throws OperationException {
 		List<Object> result = new ArrayList<>();

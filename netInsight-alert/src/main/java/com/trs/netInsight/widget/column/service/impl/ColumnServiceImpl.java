@@ -382,7 +382,7 @@ public class ColumnServiceImpl implements IColumnService {
 				for(int i =0;i<mapperList.size();i++){
 					Map<String,Object> map = new HashMap<>();
 					map.put("id",mapperList.get(i).getId());
-					IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+//					IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
 					map.put("sequence",mapperList.get(i).getSequence());
 					map.put("index",i);
 					//栏目类型为1
@@ -470,8 +470,8 @@ public class ColumnServiceImpl implements IColumnService {
 				String id = (String) map.get("id");
 				if(flag.equals(IndexFlag.IndexPageFlag)){
 					IndexPage indexPage = indexPageRepository.findOne(id);
-					IndexSequence indexSequence1 = sequenceRepository.findByIndexId(id);
-					if (ObjectUtil.isEmpty(indexSequence1)){
+					List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(id);
+					if (ObjectUtil.isEmpty(indexSequenceList)){
 						IndexSequence indexSequence = new IndexSequence();
 						indexSequence.setIndexId(id);
 						indexSequence.setParentId(prentId);
@@ -494,8 +494,8 @@ public class ColumnServiceImpl implements IColumnService {
 					}
 				}else if(flag.equals(IndexFlag.IndexTabFlag)){
 					IndexTabMapper mapper = indexTabMapperService.findOne(id);
-					IndexSequence indexSequence1 = sequenceRepository.findByIndexId(id);
-					if (ObjectUtil.isEmpty(indexSequence1)){
+					List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(id);
+					if (ObjectUtil.isEmpty(indexSequenceList)){
 						IndexSequence indexSequence = new IndexSequence();
 						indexSequence.setIndexId(id);
 						if (ObjectUtil.isEmpty(mapper.getIndexPage())){
@@ -510,8 +510,8 @@ public class ColumnServiceImpl implements IColumnService {
 						sequenceRepository.save(indexSequence);
 					}
 				} else if (flag.equals(IndexFlag.StatisticalFlag)) {
-					IndexSequence indexSequence1 = sequenceRepository.findByIndexId(id);
-					if (ObjectUtil.isEmpty(indexSequence1)){
+					List<IndexSequence> indexSequenceList  = sequenceRepository.findByIndexId(id);
+					if (ObjectUtil.isEmpty(indexSequenceList)){
 						IndexSequence indexSequence = new IndexSequence();
 //						StatisticalChart statisticalChart = statisticalChartRepository.findOne(id);
 						indexSequence.setIndexId(id);
@@ -522,8 +522,8 @@ public class ColumnServiceImpl implements IColumnService {
 						sequenceRepository.save(indexSequence);
 					}
 				}else if (flag.equals(IndexFlag.CustomFlag)) {
-					IndexSequence indexSequence1 = sequenceRepository.findByIndexId(id);
-					if (ObjectUtil.isEmpty(indexSequence1)){
+					List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(id);
+					if (ObjectUtil.isEmpty(indexSequenceList)){
 						IndexSequence indexSequence = new IndexSequence();
 //						CustomChart customChart = customChartRepository.findOne(id);
 						indexSequence.setIndexId(id);
@@ -550,9 +550,9 @@ sequenceRepository.flush();
 						if (!mapperList.get(i).isHide()) {
 							Map<String, Object> map = new HashMap<>();
 							map.put("id", mapperList.get(i).getId());
-							IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
-							if (ObjectUtil.isNotEmpty(indexSequence)) {
-								map.put("sequence", indexSequence.getSequence());
+							List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+							if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+								map.put("sequence", indexSequenceList.get(0).getSequence());
 							} else {
 								map.put("sequence", mapperList.get(i).getSequence());
 							}
@@ -566,10 +566,11 @@ sequenceRepository.flush();
 					}else {
 						Map<String, Object> map = new HashMap<>();
 						map.put("id", mapperList.get(i).getId());
-						IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+						List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+//						IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
 //						map.put("sequence", indexSequence.getSequence());
-						if (ObjectUtil.isNotEmpty(indexSequence)) {
-							map.put("sequence", indexSequence.getSequence());
+						if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+							map.put("sequence", indexSequenceList.get(0).getSequence());
 						} else {
 							map.put("sequence", mapperList.get(i).getSequence());
 						}
@@ -587,9 +588,10 @@ sequenceRepository.flush();
 				if (!indexPageList.get(i).isHide() || !sortAll) {
 					Map<String, Object> map = new HashMap<>();
 					map.put("id", indexPageList.get(i).getId());
-					IndexSequence indexSequence = sequenceRepository.findByIndexId(indexPageList.get(i).getId());
-					if (ObjectUtil.isNotEmpty(indexSequence)) {
-						map.put("sequence", indexSequence.getSequence());
+//					IndexSequence indexSequence = sequenceRepository.findByIndexId(indexPageList.get(i).getId());
+					List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(indexPageList.get(i).getId());
+					if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+						map.put("sequence", indexSequenceList.get(0).getSequence());
 					}
 					map.put("index", i);
 					//分组类型为0
@@ -658,9 +660,9 @@ sequenceRepository.flush();
 						columnChartList.add(statisticalChartDTO);
 						Map<String, Object> map = new HashMap<>();
 						map.put("id", statisticalChartDTO.getId());
-						IndexSequence indexSequence = sequenceRepository.findByIndexId(statisticalChartDTO.getId());
-						if (ObjectUtil.isNotEmpty(indexSequence)) {
-							map.put("sequence", indexSequence.getSequence());
+						List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(statisticalChartDTO.getId());
+						if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+							map.put("sequence", indexSequenceList.get(0).getSequence());
 						} else {
 							map.put("sequence", statisticalChartDTO.getSequence());
 						}
@@ -675,9 +677,9 @@ sequenceRepository.flush();
 					columnChartList.add(statisticalChartDTO);
 					Map<String, Object> map = new HashMap<>();
 					map.put("id", statisticalChartDTO.getId());
-					IndexSequence indexSequence = sequenceRepository.findByIndexId(statisticalChartDTO.getId());
-					if (ObjectUtil.isNotEmpty(indexSequence)) {
-						map.put("sequence", indexSequence.getSequence());
+					List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(statisticalChartDTO.getId());
+					if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+						map.put("sequence", indexSequenceList.get(0).getSequence());
 					} else {
 						map.put("sequence", statisticalChartDTO.getSequence());
 					}
@@ -700,9 +702,9 @@ sequenceRepository.flush();
 						columnChartList.add(customChartDTO);
 						Map<String, Object> map = new HashMap<>();
 						map.put("id", customChartDTO.getId());
-						IndexSequence indexSequence = sequenceRepository.findByIndexId(customChartDTO.getId());
-						if (ObjectUtil.isNotEmpty(indexSequence)) {
-							map.put("sequence", indexSequence.getSequence());
+						List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(customChartDTO.getId());
+						if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+							map.put("sequence", indexSequenceList.get(0).getSequence());
 						} else {
 							map.put("sequence", customChartDTO.getSequence());
 						}
@@ -718,9 +720,9 @@ sequenceRepository.flush();
 					columnChartList.add(customChartDTO);
 					Map<String, Object> map = new HashMap<>();
 					map.put("id", customChartDTO.getId());
-					IndexSequence indexSequence = sequenceRepository.findByIndexId(customChartDTO.getId());
-					if (ObjectUtil.isNotEmpty(indexSequence)) {
-						map.put("sequence", indexSequence.getSequence());
+					List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(customChartDTO.getId());
+					if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+						map.put("sequence", indexSequenceList.get(0).getSequence());
 					} else {
 						map.put("sequence", customChartDTO.getSequence());
 					}
@@ -759,9 +761,9 @@ sequenceRepository.flush();
 					if (!mapperList.get(i).isHide()) {
 						Map<String, Object> map = new HashMap<>();
 						map.put("id", mapperList.get(i).getId());
-						IndexSequence indexSequence = sequenceRepository.findByIndexId(mapperList.get(i).getId());
-						if (ObjectUtil.isNotEmpty(indexSequence)) {
-							map.put("sequence", indexSequence.getSequence());
+						List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(mapperList.get(i).getId());
+						if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+							map.put("sequence", indexSequenceList.get(0).getSequence());
 						} else {
 							map.put("sequence", mapperList.get(i).getSequence());
 						}
@@ -780,9 +782,10 @@ sequenceRepository.flush();
 				if (!indexPageList.get(i).isHide()) {
 					Map<String, Object> map = new HashMap<>();
 					map.put("id", indexPageList.get(i).getId());
-					IndexSequence indexSequence = sequenceRepository.findByIndexId(indexPageList.get(i).getId());
-					if (ObjectUtil.isNotEmpty(indexSequence)) {
-						map.put("sequence", indexSequence.getSequence());
+					List<IndexSequence> indexSequenceList = sequenceRepository.findByIndexId(indexPageList.get(i).getId());
+//					IndexSequence indexSequence = sequenceRepository.findByIndexId(indexPageList.get(i).getId());
+					if (ObjectUtil.isNotEmpty(indexSequenceList)) {
+						map.put("sequence", indexSequenceList.get(0).getSequence());
 					} else {
 						map.put("sequence", indexPageList.get(i).getSequence());
 					}
@@ -1088,15 +1091,16 @@ sequenceRepository.flush();
 				String id = parseObject.getString("id");
 				//如果是分组为0 ，如果是栏目为1
 				IndexFlag flag = IndexFlag.values()[parseObject.getInteger("flag")];
-				IndexSequence indexSequence = sequenceRepository.findByIndexId(id);
-				if (ObjectUtil.isEmpty(indexSequence)){
+//				IndexSequence indexSequence = sequenceRepository.findByIndexId(id);
+				List<IndexSequence> sequenceList =  sequenceRepository.findByIndexId(id);
+				if (ObjectUtil.isEmpty(sequenceList)){
 					throw new OperationException(parseObject.getString("name")+"已出现变更请刷新重试");
 				}
-				indexSequence.setSequence(sequence);
+				sequenceList.get(0).setSequence(sequence);
 				if (parent != null) {
-					indexSequence.setParentId(parentId);
+					sequenceList.get(0).setParentId(parentId);
 				}
-				sequenceRepository.save(indexSequence);
+				sequenceRepository.save(sequenceList);
 				if (flag.equals(IndexFlag.IndexPageFlag)) {
 
 				}else if (flag.equals(IndexFlag.IndexTabFlag)) {
@@ -1245,9 +1249,11 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 			if (nextId != null) {
 				boolean isChange = false;
 				Integer point = null;
-				point = sequenceRepository.findByIndexId(nextId).getSequence();
+				point = sequenceRepository.findByIndexId(nextId).get(0).getSequence();
 				Integer nextPoint = 1;//下一个需要添加的值
-				IndexSequence indexSeq = sequenceRepository.findByIndexId(moveId);
+//				IndexSequence indexSeq = sequenceRepository.findByIndexId(moveId);
+				List<IndexSequence> indexList = sequenceRepository.findByIndexId(moveId);
+				IndexSequence indexSeq = indexList.get(0);
 				if (moveId.equals(indexSeq.getIndexId())){
 					//移动的点
 					indexSeq.setSequence(point);
@@ -1299,21 +1305,23 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 							if (IndexFlag.IndexTabFlag.equals(indexSequence.getIndexFlag())) {
 //								List<IndexSequence> sequences = sequenceRepository.findByIndexTabIdOrderBySequence(indexSequence.getIndexTabId());
 								IndexTabMapper mapper = tabMapperRepository.findOne(indexSequence.getIndexId());
-								IndexTab indexTab = mapper.getIndexTab();
-								if (parent != null) {
-									mapper.setIndexPage(parent);
-									indexTab.setParentId(parent.getId());
+								if (ObjectUtil.isNotEmpty(mapper)) {
+									IndexTab indexTab = mapper.getIndexTab();
+									if (parent != null) {
+										mapper.setIndexPage(parent);
+										indexTab.setParentId(parent.getId());
 
-								} else {
-									mapper.setIndexPage(null);
+									} else {
+										mapper.setIndexPage(null);
+									}
+									indexSequence.setParentId(parentId);
+									mapper.setSequence(indexSequence.getSequence() + nextPoint);
+									if (mapper.isMe()) {
+										indexTab.setSequence(indexSequence.getSequence() + nextPoint);
+										indexTabRepository.save(indexTab);
+									}
+									tabMapperRepository.save(mapper);
 								}
-								indexSequence.setParentId(parentId);
-								mapper.setSequence(indexSequence.getSequence() + nextPoint);
-								if (mapper.isMe()) {
-									indexTab.setSequence(indexSequence.getSequence() + nextPoint);
-									indexTabRepository.save(indexTab);
-								}
-								tabMapperRepository.save(mapper);
 
 							}else if (IndexFlag.IndexPageFlag.equals(indexSequence.getIndexFlag())){
 								IndexPage indexPage = indexPageRepository.findOne(indexSequence.getIndexId());
@@ -1339,18 +1347,19 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 					IndexSequence indexSequence1 = indexSequenceList.get(indexSequenceList.size() - 1);
 					moveSeq = indexSequence1.getSequence() + 1;
 				}
-				IndexSequence indexSequence = sequenceRepository.findByIndexId(moveId);
-				indexSequence.setSequence(moveSeq);
-				sequenceRepository.save(indexSequence);
-				if (IndexFlag.IndexTabFlag.equals(indexSequence.getIndexFlag())) {
+				List<IndexSequence> indexList = sequenceRepository.findByIndexId(moveId);
+//				IndexSequence indexSequence = sequenceRepository.findByIndexId(moveId);
+				indexList.get(0).setSequence(moveSeq);
+				sequenceRepository.save(indexList);
+				if (IndexFlag.IndexTabFlag.equals(indexList.get(0).getIndexFlag())) {
 					List<IndexSequence> sequences = sequenceRepository.findByIndexTabId(moveId);
 					for (int i = 0; i < sequences.size(); i++) {
 						sequences.get(i).setSequence(moveSeq+i+1);
 					}
 					sequenceRepository.save(sequences);
-					IndexTabMapper mapper = tabMapperRepository.findOne(indexSequence.getIndexId());
+					IndexTabMapper mapper = tabMapperRepository.findOne(indexList.get(0).getIndexId());
 					IndexTab indexTab = mapper.getIndexTab();
-					indexSequence.setParentId(parentId);
+					indexList.get(0).setParentId(parentId);
 					if (parent != null) {
 						mapper.setIndexPage(parent);
 						indexTab.setParentId(parent.getId());
@@ -1358,22 +1367,22 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 					} else {
 						mapper.setIndexPage(null);
 					}
-					mapper.setSequence(indexSequence.getSequence());
+					mapper.setSequence(indexList.get(0).getSequence());
 					if (mapper.isMe()) {
-						indexTab.setSequence(indexSequence.getSequence());
+						indexTab.setSequence(indexList.get(0).getSequence());
 						indexTabRepository.save(indexTab);
 					}
 					tabMapperRepository.save(mapper);
 
-				}else if (IndexFlag.IndexPageFlag.equals(indexSequence.getIndexFlag())){
-					IndexPage indexPage = indexPageRepository.findOne(indexSequence.getIndexId());
+				}else if (IndexFlag.IndexPageFlag.equals(indexList.get(0).getIndexFlag())){
+					IndexPage indexPage = indexPageRepository.findOne(indexList.get(0).getIndexId());
 					indexPage.setParentId(null);
 					if (parent != null) {
 						indexPage.setParentId(parentId);
 
 					}
-					indexSequence.setParentId(parentId);
-					indexPage.setSequence(indexSequence.getSequence());
+					indexList.get(0).setParentId(parentId);
+					indexPage.setSequence(indexList.get(0).getSequence());
 					indexPageRepository.save(indexPage);
 				}
 

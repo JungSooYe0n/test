@@ -14,7 +14,7 @@ public interface IndexSequenceRepository extends PagingAndSortingRepository<Inde
     public List<IndexSequence> findBySubGroupId(String subGroupId);
     public List<IndexSequence> findByUserIdAndParentId(String userId,String parentId);
     public List<IndexSequence> findBySubGroupIdAndParentId(String subGroupId,String parentId);
-    public IndexSequence findByIndexId(String indexId);
+    public List<IndexSequence> findByIndexId(String indexId);
     public List<IndexSequence> findByIndexTabId(String indexTabId);
     public List<IndexSequence> findByParentIdOrderBySequence(String parentId);
     public List<IndexSequence> findByIndexTabIdOrderBySequence(String indexTabId);
