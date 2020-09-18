@@ -122,7 +122,12 @@ public class IndexTabServiceImpl implements IIndexTabService {
 		mapper = indexTabMapperRepository.save(mapper);
 		IndexSequence indexSequence = new IndexSequence();
 		indexSequence.setIndexId(mapper.getId());
-		indexSequence.setParentId(mapper.getIndexPage().getId());
+		if (ObjectUtil.isEmpty(mapper.getIndexPage())){
+			indexSequence.setParentId("");
+		}else {
+			indexSequence.setParentId(mapper.getIndexPage().getId());
+		}
+
 		indexSequence.setSequence(save.getSequence());
 		indexSequence.setIndexFlag(IndexFlag.IndexTabFlag);
 		indexSequence.setIndexTabId(save.getId());

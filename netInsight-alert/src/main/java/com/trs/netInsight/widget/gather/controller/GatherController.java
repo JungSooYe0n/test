@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.httpclient.params.HostParams;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.params.HttpParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -568,6 +569,22 @@ public class GatherController {
         };
 
         list = gatherRepository.findAll(criteria, pageable);
+//        List<GatherPoint> gatherPointList = list.getContent();
+//        List<GatherPoint> newGatherList = new ArrayList<>();
+//        for (GatherPoint gatherPoint : gatherPointList) {
+//            if (gatherPoint.getAuditStatus().equals(Const.GATHER_AUDITED)){
+//                newGatherList.add(gatherPoint);
+//            }
+//        }
+//        StringBuilder ids = new StringBuilder();
+//        for (int i = 0; i < newGatherList.size(); i++) {
+//            if (i == 0){
+//                ids.append(newGatherList.get(i).getId());
+//            }else {
+//                ids.append(","+newGatherList.get(i).getId());
+//            }
+//        }
+//        String sendPost = HttpUtil.sendPost(gatherInfo, "ids=["+ids+"]");
         return list;
 
     }
@@ -969,52 +986,7 @@ public class GatherController {
                     gatherRepository.save(gatherPointList2);
                     String msg = jsonObject.getString("msg");
                     throw new TRSException(msg,1001);
-                  /*  String[] msgs = msg.split(";");
-                    for (String str: msgs) {
-                        if (str.contains("需求上传成功")) {
-                            String dataString = str.substring(0, str.length() - 7);
-                            if (Const.PAGE_SHOW_XINWEN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                gatherRepository.save(newslist);
-                            } else if (Const.PAGE_SHOW_LUNTAN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                gatherRepository.save(luntanlist);
-                            } else if (Const.PAGE_SHOW_BOKE.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                gatherRepository.save(bokelist);
-                            } else if (Const.PAGE_SHOW_DIANZIBAO.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                gatherRepository.save(dianzibaolist);
-                            } else if (Const.PAGE_SHOW_KEHUDUAN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                //新闻App
-                                gatherRepository.save(applist);
-                            } else if (Const.GATHER_MEDIA.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                if (Const.PAGE_SHOW_CHANGSHIPIN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                    gatherRepository.save(medialist);
-                                } else {
-                                    gatherRepository.save(duanmedialist);
-                                }
 
-                            } else if (Const.GATHER_ZIMEITI.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                gatherRepository.save(zimeitilist);
-
-                            } else if (Const.PAGE_SHOW_WEIBO.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                gatherRepository.save(weibolist);
-                            } else if (Const.PAGE_SHOW_WEIXIN.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                gatherRepository.save(weixinlist);
-                            } else if (Const.GATHER_TYPE_TWITTER.contains(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                gatherRepository.save(twitterlist);
-                            } else if ("元搜索".equals(dataString)) {
-                                gatherRepository.save(yuanlist);
-                            } else {
-                                //境外 facebook 其他
-                                if (Const.PAGE_SHOW_GUOWAIXINWEN.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                    gatherRepository.save(jingwailist);
-                                } else if (Const.PAGE_SHOW_FACEBOOK.equals(CommonListChartUtil.formatPageShowGroupName(dataString))) {
-                                    gatherRepository.save(facebooklist);
-                                } else if (Const.GATHER_QITA.equals(dataString)){
-                                    gatherRepository.save(qitalist);
-                                }
-                            }
-                        }
-                    }
-                   throw new TRSException(msg,1001);*/
                 }
             }else {
                 gatherRepository.save(gatherPointList);
@@ -1591,6 +1563,7 @@ dataType = Const.PAGE_SHOW_BOKE;
                         }
                     }
                     gatherRepository.save(gatherPointList);
+//                    return gatherPointList;
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new TRSException("解析失败" + e);
@@ -1680,10 +1653,15 @@ dataType = Const.PAGE_SHOW_BOKE;
         if (ObjectUtil.isEmpty(gatherId)){
             throw new OperationException("请输入id");
         }
-//        Map<String,String> map = new HashMap<>();
-//        map.put("ids","["+gatherId[0]+"]");
-//        String sendPost = HttpUtil.oaRelateEtl(uploadpoint, map);
-        String sendPost = HttpUtil.sendPost(gatherInfo, "ids=["+gatherId[0]+"]");
+        StringBuilder ids = new StringBuilder();
+        for (int i = 0; i < gatherId.length; i++) {
+            if (i == 0){
+                ids.append(gatherId[i]);
+            }else {
+                ids.append(","+gatherId[i]);
+            }
+        }
+        String sendPost = HttpUtil.sendPost(gatherInfo, "ids=["+ids.toString()+"]");
         return sendPost;
     }
 }
