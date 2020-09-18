@@ -58,6 +58,7 @@ public class AlertNum implements Job {
                 AlertSource.AUTO, "3");
 
         if (rules != null && rules.size() > 0) {
+            log.info("按数据量预警定时任务开启的数量为："+rules.size());
             for (AlertRule alertRule : rules) {
                 try {
                     String key = alertAutoPrefix + alertRule.getId();
@@ -104,24 +105,6 @@ public class AlertNum implements Job {
                                         AlertKafkaSend alertKafkaSend = new AlertKafkaSend(alertRule,map);
                                         AlertKafkaUtil.send(alertKafkaSend,true);
 
-
-                                        /*String sendWays = alertRule.getSendWay();
-                                        if (StringUtils.isNotBlank(sendWays)) {
-                                            String[] split = sendWays.split(";|；");
-                                            for (int i = 0; i < split.length; i++) {
-                                                String string = split[i];
-                                                SendWay sendWay = SendWay.valueOf(string);
-                                                String webReceiver = alertRule.getWebsiteId();
-                                                String[] splitWeb = webReceiver.split(";");
-                                                try {
-                                                    // 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
-                                                    noticeSendService.sendAll(sendWay, TEMPLATE, alertRule.getTitle(), map, splitWeb[i],
-                                                            alertRule.getUserId(), AlertSource.AUTO);
-                                                }catch(Exception e){
-                                                    e.printStackTrace();
-                                                }
-                                            }
-                                        }*/
                                     }
                                 }
                                 alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
@@ -129,14 +112,11 @@ public class AlertNum implements Job {
                             }
                         }
                     } else {
-                        //指当前预警是开启的，但是不在用户指定的发送时间内，这时候需要记得将数据删除一部分
-                        if (dataSize > 20) {
-                            List<Map<String, String>> listMap = new ArrayList<>();
-                            //在不可发送时间内，如果有数据，只保留20条，等在可执行时间时，有数据可发
-                            for (long i = 20L; i < dataSize; i++) {
-                                Object vo = AutoAlertRedisUtil.getOneDataForList(key);
-                            }
+                        //指当前预警是开启的，但是不在用户指定的发送时间内，这时候需要记得将数据删除
+                        for (long i = 0L; i < dataSize; i++) {
+                            Object vo = AutoAlertRedisUtil.getOneDataForList(key);
                         }
+
                         alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
                         alertRule.setLastExecutionTime(System.currentTimeMillis());
                     }
@@ -198,30 +178,34 @@ public class AlertNum implements Job {
         }
 
         String cutTitle = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
-        ;
-        content = StringUtil.replaceImg(content);
-        String cutContent = StringUtil.cutContentPro(content, 150);
         String imgUrl = "";
         if (content != null) {
-            String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
+            /*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
             if (imgUrls.length > 1) {
                 imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
+            }*/
+            List<String> imgSrcList = StringUtil.getImgStr(content);
+            if (imgSrcList != null && imgSrcList.size() > 0) {
+                imgUrl = imgSrcList.get(0);
             }
         }
+        content = StringUtil.replaceImgNew(content);
+        String cutContent = StringUtil.cutContentPro(content, 150);
+
         if (Const.GROUPNAME_WEIBO.equals(groupName)) {
-            ftsDocumentAlert = new FtsDocumentAlert(sid, cutContent, content, cutContent, urlName, urlTime, siteName, groupName,
+            ftsDocumentAlert = new FtsDocumentAlert(sid, cutContent, content, cutContent,content, urlName, urlTime, siteName, groupName,
                     commtCount, rttCount, screenName, appraise, "", null,
                     "other", md5Tag, retweetedMid, imgUrl, keywords, 0, alertRule.getId());
         } else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
-            ftsDocumentAlert = new FtsDocumentAlert(hkey, cutTitle, title, cutContent, urlName, urlTime, siteName, groupName,
+            ftsDocumentAlert = new FtsDocumentAlert(hkey, cutTitle, title, cutContent,content, urlName, urlTime, siteName, groupName,
                     0, 0, authors, appraise, "", null,
                     "other", md5Tag, "other", imgUrl, keywords, 0, alertRule.getId());
         } else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
-            ftsDocumentAlert = new FtsDocumentAlert(sid, cutContent, content, cutContent, urlName, urlTime, siteName, groupName,
+            ftsDocumentAlert = new FtsDocumentAlert(sid, cutContent, content, cutContent,content, urlName, urlTime, siteName, groupName,
                     commtCount, rttCount, authors, appraise, "", null,
                     "other", md5Tag, "other", imgUrl, keywords, 0, alertRule.getId());
         } else {
-            ftsDocumentAlert = new FtsDocumentAlert(sid, cutTitle, title, cutContent, urlName, urlTime, siteName, groupName,
+            ftsDocumentAlert = new FtsDocumentAlert(sid, cutTitle, title, cutContent,content, urlName, urlTime, siteName, groupName,
                     0, 0, authors, appraise, "", null,
                     nreserved1, md5Tag, "", imgUrl, keywords, 0, alertRule.getId());
         }
@@ -232,6 +216,8 @@ public class AlertNum implements Job {
         map.put("url", ftsDocumentAlert.getUrlName());
         map.put("titleWhole", ftsDocumentAlert.getTitleWhole());
         map.put("title", ftsDocumentAlert.getTitle());
+        map.put("content", ftsDocumentAlert.getContent());
+        map.put("fullContent", ftsDocumentAlert.getFullContent());
         map.put("groupName", ftsDocumentAlert.getGroupName());
         map.put("sid", ftsDocumentAlert.getSid());
         map.put("retweetedMid", ftsDocumentAlert.getRetweetedMid());
@@ -253,7 +239,6 @@ public class AlertNum implements Job {
         map.put("appraise", ftsDocumentAlert.getAppraise());
         map.put("siteName", ftsDocumentAlert.getSiteName());
         map.put("md5", ftsDocumentAlert.getMd5tag());
-        map.put("content", ftsDocumentAlert.getContent());
         map.put("screenName", ftsDocumentAlert.getScreenName());
         map.put("rttCount", String.valueOf(ftsDocumentAlert.getRttCount()));
         map.put("commtCount", String.valueOf(ftsDocumentAlert.getCommtCount()));

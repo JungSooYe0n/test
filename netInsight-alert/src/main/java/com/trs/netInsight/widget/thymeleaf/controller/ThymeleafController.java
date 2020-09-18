@@ -125,7 +125,11 @@ public class ThymeleafController {
                             map.put("urlName", ftsDocumentAlert.getUrlName());
                             map.put("sid", ftsDocumentAlert.getSid());
                             map.put("time", DateUtil.format2String(ftsDocumentAlert.getTime(), DateUtil.yyyyMMdd));
-                            map.put("content", ftsDocumentAlert.getContent().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
+                            String content = ftsDocumentAlert.getFullContent();
+                            if(StringUtil.isEmpty(content)){
+                                content = ftsDocumentAlert.getContent();
+                            }
+                            map.put("content", content.replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
                             map.put("titleWhole", StringUtil.calcuCutLength(ftsDocumentAlert.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"),80));
                             listMap.add(map);
                         }

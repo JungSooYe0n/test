@@ -60,6 +60,12 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
     private String content;
 
     /**
+     * 文章正文 去掉图片后的完整正文
+     */
+    @FtsField(value = "IR_FULL_CONTENT", highLight = true)
+    private String fullContent;
+
+    /**
      * 文章链接
      */
     @FtsField("IR_URLNAME")
@@ -122,13 +128,25 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
     /**
      * 接收人
      */
-    @FtsField("IR_RECEIVER")
+    /*@FtsField("IR_RECEIVER")
+    private String receiver;*/
+
+    /**
+     * 发送方式 邮件 站内 微信
+     */
+    /*@FtsField("IR_SEND_WAY")
+    private String sendWay;*/
+
+    /**
+     * 接收人
+     */
+    @FtsField("IR_RECEIVER_LIST")
     private String receiver;
 
     /**
      * 发送方式 邮件 站内 微信
      */
-    @FtsField("IR_SEND_WAY")
+    @FtsField("IR_SEND_WAY_LIST")
     private String sendWay;
 
     /**
@@ -224,11 +242,12 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
         return this.loadTime;
     }
 
-    public FtsDocumentAlert(String sid, String title, String titleWhole, String content, String urlName, Date time, String siteName, String groupName, long commtCount, long rttCount, String screenName, String appraise, String receiver, String sendWay, String nreserved1, String md5tag, String retweetedMid, String imageUrl, String keywords, int sim, String alertRuleBackupsId) {
+    public FtsDocumentAlert(String sid, String title, String titleWhole, String content,String fullContent, String urlName, Date time, String siteName, String groupName, long commtCount, long rttCount, String screenName, String appraise, String receiver, String sendWay, String nreserved1, String md5tag, String retweetedMid, String imageUrl, String keywords, int sim, String alertRuleBackupsId) {
         this.sid = sid;
         this.title = title;
         this.titleWhole = titleWhole;
         this.content = content;
+        this.fullContent = fullContent;
         this.urlName = urlName;
         this.time = time;
         this.siteName = siteName;

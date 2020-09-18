@@ -38,6 +38,12 @@ public class AutoAlertRegister implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
+        try {
+            //把这个项目注册的预警全部删除  - -- 项目开始前执行，防止之前有没删除的，数据乱了
+            autoAlertRuleService.fuzzyDeleteAutoAlert();
+        } catch (Exception e) {
+            log.info(e.getMessage());
+        }
         //项目启动时执行
         //需要数据中心捕获数据的自动预警为 按数据量预警
         List<AlertRule> list = alertRuleRepository.findByAlertTypeAndFrequencyId(AlertSource.AUTO,"3");

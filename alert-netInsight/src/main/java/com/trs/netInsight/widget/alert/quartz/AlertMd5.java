@@ -11,7 +11,6 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.*;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
-import com.trs.netInsight.support.fts.model.result.IDocument;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
@@ -19,13 +18,11 @@ import com.trs.netInsight.widget.alert.entity.Frequency;
 import com.trs.netInsight.widget.alert.entity.PastMd5;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
-import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
 import com.trs.netInsight.widget.alert.entity.repository.PastMd5Repository;
 import com.trs.netInsight.widget.alert.util.ScheduleUtil;
 import com.trs.netInsight.widget.kafka.entity.AlertKafkaSend;
 import com.trs.netInsight.widget.kafka.util.AlertKafkaUtil;
-import com.trs.netInsight.widget.notice.service.INoticeSendService;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
@@ -33,7 +30,6 @@ import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import com.trs.netInsight.widget.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -47,8 +43,6 @@ import java.util.*;
 @Service
 @Slf4j
 public class AlertMd5 implements Job {
-    @Autowired
-    private INoticeSendService noticeSendService;
 
     @Autowired
     private PastMd5Repository md5Repository;
@@ -74,8 +68,9 @@ public class AlertMd5 implements Job {
         Frequency alertFrequency = (Frequency) context.getJobDetail().getJobDataMap().get("schedule");
         List<AlertRule> rules = alertRuleRepository.findByStatusAndAlertTypeAndFrequencyId(ScheduleStatus.OPEN,
                 AlertSource.AUTO, alertFrequency.getId());
-
         if (rules != null && rules.size() > 0) {
+            log.info("按热度值预警定时任务开启的数量为："+rules.size());
+
             for (AlertRule alertRule : rules) {
                 try {
                     if (ScheduleUtil.time(alertRule)) {
@@ -170,23 +165,6 @@ public class AlertMd5 implements Job {
                                 AlertKafkaSend alertKafkaSend = new AlertKafkaSend(alertRule,map);
                                 AlertKafkaUtil.send(alertKafkaSend,true);
 
-                                /*String sendWays = alertRule.getSendWay();
-                                if (StringUtils.isNotBlank(sendWays)) {
-                                    String[] split = sendWays.split(";|；");
-                                    for (int i = 0; i < split.length; i++) {
-                                        String string = split[i];
-                                        SendWay sendWay = SendWay.valueOf(string);
-                                        String webReceiver = alertRule.getWebsiteId();
-                                        String[] splitWeb = webReceiver.split(";");
-                                        try {
-                                            // 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
-                                            noticeSendService.sendAll(sendWay, TEMPLATE, alertRule.getTitle(), map, splitWeb[i],
-                                                    alertRule.getUserId(), AlertSource.AUTO);
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }*/
                             }
 
                         }
@@ -210,31 +188,36 @@ public class AlertMd5 implements Job {
             String cutTitle = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
 
             String content = vo.getContent();
-                    content = StringUtil.replaceImg(content);
-            String cutContent = StringUtil.cutContentPro(content, 150);
             String imgUrl = "";
             if (content != null) {
-                String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
+                /*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
                 if (imgUrls.length > 1) {
                     imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
+                }*/
+                List<String> imgSrcList = StringUtil.getImgStr(content);
+                if (imgSrcList != null && imgSrcList.size() > 0) {
+                    imgUrl = imgSrcList.get(0);
                 }
             }
+            content = StringUtil.replaceImg(content);
+            String cutContent = StringUtil.cutContentPro(content, 150);
+
             String keywords = vo.getKeywords() == null || vo.getKeywords().size() ==0 ? "" : StringUtils.join(vo.getKeywords(),";");
             String groupName = vo.getGroupName();
             if (Const.GROUPNAME_WEIBO.equals(groupName)) {
-                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutContent, content, cutContent, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutContent, content, cutContent, content,vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
                         vo.getCommtCount(), vo.getRttCount(), vo.getScreenName(), vo.getAppraise(), "", null,
                         "other", vo.getMd5Tag(), vo.getRetweetedMid(), imgUrl,keywords , 0, alertRule.getId());
             } else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
-                ftsDocumentAlert = new FtsDocumentAlert(vo.getHkey(), cutTitle, title, cutContent, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getHkey(), cutTitle, title, cutContent,content, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
                         0, 0, vo.getAuthors(), vo.getAppraise(), "", null,
                         "other", vo.getMd5Tag(), "other", imgUrl, keywords, 0, alertRule.getId());
             } else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
-                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutContent, content, cutContent, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutContent, content, cutContent,content, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
                         vo.getCommtCount(), vo.getRttCount(), vo.getAuthors(), vo.getAppraise(), "", null,
                         "other",  vo.getMd5Tag(), "other", imgUrl, keywords, 0, alertRule.getId());
             } else {
-                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutTitle, title, cutContent, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutTitle, title, cutContent,content, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
                         0, 0, vo.getScreenName(), vo.getAppraise(), "", null,
                         vo.getNreserved1(),  vo.getMd5Tag(), "", imgUrl, keywords, 0, alertRule.getId());
             }
@@ -244,6 +227,7 @@ public class AlertMd5 implements Job {
             map.put("url", ftsDocumentAlert.getUrlName());
             map.put("titleWhole", ftsDocumentAlert.getTitleWhole());
             map.put("title", ftsDocumentAlert.getTitle());
+            map.put("fullContent", ftsDocumentAlert.getFullContent());
             map.put("groupName", ftsDocumentAlert.getGroupName());
             map.put("sid", ftsDocumentAlert.getSid());
             map.put("retweetedMid", ftsDocumentAlert.getRetweetedMid());
@@ -265,7 +249,7 @@ public class AlertMd5 implements Job {
             map.put("appraise", ftsDocumentAlert.getAppraise());
             map.put("siteName", ftsDocumentAlert.getSiteName());
             map.put("md5", ftsDocumentAlert.getMd5tag());
-            map.put("content", ftsDocumentAlert.getContent());
+
             map.put("screenName", ftsDocumentAlert.getScreenName());
             map.put("rttCount", String.valueOf(ftsDocumentAlert.getRttCount()));
             map.put("commtCount", String.valueOf(ftsDocumentAlert.getCommtCount()));

@@ -23,17 +23,6 @@ public interface ISpecialService {
 	Integer getMaxSequenceForSpecial(String parentPageId,User user);
 
 	/**
-	 * 发送邮件
-	 * 
-	 * @date Created at 2017年11月24日 下午5:20:39
-	 * @Author 谷泽昊
-	 * @param specialProject
-	 * @return
-	 * @throws OperationException
-	 */
-	public Object sendEmail(SpecialProject specialProject) throws OperationException;
-
-	/**
 	 * 存储imgurl
 	 * 
 	 * @date Created at 2017年11月24日 下午5:20:31

@@ -56,9 +56,10 @@ public class AlertKafkaReceiveFactory {
                             String webReceiver = alertRule.getWebsiteId();
                             String[] splitWeb = webReceiver.split(";");
                             try {
-                                // 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
+                                noticeSendService.sendAlert(alertRule,sendData);
+                                /*// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
                                 noticeSendService.sendAll(sendWay, TEMPLATE, alertRule.getTitle(), sendData, splitWeb[i],
-                                        alertRule.getUserId(), AlertSource.AUTO);
+                                        alertRule.getUserId(), AlertSource.AUTO);*/
                             }catch(Exception e){
                                 e.printStackTrace();
                             }

@@ -14,6 +14,7 @@
 package com.trs.netInsight.widget.notice.service;
 
 import com.trs.netInsight.handler.result.Message;
+import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 
@@ -43,6 +44,11 @@ public interface INoticeSendService {
 	 */
 	public Message sendAll(SendWay send, String template, String subject, Map<String, Object> map, String receivers,
                            String userId, AlertSource sendType);
+
+
+	String sendAlert(AlertSource sendType,String subject,String userId,
+			  String sendWays, String receivers,Map<String, Object> map,Boolean cutSendData);
+	String sendAlert(AlertRule alertRule, Map<String, Object> sendMap);
 }
 
 /**

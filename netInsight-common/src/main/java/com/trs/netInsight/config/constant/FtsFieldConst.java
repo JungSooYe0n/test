@@ -567,6 +567,19 @@ public class FtsFieldConst {
 	public static final String FIELD_RECEIVER = "IR_RECEIVER";
 
 	/*
+	 * 发送方式
+	 */
+	public static final String FIELD_SEND_WAY_LIST = "IR_SEND_WAY_LIST";
+	/*
+	 * 接收人
+	 */
+	public static final String FIELD_RECEIVER_LIST = "IR_RECEIVER_LIST";
+	/*
+	 * 预警的完整正文
+	 */
+	public static final String FIELD_ALERT_CONTENT = "IR_FULL_CONTENT";
+
+	/*
 	 * 用户分组id
 	 */
 	public static final String FIELD_SubGroup_ID = "IR_SubGroup_ID";
