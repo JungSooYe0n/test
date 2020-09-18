@@ -197,6 +197,8 @@ public class TrslUtil {
 			database = Const.WECHAT;
 		} else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
 			database = Const.HYBASE_OVERSEAS;
+		}else if (Const.MEDIA_TYPE_VIDEO.contains(groupName)) {
+			database = Const.HYBASE_VIDEO;
 		}
 
 		return database;
