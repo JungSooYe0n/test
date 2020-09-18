@@ -438,7 +438,7 @@ public class IndexPageServiceImpl implements IIndexPageService {
 		}
 	}
 
-
+@Transactional
 	public IndexPage addIndexPage(String parentId,String name,String typeId,User loginUser){
 		//判断父id存在不存在，
 		IndexPage indexPage = new IndexPage();
@@ -459,12 +459,15 @@ public class IndexPageServiceImpl implements IIndexPageService {
 		indexPage.setSequence(seq +1);
 		indexPage.setTypeId(typeId);
 		indexPageRepository.saveAndFlush(indexPage);
-		IndexSequence indexSequence = new IndexSequence();
-		indexSequence.setIndexId(indexPage.getId());
-		indexSequence.setParentId(indexPage.getParentId());
-		indexSequence.setSequence(indexPage.getSequence());
-		indexSequence.setIndexFlag(IndexFlag.IndexPageFlag);
-		indexSequenceRepository.saveAndFlush(indexSequence);
+		List<IndexSequence> indexSequenceList = indexSequenceRepository.findByIndexId(indexPage.getId());
+		if (ObjectUtil.isEmpty(indexSequenceList)) {
+			IndexSequence indexSequence = new IndexSequence();
+			indexSequence.setIndexId(indexPage.getId());
+			indexSequence.setParentId(indexPage.getParentId());
+			indexSequence.setSequence(indexPage.getSequence());
+			indexSequence.setIndexFlag(IndexFlag.IndexPageFlag);
+			indexSequenceRepository.saveAndFlush(indexSequence);
+		}
 		return indexPage;
 	}
 
