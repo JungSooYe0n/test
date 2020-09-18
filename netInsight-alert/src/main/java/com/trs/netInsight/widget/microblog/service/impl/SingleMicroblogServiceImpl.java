@@ -1941,8 +1941,9 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
         if (ObjectUtil.isNotEmpty(ftsDocumentStatuses)){
             QueryBuilder builderUser = new QueryBuilder();
             builderUser.filterField(FtsFieldConst.FIELD_MID,"\""+ftsDocumentStatuses.get(0).getMid()+"\"",Operator.Equal);
+            builderUser.orderBy(FtsFieldConst.FIELD_URLTIME,true);
+            builderUser.page(0,10);
             builderUser.setDatabase(Const.SINAREVIEWS);
-
             List<FtsDocumentReviews> ftsDocumentReviews = hybase8SearchService.ftsQuery(builderUser, FtsDocumentReviews.class, false, false,false,null);
             log.info("首次查询结果："+ftsDocumentReviews.size());
             //如果查询为null
@@ -2005,8 +2006,8 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
             if (ObjectUtil.isNotEmpty(ftsDocumentReviews)){
                 Collections.sort(ftsDocumentReviews);
 
-                if (ftsDocumentReviews.size() > 5){
-                    ftsDocumentReviews = ftsDocumentReviews.subList(0,5);
+                if (ftsDocumentReviews.size() > 10){
+                    ftsDocumentReviews = ftsDocumentReviews.subList(0,10);
                 }
 
                 //查询对应用户名称
