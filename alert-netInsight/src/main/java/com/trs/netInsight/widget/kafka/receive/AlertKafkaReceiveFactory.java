@@ -23,10 +23,6 @@ public class AlertKafkaReceiveFactory {
     @Autowired
     private INoticeSendService noticeSendService;
 
-    /**
-     * 模板
-     */
-    private static final String TEMPLATE = "mailmess2.ftl";
 
     @KafkaListener(topics = {AlertKafkaConst.KAFKA_TOPIC_4,AlertKafkaConst.KAFKA_TOPIC_1,AlertKafkaConst.KAFKA_TOPIC_2,AlertKafkaConst.KAFKA_TOPIC_3})
     public void listen(ConsumerRecord<?, ?> record) {
@@ -47,24 +43,15 @@ public class AlertKafkaReceiveFactory {
                     }
                     log.info("Kafka发送开始--，"+autoType+"预警：" + alertRule.getId() + "，名字：" + alertRule.getTitle() );
                     Map<String, Object> sendData = alertKafkaSend.getSendData();
-                    String sendWays = alertRule.getSendWay();
-                    if (StringUtils.isNotBlank(sendWays)) {
-                        String[] split = sendWays.split(";|；");
-                        for (int i = 0; i < split.length; i++) {
-                            String string = split[i];
-                            SendWay sendWay = SendWay.valueOf(string);
-                            String webReceiver = alertRule.getWebsiteId();
-                            String[] splitWeb = webReceiver.split(";");
-                            try {
-                                noticeSendService.sendAlert(alertRule,sendData);
+                    try {
+                        noticeSendService.sendAlert(alertRule, sendData);
                                 /*// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
                                 noticeSendService.sendAll(sendWay, TEMPLATE, alertRule.getTitle(), sendData, splitWeb[i],
                                         alertRule.getUserId(), AlertSource.AUTO);*/
-                            }catch(Exception e){
-                                e.printStackTrace();
-                            }
-                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
+
                     log.info("Kafka发送完成**，"+autoType+"预警：" + alertRule.getId() + "，名字：" + alertRule.getTitle() );
                 } catch (Exception e) {
                     log.error("kafka报错！", e);

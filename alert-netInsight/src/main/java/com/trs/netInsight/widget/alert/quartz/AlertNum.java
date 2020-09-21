@@ -32,8 +32,6 @@ import java.util.*;
 @Service
 @Slf4j
 public class AlertNum implements Job {
-    @Autowired
-    private INoticeSendService noticeSendService;
 
     @Autowired
     private AlertRuleRepository alertRuleRepository;
@@ -44,10 +42,6 @@ public class AlertNum implements Job {
     public static final String hashName = "TOPIC";
     public static final String hashKey = "SID";
 
-    /**
-     * 模板
-     */
-    private static final String TEMPLATE = "mailmess2.ftl";
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -176,14 +170,8 @@ public class AlertNum implements Job {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-        String cutTitle = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
         String imgUrl = "";
         if (content != null) {
-            /*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
-            if (imgUrls.length > 1) {
-                imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
-            }*/
             List<String> imgSrcList = StringUtil.getImgStr(content);
             if (imgSrcList != null && imgSrcList.size() > 0) {
                 imgUrl = imgSrcList.get(0);
@@ -192,12 +180,14 @@ public class AlertNum implements Job {
         content = StringUtil.replaceImgNew(content);
         String cutContent = StringUtil.cutContentPro(content, 150);
 
+        title = StringUtil.replaceImgNew(title);
         if (Const.GROUPNAME_WEIBO.equals(groupName)) {
+
             ftsDocumentAlert = new FtsDocumentAlert(sid, cutContent, content, cutContent,content, urlName, urlTime, siteName, groupName,
                     commtCount, rttCount, screenName, appraise, "", null,
                     "other", md5Tag, retweetedMid, imgUrl, keywords, 0, alertRule.getId());
         } else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
-            ftsDocumentAlert = new FtsDocumentAlert(hkey, cutTitle, title, cutContent,content, urlName, urlTime, siteName, groupName,
+            ftsDocumentAlert = new FtsDocumentAlert(hkey, title, title, cutContent,content, urlName, urlTime, siteName, groupName,
                     0, 0, authors, appraise, "", null,
                     "other", md5Tag, "other", imgUrl, keywords, 0, alertRule.getId());
         } else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
@@ -205,7 +195,7 @@ public class AlertNum implements Job {
                     commtCount, rttCount, authors, appraise, "", null,
                     "other", md5Tag, "other", imgUrl, keywords, 0, alertRule.getId());
         } else {
-            ftsDocumentAlert = new FtsDocumentAlert(sid, cutTitle, title, cutContent,content, urlName, urlTime, siteName, groupName,
+            ftsDocumentAlert = new FtsDocumentAlert(sid, title, title, cutContent,content, urlName, urlTime, siteName, groupName,
                     0, 0, authors, appraise, "", null,
                     nreserved1, md5Tag, "", imgUrl, keywords, 0, alertRule.getId());
         }

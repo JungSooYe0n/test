@@ -57,10 +57,7 @@ public class AlertMd5 implements Job {
 
     @Autowired
     private FullTextSearch hybase8SearchServiceNew;
-    /**
-     * 模板
-     */
-    private static final String TEMPLATE = "mailmess2.ftl";
+
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         log.info("按热度值预警定时任务开始执行 ------------------");
@@ -183,17 +180,11 @@ public class AlertMd5 implements Job {
         List<Map<String, String>> listMap = new ArrayList<>();
         for(FtsDocumentCommonVO vo :voList){
             FtsDocumentAlert ftsDocumentAlert = null;
-
             String title = vo.getContent();
-            String cutTitle = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
-
+            title = StringUtil.replaceImgNew(title);
             String content = vo.getContent();
             String imgUrl = "";
             if (content != null) {
-                /*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
-                if (imgUrls.length > 1) {
-                    imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
-                }*/
                 List<String> imgSrcList = StringUtil.getImgStr(content);
                 if (imgSrcList != null && imgSrcList.size() > 0) {
                     imgUrl = imgSrcList.get(0);
@@ -209,7 +200,7 @@ public class AlertMd5 implements Job {
                         vo.getCommtCount(), vo.getRttCount(), vo.getScreenName(), vo.getAppraise(), "", null,
                         "other", vo.getMd5Tag(), vo.getRetweetedMid(), imgUrl,keywords , 0, alertRule.getId());
             } else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)) {
-                ftsDocumentAlert = new FtsDocumentAlert(vo.getHkey(), cutTitle, title, cutContent,content, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getHkey(), title, title, cutContent,content, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
                         0, 0, vo.getAuthors(), vo.getAppraise(), "", null,
                         "other", vo.getMd5Tag(), "other", imgUrl, keywords, 0, alertRule.getId());
             } else if (Const.MEDIA_TYPE_TF.contains(groupName)) {
@@ -217,7 +208,7 @@ public class AlertMd5 implements Job {
                         vo.getCommtCount(), vo.getRttCount(), vo.getAuthors(), vo.getAppraise(), "", null,
                         "other",  vo.getMd5Tag(), "other", imgUrl, keywords, 0, alertRule.getId());
             } else {
-                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), cutTitle, title, cutContent,content, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
+                ftsDocumentAlert = new FtsDocumentAlert(vo.getSid(), title, title, cutContent,content, vo.getUrlName(), vo.getUrlTime(), vo.getSiteName(), groupName,
                         0, 0, vo.getScreenName(), vo.getAppraise(), "", null,
                         vo.getNreserved1(),  vo.getMd5Tag(), "", imgUrl, keywords, 0, alertRule.getId());
             }

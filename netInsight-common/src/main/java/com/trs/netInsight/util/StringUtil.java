@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import com.trs.dev4.jdk16.utils.StringHelper;
 
+import com.trs.netInsight.config.constant.Const;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import ognl.OgnlException;
@@ -624,6 +625,33 @@ public final class StringUtil {
 			for (Map<String, String> map : list) {
 				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
 				buffer.append(i + "、").append(replaceNRT(replaceFont(replaceImg(map.get("title"))))).append("\\n\\n");
+				i++;
+			}
+			// 去除最后的\\n\\n
+			if (buffer.length() > 4) {
+				buffer.delete(buffer.length() - 4, buffer.length());
+			}
+		}
+		return buffer.toString();
+	}
+
+	/**
+	 * 将list变成String
+	 *
+	 * @date Created at 2018年1月31日 下午2:37:49
+	 * @Author 谷泽昊
+	 * @param list
+	 * @return
+	 */
+	public static String getTitleList(List<String> list,int start) {
+		StringBuffer buffer = new StringBuffer();
+		if (list != null && list.size() > 0) {
+			int i = start;
+			for (String title : list) {
+				title = replaceNRT(replaceFont(replaceImg(title)));
+				title = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
+				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
+				buffer.append(i + "、").append(title).append("\\n\\n");
 				i++;
 			}
 			// 去除最后的\\n\\n

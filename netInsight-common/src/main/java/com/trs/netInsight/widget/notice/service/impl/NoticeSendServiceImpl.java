@@ -610,18 +610,20 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					if (subject == null) {
 						subject = "";
 					}
-
-					List<List<Map<String, String>>> listWeiChats = new ArrayList<>();
+					// 将要发送的微信通知页面显示的预警标题信息展示出来
+					List<List<String>> listWeiChats = new ArrayList<>();
 					List<List<String>> messageLists = new ArrayList<>();
 					for (int i = 0; i < list.size(); i += 5) {
+						List<String> listWeiChat = new ArrayList<>();
 						if (i + 5 < list.size()) {
-							listWeiChats.add(list.subList(i, i + 5));
+							list.subList(i, i + 5).stream().forEach(oneMap -> listWeiChat.add(oneMap.get("title")));
 						} else {
-							listWeiChats.add(list.subList(i, list.size()));
+							list.subList(i, list.size()).stream().forEach(oneMap -> listWeiChat.add(oneMap.get("title")));
 						}
+						listWeiChats.add(listWeiChat);
 					}
 					int i = 1;
-					for (List<Map<String, String>> listWeiChat : listWeiChats) {
+					for (List<String> listWeiChat : listWeiChats) {
 						String alertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
 						String id = UUID.randomUUID().toString();
 						TRSInputRecord record = new TRSInputRecord();
@@ -643,7 +645,6 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							ex.printStackTrace();
 						}
 
-
 						List<String> messageList = new ArrayList<>();
 						String alertDetailUrl = WeixinMessageUtil.ALERT_DETAILS_URL.replaceAll("ID", "")
 								.replace("NETINSIGHT_URL", netinsightUrl) + id;
@@ -658,7 +659,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							if (StringUtil.isNotEmpty(openId)) {
 								log.error("netinsightUrl:" + netinsightUrl);
 								AlertTemplateMsg alertTemplateMsg = new AlertTemplateMsg(openId,
-										alertDetailUrl, alertTitle, StringUtil.toString(listWeiChat, i), alertTime, "");
+										alertDetailUrl, alertTitle, StringUtil.getTitleList(listWeiChat, i), alertTime, "");
 
 								String sendWeixin = null;
 								try {

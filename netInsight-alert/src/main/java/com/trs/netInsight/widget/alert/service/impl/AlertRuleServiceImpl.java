@@ -1538,12 +1538,10 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 				// 微博没标题
 				map.put("url", alertEntity.getUrlName());
 				//处理title
-				String title = StringUtil.replaceNRT(StringUtil.removeFourChar(alertEntity.getTitle()));
-				title = StringUtil.replaceEmoji(title);
+				String title = alertEntity.getTitle();
+				title = StringUtil.replaceImg(title);
 				if (StringUtil.isNotEmpty(title)) {
-
 					map.put("titleWhole", title);
-					title = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
 					map.put("title", title);
 				} else {
 					map.put("title", "");
@@ -1627,16 +1625,12 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 
 				String imgUrl = "";
 				if (content != null) {
-					/*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
-					if (imgUrls.length > 1) {
-						imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
-					}*/
 					List<String> imgSrcList = StringUtil.getImgStr(content);
 					if (imgSrcList != null && imgSrcList.size() > 0) {
 						imgUrl = imgSrcList.get(0);
 					}
 				}
-				content = StringUtil.replaceImgNew(content);
+				content = StringUtil.replaceImg(content);
 
 				if(Const.GROUPNAME_WEIXIN.equals(vo.getGroupName())){
 					alert = new FtsDocumentAlert(vo.getHkey(),vo.getUrlTitle(),vo.getUrlTitle(),vo.getContent(),content,vo.getUrlName(),vo.getUrlTime(),
@@ -1796,7 +1790,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 						imgUrl = imgSrcList.get(0);
 					}
 				}
-				content = StringUtil.replaceImgNew(content);
+				content = StringUtil.replaceImg(content);
 				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getMid(),ftsDocument.getStatusContent(),content,ftsDocument.getStatusContent(),content,ftsDocument.getUrlName(),ftsDocument.getCreatedAt(),ftsDocument.getSiteName(),
 						ftsDocument.getGroupName(),ftsDocument.getCommtCount(),ftsDocument.getRttCount(),ftsDocument.getScreenName(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),ftsDocument.getRetweetedMid(),imgUrl,"",0,"");
 				list.add(ftsDocumentAlert);
@@ -1838,7 +1832,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 						imgUrl = imgSrcList.get(0);
 					}
 				}
-				content = StringUtil.replaceImgNew(content);
+				content = StringUtil.replaceImg(content);
 				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getHkey(),ftsDocument.getUrlTitle(),ftsDocument.getUrlTitle(),ftsDocument.getContent(),content,ftsDocument.getUrlName(),ftsDocument.getUrlTime(),
 						ftsDocument.getSiteName(), ftsDocument.getGroupName(),0,0,ftsDocument.getAuthors(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),"other",imgUrl,"",0,"");
 				list.add(ftsDocumentAlert);
@@ -1879,7 +1873,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 						imgUrl = imgSrcList.get(0);
 					}
 				}
-				content = StringUtil.replaceImgNew(content);
+				content = StringUtil.replaceImg(content);
 				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getMid(),ftsDocument.getStatusContent(),ftsDocument.getStatusContent(),ftsDocument.getContent(),content,
 						ftsDocument.getUrlName(),ftsDocument.getCreatedAt(),ftsDocument.getSiteName(), ftsDocument.getGroupName(),ftsDocument.getCommtCount(),ftsDocument.getRttCount(),
 						ftsDocument.getScreenName(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),"other",imgUrl,"",0,"");
