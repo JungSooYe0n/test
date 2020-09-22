@@ -777,8 +777,8 @@ public class SpecialServiceImpl implements ISpecialService {
 		if(SpecialFlag.SpecialSubjectFlag.equals(specialFlag)){
 			SpecialSubject indexPage = specialSubjectRepository.findOne(id);
 			if(indexPage != null){
-				if(StringUtil.isNotEmpty(indexPage.getParentId())){
-					parent = specialSubjectRepository.findOne(indexPage.getParentId());
+				if(StringUtil.isNotEmpty(indexPage.getSubjectId())){
+					parent = specialSubjectRepository.findOne(indexPage.getSubjectId());
 				}
 			}
 		}else if(SpecialFlag.SpecialProjectFlag.equals(specialFlag)){
@@ -786,19 +786,23 @@ public class SpecialServiceImpl implements ISpecialService {
 			if(mapper!=null){
 				topFlag = mapper.getTopFlag();
 				parent = mapper.getSpecialSubject();
+				if (StringUtil.isNotEmpty(mapper.getGroupId())) {
+					parent = specialSubjectRepository.findOne(mapper.getGroupId());
+				}
+
 			}
 		}
 		Object result = null;
 		if(parent != null){  //在分组下
-
-			List<SpecialSubject> oneIndexPage = parent.getChildrenPage();
-			List<SpecialProject> oneIndexTab = parent.getIndexTabMappers();
-			List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
-			if(sortColumn == null || sortColumn.size() <=1){
-				result = parent;
-			}else{
-				result = getNextNode(sortColumn,id,specialFlag);
-			}
+			result = getNode(parent,id,specialFlag);
+//			List<SpecialSubject> oneIndexPage = parent.getChildrenPage();
+//			List<SpecialProject> oneIndexTab = parent.getIndexTabMappers();
+//			List<Object> sortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
+//			if(sortColumn == null || sortColumn.size() <=1){
+//				result = parent;
+//			}else{
+//				result = getNextNode(sortColumn,id,specialFlag);
+//			}
 		}else{ // 第一层的数据， 置顶的和不置顶的分开
 			List<SpecialSubject> oneIndexPage = null;
 			List<SpecialProject> oneIndexTab = null;
@@ -871,8 +875,103 @@ public class SpecialServiceImpl implements ISpecialService {
 		}
 		return map;
 	}
-	private Object getNextNode(List<Object> sortColumn,String id,SpecialFlag columnFlag){
-		if(sortColumn != null && sortColumn.size() >0){
+	private Object getNode(SpecialSubject parent,String id,SpecialFlag specialFlag){
+		List<SpecialSubject> oneIndexPage = parent.getChildrenPage();
+		List<SpecialProject> oneIndexTab = parent.getIndexTabMappers();
+		List<Object> TsortColumn = this.sortColumn(new ArrayList<Object>(),oneIndexTab,oneIndexPage,false,false);
+		List<Object> sortColumn = new ArrayList<>();
+		Object result = null;
+		if(TsortColumn != null && TsortColumn.size() >0) {
+			for (int i = 0; i < TsortColumn.size(); i++) {
+				if (TsortColumn.get(i) instanceof SpecialProject) {
+					sortColumn.add(TsortColumn.get(i));
+				} else if (TsortColumn.get(i) instanceof SpecialSubject) {
+					SpecialSubject page = (SpecialSubject) TsortColumn.get(i);
+					if (id.equals(page.getId())) {
+						//只拿删除的点
+						sortColumn.add(TsortColumn.get(i));
+					}
+				}
+			}
+		}
+		boolean isHas = true;
+		if(sortColumn == null || sortColumn.size() == 0){
+			isHas = false;
+		}else if (sortColumn.size() == 1 && specialFlag.equals(SpecialFlag.SpecialProjectFlag)){
+			SpecialProject mapper = (SpecialProject)sortColumn.get(0);
+			if (id.equals(mapper.getId())){
+				isHas = false;
+			}else {
+				isHas = true;
+			}
+		}else if (sortColumn.size() == 1 && specialFlag.equals(SpecialFlag.SpecialSubjectFlag)){
+			if (sortColumn.get(0) instanceof SpecialProject) {
+				isHas = true;
+			}else if (sortColumn.get(0) instanceof SpecialSubject) {
+				SpecialSubject specialSubject = (SpecialSubject) sortColumn.get(0);
+				if (id.equals(specialSubject.getId())){
+					isHas = false;
+				}else {
+					isHas = true;
+				}
+			}
+
+		}
+//		if (specialFlag.equals(SpecialFlag.SpecialSubjectFlag)){
+//			if (sortColumn.size() > 0)
+//		}
+		if(!isHas){
+			if (StringUtil.isNotEmpty(parent.getSubjectId())){
+				parent = specialSubjectRepository.findOne(parent.getSubjectId());
+				result = getNode(parent,id,specialFlag);
+			}else {
+				List<SpecialSubject> oneIndexPage2 = null;
+				List<SpecialProject> oneIndexTab2 = null;
+				List<SpecialProject> top = null;
+				Map<String,Object> oneColumn = this.getOneLevelColumnForMap(UserUtils.getUser());
+				if (oneColumn.containsKey("page")) {
+					oneIndexPage2 = (List<SpecialSubject>) oneColumn.get("page");
+				}
+				if (oneColumn.containsKey("tab")) {
+					oneIndexTab2 = (List<SpecialProject>) oneColumn.get("tab");
+				}
+				if (oneColumn.containsKey("top")) {
+					top = (List<SpecialProject>) oneColumn.get("top");
+				}
+				List<Object> sortColumn2 = this.sortColumn(new ArrayList<Object>(),oneIndexTab2,oneIndexPage2,false,false);
+					// 找到当前元素的下一个有东西的元素 下一个没有就找上一个 不直接用seq 判断是因为可能存在seq错误的情况，但是都是按照上面的方法排序后的数据，跟页面一致
+					// 找到所有元素中的第一个
+					if(sortColumn2 == null || sortColumn2.size() <=1){
+						//如果第一层只有当前一个，看他上面有没有置顶的
+						if(top != null && top.size() >0){
+							result = top.get(top.size() -1);
+						}else{
+							result = null;
+						}
+					}else{
+						result = getNextNode(sortColumn2,id,specialFlag);
+					}
+			}
+
+		}else{
+			//这层有数据
+			result = getNextNode(sortColumn,id,specialFlag);
+		}
+		return result;
+	}
+	private Object getNextNode(List<Object> TsortColumn,String id,SpecialFlag columnFlag){
+		if(TsortColumn != null && TsortColumn.size() >0){
+			List<Object> sortColumn = new ArrayList<>();
+			for(int i = 0;i <TsortColumn.size();i++){
+				if (TsortColumn.get(i) instanceof SpecialProject) {
+						sortColumn.add(TsortColumn.get(i));
+				} else if (TsortColumn.get(i) instanceof SpecialSubject) {
+					SpecialSubject page = (SpecialSubject)TsortColumn.get(i);
+					if(id.equals(page.getId())  && SpecialFlag.SpecialSubjectFlag.equals(columnFlag)){
+						sortColumn.add(TsortColumn.get(i));
+					}
+				}
+			}
 			int index = -1;
 			for(int i = 0;i <sortColumn.size();i++){
 				if (sortColumn.get(i) instanceof SpecialProject) {
@@ -896,6 +995,9 @@ public class SpecialServiceImpl implements ISpecialService {
 					return sortColumn.get(index+1);
 				}
 			}else{
+				if (ObjectUtil.isNotEmpty(sortColumn)){
+					return sortColumn.get(sortColumn.size()-1);
+				}
 				return null;
 			}
 		}
