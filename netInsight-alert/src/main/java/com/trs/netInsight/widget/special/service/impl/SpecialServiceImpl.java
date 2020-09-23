@@ -990,7 +990,8 @@ public class SpecialServiceImpl implements ISpecialService {
 			}
 			if(index != -1){
 				if(index == sortColumn.size()-1){ // 这里是用的下标判断，判断当前这个是否是整个数据的最后一个下标，是则拿前一个
-					return sortColumn.get(index-1);
+					if (index > 0) return sortColumn.get(index-1);
+					return null;
 				}else{
 					return sortColumn.get(index+1);
 				}
