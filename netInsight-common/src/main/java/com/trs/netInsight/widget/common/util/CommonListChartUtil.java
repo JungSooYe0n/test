@@ -256,8 +256,8 @@ public class CommonListChartUtil {
                 map.put("time", vo.getUrlTime());
                 map.put("md5", vo.getMd5Tag());
                 String title= vo.getTitle();
-//                map.put("title", StringUtil.replaceImg(title));
-                map.put("title", title);
+                map.put("title", StringUtil.replaceImg(title));
+               // map.put("title", title);
                 if(StringUtil.isNotEmpty(title)){
                     title = title.replaceAll("<font color=red>", "").replaceAll("</font>", "");
                 }

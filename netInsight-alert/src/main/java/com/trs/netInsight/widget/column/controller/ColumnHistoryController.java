@@ -5,10 +5,7 @@ import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.repository.IndexPageRepository;
-import com.trs.netInsight.widget.column.service.IColumnChartService;
-import com.trs.netInsight.widget.column.service.IIndexPageService;
-import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
-import com.trs.netInsight.widget.column.service.IIndexTabService;
+import com.trs.netInsight.widget.column.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +41,8 @@ public class ColumnHistoryController {
 
     @Autowired
     private IndexPageRepository indexPageRepository;
+    @Autowired
+    private IColumnHistoryService columnHistoryService;
 
     /**
      * 修改日常监测分组栏目的历史数据
@@ -118,4 +117,16 @@ public class ColumnHistoryController {
         Object result = indexTabService.updateHistortColumnField(orgId);
         return result;
     }
+
+    /**
+     * 修改日常监测数据栏目的数据
+     */
+    @FormatResult
+    @GetMapping(value = "/updateColumnFilterInfo")
+    @ApiOperation("修改库中的信息过滤字段的信息")
+    public Object updateColumnFilterInfo() {
+        System.out.println("修改库中的信息过滤字段的信息");
+        return columnHistoryService.updateAllFilterInfo();
+    }
+
 }
