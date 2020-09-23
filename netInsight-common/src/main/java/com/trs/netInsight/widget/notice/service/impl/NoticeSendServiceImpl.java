@@ -580,7 +580,6 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 								  SendWay sendWay, List<String> receivers, Map<String, Object> map) {
 		try {
 			int size = (int) map.get("size");
-			String alertIds = (String) map.get("alertIds");
 			List<Map<String, String>> list = (List<Map<String, String>>) map.get("listMap");
 			switch (sendWay) {
 				case EMAIL:
@@ -598,32 +597,43 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						//按文件存储  每个用户只能看到自己userid对应下的文件  所以在用接受者的userid存一遍 所发出的站内预警才能被接受者看到
 						User user = findByUserName(receiver);
 						if (user != null) {
-							String saveOther = this.addAlertOrAlertBackups(list, receiver, SendWay.SMS, user.getId(), "receive");
+							this.saveAlertEntityInfo(map, receiver, SendWay.SMS.toString(), user, "receive",false);
 						}
 					}
 					return Message.getMessage(CodeUtils.SUCCESS, "发送成功！", null);
 
 				case WE_CHAT:
 					Environment env = SpringUtil.getBean(Environment.class);
-					String netinsightUrl = env.getProperty(Const.NETINSIGHT_URL);
-
+					String wechatNetinsightUrl = netinsightUrl;
 					if (subject == null) {
 						subject = "";
 					}
 					// 将要发送的微信通知页面显示的预警标题信息展示出来
-					List<List<String>> listWeiChats = new ArrayList<>();
+					List<Map<String ,List<String>>> listWeiChats = new ArrayList<>();
 					List<List<String>> messageLists = new ArrayList<>();
 					for (int i = 0; i < list.size(); i += 5) {
-						List<String> listWeiChat = new ArrayList<>();
+						Map<String ,List<String>> listWeiChat = new HashMap<>();
+
+						List<String> sids = new ArrayList<>();
+						List<String> titles = new ArrayList<>();
+						List<Map<String, String>> oneList = null;
 						if (i + 5 < list.size()) {
-							list.subList(i, i + 5).stream().forEach(oneMap -> listWeiChat.add(oneMap.get("title")));
+							oneList = list.subList(i, i + 5);
 						} else {
-							list.subList(i, list.size()).stream().forEach(oneMap -> listWeiChat.add(oneMap.get("title")));
+							oneList = list.subList(i, list.size());
 						}
+						oneList.stream().forEach(oneMap -> titles.add(oneMap.get("title")));
+						oneList.stream().forEach(oneMap -> sids.add(oneMap.get(FtsFieldConst.FIELD_ALERT_ID)));
+						listWeiChat.put(FtsFieldConst.FIELD_ALERT_ID,sids);
+						listWeiChat.put("title",titles);
+
 						listWeiChats.add(listWeiChat);
 					}
 					int i = 1;
-					for (List<String> listWeiChat : listWeiChats) {
+					for (Map<String ,List<String>> listWeiChat : listWeiChats) {
+						List<String> sids = listWeiChat.get(FtsFieldConst.FIELD_ALERT_ID);
+						List<String> titles = listWeiChat.get("title");
+
 						String alertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
 						String id = UUID.randomUUID().toString();
 						TRSInputRecord record = new TRSInputRecord();
@@ -636,7 +646,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							record.addColumn(FtsFieldConst.FIELD_USER_ID, user_.getId());
 							record.addColumn(FtsFieldConst.FIELD_RECEIVER, StringUtils.join(receivers, ";"));
 
-							record.addColumn(FtsFieldConst.FIELD_ALERT_IDS, alertIds);
+							record.addColumn(FtsFieldConst.FIELD_ALERT_IDS, StringUtils.join(sids,";"));
 							//直接存文件不编辑了
 							hybase8SearchServiceNew.insertRecords(record, Const.ALERTTYPE, true, null);
 						} catch (TRSException ex) {
@@ -647,7 +657,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 						List<String> messageList = new ArrayList<>();
 						String alertDetailUrl = WeixinMessageUtil.ALERT_DETAILS_URL.replaceAll("ID", "")
-								.replace("NETINSIGHT_URL", netinsightUrl) + id;
+								.replace("NETINSIGHT_URL", wechatNetinsightUrl) + id;
 
 						if (user_.getUserName() == null) {
 							user_.setUserName("");
@@ -657,9 +667,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 										user_.getUserName());
 						for (String openId : receivers) {
 							if (StringUtil.isNotEmpty(openId)) {
-								log.error("netinsightUrl:" + netinsightUrl);
+								log.error("netinsightUrl:" + wechatNetinsightUrl);
 								AlertTemplateMsg alertTemplateMsg = new AlertTemplateMsg(openId,
-										alertDetailUrl, alertTitle, StringUtil.getTitleList(listWeiChat, i), alertTime, "");
+										alertDetailUrl, alertTitle, StringUtil.getTitleList(titles, i), alertTime, "");
 
 								String sendWeixin = null;
 								try {
@@ -683,10 +693,12 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						}
 						log.error("微信推送循环外！预警名称：" + subject + "接收人：" + receivers);
 						messageLists.add(messageList);
-						i = i + listWeiChat.size();
+						i = i + titles.size();
 					}
 					return Message.getMessage(CodeUtils.SUCCESS, "发送成功！", messageLists);
 				case APP:// 安卓端
+					List<String> sids = new ArrayList<>();
+					list.stream().forEach(oneMap -> sids.add(oneMap.get(FtsFieldConst.FIELD_ALERT_ID)));
 					String appAlertTime = DateUtil.formatCurrentTime(DateUtil.yyyyMMdd);
 
 					String appAlertId = UUID.randomUUID().toString().replaceAll("-", "");
@@ -714,7 +726,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						String alertMessage = JPushMessageUtil.ALERT_MESSAGE.replace("SUBJECT", subject).replace("SIZE", String.valueOf(size)).replace("USERNAME", user_.getUserName());
 						mapData.put("type", "预警");
 						mapData.put("title", alertMessage);
-						mapData.put("alertId", appAlertId);
+						mapData.put("alertId", StringUtils.join(sids,";"));
 						mapData.put("receviceUserid", nameAPPId);
 						Message message = null;
 						//try住后 APP端不登录时，收不到提醒，但会查到预警信息
@@ -726,7 +738,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							log.error("APP预警手动推送出错！预警名称：" + subject + "接收人：" + receivers + "接收人id：" + nameAPPId, e);
 						}
 
-						record.addColumn(FtsFieldConst.FIELD_ALERT_IDS, alertIds);
+						record.addColumn(FtsFieldConst.FIELD_ALERT_IDS, StringUtils.join(sids,";"));
 						//直接存文件不编辑了
 						hybase8SearchServiceNew.insertRecords(record, Const.ALERTTYPE, true, null);
 					}
@@ -753,7 +765,6 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 	private Map<String, Object> saveAlertEntityInfo(Map<String, Object> map, String receivers,
 													String sendWays, User user, String sendOrreceive, Boolean cutSeadDta) {
 
-		StringBuffer buffer = new StringBuffer();
 		List<Map<String, String>> list = (List<Map<String, String>>) map.get("listMap");
 
 		List<Map<String, String>> sendDataList = new ArrayList<>();
@@ -823,15 +834,14 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 				trsInputRecords.add(record);
 
+				each.put(FtsFieldConst.FIELD_ALERT_ID,alertId);
 				if (cutSeadDta != null && cutSeadDta) {
 					if (i < 20) {
 						// 如果 需要切割发送数据的话，则发送数据只发送20条
 						sendDataList.add(each);
-						buffer.append(alertId).append(";");
 					}
 				} else {
 					sendDataList.add(each);
-					buffer.append(alertId).append(";");
 				}
 				i++;
 
@@ -844,12 +854,11 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 		try {
 			hybase8SearchServiceNew.insertRecords(trsInputRecords, Const.ALERT, true, null);
 		} catch (com.trs.netInsight.handler.exception.TRSException e) {
-			log.error("批量添加预警记录至 hybase 出错：用户id：" + user.getId() + "，该次预警为手动预警，预警内容id：" + buffer.toString(), e);
+			log.error("批量添加预警记录至 hybase 出错：用户id：" + user.getId() + "，预警" , e);
 			e.printStackTrace();
 		}
 
 		map.put("listMap", sendDataList);
-		map.put("alertIds", buffer.toString());
 		return map;
 
 	}

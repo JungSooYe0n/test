@@ -91,6 +91,10 @@ public class WeixinUtil {
 	 */
 	public static final String WEIXINREDISKEY = "WEI_XIN_REDIS_KEY";
 	public static Integer counter = 0;
+
+	/**
+	 * 	正式环境获取微信token的接口
+	 */
 	public static final String NETINSIGHR_WECHATTOKEN = "http://www.netinsight.com.cn/netInsight/system/weixin/getWeiXinToken";
 
 	/**
