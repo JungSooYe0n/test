@@ -184,7 +184,13 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 */
 	@Column(name = "weight")
 	private boolean weight = false;
-	
+
+	/**
+	 * 排序方式
+	 */
+	@Column(name = "sort")
+	private String sort;
+
 	/**
 	 * 50为半栏 100为通栏
 	 */
@@ -354,31 +360,39 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.irSimflagAll = irSimflagAll;
 	}
 
-	public IndexTab(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, boolean hide, String keyWord,
-                    String excludeWords, String excludeWordIndex,String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
-                    int tabWidth, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-					String contentArea,String mediaArea) {
+	public IndexTab(String name, SpecialType specialType, String trsl, String xyTrsl, String type, String contrast, String tradition, String excludeWeb, String monitorSite, String parentId, String typeId, Integer sequence, int maxSize, String timeRange, boolean hide, String statusTrsl, String weChatTrsl, String keyWord, String excludeWords, String excludeWordIndex, String keyWordIndex, String xyKeyWord, String xyKeyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight, String sort, int tabWidth, String oneName, String notSids, String mediaLevel, String mediaIndustry, String contentIndustry, String filterInfo, String contentArea, String mediaArea) {
 		this.name = name;
+		this.specialType = specialType;
 		this.trsl = trsl;
 		this.xyTrsl = xyTrsl;
 		this.type = type;
 		this.contrast = contrast;
+		this.tradition = tradition;
 		this.excludeWeb = excludeWeb;
-		this.monitorSite= monitorSite;
+		this.monitorSite = monitorSite;
+		this.parentId = parentId;
+		this.typeId = typeId;
+		this.sequence = sequence;
+		this.maxSize = maxSize;
 		this.timeRange = timeRange;
 		this.hide = hide;
+		this.statusTrsl = statusTrsl;
+		this.weChatTrsl = weChatTrsl;
 		this.keyWord = keyWord;
 		this.excludeWords = excludeWords;
 		this.excludeWordIndex = excludeWordIndex;
 		this.keyWordIndex = keyWordIndex;
+		this.xyKeyWord = xyKeyWord;
+		this.xyKeyWordIndex = xyKeyWordIndex;
 		this.groupName = groupName;
 		this.similar = similar;
 		this.irSimflag = irSimflag;
 		this.irSimflagAll = irSimflagAll;
 		this.weight = weight;
+		this.sort = sort;
 		this.tabWidth = tabWidth;
-		this.sequence = sequence;
-		this.specialType = specialType;
+		this.oneName = oneName;
+		this.notSids = notSids;
 		this.mediaLevel = mediaLevel;
 		this.mediaIndustry = mediaIndustry;
 		this.contentIndustry = contentIndustry;
@@ -413,7 +427,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	public IndexTab tabCopy(){
 		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb,monitorSite, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
-				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,tabWidth,oneName,notSids,
+				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,sort,tabWidth,oneName,notSids,
 				mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 		return indexTab;
 	}
