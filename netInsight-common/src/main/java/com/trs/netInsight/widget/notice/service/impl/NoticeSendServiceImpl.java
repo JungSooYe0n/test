@@ -726,7 +726,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						String alertMessage = JPushMessageUtil.ALERT_MESSAGE.replace("SUBJECT", subject).replace("SIZE", String.valueOf(size)).replace("USERNAME", user_.getUserName());
 						mapData.put("type", "预警");
 						mapData.put("title", alertMessage);
-						mapData.put("alertId", StringUtils.join(sids,";"));
+						mapData.put("alertId", appAlertId);
 						mapData.put("receviceUserid", nameAPPId);
 						Message message = null;
 						//try住后 APP端不登录时，收不到提醒，但会查到预警信息
