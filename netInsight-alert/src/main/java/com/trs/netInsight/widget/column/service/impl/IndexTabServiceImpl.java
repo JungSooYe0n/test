@@ -40,6 +40,7 @@ import com.trs.netInsight.widget.column.repository.IndexPageRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabRepository;
 import com.trs.netInsight.widget.column.service.IIndexTabService;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @Type IndexTabServiceImpl.java
@@ -110,6 +111,7 @@ public class IndexTabServiceImpl implements IIndexTabService {
 	}
 
 	@Override
+	@Transactional
 	public Object save(IndexTab indexTab, boolean share) {
 		IndexTab save = indexTabRepository.save(indexTab);
 		// 保存映射表

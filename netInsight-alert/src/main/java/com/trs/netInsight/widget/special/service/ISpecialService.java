@@ -147,6 +147,7 @@ public interface ISpecialService {
 	 * @throws OperationException
 	 */
 	public Object selectSpecialReNew(User user)throws OperationException;
+	Object selectNextShowSpecial(String id,SpecialFlag specialFlag);
 
     /**
      * 添加用户时 同步数据出现的弹框里的内容
