@@ -1406,9 +1406,10 @@ public class SpecialController {
 	public Object deleteSubject(@RequestParam("id") String id) throws TRSException {
 		try {
 //			specialSubjectService.delete(id, "one");
+			Object object = specialService.selectNextShowSpecial(id,SpecialFlag.SpecialSubjectFlag);
 			specialSubjectService.deleteSubject(id);
 			// }
-			return "删除主题成功";
+			return object;
 		} catch (Exception e) {
 			throw new OperationException("删除主题失败" + e, e);
 		}
