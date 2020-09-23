@@ -346,7 +346,10 @@ public class AlertMd5 implements Job {
                         buffer.append(FtsFieldConst.FIELD_GROUPNAME).append(":(");
                         int beginLength = buffer.length();
                         for (String dataSource : dataSourcesArr) {
-                            buffer.append(Const.SOURCE_GROUPNAME_CONTRAST.get(dataSource)).append(" OR ");
+                            if (Const.SOURCE_GROUPNAME_CONTRAST.containsKey(dataSource)) {
+                                String group = Const.SOURCE_GROUPNAME_CONTRAST.get(dataSource);
+                                buffer.append(group).append(" OR ");
+                            }
                         }
                         int endLength = buffer.length();
                         // 去掉最后的OR

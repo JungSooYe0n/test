@@ -18,7 +18,7 @@ public class AlertKafkaUtil {
     public static void send(AlertKafkaSend message, boolean loop) {
         String jsonData = JSONObject.toJSONString(message);
         KafkaTemplate<String, String> kafkaTemplate = SpringUtil.getBean(KafkaTemplate.class);
-        String topic = KafkaConst.KAFKA_TOPIC;
+        String topic = AlertKafkaConst.KAFKA_TOPIC;
         if (loop){
             // 随机获取topic
             Random random = new Random();
