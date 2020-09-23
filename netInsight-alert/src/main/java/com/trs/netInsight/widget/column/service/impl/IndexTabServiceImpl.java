@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2017年12月4日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -40,6 +40,7 @@ import com.trs.netInsight.widget.column.repository.IndexPageRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
 import com.trs.netInsight.widget.column.repository.IndexTabRepository;
 import com.trs.netInsight.widget.column.service.IIndexTabService;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @Type IndexTabServiceImpl.java
@@ -109,6 +110,7 @@ public class IndexTabServiceImpl implements IIndexTabService {
 		return save;
 	}
 
+	@Transactional
 	@Override
 	public Object save(IndexTab indexTab, boolean share) {
 		IndexTab save = indexTabRepository.save(indexTab);
