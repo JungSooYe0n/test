@@ -2340,6 +2340,13 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 			try {
 				AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 				ColumnConfig config = new ColumnConfig();
+				if(indexTab.getSort()!=null){
+						if("asc".equals(indexTab.getSort())||"desc".equals(indexTab.getSort())){
+							indexTab.setWeight(false);
+						}else{
+							indexTab.setWeight(true);
+						}
+				}
 				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort,  invitationCard,
 						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);

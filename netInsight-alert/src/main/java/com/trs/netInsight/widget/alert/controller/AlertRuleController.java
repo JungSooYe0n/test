@@ -175,6 +175,7 @@ public class AlertRuleController {
 			@ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
 			@ApiParam("微信表达式") @RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
 			@ApiParam("是否按权重查找") @RequestParam(value = "weight", required = false) boolean weight,
+			@ApiParam("排序方式") @RequestParam(value = "sort", required = false) String sort,
 			@ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
 			@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
@@ -259,7 +260,7 @@ public class AlertRuleController {
 		// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
 		AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, repetition, irSimflag,irSimflagAll,groupName, anyKeyword,
 				excludeWords,excludeWordsIndex, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
-				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight, null, null,
+				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight,sort, null, null,
 				countBy, frequencyId, md5Num, md5Range, false, false);
 		// timeInterval看逻辑是按分钟存储 2h 120
 		try {
@@ -332,7 +333,8 @@ public class AlertRuleController {
 			@ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
 			@ApiParam("微信表达式") @RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
 			@ApiParam("是否按权重查找") @RequestParam(value = "weight", required = false) boolean weight,
-			@ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
+		 	@ApiParam("排序方式") @RequestParam(value = "sort", required = false) String sort,
+		 	@ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
 			@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
@@ -416,6 +418,7 @@ public class AlertRuleController {
 		alertRule.setReceiver(null);
 		alertRule.setIrSimflag(irSimflag);
 		alertRule.setWeight(weight);
+		alertRule.setSort(sort);
 		alertRule.setIrSimflagAll(irSimflagAll);
 		String frequencyId = null;
 		// 确定定时预警时走哪个方法
@@ -631,8 +634,10 @@ public class AlertRuleController {
 	@RequestMapping(value = "/delete", method = RequestMethod.GET)
 	public Object onOrOff(@ApiParam("预警规则id") @RequestParam("id") String id) throws OperationException {
 		try {
+			Object result = alertRuleService.selectNextShowAlertRule(id);
 			alertRuleService.delete(id);
-			return "删除预警成功！";
+			//return "删除预警成功！";
+			return result;
 		} catch (Exception e) {
 			throw new OperationException("删除预警失败,message:" + e, e);
 		}
