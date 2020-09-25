@@ -902,10 +902,13 @@ public class SpecialServiceImpl implements ISpecialService {
 //			if (sortColumn.size() > 0)
 //		}
 		if(!isHas){
+			//到上一层级
 			if (StringUtil.isNotEmpty(parent.getSubjectId())){
+				String tid = parent.getId();
 				parent = specialSubjectRepository.findOne(parent.getSubjectId());
-				result = getNode(parent,id,specialFlag);
+				result = getNode(parent,tid,SpecialFlag.SpecialSubjectFlag);
 			}else {
+				//到顶级了
 				List<SpecialSubject> oneIndexPage2 = null;
 				List<SpecialProject> oneIndexTab2 = null;
 				List<SpecialProject> top = null;
@@ -930,7 +933,7 @@ public class SpecialServiceImpl implements ISpecialService {
 							result = null;
 						}
 					}else{
-						result = getNextNode(sortColumn2,id,specialFlag);
+						result = getNextNode(sortColumn2,parent.getId(),SpecialFlag.SpecialSubjectFlag);
 					}
 			}
 

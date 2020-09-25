@@ -1086,9 +1086,9 @@ public class SpecialController {
 	 */
 	@ApiOperation("删除专题（新版）")
 	@FormatResult
-	@ApiImplicitParams({ @ApiImplicitParam(name = "projectId", value = "专题Id", dataType = "String", paramType = "query") })
+	@ApiImplicitParams({ @ApiImplicitParam(name = "specialId", value = "专题Id", dataType = "String", paramType = "query") })
 	@RequestMapping(value = "/deleteProject", method = RequestMethod.POST)
-	public Object deleteProject(@RequestParam("projectId") String projectId) throws TRSException {
+	public Object deleteProject(@RequestParam("specialId") String projectId) throws TRSException {
 		try {
 			Object object = specialService.selectNextShowSpecial(projectId,SpecialFlag.SpecialProjectFlag);
 			specialSubjectService.deleteProject(projectId);
