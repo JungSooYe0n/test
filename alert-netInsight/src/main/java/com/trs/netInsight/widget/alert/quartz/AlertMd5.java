@@ -63,8 +63,18 @@ public class AlertMd5 implements Job {
         log.info("按热度值预警定时任务开始执行 ------------------");
         // 获得频率id
         Frequency alertFrequency = (Frequency) context.getJobDetail().getJobDataMap().get("schedule");
-        List<AlertRule> rules = alertRuleRepository.findByStatusAndAlertTypeAndFrequencyId(ScheduleStatus.OPEN,
+        List<AlertRule> rules1 = alertRuleRepository.findByStatusAndAlertTypeAndFrequencyId(ScheduleStatus.OPEN,
                 AlertSource.AUTO, alertFrequency.getId());
+        List<AlertRule> rules = new ArrayList<>();
+       if(rules1 != null && rules1.size() > 0){
+           for(int i=0;i<rules1.size();i++){
+               String userid =  rules.get(i).getUserId();
+               User user = userRepository.findOne(userid);
+               if(user.getStatus().equals("0")){
+                   rules.add(rules1.get(i));
+               }
+           }
+       }
         if (rules != null && rules.size() > 0) {
             log.info("按热度值预警定时任务开启的数量为："+rules.size());
 
