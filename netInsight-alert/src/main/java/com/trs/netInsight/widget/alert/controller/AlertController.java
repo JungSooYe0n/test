@@ -117,13 +117,6 @@ public class AlertController {
 			User loginUser = UserUtils.getUser();
 			List<AlertTime> alertTimeList = null;
 			alertTimeList = alertTimeRepository.findByUserId(loginUser.getId());
-//			if (UserUtils.ROLE_PLATFORM_SUPER_LIST.contains(loginUser.getCheckRole())) {
-//				alertTimeList = alertTimeRepository.findByUserId(loginUser.getId());
-//			} else if (UserUtils.ROLE_ADMIN.equals(loginUser.getCheckRole())){
-//				alertTimeList = alertTimeRepository.findByUserId(loginUser.getId());
-//			}else {
-//				alertTimeList = alertTimeRepository.findBySubGroupIdAndUserAccount(loginUser.getSubGroupId(),loginUser.getUserAccount());
-//			}
 			if (ObjectUtil.isNotEmpty(alertTimeList)){
 				Date alertTime = alertTimeList.get(0).getAlertTime();
 				List<FtsDocumentAlert> ftsDocumentAlertList = new ArrayList<>();

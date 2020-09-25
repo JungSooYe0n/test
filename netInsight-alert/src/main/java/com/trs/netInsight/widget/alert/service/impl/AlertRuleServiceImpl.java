@@ -1538,12 +1538,10 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 				// 微博没标题
 				map.put("url", alertEntity.getUrlName());
 				//处理title
-				String title = StringUtil.replaceNRT(StringUtil.removeFourChar(alertEntity.getTitle()));
-				title = StringUtil.replaceEmoji(title);
+				String title = alertEntity.getTitle();
+				title = StringUtil.replaceImg(title);
 				if (StringUtil.isNotEmpty(title)) {
-
 					map.put("titleWhole", title);
-					title = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
 					map.put("title", title);
 				} else {
 					map.put("title", "");
@@ -1577,6 +1575,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 					map.put("title", documentContent);
 				}
 				map.put("content", documentContent);
+				map.put("fullContent", alertEntity.getFullContent());
 				map.put("screenName", alertEntity.getScreenName());
 				map.put("rttCount", String.valueOf(alertEntity.getRttCount()));
 				map.put("commtCount", String.valueOf(alertEntity.getCommtCount()));
@@ -1591,7 +1590,14 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			map.put("title", content);
 
 			if (StringUtils.isNotBlank(sendWay)) {
-				String[] split = sendWay.split(";|；");
+				try {
+					// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
+					noticeSendService.sendAlert(AlertSource.ARTIFICIAL, content, userId, sendWay, receivers, map, false);
+				} catch (Exception e) {
+					log.error("手动预警发送失败：发送方式为：" + sendWay + "标题为：" + content + "发送用户信息为：" + userId);
+				}
+
+				/*String[] split = sendWay.split(";|；");
 				for (int i = 0; i < split.length; i++) {
 					String string = split[i];
 					SendWay sendValue = SendWay.valueOf(string);
@@ -1602,7 +1608,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 					}catch (Exception e){
 						log.error("手动预警发送失败：发送方式为："+sendValue+"标题为："+content+"发送用户信息为："+userId);
 					}
-				}
+				}*/
 			}
 		}
 
@@ -1616,40 +1622,41 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			FtsDocumentAlert alert = null;
 			for (FtsDocumentCommonVO vo : documents) {
 				String content = vo.getExportContent();
-				String[] imaUrls = null;
-				String imaUrl = "";
 
-				if (content != null){
-					imaUrls = content.split("IMAGE&nbsp;SRC=&quot;");
-					if (imaUrls.length>1){
-						imaUrl = imaUrls[1].substring(0,imaUrls[1].indexOf("&quot;"));
+				String imgUrl = "";
+				if (content != null) {
+					List<String> imgSrcList = StringUtil.getImgStr(content);
+					if (imgSrcList != null && imgSrcList.size() > 0) {
+						imgUrl = imgSrcList.get(0);
 					}
 				}
+				content = StringUtil.replaceImg(content);
+
 				if(Const.GROUPNAME_WEIXIN.equals(vo.getGroupName())){
-					alert = new FtsDocumentAlert(vo.getHkey(),vo.getUrlTitle(),vo.getUrlTitle(),vo.getContent(),vo.getUrlName(),vo.getUrlTime(),
+					alert = new FtsDocumentAlert(vo.getHkey(),vo.getUrlTitle(),vo.getUrlTitle(),vo.getContent(),content,vo.getUrlName(),vo.getUrlTime(),
 							vo.getSiteName(), vo.getGroupName(),0,0,vo.getAuthors(),vo.getAppraise(),"",
-							null,"other",vo.getMd5Tag(),"other",imaUrl,"",0,"");
+							null,"other",vo.getMd5Tag(),"other",imgUrl,"",0,"");
 					result.add(alert);
 				}else if(Const.GROUPNAME_WEIBO.equals(vo.getGroupName())){
-					alert = new FtsDocumentAlert(vo.getMid(),vo.getStatusContent(),content,vo.getStatusContent(),vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(),
-							vo.getGroupName(),vo.getCommtCount(),vo.getRttCount(),vo.getScreenName(),vo.getAppraise(),"",null,"other",vo.getMd5Tag(),vo.getRetweetedMid(),imaUrl,"",0,"");
+					alert = new FtsDocumentAlert(vo.getMid(),vo.getStatusContent(),content,vo.getStatusContent(),content,vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(),
+							vo.getGroupName(),vo.getCommtCount(),vo.getRttCount(),vo.getScreenName(),vo.getAppraise(),"",null,"other",vo.getMd5Tag(),vo.getRetweetedMid(),imgUrl,"",0,"");
 					result.add(alert);
 				}else if(Const.MEDIA_TYPE_TF.contains(vo.getGroupName())){
 
-					alert = new FtsDocumentAlert(vo.getSid(),vo.getContent(),vo.getContent(),vo.getContent(),
+					alert = new FtsDocumentAlert(vo.getSid(),vo.getContent(),vo.getContent(),vo.getContent(),content,
 							vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(), vo.getGroupName(),vo.getCommtCount(),vo.getRttCount(),
 							vo.getAuthors(),vo.getAppraise(),"",null,"other",vo.getMd5Tag(),
-							"other",imaUrl,"",0,"");
+							"other",imgUrl,"",0,"");
 					result.add(alert);
 				}else if(Const.MEDIA_TYPE_VIDEO.contains(vo.getGroupName())){
 					String title = vo.getTitle();
 					if(StringUtil.isEmpty(title)){
 						title = vo.getContent();
 					}
-					alert = new FtsDocumentAlert(vo.getSid(),title,title,vo.getContent(),
+					alert = new FtsDocumentAlert(vo.getSid(),title,title,vo.getContent(),content,
 							vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(), vo.getGroupName(),vo.getCommtCount(),vo.getRttCount(),
 							vo.getAuthors(),vo.getAppraise(),"",null,"other",vo.getMd5Tag(),
-							"other",imaUrl,"",0,"");
+							"other",imgUrl,"",0,"");
 					result.add(alert);
 				}else{
 					String keywords = "";
@@ -1657,9 +1664,9 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 						keywords = vo.getKeywords().toString();
 					}
 					alert = new FtsDocumentAlert(vo.getSid(),vo.getTitle(),vo.getTitle(),
-							vo.getContent(),vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(),
+							vo.getContent(),content,vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(),
 							vo.getGroupName(),0,0,vo.getAuthors(),vo.getAppraise(),"",null,
-							vo.getNreserved1(),vo.getMd5Tag(),"other",imaUrl,keywords,0,"");
+							vo.getNreserved1(),vo.getMd5Tag(),"other",imgUrl,keywords,0,"");
 					result.add(alert);
 				}
 			}
@@ -1725,13 +1732,15 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			log.info(searchBuilder.asTRSL());
 			for (FtsDocumentCommonVO ftsDocument : documents) {
 				String content = ftsDocument.getContent();
-				String[] imaUrls = null;
-				String imaUrl = "";
-
-				if (content != null){
-					imaUrls = content.split("IMAGE&nbsp;SRC=&quot;");
-					if (imaUrls.length>1){
-						imaUrl = imaUrls[1].substring(0,imaUrls[1].indexOf("&quot;"));
+				String imgUrl = "";
+				if (content != null) {
+					/*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
+					if (imgUrls.length > 1) {
+						imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
+					}*/
+					List<String> imgSrcList = StringUtil.getImgStr(content);
+					if (imgSrcList != null && imgSrcList.size() > 0) {
+						imgUrl = imgSrcList.get(0);
 					}
 				}
 				String keywords = "";
@@ -1739,8 +1748,9 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 					keywords = ftsDocument.getKeywords().toString();
 				}
 				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getSid(),ftsDocument.getTitle(),ftsDocument.getTitle(),
-						ftsDocument.getContent(),ftsDocument.getUrlName(),ftsDocument.getUrlTime(),ftsDocument.getSiteName(),
-						ftsDocument.getGroupName(),0,0,ftsDocument.getAuthors(),ftsDocument.getAppraise(),"",null,ftsDocument.getNreserved1(),ftsDocument.getMd5Tag(),"other",imaUrl,keywords,0,"");
+						ftsDocument.getContent(),content,ftsDocument.getUrlName(),ftsDocument.getUrlTime(),ftsDocument.getSiteName(),
+						ftsDocument.getGroupName(),0,0,ftsDocument.getAuthors(),ftsDocument.getAppraise(),"",null,ftsDocument.getNreserved1(),
+						ftsDocument.getMd5Tag(),"other",imgUrl,keywords,0,"");
 				list.add(ftsDocumentAlert);
 			}
 		} catch (Exception e) {
@@ -1769,17 +1779,20 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			log.info(searchBuilderWeiBo.asTRSL());
 			for (FtsDocumentCommonVO ftsDocument : documents) {
 				String content = ftsDocument.getStatusContent();
-				String[] imaUrls = null;
-				String imaUrl = "";
-
-				if (content != null){
-					imaUrls = content.split("IMAGE&nbsp;SRC=&quot;");
-					if (imaUrls.length>1){
-						imaUrl = imaUrls[1].substring(0,imaUrls[1].indexOf("&quot;"));
+				String imgUrl = "";
+				if (content != null) {
+					/*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
+					if (imgUrls.length > 1) {
+						imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
+					}*/
+					List<String> imgSrcList = StringUtil.getImgStr(content);
+					if (imgSrcList != null && imgSrcList.size() > 0) {
+						imgUrl = imgSrcList.get(0);
 					}
 				}
-				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getMid(),ftsDocument.getStatusContent(),content,ftsDocument.getStatusContent(),ftsDocument.getUrlName(),ftsDocument.getCreatedAt(),ftsDocument.getSiteName(),
-						ftsDocument.getGroupName(),ftsDocument.getCommtCount(),ftsDocument.getRttCount(),ftsDocument.getScreenName(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),ftsDocument.getRetweetedMid(),imaUrl,"",0,"");
+				content = StringUtil.replaceImg(content);
+				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getMid(),ftsDocument.getStatusContent(),content,ftsDocument.getStatusContent(),content,ftsDocument.getUrlName(),ftsDocument.getCreatedAt(),ftsDocument.getSiteName(),
+						ftsDocument.getGroupName(),ftsDocument.getCommtCount(),ftsDocument.getRttCount(),ftsDocument.getScreenName(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),ftsDocument.getRetweetedMid(),imgUrl,"",0,"");
 				list.add(ftsDocumentAlert);
 			}
 		} catch (Exception e) {
@@ -1808,17 +1821,20 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			String trs = searchBuilderWeiBo.getAppendTRSL().toString();
 			for (FtsDocumentCommonVO ftsDocument : documents) {
 				String content = ftsDocument.getContent();
-				String[] imaUrls = null;
-				String imaUrl = "";
-
-				if (content != null){
-					imaUrls = content.split("IMAGE&nbsp;SRC=&quot;");
-					if (imaUrls.length>1){
-						imaUrl = imaUrls[1].substring(0,imaUrls[1].indexOf("&quot;"));
+				String imgUrl = "";
+				if (content != null) {
+					/*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
+					if (imgUrls.length > 1) {
+						imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
+					}*/
+					List<String> imgSrcList = StringUtil.getImgStr(content);
+					if (imgSrcList != null && imgSrcList.size() > 0) {
+						imgUrl = imgSrcList.get(0);
 					}
 				}
-				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getHkey(),ftsDocument.getUrlTitle(),ftsDocument.getUrlTitle(),ftsDocument.getContent(),ftsDocument.getUrlName(),ftsDocument.getUrlTime(),
-						ftsDocument.getSiteName(), ftsDocument.getGroupName(),0,0,ftsDocument.getAuthors(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),"other",imaUrl,"",0,"");
+				content = StringUtil.replaceImg(content);
+				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getHkey(),ftsDocument.getUrlTitle(),ftsDocument.getUrlTitle(),ftsDocument.getContent(),content,ftsDocument.getUrlName(),ftsDocument.getUrlTime(),
+						ftsDocument.getSiteName(), ftsDocument.getGroupName(),0,0,ftsDocument.getAuthors(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),"other",imgUrl,"",0,"");
 				list.add(ftsDocumentAlert);
 			}
 		} catch (Exception e) {
@@ -1846,18 +1862,21 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			log.info(searchBuilderTF.asTRSL());
 			for (FtsDocumentTF ftsDocument : documents) {
 				String content = ftsDocument.getStatusContent();
-				String[] imaUrls = null;
-				String imaUrl = "";
-
-				if (content != null){
-					imaUrls = content.split("IMAGE&nbsp;SRC=&quot;");
-					if (imaUrls.length>1){
-						imaUrl = imaUrls[1].substring(0,imaUrls[1].indexOf("&quot;"));
+				String imgUrl = "";
+				if (content != null) {
+					/*String[] imgUrls = content.split("IMAGE&nbsp;SRC=&quot;");
+					if (imgUrls.length > 1) {
+						imgUrl = imgUrls[1].substring(0, imgUrls[1].indexOf("&quot;"));
+					}*/
+					List<String> imgSrcList = StringUtil.getImgStr(content);
+					if (imgSrcList != null && imgSrcList.size() > 0) {
+						imgUrl = imgSrcList.get(0);
 					}
 				}
-				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getMid(),ftsDocument.getStatusContent(),ftsDocument.getStatusContent(),ftsDocument.getContent(),
+				content = StringUtil.replaceImg(content);
+				FtsDocumentAlert ftsDocumentAlert = new FtsDocumentAlert(ftsDocument.getMid(),ftsDocument.getStatusContent(),ftsDocument.getStatusContent(),ftsDocument.getContent(),content,
 						ftsDocument.getUrlName(),ftsDocument.getCreatedAt(),ftsDocument.getSiteName(), ftsDocument.getGroupName(),ftsDocument.getCommtCount(),ftsDocument.getRttCount(),
-						ftsDocument.getScreenName(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),"other",imaUrl,"",0,"");
+						ftsDocument.getScreenName(),ftsDocument.getAppraise(),"",null,"other",ftsDocument.getMd5Tag(),"other",imgUrl,"",0,"");
 				list.add(ftsDocumentAlert);
 			}
 		} catch (Exception e) {
