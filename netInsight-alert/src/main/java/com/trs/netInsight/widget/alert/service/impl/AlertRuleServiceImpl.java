@@ -2029,6 +2029,38 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 //		System.err.println("预警规则备份表结束~~~~~~~~~~~~~");
 	}
 
+	@Override
+	public Object selectNextShowAlertRule(String id) {
+		User user = UserUtils.getUser();
+		ScheduleStatus open = ScheduleStatus.OPEN;
+		List<AlertRule> list = alertRuleRepository.findByUserIdAndStatus(user.getId(),open);
+		Map<String,Object> map = new HashMap<>();
+		AlertRule alertRule = null;
+		if (list != null && list.size() > 1) {
+			int index = 0;
+			for (int i = 0; i < list.size(); i++) {
+				if (id.equals(list.get(i).getId())) {
+					index = i;
+					break;
+				}
+			}
+			if (index == list.size() - 1) { // 这里是用的下标判断，判断当前这个是否是整个top的最后一个下标，是则拿前一个
+				alertRule = list.get(index - 1);
+			} else {
+				alertRule = list.get(index + 1);
+			}
+		}
+		if(alertRule==null){
+			map.put("id",null);
+			map.put("flag",null);
+			map.put("name",null);
+		}else{
+			map.put("id",alertRule.getId());
+			map.put("flag",1);
+			map.put("name",alertRule.getTitle());
+		}
+			return map;
+		}
 	/**
 	 * 混合列表按id顺序排序
 	 * @param ids

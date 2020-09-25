@@ -14,6 +14,8 @@ import com.trs.netInsight.widget.alert.util.ScheduleUtil;
 import com.trs.netInsight.widget.kafka.entity.AlertKafkaSend;
 import com.trs.netInsight.widget.kafka.util.AlertKafkaUtil;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
+import com.trs.netInsight.widget.user.entity.User;
+import com.trs.netInsight.widget.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,8 @@ public class AlertNum implements Job {
     @Value("${alert.auto.prefix}")
     private String alertAutoPrefix;
 
+    @Autowired
+    private UserRepository userRepository;
 
     public static final String hashName = "TOPIC";
     public static final String hashKey = "SID";
@@ -48,9 +52,18 @@ public class AlertNum implements Job {
         log.info("按数据量预警定时任务开始执行 ------------------");
         // 这个定时类找frequencyId为3的
         // 编写具体的业务逻辑
-        List<AlertRule> rules = alertRuleRepository.findByStatusAndAlertTypeAndFrequencyId(ScheduleStatus.OPEN,
+        List<AlertRule> rules1 = alertRuleRepository.findByStatusAndAlertTypeAndFrequencyId(ScheduleStatus.OPEN,
                 AlertSource.AUTO, "3");
-
+        List<AlertRule> rules = new ArrayList<>();
+        if(rules1 != null && rules1.size() > 0){
+            for(int i=0;i<rules1.size();i++){
+                String userid =  rules.get(i).getUserId();
+                User user = userRepository.findOne(userid);
+                if(user.getStatus().equals("0")){
+                    rules.add(rules1.get(i));
+                }
+            }
+        }
         if (rules != null && rules.size() > 0) {
             log.info("按数据量预警定时任务开启的数量为："+rules.size());
             for (AlertRule alertRule : rules) {

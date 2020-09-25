@@ -245,6 +245,12 @@ public class SpecialProject extends BaseEntity {
 	 */
 	@Column(name = "weight")
 	private boolean weight = false;
+
+	/**
+	 * 排序方式
+	 */
+	@Column(name = "sort")
+	private String sort;
 	
 	/**
      * 用作DateUtil返回时间

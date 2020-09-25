@@ -445,6 +445,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "timeRange", value = "发布时间范围(2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "sort", value = "排序方式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
 			@ApiImplicitParam(name = "share", value = "是否共享标记", dataType = "Boolean", paramType = "query", required = false),
@@ -470,6 +471,7 @@ public class ColumnController {
 						   @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 						   @RequestParam(value = "monitorSite", required = false) String monitorSite,
 						   @RequestParam(value = "weight", required = false) boolean weight,
+						   @RequestParam(value = "sort", required = false) String sort,
 						   @RequestParam(value = "simflag", required = false) String simflag,
 						   @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
 						   @RequestParam(value = "share", defaultValue = "false") boolean share,
@@ -583,6 +585,7 @@ public class ColumnController {
 		indexTab.setFilterInfo(filterInfo);
 		indexTab.setMediaArea(mediaArea);
 		indexTab.setContentArea(contentArea);
+		indexTab.setSort(sort);
 		if(StringUtil.isNotEmpty(indexPageId)){
 			IndexPage indexPage = indexPageService.findOne(indexPageId);
 			indexTab.setParentId(indexPage.getId());
@@ -673,6 +676,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开,默认为新闻)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "timeRange", value = "发布时间范围(2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "sort", value = "排序方式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
 			@ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
@@ -700,6 +704,7 @@ public class ColumnController {
 							  @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 							  @RequestParam(value = "monitorSite", required = false) String monitorSite,
 							  @RequestParam(value = "weight", required = false) boolean weight,
+							  @RequestParam(value = "sort", required = false) String sort,
 							  @RequestParam(value = "simflag", required = false) String simflag,
 							  @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
 							  @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
@@ -815,6 +820,7 @@ public class ColumnController {
 			indexTab.setMediaArea(mediaArea);
 			indexTab.setContentArea(contentArea);
 			indexTab.setWeight(weight);
+			indexTab.setSort(sort);
 			IndexPage indexPage = null;
 			// 根据另存为标识选择另存为与修改操作
 			if (copy) {

@@ -220,6 +220,12 @@ public class AlertRule extends BaseEntity {
 	private boolean weight = false;
 
 	/**
+	 * 排序方式
+	 */
+	@Column(name = "sort")
+	private String sort;
+
+	/**
 	 * 上次发送时间
 	 */
 	private Date lastSendTime;
