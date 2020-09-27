@@ -57,7 +57,7 @@ public class AlertNum implements Job {
         List<AlertRule> rules = new ArrayList<>();
         if(rules1 != null && rules1.size() > 0){
             for(int i=0;i<rules1.size();i++){
-                String userid =  rules.get(i).getUserId();
+                String userid =  rules1.get(i).getUserId();
                 User user = userRepository.findOne(userid);
                 if(user.getStatus().equals("0")){
                     rules.add(rules1.get(i));

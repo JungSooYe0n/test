@@ -7,23 +7,39 @@ import com.trs.netInsight.util.SpringUtil;
 import com.trs.netInsight.widget.kafka.constant.AlertKafkaConst;
 import com.trs.netInsight.widget.kafka.entity.AlertKafkaSend;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import java.util.List;
 import java.util.Random;
 @Slf4j
+@Component
 public class AlertKafkaUtil {
+    private static String TOPIC;
+    @Value("${alert.kafka.topic}")
+    public void setTOPIC(String TOPIC) {
+        AlertKafkaUtil.TOPIC = TOPIC;
+    }
+
+    private static List<String> TOPIC_LIST;
+    @Value("#{'${alert.kafka.topic.list}'.split(',')}")
+    public void setTopicList(List<String> topicList) {
+        TOPIC_LIST = topicList;
+    }
 
     public static void send(AlertKafkaSend message, boolean loop) {
         String jsonData = JSONObject.toJSONString(message);
         KafkaTemplate<String, String> kafkaTemplate = SpringUtil.getBean(KafkaTemplate.class);
-        String topic = AlertKafkaConst.KAFKA_TOPIC;
+
+        String topic = TOPIC;
         if (loop){
             // 随机获取topic
             Random random = new Random();
-            int index = random.nextInt(AlertKafkaConst.Topics.size());
-            topic = AlertKafkaConst.Topics.get(index);
+            int index = random.nextInt(TOPIC_LIST.size());
+            topic = TOPIC_LIST.get(index);
         }
         ListenableFuture<SendResult<String, String>> listenableFuture = kafkaTemplate.send(topic,
                 jsonData);
