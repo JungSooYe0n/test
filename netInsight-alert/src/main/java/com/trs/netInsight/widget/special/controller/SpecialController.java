@@ -1090,8 +1090,9 @@ public class SpecialController {
 	@RequestMapping(value = "/deleteProject", method = RequestMethod.POST)
 	public Object deleteProject(@RequestParam("projectId") String projectId) throws TRSException {
 		try {
+			Object object = specialService.selectNextShowSpecial(projectId,SpecialFlag.SpecialProjectFlag);
 			specialSubjectService.deleteProject(projectId);
-			return "delete success";
+			return object;
 		} catch (Exception e) {
 			throw new OperationException("删除失败,message" + e, e);
 		}
@@ -1109,6 +1110,7 @@ public class SpecialController {
 	@RequestMapping(value = "/delete", method = RequestMethod.POST)
 	public Object deleteSpecial(@RequestParam("specialId") String id) throws TRSException {
 		try {
+			Object object = specialService.selectNextShowSpecial(id,SpecialFlag.SpecialProjectFlag);
 			specialProjectService.delete(id);
 			// 删除缓存池
 			String sumKey = "sum" + id;
@@ -1117,7 +1119,7 @@ public class SpecialController {
 			// 删除专题指数记录集
 			String[] specialIds = { id };
 			this.computeService.delete(specialIds);
-			return "delete success";
+			return object;
 		} catch (Exception e) {
 			throw new OperationException("删除失败,message" + e, e);
 		}
@@ -1404,9 +1406,10 @@ public class SpecialController {
 	public Object deleteSubject(@RequestParam("id") String id) throws TRSException {
 		try {
 //			specialSubjectService.delete(id, "one");
+			Object object = specialService.selectNextShowSpecial(id,SpecialFlag.SpecialSubjectFlag);
 			specialSubjectService.deleteSubject(id);
 			// }
-			return "删除主题成功";
+			return object;
 		} catch (Exception e) {
 			throw new OperationException("删除主题失败" + e, e);
 		}

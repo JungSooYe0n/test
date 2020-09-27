@@ -112,6 +112,7 @@ public class IndexTabServiceImpl implements IIndexTabService {
 
 	@Transactional
 	@Override
+	@Transactional
 	public Object save(IndexTab indexTab, boolean share) {
 		IndexTab save = indexTabRepository.save(indexTab);
 		// 保存映射表

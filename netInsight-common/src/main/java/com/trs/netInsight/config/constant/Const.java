@@ -1147,6 +1147,9 @@ public class Const {
             put("正文", "exportContent");
             put("命中词", "hitWord");
             put("命中句", "hit");
+            put("转发数", "rttCount");
+            put("评论数", "commtCount");
+            put("点赞数", "prcount");
         }
     };
     /**
@@ -1171,6 +1174,9 @@ public class Const {
             put("正文", "exportContent");
             put("命中词", "hitWord");
             put("命中句", "hit");
+            put("转发数", "rttCount");
+            put("评论数", "commtCount");
+            put("点赞数", "prcount");
         }
     };
 
@@ -1415,8 +1421,8 @@ public class Const {
     /**
      * 信息过滤
      */
-    public static final List<String> FILTER_INFO = Arrays.asList("明星娱乐","影视剧场","婚恋交友","股票推荐","游戏广告","赌博彩票","涉黄信息","母婴广告","招生招聘",
-            "采购招标","转发抽奖");
+    public static final List<String> FILTER_INFO = Arrays.asList("明星娱乐","影视剧场","婚恋交友","股票信息","游戏信息","赌博彩票","涉黄信息","母婴广告","招生招聘",
+            "采购招标","转发抽奖","假证假票");
     public static final List<String> GATHER_TYPE_NEWS = Arrays.asList(
             Const.PAGE_SHOW_XINWEN,
             Const.PAGE_SHOW_LUNTAN,

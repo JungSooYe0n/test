@@ -1680,32 +1680,93 @@ public class DateUtil {
 		if (pattern1.matcher(time).matches()) {
 			// 如果满足xh/d/w/m/y(代表:近x时/天/周/月/年)这种格式
 			int timeNum = Integer.parseInt(time.substring(0, time.length() - 1));
+			//timeNum = timeNum>0?timeNum-1:0;
 			char timeFlag = time.charAt(time.length() - 1);
 			timeArray[1] = new SimpleDateFormat(yyyyMMddHHmmss).format(new Date());
 			switch (timeFlag) {
-			case 'h':
-				timeArray[0] = getDateBefore(timeNum, Calendar.HOUR_OF_DAY);
-				break;
-			case 'd':
+				case 'h':
+					timeArray[0] = getDateBefore(timeNum+1, Calendar.HOUR_OF_DAY);
+					break;
+				case 'd':
+					timeArray[0] = getDateBefore(timeNum, Calendar.DAY_OF_MONTH);
+					timeArray[0] = timeArray[0].substring(0,8)+"000000";
+					break;
+				case 'w':
+					timeArray[0] = getDateBefore(timeNum, Calendar.WEEK_OF_MONTH);
+					timeArray[0] = timeArray[0].substring(0,8)+"000000";
+					break;
+				case 'm':
+					timeArray[0] = getDateBefore(timeNum, Calendar.MONTH);
+					timeArray[0] = timeArray[0].substring(0,8)+"000000";
+					break;
+				case 'y':
+					timeArray[0] = getDateBefore(timeNum+1, Calendar.YEAR);
+					timeArray[0] = timeArray[0].substring(0,8)+"000000";
+					break;
+				case 'n':
+					timeArray[0] = getDateBefore(timeNum+1, Calendar.MINUTE);
+					timeArray[0] = timeArray[0].substring(0,8)+"000000";
+					break;
+				default:
+					break;
+			}
+			return timeArray;
+		} else if (pattern2.matcher(time).matches()) {
+			String dString = time.replaceAll("-", "").replaceAll(" ", "").replaceAll(":", "");
+			return dString.split(";");
+		} else {
+			throw new OperationException("传入了不支持的时间格式");
+		}
+	}
+
+	/**
+	 * n-1 * 24 + 当天时间
+	 * @param time
+	 * @return
+	 * @throws OperationException
+	 */
+	public static String[] formatTimeRange2(String time) throws OperationException {
+		// 可以不选择结束时间 以"至今"判断
+		String[] timeArray = new String[2];
+		// 检查time字符串是否符合要求,不符合要求抛出异常
+		if (StringUtils.isEmpty(time)) {
+			throw new OperationException("传入的时间为空");
+		}
+
+		time = time.replace("至今", formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
+
+		Pattern pattern1 = Pattern.compile("[0-9]*[hdwmyn]");
+		Pattern pattern2 = Pattern
+				.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2};\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+		if (pattern1.matcher(time).matches()) {
+			// 如果满足xh/d/w/m/y(代表:近x时/天/周/月/年)这种格式
+			int timeNum = Integer.parseInt(time.substring(0, time.length() - 1));
+			char timeFlag = time.charAt(time.length() - 1);
+			timeArray[1] = new SimpleDateFormat(yyyyMMddHHmmss).format(new Date());
+			switch (timeFlag) {
+				case 'h':
+					timeArray[0] = getDateBefore(timeNum, Calendar.HOUR_OF_DAY);
+					break;
+				case 'd':
 //				if (timeNum > 0) {
 //					timeNum = timeNum - 1;
 //				}
-				timeArray[0] = getDateBefore(timeNum, Calendar.DAY_OF_MONTH);
-				break;
-			case 'w':
-				timeArray[0] = getDateBefore(timeNum, Calendar.WEEK_OF_MONTH);
-				break;
-			case 'm':
-				timeArray[0] = getDateBefore(timeNum, Calendar.MONTH);
-				break;
-			case 'y':
-				timeArray[0] = getDateBefore(timeNum, Calendar.YEAR);
-				break;
-			case 'n':
-				timeArray[0] = getDateBefore(timeNum, Calendar.MINUTE);
-				break;
-			default:
-				break;
+					timeArray[0] = getDateBefore(timeNum, Calendar.DAY_OF_MONTH);
+					break;
+				case 'w':
+					timeArray[0] = getDateBefore(timeNum, Calendar.WEEK_OF_MONTH);
+					break;
+				case 'm':
+					timeArray[0] = getDateBefore(timeNum, Calendar.MONTH);
+					break;
+				case 'y':
+					timeArray[0] = getDateBefore(timeNum, Calendar.YEAR);
+					break;
+				case 'n':
+					timeArray[0] = getDateBefore(timeNum, Calendar.MINUTE);
+					break;
+				default:
+					break;
 			}
 			return timeArray;
 		} else if (pattern2.matcher(time).matches()) {
@@ -1738,7 +1799,7 @@ public class DateUtil {
 		if (pattern1.matcher(time).matches()) {
 			// 如果满足xh/d/w/m/y(代表:近x时/天/周/月/年)这种格式
 			int timeNum = Integer.parseInt(time.substring(0, time.length() - 1));
-			timeNum = timeNum>0?timeNum-1:0;
+			//timeNum = timeNum>0?timeNum-1:0;
 			char timeFlag = time.charAt(time.length() - 1);
 			timeArray[1] = new SimpleDateFormat(yyyyMMddHHmmss).format(new Date());
 			switch (timeFlag) {

@@ -4,8 +4,11 @@ import com.trs.netInsight.widget.column.entity.IndexTab;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -93,4 +96,8 @@ public interface IndexTabRepository
 	public List<IndexTab> findByIdIn(Collection<String> ids);
 
 
+	@Query(value = "update index_tab set filter_info=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveFilterInfo(String filterInfo, String id);
 }

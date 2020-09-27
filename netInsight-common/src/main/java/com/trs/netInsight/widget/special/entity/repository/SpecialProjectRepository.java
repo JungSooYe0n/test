@@ -6,8 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -144,4 +147,9 @@ public interface SpecialProjectRepository extends PagingAndSortingRepository<Spe
 	List<SpecialProject> findBySubGroupId(String subGroupId);
 
 	List<SpecialProject> findBySpecialType(SpecialType specialType);
+
+	@Query(value = "update special_project set filter_info=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	void saveFilterInfo(String filterInfo, String id);
 }

@@ -38,6 +38,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 数据导出Controller
@@ -910,17 +911,32 @@ public class ExportController {
 								@ApiParam("要生成文件的数据信息") @RequestBody ExportParam exportParam) throws TRSException {
 		String name = exportParam.getName();
 		String key = exportParam.getKey();
-		List<ExportField> exportField = exportParam.getExportField();
+		List<ExportField> exportField1 = exportParam.getExportField();
 		if (StringUtil.isEmpty(name)) {
 			throw new OperationException("导出文件名为空");
 		}
 		if (StringUtil.isEmpty(key)) {
 			throw new OperationException("从redis获取数据的key值为空");
 		}
-		if (exportField == null || exportField.size() == 0) {
+		if (exportField1 == null || exportField1.size() == 0) {
 			throw new OperationException("excel导出字段为空");
 		}
 		List<FtsDocumentCommonVO> volist = RedisUtil.getMix(key);
+		List<String> list =volist.stream().
+				collect(Collectors.groupingBy(dog->dog.getGroupName(),Collectors.counting()))
+				.entrySet().stream()
+				.filter(entry->entry.getValue()>=1)
+				.map(entry->entry.getKey())
+				.collect(Collectors.toList());
+		System.out.println(list.toString());
+		List<ExportField> exportField =new ArrayList<>();
+		for(int i=0;i<list.size();i++){
+			for(int j=0;j<exportField1.size();j++){
+				if(exportField1.get(j).getGroupName().equals(Const.EXPORT_SOURCE_EXCEL_SHEET.get(list.get(i)))){
+					exportField.add(exportField1.get(j));
+				}
+			}
+		}
 		if (volist == null) {
 			throw new OperationException("从redis中没有获取到数据");
 		}

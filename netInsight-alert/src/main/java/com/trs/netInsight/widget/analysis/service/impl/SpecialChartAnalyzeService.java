@@ -940,9 +940,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, "政府网站", Operator.Equal);
 				break;
 			case Const.MEDIA_VIEW:
-				groupNames = "新闻";
-				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, "中央党媒", Operator.Equal);
-				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, "地方党媒", Operator.Equal);
+				groupNames = "国内新闻";
+				Set<String> valueArrList = new HashSet<>();
+				valueArrList.add("中央党媒");
+				valueArrList.add("地方党媒");
+				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+//				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, "中央党媒", Operator.Equal);
+//				builder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, "地方党媒", Operator.Equal);
 				break;
 			case Const.EXPORT_VIEW:
 				groupNames = "新闻";

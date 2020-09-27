@@ -262,8 +262,8 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
     if (isAfterOne && ObjectUtil.isNotEmpty(indexSequenceList)){
         seq = indexSequenceList.get(indexSequenceList.size()-1).getSequence()+1;
     }
-    IndexSequence indexSequence = indexSequenceRepository.findByIndexId(indexId);
-    if (ObjectUtil.isEmpty(indexSequence)) {
+    List<IndexSequence> sequenceList = indexSequenceRepository.findByIndexId(indexId);
+    if (ObjectUtil.isEmpty(sequenceList)) {
         IndexSequence indexSequence1 = new IndexSequence();
         indexSequence1.setParentId(pageId);
         indexSequence1.setIndexTabId(tabId);
@@ -273,12 +273,12 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
         indexSequenceRepository.save(indexSequence1);
         indexSequenceRepository.save(indexSequenceList);
     }else {
-        indexSequence.setParentId(pageId);
-        indexSequence.setIndexTabId(tabId);
-        indexSequence.setIndexFlag(indexFlag);
-        indexSequence.setIndexId(indexId);
-        indexSequence.setSequence(seq);
-        indexSequenceRepository.save(indexSequence);
+        sequenceList.get(0).setParentId(pageId);
+        sequenceList.get(0).setIndexTabId(tabId);
+        sequenceList.get(0).setIndexFlag(indexFlag);
+        sequenceList.get(0).setIndexId(indexId);
+        sequenceList.get(0).setSequence(seq);
+        indexSequenceRepository.save(sequenceList);
         indexSequenceRepository.save(indexSequenceList);
     }
 }
