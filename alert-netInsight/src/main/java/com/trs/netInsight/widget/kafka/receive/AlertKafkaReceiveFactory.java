@@ -24,7 +24,7 @@ public class AlertKafkaReceiveFactory {
     private INoticeSendService noticeSendService;
 
 
-    @KafkaListener(topics = {AlertKafkaConst.KAFKA_TOPIC_4,AlertKafkaConst.KAFKA_TOPIC_1,AlertKafkaConst.KAFKA_TOPIC_2,AlertKafkaConst.KAFKA_TOPIC_3})
+    @KafkaListener(topics = {AlertKafkaConst.KAFKA_TOPIC_4,AlertKafkaConst.KAFKA_TOPIC_1,AlertKafkaConst.KAFKA_TOPIC_2,AlertKafkaConst.KAFKA_TOPIC_3,AlertKafkaConst.KAFKA_TOPIC_5,AlertKafkaConst.KAFKA_TOPIC_6,AlertKafkaConst.KAFKA_TOPIC_7,AlertKafkaConst.KAFKA_TOPIC_8})
     public void listen(ConsumerRecord<?, ?> record) {
         log.info("kafka接收成功");
         Optional<?> kafkaMessage = Optional.ofNullable(record.value());
