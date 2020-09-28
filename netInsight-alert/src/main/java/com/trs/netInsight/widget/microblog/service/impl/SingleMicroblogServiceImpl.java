@@ -1941,7 +1941,7 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
         if (ObjectUtil.isNotEmpty(ftsDocumentStatuses)){
             QueryBuilder builderUser = new QueryBuilder();
             builderUser.filterField(FtsFieldConst.FIELD_MID,"\""+ftsDocumentStatuses.get(0).getMid()+"\"",Operator.Equal);
-            builderUser.orderBy(FtsFieldConst.FIELD_URLTIME,true);
+            builderUser.orderBy(FtsFieldConst.FIELD_AGRE,true);
             builderUser.page(0,10);
             builderUser.setDatabase(Const.SINAREVIEWS);
             List<FtsDocumentReviews> ftsDocumentReviews = hybase8SearchService.ftsQuery(builderUser, FtsDocumentReviews.class, false, false,false,null);
