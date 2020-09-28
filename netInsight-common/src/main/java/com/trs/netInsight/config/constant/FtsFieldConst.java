@@ -551,6 +551,9 @@ public class FtsFieldConst {
 	public static final String FIELD_EMOTION = "IR_EMOTION";
 	public static final String FIELD_EMOTION_2 = "IR_EMOTION2";
 
+//	热门评论点赞数
+	public static final String FIELD_AGRE = "IR_AGREE";
+
 	//	--------------------已发预警------------
 	/*
 	 * 发送方式
