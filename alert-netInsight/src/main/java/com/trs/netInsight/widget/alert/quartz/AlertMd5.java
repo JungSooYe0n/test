@@ -70,7 +70,7 @@ public class AlertMd5 implements Job {
            for(int i=0;i<rules1.size();i++){
                String userid =  rules1.get(i).getUserId();
                User user = userRepository.findOne(userid);
-               if(user.getStatus().equals("0")){
+               if(user!=null&&user.getStatus().equals("0")){
                    rules.add(rules1.get(i));
                }
            }
