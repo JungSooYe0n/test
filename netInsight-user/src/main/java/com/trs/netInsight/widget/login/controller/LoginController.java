@@ -113,6 +113,7 @@ public class LoginController {
 		// if (!StringUtils.equalsIgnoreCase(code, v)) {
 		// throw new TRSException(CodeUtils.VCODE_FAIL, "验证码错误!");
 		// }
+		log.info("loginName=="+userName+",pwd=="+password);
 		User byUserName = userService.findByUserName(userName);
 		if(userService.findByUserName(userName) != null){
 			User user = userService.findByUserName(userName);
@@ -137,6 +138,7 @@ public class LoginController {
 				}
 			}
 		}
+
 		password = MD5.getFromBase64(MD5.getFromBase64(password)).replace("ZEhKelRtVjBhVzV6YVdkb2RBPT0=","");
 		UsernamePasswordToken token = new UsernamePasswordToken(userName, password, rememberMe);
 		return loginService.login(token, userName, NetworkUtil.getIpAddress(request));
