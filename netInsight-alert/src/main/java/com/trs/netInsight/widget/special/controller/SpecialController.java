@@ -1114,15 +1114,18 @@ public class SpecialController {
 	public Object deleteSpecial(@RequestParam("specialId") String id) throws TRSException {
 		try {
 			Object object = specialService.selectNextShowSpecial(id,SpecialFlag.SpecialProjectFlag);
-			specialProjectService.delete(id);
-			// 删除缓存池
-			String sumKey = "sum" + id;
-			TimingCachePool.clear(sumKey);
-
-			// 删除专题指数记录集
-			String[] specialIds = { id };
-			this.computeService.delete(specialIds);
+			specialSubjectService.deleteProject(id);
 			return object;
+//			Object object = specialService.selectNextShowSpecial(id,SpecialFlag.SpecialProjectFlag);
+//			specialProjectService.delete(id);
+//			// 删除缓存池
+//			String sumKey = "sum" + id;
+//			TimingCachePool.clear(sumKey);
+//
+//			// 删除专题指数记录集
+//			String[] specialIds = { id };
+//			this.computeService.delete(specialIds);
+//			return object;
 		} catch (Exception e) {
 			throw new OperationException("删除失败,message" + e, e);
 		}
