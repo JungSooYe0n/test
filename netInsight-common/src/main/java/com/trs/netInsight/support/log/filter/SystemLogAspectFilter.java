@@ -45,7 +45,7 @@ import com.trs.netInsight.widget.user.entity.User;
 
 /**
  * 日志类，主要拦截加了log注解的，写入日志
- * 
+ *
  * @Type SystemLogFilter.java
  * @Desc
  * @author 谷泽昊
@@ -157,6 +157,7 @@ public class SystemLogAspectFilter {
 			return proceed;
 		} catch (Throwable throwable) {
 			endTime = new Date();
+			if(trsl == null) trsl = "searchExcepton::"+getTrsl(request);
 			throwNewTRSException(throwable, depositPattern, parames, methodDescription, systemLogType,
 					systemLogOperation, requestIp, requestUri, startTime, endTime, osInfo, browserInfo, sessionId,
 					operationPosition, user.getUserName(), trsl);
