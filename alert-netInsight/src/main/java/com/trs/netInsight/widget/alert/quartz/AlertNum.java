@@ -27,6 +27,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparingLong;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * 定时任务类
@@ -100,10 +105,6 @@ public class AlertNum implements Job {
                                     }
                                 }
                                 if (dataList.size() > 0) {
-                                    //将当前数据挨个转化为对应的数据格式，并发送
-                                    if (dataList.size() > 20) {
-                                        dataList = dataList.subList(dataList.size() - 20, dataList.size());
-                                    }
                                     List<Map<String, String>> listMap = new ArrayList<>();
                                     for (Object data : dataList) {
                                         Map<String, String> dataMap = (LinkedHashMap<String, String>) data;
@@ -113,7 +114,24 @@ public class AlertNum implements Job {
                                             listMap.add(oneMap);
                                         }
                                     }
+                                    //去除标题重复的预警信息，保留一条
+                                    for (int i = 0; i < listMap.size(); i++) {
+                                        Map m1 = listMap.get(i);
 
+                                        for (int j = i+1; j < listMap.size(); j++) {
+                                            Map m2 = listMap.get(j);
+                                            if(m1.get("title").equals(m2.get("title"))){
+                                                listMap.remove(j);
+                                                j--;
+                                            }
+
+                                        }
+
+                                    }
+                                    //将当前数据挨个转化为对应的数据格式，并发送
+                                    if (listMap.size() > 20) {
+                                        listMap = listMap.subList(listMap.size() - 20, listMap.size());
+                                    }
                                     if(listMap.size() >0){
                                         Map<String, Object> map = new HashMap<>();
                                         map.put("listMap", listMap);
