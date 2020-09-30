@@ -5,6 +5,7 @@ import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
@@ -43,6 +44,7 @@ public class AlertNum implements Job {
     @Autowired
     private UserRepository userRepository;
 
+
     public static final String hashName = "TOPIC";
     public static final String hashKey = "SID";
 
@@ -59,7 +61,16 @@ public class AlertNum implements Job {
             for(int i=0;i<rules1.size();i++){
                 String userid =  rules1.get(i).getUserId();
                 User user = userRepository.findOne(userid);
-                if(user!=null&&user.getStatus().equals("0")){
+                //剩余有效期转换
+                if(user != null){
+                    if (UserUtils.FOREVER_DATE.equals(user.getExpireAt())){
+                        user.setSurplusDate("永久");
+                    }else {
+                        String days = com.trs.netInsight.util.DateUtil.timeDifferenceDays(user.getExpireAt());
+                        user.setSurplusDate(days);
+                    }
+                }
+                if(user != null && "0".equals(user.getStatus()) && !"过期".equals(user.getSurplusDate())){
                     rules.add(rules1.get(i));
                 }
             }
@@ -102,6 +113,7 @@ public class AlertNum implements Job {
                                             listMap.add(oneMap);
                                         }
                                     }
+
                                     if(listMap.size() >0){
                                         Map<String, Object> map = new HashMap<>();
                                         map.put("listMap", listMap);

@@ -13,6 +13,7 @@ import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.Frequency;
 import com.trs.netInsight.widget.alert.entity.PastMd5;
@@ -70,7 +71,16 @@ public class AlertMd5 implements Job {
            for(int i=0;i<rules1.size();i++){
                String userid =  rules1.get(i).getUserId();
                User user = userRepository.findOne(userid);
-               if(user!=null&&user.getStatus().equals("0")){
+               //剩余有效期转换
+               if(user != null){
+                   if (UserUtils.FOREVER_DATE.equals(user.getExpireAt())){
+                       user.setSurplusDate("永久");
+                   }else {
+                       String days = com.trs.netInsight.util.DateUtil.timeDifferenceDays(user.getExpireAt());
+                       user.setSurplusDate(days);
+                   }
+               }
+               if(user!=null && "0".equals(user.getStatus()) && !"过期".equals(user.getSurplusDate())){
                    rules.add(rules1.get(i));
                }
            }
