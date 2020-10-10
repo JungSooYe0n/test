@@ -303,4 +303,6 @@ public interface IAlertRuleService {
 	public void updateAll(List<AlertRule> alertRules);
 
 	public void updateSimple();
+
+	Object selectNextShowAlertRule(String id);
 }

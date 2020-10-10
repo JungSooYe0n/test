@@ -184,7 +184,13 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 */
 	@Column(name = "weight")
 	private boolean weight = false;
-	
+
+	/**
+	 * 排序方式
+	 */
+	@Column(name = "sort")
+	private String sort;
+
 	/**
 	 * 50为半栏 100为通栏
 	 */
@@ -344,8 +350,8 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	}
 
 	public IndexTab(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, boolean hide, String keyWord,
-                    String excludeWords, String excludeWordIndex,String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
-                    int tabWidth, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
+					String excludeWords, String excludeWordIndex,String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
+					int tabWidth, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
 					String contentArea,String mediaArea) {
 		this.name = name;
 		this.trsl = trsl;
@@ -376,6 +382,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.mediaArea = mediaArea;
 	}
 
+
 	/**
 	 * 复制tab，谨慎使用，会更新持久态对象
 	 * @date Created at 2018年3月22日  上午11:04:55
@@ -402,7 +409,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	public IndexTab tabCopy(){
 		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb,monitorSite, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
-				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,tabWidth,oneName,notSids,
+				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,sort,tabWidth,oneName,notSids,
 				mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 		return indexTab;
 	}

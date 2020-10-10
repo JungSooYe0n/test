@@ -5,12 +5,9 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.handler.result.FormatResult;
-import com.trs.netInsight.support.hybaseRedis.HybaseRead;
-import com.trs.netInsight.util.CodeUtils;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
+import com.trs.netInsight.widget.alert.constant.AlertAutoConst;
 import com.trs.netInsight.widget.alert.entity.AlertAccount;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
@@ -39,7 +36,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 预警接口
@@ -69,6 +70,35 @@ public class AlertRuleController {
 	private OrganizationRepository organizationRepository;
 	@Value("${http.client}")
 	private boolean httpClient;
+	@Value("${http.alert.netinsight.url}")
+	private String alertNetinsightUrl;
+
+	private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+
+	/**
+	 * 请求自动预警工程项目的修改自动预警预警 - 只有按数量预警可以修改成功
+	 * 需要自动预警时，再去数据中心注册相关信息，所以将管理交给自动预警项目，自动预警项目启动时才可注册
+	 * @param alertRule
+	 * @param interfaceInfo
+	 */
+	private void managementAutoAlertRule(AlertRule alertRule, String interfaceInfo) {
+		if (alertRule != null && StringUtil.isNotEmpty(alertRule.getId()) && StringUtil.isNotEmpty(interfaceInfo)) {
+			if (AlertSource.ARTIFICIAL.equals(alertRule.getAlertType())) {
+				//当前为手动预警，不可以进行自动预警的注册，但是如果之前是自动预警，则将当前预警信息删除
+				interfaceInfo = AlertAutoConst.alertNetInsight_delete_auto;
+			}
+			if("md5".equals(alertRule.getCountBy())){
+				//当前为按热度值预警，热度值预警不在数据中心的自动预警中注册，所以需要判断之前是否有
+				interfaceInfo = AlertAutoConst.alertNetInsight_delete_auto;
+			}
+			Map<String, String> param = new HashMap<>();
+			param.put("id", alertRule.getId());
+			String result = HttpUtil.doPost(alertNetinsightUrl + interfaceInfo, param, "utf-8");
+			log.info("接口请求结果为：" + result);
+		} else {
+			log.info("方法执行失败，当前存在个别数据为空");
+		}
+	}
 
 	/**
 	 * 分页查询(分组)
@@ -175,7 +205,8 @@ public class AlertRuleController {
 			@ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
 			@ApiParam("微信表达式") @RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
 			@ApiParam("是否按权重查找") @RequestParam(value = "weight", required = false) boolean weight,
-			@ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
+		    @ApiParam("排序方式") @RequestParam(value = "sort", required = false) String sort,
+		    @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
 			@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
@@ -259,13 +290,14 @@ public class AlertRuleController {
 		// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
 		AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, repetition, irSimflag,irSimflagAll,groupName, anyKeyword,
 				excludeWords,excludeWordsIndex, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
-				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight, null, null,
+				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight,sort, null, null,
 				countBy, frequencyId, md5Num, md5Range, false, false);
 		// timeInterval看逻辑是按分钟存储 2h 120
 		try {
 			// 验证方法
 			AlertRule addAlertRule = alertRuleService.addAlertRule(alertRule);
 			if (addAlertRule != null) {
+				fixedThreadPool.execute(() -> this.managementAutoAlertRule(addAlertRule, AlertAutoConst.alertNetInsight_save_auto));
 				return addAlertRule.getId();
 			}
 		} catch (Exception e) {
@@ -332,7 +364,8 @@ public class AlertRuleController {
 			@ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
 			@ApiParam("微信表达式") @RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
 			@ApiParam("是否按权重查找") @RequestParam(value = "weight", required = false) boolean weight,
-			@ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
+		    @ApiParam("排序方式") @RequestParam(value = "sort", required = false) String sort,
+		    @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
 			@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
@@ -416,6 +449,7 @@ public class AlertRuleController {
 		alertRule.setReceiver(null);
 		alertRule.setIrSimflag(irSimflag);
 		alertRule.setWeight(weight);
+		alertRule.setSort(sort);
 		alertRule.setIrSimflagAll(irSimflagAll);
 		String frequencyId = null;
 		// 确定定时预警时走哪个方法
@@ -446,7 +480,9 @@ public class AlertRuleController {
 		alertRule.setMd5Range(md5Range);
 		try {
 			// 验证方法
-			if (alertRuleService.addAlertRule(alertRule) != null) {
+			AlertRule alertRuleUpdate = alertRuleService.addAlertRule(alertRule);
+			if (alertRuleUpdate != null) {
+				fixedThreadPool.execute(() -> this.managementAutoAlertRule(alertRuleUpdate, AlertAutoConst.alertNetInsight_save_auto));
 				return "修改预警成功！";
 			}
 		} catch (Exception e) {
@@ -610,7 +646,9 @@ public class AlertRuleController {
 		alertRule.setStatus(statusValue);
 		try {
 			// 验证方法
-			if (alertRuleService.addAlertRule(alertRule) != null) {
+			AlertRule alertRuleUpdate = alertRuleService.addAlertRule(alertRule);
+			if (alertRuleUpdate != null) {
+				fixedThreadPool.execute(() -> this.managementAutoAlertRule(alertRuleUpdate, AlertAutoConst.alertNetInsight_update_status_auto));
 				return "修改预警成功！";
 			}
 		} catch (Exception e) {
@@ -631,8 +669,12 @@ public class AlertRuleController {
 	@RequestMapping(value = "/delete", method = RequestMethod.GET)
 	public Object onOrOff(@ApiParam("预警规则id") @RequestParam("id") String id) throws OperationException {
 		try {
+			AlertRule alertRule = alertRuleService.findOne(id);
+			Object result = alertRuleService.selectNextShowAlertRule(id);
 			alertRuleService.delete(id);
-			return "删除预警成功！";
+			fixedThreadPool.execute(() -> this.managementAutoAlertRule(alertRule, AlertAutoConst.alertNetInsight_delete_auto));
+			//return "删除预警成功！";
+			return result;
 		} catch (Exception e) {
 			throw new OperationException("删除预警失败,message:" + e, e);
 		}

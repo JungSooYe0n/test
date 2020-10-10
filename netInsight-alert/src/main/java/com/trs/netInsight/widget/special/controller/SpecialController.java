@@ -205,6 +205,7 @@ public class SpecialController {
 			@ApiImplicitParam(name = "source", value = "来源", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "groupName", value = "分组名", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "weight", value = "是否按照权重查找", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "sort", value = "排序方式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "monitorSite", value = "监测网站", dataType = "String", paramType = "query", required = false),
@@ -228,6 +229,7 @@ public class SpecialController {
 							 @RequestParam(value = "source", required = false) String source,
 							 @RequestParam(value = "groupName", required = false) String groupName,
 							 @RequestParam(value = "weight", required = false) boolean weight,
+							 @RequestParam(value = "sort", required = false) String sort,
 							 @RequestParam(value = "simflag", required = false) String simflag,
 							 @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 							 @RequestParam(value = "monitorSite", required = false) String monitorSite,
@@ -332,6 +334,7 @@ public class SpecialController {
 				specialProject.setFilterInfo(filterInfo);
 				specialProject.setMediaArea(mediaArea);
 				specialProject.setContentArea(contentArea);
+				specialProject.setSort(sort);
 				specialService.createSpecial(specialProject);
 				PerpetualPool.put(userId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
 				return specialProject;
@@ -1086,9 +1089,9 @@ public class SpecialController {
 	 */
 	@ApiOperation("删除专题（新版）")
 	@FormatResult
-	@ApiImplicitParams({ @ApiImplicitParam(name = "projectId", value = "专题Id", dataType = "String", paramType = "query") })
+	@ApiImplicitParams({ @ApiImplicitParam(name = "specialId", value = "专题Id", dataType = "String", paramType = "query") })
 	@RequestMapping(value = "/deleteProject", method = RequestMethod.POST)
-	public Object deleteProject(@RequestParam("projectId") String projectId) throws TRSException {
+	public Object deleteProject(@RequestParam("specialId") String projectId) throws TRSException {
 		try {
 			Object object = specialService.selectNextShowSpecial(projectId,SpecialFlag.SpecialProjectFlag);
 			specialSubjectService.deleteProject(projectId);
@@ -1111,15 +1114,18 @@ public class SpecialController {
 	public Object deleteSpecial(@RequestParam("specialId") String id) throws TRSException {
 		try {
 			Object object = specialService.selectNextShowSpecial(id,SpecialFlag.SpecialProjectFlag);
-			specialProjectService.delete(id);
-			// 删除缓存池
-			String sumKey = "sum" + id;
-			TimingCachePool.clear(sumKey);
-
-			// 删除专题指数记录集
-			String[] specialIds = { id };
-			this.computeService.delete(specialIds);
+			specialSubjectService.deleteProject(id);
 			return object;
+//			Object object = specialService.selectNextShowSpecial(id,SpecialFlag.SpecialProjectFlag);
+//			specialProjectService.delete(id);
+//			// 删除缓存池
+//			String sumKey = "sum" + id;
+//			TimingCachePool.clear(sumKey);
+//
+//			// 删除专题指数记录集
+//			String[] specialIds = { id };
+//			this.computeService.delete(specialIds);
+//			return object;
 		} catch (Exception e) {
 			throw new OperationException("删除失败,message" + e, e);
 		}

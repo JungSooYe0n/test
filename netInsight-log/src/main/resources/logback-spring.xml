@@ -100,7 +100,7 @@
     </appender>
     
     <!-- 指定业务类的日志记录示例 -->
-    <appender name="search" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!--<appender name="search" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/ni-hybase-search.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>logs/bak/ni-hybase-search.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
@@ -110,11 +110,11 @@
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
-    </appender>
+    </appender>-->
     
-    <logger name="com.trs.netInsight.com.trs.netInsight.support.fts.impl.Hybase8SearchImpl" level="DEBUG" additivity="false">
+    <!--<logger name="com.trs.netInsight.support.fts.impl.Hybase8SearchImpl" level="DEBUG" additivity="false">
     	<appender-ref ref="search"/>
-    </logger>
+    </logger>-->
     
     <!-- 记录超时信息 -->
     <appender name="overtimelog" class="ch.qos.logback.core.rolling.RollingFileAppender">

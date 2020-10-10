@@ -423,6 +423,8 @@ public class ShiroConfiguration {
 		//filterChainDefinitionMap.put("/index.html/**", "anon");
 		//知识库录入
 		filterChainDefinitionMap.put("/knowledgeBase/saveKnowledge", "anon");
+		///autoAlert  自动预警向数据中心注册
+		filterChainDefinitionMap.put("/autoAlert/*", "anon");
 		//修改栏目数据的方法
 		filterChainDefinitionMap.put("/column/history/*", "anon");
 		// 从数据库获得权限 --->过滤器中的权限,登录/同意用户在线...

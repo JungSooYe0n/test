@@ -134,7 +134,7 @@ public class CommonListChartUtil {
         for (String str : split) {
             if (Const.SOURCE_GROUPNAME_CONTRAST.containsKey(str)) {
                 String group = Const.SOURCE_GROUPNAME_CONTRAST.get(str);
-                if( !sourceList.contains(group)){
+                if( !sourceList.contains(group) && StringUtil.isNotEmpty(group)){
                     sourceList.add(group);
                 }
             } else if("传统媒体".equals(str)){
@@ -143,7 +143,7 @@ public class CommonListChartUtil {
                 for(String news:newsArr){
                     if (Const.SOURCE_GROUPNAME_CONTRAST.containsKey(news)) {
                         String group = Const.SOURCE_GROUPNAME_CONTRAST.get(news);
-                        if( !sourceList.contains(group)){
+                        if( !sourceList.contains(group) && StringUtil.isNotEmpty(group)){
                             sourceList.add(group);
                         }
                     }
