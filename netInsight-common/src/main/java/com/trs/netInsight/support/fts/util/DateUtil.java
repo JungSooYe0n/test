@@ -10,6 +10,7 @@ import com.trs.netInsight.support.fts.entity.FtsDocument;
 import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
+import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -1198,6 +1199,36 @@ public class DateUtil {
 		} else {
 			return "刚刚";
 		}
+	}
+	public static boolean getNowBetween30Day(Date datetime) {
+		if (ObjectUtil.isEmpty(datetime)) {
+			return false;
+		}
+		Calendar calendar = new GregorianCalendar();
+		Date trialTime = new Date();
+		calendar.setTime(trialTime);
+		Calendar ca = Calendar.getInstance();
+
+		ca.setTime(datetime);
+		String M = ((ca.get(Calendar.MONTH) + 1) + "").length() == 1 ? "0" + (ca.get(Calendar.MONTH) + 1)
+				: (ca.get(Calendar.MONTH) + 1) + "";
+		String d = (ca.get(Calendar.DATE) + "").length() == 1 ? "0" + ca.get(Calendar.DATE)
+				: ca.get(Calendar.DATE) + "";
+		String h = (ca.get(Calendar.HOUR_OF_DAY) + "").length() == 1 ? "0" + ca.get(Calendar.HOUR_OF_DAY)
+				: ca.get(Calendar.HOUR_OF_DAY) + "";
+		String m = (ca.get(Calendar.MINUTE) + "").length() == 1 ? "0" + ca.get(Calendar.MINUTE)
+				: ca.get(Calendar.MINUTE) + "";
+		if (calendar.get(Calendar.YEAR) != ca.get(Calendar.YEAR)
+				|| calendar.get(Calendar.MONTH) != ca.get(Calendar.MONTH)) {
+			return true;
+		} else if (calendar.get(Calendar.DATE) > ca.get(Calendar.DATE)) {
+			int date = calendar.get(Calendar.DATE) - ca.get(Calendar.DATE);
+			if (date >= 30) return true;
+
+		}else {
+			return false;
+		}
+		return false;
 	}
 
 	public static Long[] getCurrentDayIntervalTime() {
