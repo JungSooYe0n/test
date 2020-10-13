@@ -104,7 +104,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("filterInfo", chart.getFilterInfo());
                 chartMap.put("contentArea", chart.getContentArea());
                 chartMap.put("mediaArea", chart.getMediaArea());
-
+                chartMap.put("pointToId", chart.getParentId());
                 result.add(chartMap);
             }
             return new PagedList<Object>(result,pageNo,
