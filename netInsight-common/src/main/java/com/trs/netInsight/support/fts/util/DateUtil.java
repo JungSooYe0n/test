@@ -2289,7 +2289,7 @@ public class DateUtil {
 		QueryBuilder builder = new QueryBuilder();
 		//限制时间范围查库 时间不存在时底层限制在一个月内导致有些信息查询不到
 		if(StringUtil.isNotEmpty(urlTime)){
-			SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd2);
+			SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
 			Date start = null;
 			Date end = null;
 			String startString ;
