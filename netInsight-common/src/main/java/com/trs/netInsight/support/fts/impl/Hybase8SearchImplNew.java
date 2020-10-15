@@ -1420,69 +1420,71 @@ public class Hybase8SearchImplNew implements FullTextSearch {
      * @return
      */
     private boolean isOverOneByTrsl(String trsl, boolean isDataDate, String type) {
-        String param = null;
-        if (StringUtils.isNotBlank(trsl)) {
-            if (trsl.contains(FtsFieldConst.FIELD_URLTIME)) {
-                int be = trsl.indexOf(FtsFieldConst.FIELD_URLTIME);
-                param = trsl.substring(be, trsl.indexOf("]", be) + 1);
-                if (StringUtils.isBlank(param)) {
-                    param = paramNull(type);
-                }
-                String timeRangeByTrsl = TrslUtil.getTimeRangeByTrsl(param);
-                if (StringUtils.isNotBlank(timeRangeByTrsl)) {
-                    String[] times = timeRangeByTrsl.split(";");
-                    if (times != null && times.length > 1) {
-                        Date startDate = DateUtil.stringToDate(times[0], DateUtil.yyyyMMddHHmmss);
-                        Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
-                        // 进行时间对比
-                        Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
-                        if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
+        if (StringUtil.isNotEmpty(type) && (type.equals("special") || type.equals("column"))) {
+            String param = null;
+            if (StringUtils.isNotBlank(trsl)) {
+                if (trsl.contains(FtsFieldConst.FIELD_URLTIME)) {
+                    int be = trsl.indexOf(FtsFieldConst.FIELD_URLTIME);
+                    param = trsl.substring(be, trsl.indexOf("]", be) + 1);
+                    if (StringUtils.isBlank(param)) {
+                        param = paramNull(type);
                     }
+                    String timeRangeByTrsl = TrslUtil.getTimeRangeByTrsl(param);
+                    if (StringUtils.isNotBlank(timeRangeByTrsl)) {
+                        String[] times = timeRangeByTrsl.split(";");
+                        if (times != null && times.length > 1) {
+                            Date startDate = DateUtil.stringToDate(times[0], DateUtil.yyyyMMddHHmmss);
+                            Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
+                            // 进行时间对比
+                            Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
+                            if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
+                        }
+                    }
+
+                    return false;
+                } else if (trsl.contains(FtsFieldConst.FIELD_LOADTIME)) {
+                    int be = trsl.indexOf(FtsFieldConst.FIELD_LOADTIME);
+                    param = trsl.substring(be, trsl.indexOf("]", be) + 1);
+                    if (StringUtils.isBlank(param)) {
+                        param = paramNull(type);
+                    }
+                    String timeRangeByTrsl = TrslUtil.getLoadTimeRangeByTrsl(param);
+                    if (StringUtils.isNotBlank(timeRangeByTrsl)) {
+                        String[] times = timeRangeByTrsl.split(";");
+                        if (times != null && times.length > 1) {
+                            Date startDate = DateUtil.stringToDate(times[0], DateUtil.yyyyMMddHHmmss);
+                            Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
+                            // 进行时间对比
+                            Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
+                            if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
+                        }
+                    }
+
+                    return false;
+                } else if (trsl.contains(FtsFieldConst.FIELD_HYLOAD_TIME)) {
+                    int be = trsl.indexOf(FtsFieldConst.FIELD_HYLOAD_TIME);
+                    param = trsl.substring(be, trsl.indexOf("]", be) + 1);
+                    if (StringUtils.isBlank(param)) {
+                        param = paramNull(type);
+                    }
+                    String timeRangeByTrsl = TrslUtil.getHybaseTimeRangeByTrsl(param);
+                    if (StringUtils.isNotBlank(timeRangeByTrsl)) {
+                        String[] times = timeRangeByTrsl.split(";");
+                        if (times != null && times.length > 1) {
+                            Date startDate = DateUtil.stringToDate(times[0], DateUtil.yyyyMMddHHmmss);
+                            Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
+                            // 进行时间对比
+                            Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
+                            if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
+                            return false;
+                        }
+                    }
+
+                    return false;
                 }
 
-                return false;
-            } else if (trsl.contains(FtsFieldConst.FIELD_LOADTIME)) {
-                int be = trsl.indexOf(FtsFieldConst.FIELD_LOADTIME);
-                param = trsl.substring(be, trsl.indexOf("]", be) + 1);
-                if (StringUtils.isBlank(param)) {
-                    param = paramNull(type);
-                }
-                String timeRangeByTrsl = TrslUtil.getLoadTimeRangeByTrsl(param);
-                if (StringUtils.isNotBlank(timeRangeByTrsl)) {
-                    String[] times = timeRangeByTrsl.split(";");
-                    if (times != null && times.length > 1) {
-                        Date startDate = DateUtil.stringToDate(times[0], DateUtil.yyyyMMddHHmmss);
-                        Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
-                        // 进行时间对比
-                        Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
-                        if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
-                    }
-                }
 
-                return false;
-            } else if (trsl.contains(FtsFieldConst.FIELD_HYLOAD_TIME)) {
-                int be = trsl.indexOf(FtsFieldConst.FIELD_HYLOAD_TIME);
-                param = trsl.substring(be, trsl.indexOf("]", be) + 1);
-                if (StringUtils.isBlank(param)) {
-                    param = paramNull(type);
-                }
-                String timeRangeByTrsl = TrslUtil.getHybaseTimeRangeByTrsl(param);
-                if (StringUtils.isNotBlank(timeRangeByTrsl)) {
-                    String[] times = timeRangeByTrsl.split(";");
-                    if (times != null && times.length > 1) {
-                        Date startDate = DateUtil.stringToDate(times[0], DateUtil.yyyyMMddHHmmss);
-                        Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
-                        // 进行时间对比
-                        Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
-                        if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
-                        return false;
-                    }
-                }
-
-                return false;
             }
-
-
         }
         return false;
     }
