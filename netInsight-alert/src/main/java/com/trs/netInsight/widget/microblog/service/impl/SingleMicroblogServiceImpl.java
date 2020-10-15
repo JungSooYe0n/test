@@ -1941,8 +1941,9 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
         if (ObjectUtil.isNotEmpty(ftsDocumentStatuses)){
             QueryBuilder builderUser = new QueryBuilder();
             builderUser.filterField(FtsFieldConst.FIELD_MID,"\""+ftsDocumentStatuses.get(0).getMid()+"\"",Operator.Equal);
-            builderUser.orderBy(FtsFieldConst.FIELD_AGRE,true);
-            builderUser.page(0,10);
+//            builderUser.orderBy(FtsFieldConst.FIELD_AGRE,true);
+            builderUser.setOrderBy("-" + FtsFieldConst.FIELD_AGRE + ";-" + FtsFieldConst.FIELD_URLTIME);
+            builderUser.page(0,9999);
             builderUser.setDatabase(Const.SINAREVIEWS);
             List<FtsDocumentReviews> ftsDocumentReviews = hybase8SearchService.ftsQuery(builderUser, FtsDocumentReviews.class, false, false,false,null);
             log.info("首次查询结果："+ftsDocumentReviews.size());
@@ -2002,19 +2003,26 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
 
                 }
             }
-
+            Map<String, FtsDocumentReviews> dataMap = new HashMap<>();
             if (ObjectUtil.isNotEmpty(ftsDocumentReviews)){
                 Collections.sort(ftsDocumentReviews);
 
-                if (ftsDocumentReviews.size() > 10){
-                    ftsDocumentReviews = ftsDocumentReviews.subList(0,10);
-                }
-
+//                if (ftsDocumentReviews.size() > 10){
+//                    ftsDocumentReviews = ftsDocumentReviews.subList(0,10);
+//                }
+                List<FtsDocumentReviews> returnList = new ArrayList<>();
+//                int i = 0;
                 //查询对应用户名称
                 for (FtsDocumentReviews ftsDocumentReview : ftsDocumentReviews) {
-                    queryStatusUser(ftsDocumentReview);
+                    if (!dataMap.containsKey(ftsDocumentReview.getAuthors()+ftsDocumentReview.getContent()) && returnList.size() <= 10){
+                        queryStatusUser(ftsDocumentReview);
+//                        i++;
+                        returnList.add(ftsDocumentReview);
+                        dataMap.put(ftsDocumentReview.getAuthors()+ftsDocumentReview.getContent(),ftsDocumentReview);
+
+                    }
                 }
-                return ftsDocumentReviews;
+                return returnList;
             }
         }
 
