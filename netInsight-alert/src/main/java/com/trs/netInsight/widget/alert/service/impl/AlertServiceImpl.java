@@ -190,7 +190,7 @@ public class AlertServiceImpl implements IAlertService {
 			SendWay sendWay, String id, Date start, Date end) {
 		return alertRepository.findByReceiverAndSendWayAndAlertRuleBackupsIdAndCreatedTimeBetween(userName,sendWay,id,start,end);
 	}
-	
+
 	/**
 	 * 原预警代码  不关联alert_netinsight工程
 	 * @param pageNo 0开始 第几页
@@ -203,7 +203,7 @@ public class AlertServiceImpl implements IAlertService {
 	 * @param forwarPrimary 微博 原发 primary / 转发 forward
 	 * @param keywords 结果中搜索
 	 * @return
-	 * @throws OperationException 
+	 * @throws OperationException
 	 */
 	@Override
 	public Object alertListLocal(int pageNo,int pageSize,String way,String source,String time,String receivers,String invitationCard,
@@ -328,7 +328,7 @@ public class AlertServiceImpl implements IAlertService {
 		}
 //		return null;
 	}
-	
+
 	/**
 	 * 关联alert_netinsight工程
 	 * @param pageNo 0开始 第几页
@@ -341,7 +341,7 @@ public class AlertServiceImpl implements IAlertService {
 	 * @param forwarPrimary 微博 原发 primary / 转发 forward
 	 * @param keywords 结果中搜索
 	 * @return
-	 * @throws OperationException 
+	 * @throws OperationException
 	 */
 	@Override
 	public Object alertListHttp(int pageNo, int pageSize, String way, String source, String time, String receivers, String invitationCard,
@@ -433,7 +433,7 @@ public class AlertServiceImpl implements IAlertService {
 					hybaseField = FtsFieldConst.FIELD_SITENAME;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					hybaseField = FtsFieldConst.FIELD_SCREEN_NAME;
 					break;
 			}
 			if("fullText".equals(hybaseField)){
@@ -486,7 +486,7 @@ public class AlertServiceImpl implements IAlertService {
 
 	/**
 	 * 站内预警 查别人发给我的站内预警  同时返回收藏和预警状态
-	 * @throws OperationException 
+	 * @throws OperationException
 	 */
 	@Override
 	public Object findSMS(String userId, Criteria<AlertEntity> criteria, int pageNo, int pageSize) throws OperationException {
@@ -528,12 +528,12 @@ public class AlertServiceImpl implements IAlertService {
 			throw new OperationException("预警已发送/站内查询失败,message:" + e,e);
 		}
 	}
-	
+
 	/**
 	 * 原预警删除  本地不用启动alert_netinsight
 	 * @param id 要删除的id 多个时以分号分割
 	 * @return
-	 * @throws OperationException 
+	 * @throws OperationException
 	 */
 	@Override
 	public Object deleteLocal(String id) throws OperationException{
