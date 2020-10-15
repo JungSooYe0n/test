@@ -110,7 +110,6 @@ public class IndexTabServiceImpl implements IIndexTabService {
 		return save;
 	}
 
-	@Transactional
 	@Override
 	@Transactional
 	public Object save(IndexTab indexTab, boolean share) {
