@@ -381,6 +381,11 @@ public class FtsFieldConst {
 	public final static String FIELD_PRCOUNT = "IR_PRCOUNT";
 
 	/**
+	 * 13.点赞数
+	 */
+	public final static String FIELD_APPROVE_COUNT = "IR_APPROVE_COUNT";
+
+	/**
 	 * 14.文章中包含的图片，多值
 	 */
 	public final static String FIELD_URLIMAGE = "IR_URLIMAGE";
@@ -551,6 +556,9 @@ public class FtsFieldConst {
 	public static final String FIELD_EMOTION = "IR_EMOTION";
 	public static final String FIELD_EMOTION_2 = "IR_EMOTION2";
 
+//	热门评论点赞数
+	public static final String FIELD_AGRE = "IR_AGREE";
+
 	//	--------------------已发预警------------
 	/*
 	 * 发送方式
@@ -560,6 +568,19 @@ public class FtsFieldConst {
 	 * 接收人
 	 */
 	public static final String FIELD_RECEIVER = "IR_RECEIVER";
+
+	/*
+	 * 发送方式
+	 */
+	public static final String FIELD_SEND_WAY_LIST = "IR_SEND_WAY_LIST";
+	/*
+	 * 接收人
+	 */
+	public static final String FIELD_RECEIVER_LIST = "IR_RECEIVER_LIST";
+	/*
+	 * 预警的完整正文
+	 */
+	public static final String FIELD_ALERT_CONTENT = "IR_FULL_CONTENT";
 
 	/*
 	 * 用户分组id

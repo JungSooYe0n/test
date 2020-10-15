@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import com.trs.dev4.jdk16.utils.StringHelper;
 
+import com.trs.netInsight.config.constant.Const;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import ognl.OgnlException;
@@ -47,6 +48,14 @@ public final class StringUtil {
 	public static final String img13 = "(?=&lt;img&nbsp;alt=).+?(?=&nbsp;/&gt;)";
 	public static final String img14 = "(?=&lt;img&nbsp;alt=).+?(?=&quot;/&gt;)";
 
+	public static final String img20 = "(?=<IMAGE SRC=).+?(?=>)";
+	public static final String img21 = "(?=<IMAGE SRC=).+?(?=\">)";
+	public static final String img22 = "(?=<IMG SRC=).+?(?=>)";
+	public static final String img23 = "(?=<IMG SRC=).+?(?=\">)";
+	public static final String img24 = "(?=<img src=).+?(?=>)";
+	public static final String img25 = "(?=<img src=).+?(?= \">)";
+
+
 	public static final String video1 = "(?=&lt;video&nbsp;src=).+?(?=&quot;&gt;)";
 	public static final String video2 = "(?=&lt;AUDIO&nbsp;SRC=).+?(?=&quot;&gt;)";
 	public static final String videoSuffix1 = "&lt;/video&gt;";
@@ -54,6 +63,7 @@ public final class StringUtil {
 	public static final String aHref1 = "(?=&lt;a).+?(?=&quot;&gt;)";
 	public static final String aHref2 = "(?=<a).+?(?=&quot;>)";
 	public static final String gt = "&gt;";
+	public static final String gt1 = ">";
 	public static final String rn = "\r\n";
 	public static final String annotation1 = "(?=&lt;!--).+?(?=--&gt;)";
 	public static final String annotationSuffix1 = "--&gt;";
@@ -325,6 +335,80 @@ public final class StringUtil {
 		return content;
 	}
 
+	public static String replaceImgNew(String content) {
+		if (StringUtils.isBlank(content)) {
+			return content;
+		}
+		Pattern pat = Pattern.compile(img);
+		Matcher mat = pat.matcher(content);
+		content = content.replaceAll(img, "");
+		content = content.replaceAll(img2, "");
+		content = content.replaceAll(img3,"");
+		content = content.replaceAll(img4,"");
+		content = content.replaceAll(img5,"");
+
+		content = content.replaceAll(img6,"");
+		content = content.replaceAll(img7,"");
+		content = content.replaceAll(img8,"");
+		content = content.replaceAll(img9,"");
+		content = content.replaceAll(img11,"");
+		content = content.replaceAll(img12,"");
+		content = content.replaceAll(img13,"");
+		content = content.replaceAll(img14,"");
+
+		content = content.replaceAll(img20,"");
+		content = content.replaceAll(img21,"");
+		content = content.replaceAll(img22,"");
+		content = content.replaceAll(img23,"");
+		content = content.replaceAll(img24,"");
+		content = content.replaceAll(img25,"");
+
+		content = content.replaceAll(video1,"");
+		content = content.replaceAll(video2,"");
+		content = content.replaceAll(videoSuffix1,"");
+		content = content.replaceAll(videoSuffix2,"");
+		content = content.replaceAll(aHref1,"");
+		content = content.replaceAll(aHref2,"");
+
+		//去掉多余的注释标签
+		content = content.replaceAll(annotation1,"");
+		content = content.replaceAll(annotation2,"");
+		content = content.replaceAll(annotationSuffix1,"");
+		content = content.replaceAll(annotationSuffix2,"");
+
+		pat = Pattern.compile(nbsp);
+		mat = pat.matcher(content);
+		content = mat.replaceAll(" ");
+
+		pat = Pattern.compile(nbsp1);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+		pat = Pattern.compile(nbsp2);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+		pat = Pattern.compile(nbsps);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+		pat = Pattern.compile(quot);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+		pat = Pattern.compile(gt);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+		pat = Pattern.compile(gt1);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+		pat = Pattern.compile(rn);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+		return content;
+	}
+
 	/**
 	 * 去除\n \r \t
 	 * 
@@ -541,6 +625,33 @@ public final class StringUtil {
 			for (Map<String, String> map : list) {
 				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
 				buffer.append(i + "、").append(replaceNRT(replaceFont(replaceImg(map.get("title"))))).append("\\n\\n");
+				i++;
+			}
+			// 去除最后的\\n\\n
+			if (buffer.length() > 4) {
+				buffer.delete(buffer.length() - 4, buffer.length());
+			}
+		}
+		return buffer.toString();
+	}
+
+	/**
+	 * 将list变成String
+	 *
+	 * @date Created at 2018年1月31日 下午2:37:49
+	 * @Author 谷泽昊
+	 * @param list
+	 * @return
+	 */
+	public static String getTitleList(List<String> list,int start) {
+		StringBuffer buffer = new StringBuffer();
+		if (list != null && list.size() > 0) {
+			int i = start;
+			for (String title : list) {
+				title = replaceNRT(replaceFont(replaceImg(title)));
+				title = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
+				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
+				buffer.append(i + "、").append(title).append("\\n\\n");
 				i++;
 			}
 			// 去除最后的\\n\\n

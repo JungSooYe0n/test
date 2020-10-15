@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title></title>
+	<style>
+	.tableTwo{
+	margin-top: 100px;;
+    border-spacing: 0px;
+	}
+	.line-limit-length {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap; //文本不换行，这样超出一行的部分被截取，显示...
+	
+	}
+	</style>
+</head>
+<body>
+<table >
+    <tbody >
+		<tr>
+			<td style="position: absolute; left: 8px; right: 8px; top: 13px;padding-bottom: 15px; font-size: 15px;">
+				[预警标题]${title}<br/>
+				此次预警共有${size}条信息，如果想查看更多详情,请登录<a>http://119.254.92.55:8084/</a>;<br/>
+				如您不想收到此邮件,请联系相关人员在站内设置取消发送。<br/>
+			</td>
+		</tr>
+	</tbody>
+		<table border="1" style="height: 47px;" class="tableTwo">
+			<tr>
+				<td align="center" class="line-limit-length">文章标题</td>
+				<td align="center"  style="width: 10px;">来源</td>
+				<td align="center">发表时间 </td>
+			</tr>
+			<#list listMap as p>
+			<tr>
+				<td align="center" >       						
+						<a href="${p.url}"target="_blank"   style="display:inline-block;width: 300px;" class="line-limit-length">${p.title}</a> 			
+				</td>	
+				<td align="center" style="width: 408px">       						
+						${p.source}				
+				</td>	
+				<td align="center" >       						
+						${p.urlTime}				
+				</td>		
+			</tr>
+			</#list>
+		</table>
+   
+</table>
+</body>
+</html>

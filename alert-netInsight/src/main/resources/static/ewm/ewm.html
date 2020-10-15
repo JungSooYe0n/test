@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>浏览器打开</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0, user-scalable=no">
+	<style type="text/css">
+	*{
+        padding: 0;
+        margin: 0;
+     }
+     html , body{
+        font-family: inherit;
+        height: 100%;
+        width: 100%;
+        color: #222222;
+    }
+    #box{
+        position: relative;
+        height: 100%;
+        width: 100%;
+    }
+    #loading{
+        text-align: center;
+        position: absolute;
+        bottom: 3rem;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    #loading a{
+        display: inline-block;
+        text-decoration: none;
+        color:#fff;
+        font-size: 0.5rem;
+        width: 5rem;
+        height: 1rem;
+        line-height: 1rem;
+    }
+    #loading #load_android{
+        background: #5FD6FF 50px 15px;
+        border-radius: 15px;
+    }
+    #pic{
+        position: absolute;
+        width: 100%;
+        text-align: center;
+
+    }
+    #pic img{
+        margin-top: 3rem;
+        -webkit-transform: scale(1.8);
+        -moz-transform: scale(1.8);
+        -o-transform: scale(1.8);
+        transform: scale(1.8);
+    }
+    #title{
+        width: 100%;
+        margin-top: 0.2rem;
+    }
+    #title h2{
+        text-align: center;
+        width: 100%;
+        font-family:inherit;
+        font-size: 0.6rem;
+        color:#666;
+    }
+  	.pop {
+    	width: 100%;
+    	height: 100%;
+    	position: fixed;
+    	top: 0;
+    	left: 0;
+    	background: rgba(0,0,0,.7);
+    	z-index: 999;
+	}
+   
+    </style>
+</head>
+<body>
+	<div class="pop" id="divpop" style="display: none;">
+        <img src="img/pop.png" alt="" style='width:50%; margin-left: 30%;'>
+    </div>
+    <div id="box">
+        <div id="pic">
+            <img src="img/logo.png" alt="qr">
+            <div id="title">
+                <h2>TRS网察</h2>
+            </div>
+        </div>
+        <div id="loading">
+            <a id='load_android' href="http://www.netinsight.com.cn/netInsight/apk/appDownload">Android 下载</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+	window.onload = function(){
+        // rem设置
+        function autoSize(width) {
+            var width = width ? width: 720;
+            var units = width / 100;
+            var width = document.documentElement.clientWidth;
+            width = width > 1080 ? 1080 : width;
+            width = width <= 240 ? 240 : width;
+            var calFontSize = width / units;
+            document.documentElement.style.fontSize = calFontSize + "px"
+        }
+        autoSize();
+        if(isWeiXin()){
+            var shade = document.getElementById('divpop');
+            shade.style.display = 'block';
+        }
+    }
+    function isWeiXin(){
+        var ua = window.navigator.userAgent.toLowerCase();
+        console.log(ua.match(/micromessenger/)||ua.match(/MicroMessenger/));
+        if(ua.match(/micromessenger/)||ua.match(/MicroMessenger/)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+</script>
+</html>

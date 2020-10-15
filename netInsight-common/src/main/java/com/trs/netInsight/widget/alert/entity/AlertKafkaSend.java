@@ -10,13 +10,15 @@
  * TRS Company. ("Confidential Information").  You shall not
  * disclose such Confidential Information and shall use it only in
  * accordance with the terms of the license.
- */
+ *//*
+
 package com.trs.netInsight.widget.alert.entity;
 
 import lombok.*;
 
 import java.io.Serializable;
 
+*/
 /**
  * 定时预警时发送到kafka的实体类
  * 
@@ -26,7 +28,8 @@ import java.io.Serializable;
  * @author 谷泽昊
  * @date 2018年11月15日 下午4:00:06
  * @version
- */
+ *//*
+
 @Getter
 @Setter
 @ToString
@@ -34,23 +37,30 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class AlertKafkaSend implements Serializable {
 
-	/**
+	*/
+/**
 	 * 
-	 */
+	 *//*
+
 	private static final long serialVersionUID = 1L;
 
-	/**
+	*/
+/**
 	 * 备份规则
-	 */
+	 *//*
+
 	private String alertRuleBackupsId;
 
-	/**
+	*/
+/**
 	 * 预警规则
-	 */
+	 *//*
+
 	private String alertRuleId;
 
 }
 
+*/
 /**
  *
  * Revision history

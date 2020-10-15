@@ -376,12 +376,12 @@ public class AlertServiceImpl implements IAlertService {
 		queryBuilder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
 
 		if ("SMS".equals(way)){ // 站内预警
-			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_WAY,SendWay.SMS.toString(), Operator.Equal);
+			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_WAY_LIST,SendWay.SMS.toString(), Operator.Equal);
 			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"receive",Operator.Equal);
-			queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER,userName,Operator.Equal);
+			queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,userName,Operator.Equal);
 		}else {
 			if (!"ALL".equals(receivers)) {
-				queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER,receivers,Operator.Equal);
+				queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,receivers,Operator.Equal);
 			}
 			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
 		}

@@ -92,25 +92,6 @@ public class SpecialServiceImpl implements ISpecialService {
 	@Autowired
 	private ISpecialSubjectService specialSubjectService;
 
-	/**
-	 * 发送邮件
-	 * 
-	 * @throws OperationException
-	 */
-	@Override
-	public Object sendEmail(SpecialProject specialProject) throws OperationException {
-		// 为了轮播展示图片 创建完专项之后发送提醒邮件
-		Map<String, String> mapTitle = new HashMap<>();
-		mapTitle.put("title", specialProject.getSpecialName());
-		mapTitle.put("url", specialProject.toNoPagedAndTimeBuilder().asTRSL());
-		List<Map<String, String>> list = new ArrayList<>();
-		list.add(mapTitle);
-		Map<String, Object> listMap = new HashMap<>();
-		listMap.put("listMap", list);
-		// 模板名
-		noticeSendService.sendAll(SendWay.EMAIL, "specialMailmess.ftl", "专项添加邮件", listMap, receivers, null,null);
-		return "send email success";
-	}
 
 	/**
 	 * 存储imgurl
@@ -921,10 +902,13 @@ public class SpecialServiceImpl implements ISpecialService {
 //			if (sortColumn.size() > 0)
 //		}
 		if(!isHas){
+			//到上一层级
 			if (StringUtil.isNotEmpty(parent.getSubjectId())){
+				String tid = parent.getId();
 				parent = specialSubjectRepository.findOne(parent.getSubjectId());
-				result = getNode(parent,id,specialFlag);
+				result = getNode(parent,tid,SpecialFlag.SpecialSubjectFlag);
 			}else {
+				//到顶级了
 				List<SpecialSubject> oneIndexPage2 = null;
 				List<SpecialProject> oneIndexTab2 = null;
 				List<SpecialProject> top = null;
@@ -949,7 +933,7 @@ public class SpecialServiceImpl implements ISpecialService {
 							result = null;
 						}
 					}else{
-						result = getNextNode(sortColumn2,id,specialFlag);
+						result = getNextNode(sortColumn2,parent.getId(),SpecialFlag.SpecialSubjectFlag);
 					}
 			}
 

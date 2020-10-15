@@ -31,4 +31,13 @@ public class Frequency extends BaseEntity {
 	 */
 	private String className;
 
+	public Frequency(){}
+
+	public Frequency(String id, String userId, String className, String cron) {
+		this.setId(id);
+		this.setUserId(userId);
+		this.className = className;
+		this.cron = cron;
+	}
+
 }

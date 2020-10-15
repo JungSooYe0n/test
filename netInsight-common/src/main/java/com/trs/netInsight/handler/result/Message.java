@@ -55,15 +55,10 @@ public class Message {
 	 * 获取数据
 	 * 
 	 * @param code
-	 * @param messageStr
 	 * @param data
 	 * @return
 	 */
 	public static Message getMessage(int code, String message, Object data) {
-//		if(ObjectUtil.isEmpty(data)){
-//			code = 201;
-//			message = "";
-//		}
 		return new Message(code, message, data);
 	}
 }

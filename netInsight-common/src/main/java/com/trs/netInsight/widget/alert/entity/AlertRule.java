@@ -7,11 +7,13 @@ import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import lombok.*;
@@ -216,6 +218,12 @@ public class AlertRule extends BaseEntity {
 	 */
 	@Column(name = "weight")
 	private boolean weight = false;
+
+	/**
+	 * 排序方式
+	 */
+	@Column(name = "sort")
+	private String sort;
 
 	/**
 	 * 上次发送时间
@@ -601,11 +609,60 @@ public class AlertRule extends BaseEntity {
 			default:
 				break;
 		}
-		if(StringUtils.isNotBlank(time)){
-			searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, DateUtil.formatTimeRange(time), Operator.Between);
-		}else{
-			searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, new String[] { before, now }, Operator.Between);
+		if(!"noTime".equals(time)){
+			if(StringUtils.isNotBlank(time)){
+				searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, DateUtil.formatTimeRange(time), Operator.Between);
+			}else{
+				searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, new String[] { before, now }, Operator.Between);
+			}
 		}
 		return searchBuilder;
 	}
+
+	public String getAlertRuleTrsl() throws OperationException {
+		QueryCommonBuilder queryCommonBuilder = this.toSearchBuilderCommon("noTime");
+		String queryTrsl = queryCommonBuilder.asTRSL();
+		if (StringUtil.isNotEmpty(this.getGroupName())) {
+			List<String> groupList = CommonListChartUtil.formatGroupName(this.getGroupName());
+			String groupTrsl = StringUtils.join(groupList, " OR ");
+			queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
+		}
+		return queryTrsl;
+
+	}
+	public String getQueryHybaseDataBase(){
+		String database = Const.MIX_DATABASE;
+		switch (specialType) {
+			case COMMON:
+				String group = this.getGroupName();
+
+				String[] databaseArr = TrslUtil.chooseDatabases(CommonListChartUtil.changeGroupName(group).split(";"));
+				List<String> dataList = new ArrayList<>();
+				for(String data :databaseArr){
+					if(StringUtil.isNotEmpty(data)){
+						dataList.add(data);
+					}
+				}
+				database = StringUtils.join(dataList,";");
+				break;
+			case SPECIAL:
+				List<String> dataListS = new ArrayList<>();
+				if(this.trsl != null && !"".equals(this.trsl)){
+					dataListS.add(Const.HYBASE_NI_INDEX);
+					dataListS.add(Const.HYBASE_OVERSEAS);
+				}
+				if(this.statusTrsl != null && !"".equals(this.statusTrsl)){
+					dataListS.add(Const.WEIBO);
+				}
+				if(this.weChatTrsl != null && !"".equals(this.weChatTrsl)){
+					dataListS.add(Const.WECHAT_COMMON);
+				}
+				database = StringUtils.join(dataListS,";");
+				break;
+			default:
+				break;
+		}
+		return database;
+	}
+
 }
