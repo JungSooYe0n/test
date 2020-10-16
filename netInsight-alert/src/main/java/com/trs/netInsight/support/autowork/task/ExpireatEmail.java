@@ -47,7 +47,6 @@ public class ExpireatEmail extends AbstractTask {
 		List<User> expireatList = userRepository.findByExpireatNot();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		for (User user : expireatList) {
-			System.err.println("～～～～～～～～～～～～～～过期提醒能查到用户信息～～～～～～～～～～～～～～～～～");
 			int n = -1;
 			try {
 				Date dateExpire = sdf.parse(user.getExpireAt());
@@ -56,9 +55,8 @@ public class ExpireatEmail extends AbstractTask {
 			} catch (ParseException e) {
 				throw new JobException(e);
 			}
-//			if (n == 10 || n == 5 || n == 3 || n == 2 || n == 1) {
-			if (n < 10) {
-				System.err.println("～～～～～～～～～～～～～～过期提醒满足发送条件～～～～～～～～～～～～～～～～～");
+			if (n == 10 || n == 5 || n == 3 || n == 2 || n == 1) {
+//			if (n < 10 && n >0) {
 				// 机构名
 				Organization organization = organizationRepository.findOne(user.getOrganizationId());
 				String organizationName = organization.getOrganizationName();
@@ -69,7 +67,9 @@ public class ExpireatEmail extends AbstractTask {
 				if (StringUtil.isNotEmpty(configValueByKey) ){
 					receivers = configValueByKey.endsWith(";") ? configValueByKey + user.getEmail()
 							: configValueByKey + ";" + user.getEmail();
-
+					if (StringUtil.isNotEmpty(platform)){
+						receivers = receivers.endsWith(";") ?   receivers +platform : receivers + ";" + platform;
+					}
 				}else if (StringUtil.isNotEmpty(platform)){
 					receivers = platform.endsWith(";") ? platform + user.getEmail()
 							: platform + ";" + user.getEmail();
@@ -91,10 +91,8 @@ public class ExpireatEmail extends AbstractTask {
 				map.put("expireat", user.getExpireAt());
 				map.put("n", n);
 				try {
-					System.err.println("～～～～～～～～～～～～～～过期提醒能去发送，收件人："+receivers+"~~~~~~~~~~~~~~");
-					mailSendService.sendEmail(EXPIREAT_TEMPLATE, "网察账号到期预警", map, receivers);
+					mailSendService.sendEmail(EXPIREAT_TEMPLATE, "网察4.0账号到期预警", map, receivers);
 				} catch (Exception e) {
-					System.err.println("～～～～～～～～～～～～～～过期提醒发送失败，收件人："+receivers+"~~~~~~~~~~~~~~");
 					throw new JobException(e);
 				}
 			}
