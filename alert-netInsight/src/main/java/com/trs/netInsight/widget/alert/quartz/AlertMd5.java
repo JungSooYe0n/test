@@ -171,7 +171,7 @@ public class AlertMd5 implements Job {
                             }
                         });
                         if (alertList.size() > 0) {
-                            log.info("按热度值预警，有数据可发送，预警：" + alertRule.getId() + "，名字：" + alertRule.getTitle());
+                            log.info("按热度值预警，有数据可发送，预警：" + alertRule.getId() + "，名字：" + alertRule.getTitle()+",数据条数："+alertList.size());
                             List<Map<String, String>> sendMap = formatData(alertList,alertRule);
                             //去除标题重复的预警信息，保留一条
                             for (int i = 0; i < sendMap.size(); i++) {
@@ -252,6 +252,7 @@ public class AlertMd5 implements Job {
             map.put("url", ftsDocumentAlert.getUrlName());
             map.put("titleWhole", ftsDocumentAlert.getTitleWhole());
             map.put("title", ftsDocumentAlert.getTitle());
+            map.put("content", ftsDocumentAlert.getContent());
             map.put("fullContent", ftsDocumentAlert.getFullContent());
             map.put("groupName", ftsDocumentAlert.getGroupName());
             map.put("sid", ftsDocumentAlert.getSid());
