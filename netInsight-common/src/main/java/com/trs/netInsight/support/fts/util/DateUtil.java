@@ -2321,6 +2321,7 @@ public class DateUtil {
 		//限制时间范围查库 时间不存在时底层限制在一个月内导致有些信息查询不到
 		if(StringUtil.isNotEmpty(urlTime)){
 			SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
+			SimpleDateFormat sdf1 = new SimpleDateFormat(DateUtil.yyyyMMdd2);
 			Date start = null;
 			Date end = null;
 			String startString ;
@@ -2333,8 +2334,8 @@ public class DateUtil {
 				}
 				DateUtil.compareTime(list,DateUtil.yyyyMMdd2);
 				try {
-					start = sdf.parse(list.get(0));
-					end = sdf.parse(list.get(list.size()-1));
+					start = sdf1.parse(list.get(0));
+					end = sdf1.parse(list.get(list.size()-1));
 					startString = list.get(0);
 					endString = list.get(list.size()-1);
 				} catch (ParseException e) {
