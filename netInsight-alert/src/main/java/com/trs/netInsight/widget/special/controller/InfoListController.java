@@ -426,13 +426,13 @@ public class InfoListController {
 			boolean isSimilar = false;
 			boolean irSimflag = true;
 			boolean irSimflagAll = false;
-			/*if ("netRemove".equals(simflag)) {
+			if ("netRemove".equals(simflag)) {
 				isSimilar = true;
 			} else if ("urlRemove".equals(simflag)) {
 				irSimflag = true;
 			} else if ("sourceRemove".equals(simflag)) {
 				irSimflagAll = true;
-			}*/
+			}
 			if("positioCon".equals(keyWordIndex)){
 				keyWordIndex = "1";
 			}else if("positionKey".equals(keyWordIndex)){

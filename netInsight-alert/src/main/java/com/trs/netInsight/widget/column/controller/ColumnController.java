@@ -1621,11 +1621,21 @@ public class ColumnController {
 			indexTab.setTimeRange(timeRange);
 		}
 		indexTab.setType(ColumnConst.LIST_NO_SIM);
-
+		// 默认不排重
+		boolean isSimilar = false;
+		boolean irSimflag = true;
+		boolean irSimflagAll = false;
+		if ("netRemove".equals(simflag)) {
+			isSimilar = true;
+		} else if ("urlRemove".equals(simflag)) {
+			irSimflag = true;
+		} else if ("sourceRemove".equals(simflag)) {
+			irSimflagAll = true;
+		}
 		//排重  -- 信息列表的统计改为 固定按站内排重
-		indexTab.setSimilar(false);
-		indexTab.setIrSimflag(true);
-		indexTab.setIrSimflagAll(false);
+		indexTab.setSimilar(isSimilar);
+		indexTab.setIrSimflag(irSimflag);
+		indexTab.setIrSimflagAll(irSimflagAll);
 
 		//命中规则
 		if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {
