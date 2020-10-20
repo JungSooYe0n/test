@@ -1755,7 +1755,8 @@ public class InfoListController {
 //	加入已读 标 针对用户
 	private void readArticle(FtsDocumentCommonVO ftsDocumentCommonVO) throws com.trs.hybase.client.TRSException,TRSException{
 		User user = UserUtils.getUser();
-		if (ObjectUtil.isNotEmpty(user)){
+//		该功能针对 机构管理员 或 普通用户
+		if (ObjectUtil.isNotEmpty(user) && (UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(user))){
 			Organization organization = organizationRepository.findOne(user.getOrganizationId());
 			if (ObjectUtil.isNotEmpty(organization) && organization.isExclusiveHybase()){
 				//			有小库情况下  才能使用已读标
