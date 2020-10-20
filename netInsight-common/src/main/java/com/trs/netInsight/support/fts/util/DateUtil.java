@@ -2346,7 +2346,7 @@ public class DateUtil {
 					start = sdf.parse(split[0]);
 					end = new Date();
 					startString = split[0].replace("-", "").replace(" ", "").replace(":", "").substring(0, 8);
-					endString = sdf.format(end);
+					endString = sdf.format(end).replace("-", "").replace(" ", "").replace(":", "").substring(0, 8);
 				} catch (ParseException e) {
 					throw new TRSException(e);
 				}
