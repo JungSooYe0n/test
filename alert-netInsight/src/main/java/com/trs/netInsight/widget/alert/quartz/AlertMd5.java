@@ -214,7 +214,7 @@ public class AlertMd5 implements Job {
         List<Map<String, String>> listMap = new ArrayList<>();
         for(FtsDocumentCommonVO vo :voList){
             FtsDocumentAlert ftsDocumentAlert = null;
-            String title = vo.getContent();
+            String title = vo.getTitle();
             title = StringUtil.replaceImgNew(title);
             String content = vo.getContent();
             String imgUrl = "";
