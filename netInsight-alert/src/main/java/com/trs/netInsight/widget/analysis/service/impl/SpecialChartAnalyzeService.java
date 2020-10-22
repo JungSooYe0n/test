@@ -793,7 +793,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		return resultMap;
 	}
 	@Override
-	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
+	public Object getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
+//	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
 			throws TRSException {
 		ObjectUtil.assertNull(searchBuilder.asTRSL(), "地域分布检索表达式");
 		List<Map<String, Object>> resultMap = new ArrayList<>();
@@ -804,21 +805,35 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		ChartResultField chartResultField = new ChartResultField("name","value");
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
-		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
-		if(resultMap == null){
+//		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
+		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groupName, contrastField, "special", chartResultField);
+		List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
+		if(objectMap == null || areaData == null || areaData.size() == 0){
 			return null;
 		}
-		for(Map<String,Object> oneMap : resultMap){
+		for(Map<String,Object> oneMap : areaData){
 			oneMap.put("contrast",areaType);
 		}
-		if(resultMap != null && resultMap.size() >0){
-			Collections.sort(resultMap, (o1, o2) -> {
+		if(areaData != null && areaData.size() >0){
+			Collections.sort(areaData, (o1, o2) -> {
 				Integer seq1 = (Integer) o1.get("value");
 				Integer seq2 = (Integer) o2.get("value");
 				return seq2.compareTo(seq1);
 			});
 		}
-		return resultMap;
+//		for(Map<String,Object> oneMap : resultMap){
+//			oneMap.put("contrast",areaType);
+//		}
+//		if(resultMap != null && resultMap.size() >0){
+//			Collections.sort(resultMap, (o1, o2) -> {
+//				Integer seq1 = (Integer) o1.get("value");
+//				Integer seq2 = (Integer) o2.get("value");
+//				return seq2.compareTo(seq1);
+//			});
+//		}
+		objectMap.put("areaData",areaData);
+		return objectMap;
+//		return resultMap;
 	}
 	@Override
 	public List<Map<String, Object>> getAreaCountForHome(QueryBuilder searchBuilder, String[] timeArray,

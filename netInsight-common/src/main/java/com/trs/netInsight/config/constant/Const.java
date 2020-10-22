@@ -1442,6 +1442,13 @@ public class Const {
             put("其他", "其他");
         }
     };
+    public static final List<String> CITY_BEIJING = Arrays.asList("昌平区","朝阳区","大兴区","东城区","西城区","房山区","丰台区","海淀区","怀柔区","门头沟区","石景山区","平谷区","顺义区","通州区","密云县","延庆县");
+    public static final List<String> CITY_TIANJIN = Arrays.asList("东丽区","宝坻区","北辰区","滨海新区","和平区","河北区","河东区","河西区","红桥区","蓟县","津南区","静海区","南开区","宁河区","武清区","西青区");
+    public static final List<String> CITY_SHANGHAI = Arrays.asList("黄浦区","浦东新区","徐汇区","长宁区","静安区","普陀区","闸北区","虹口区","杨浦区","闵行区","宝山区","嘉定区","金山区","松江区","青浦区","奉贤区","崇明县");
+    public static final List<String> CITY_CHONGQING = Arrays.asList("渝中区","大渡口区","江北区","沙坪坝区","九龙坡区","南岸区","北碚区","渝北区","巴南区","涪陵区","綦江区","大足区","长寿区","江津区","合川区","永川区","南川区","璧山区","铜梁区","潼南区","荣昌区","万州区","梁平县","城口县","丰都县","垫江县","忠县","开县","云阳县","奉节县","巫山县","巫溪县","黔江区","武隆县","石柱土家族自治县","秀山土家族苗族自治县","酉阳土家族苗族自治县","彭水苗族土家族自治县");
+    public static final List<String> CITY_AOMEN = Arrays.asList("澳门半岛","离岛","路氹城");
+    public static final List<String> CITY_XIANGGANG = Arrays.asList("香港岛","九龙半岛","新界");
+
     @Autowired
     private ISystemConfigService scService;
     private static ISystemConfigService systemConfigService;
