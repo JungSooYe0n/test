@@ -1120,7 +1120,8 @@ public class ReportServiceImpl implements IReportService {
 						newAdd.setStatusContent(content);
 						String title = fav.getTitle();
 						if (StringUtil.isNotEmpty(title)) {
-							title = StringUtil.filterEmoji(StringUtil.replaceImg(title));
+							title = StringUtil.cutContent(StringUtil.filterEmoji(StringUtil.replaceImg(title)),100);
+
 						}
 						newAdd.setTitle(title);
 						newAdd.setUrlTitle(title);
