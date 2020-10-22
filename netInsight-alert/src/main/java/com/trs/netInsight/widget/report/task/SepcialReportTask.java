@@ -435,15 +435,19 @@ public class SepcialReportTask implements Runnable {
                                     }
                                     QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
                                     searchBuilder.setGroupName(groupNames);
-                                    List<Map<String, Object>> catalogResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
+//                                    List<Map<String, Object>> catalogResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
+//                                            irSimflag, irSimflagAll, "catalogArea");
+//                                    List<Map<String, Object>> mediaResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
+//                                            irSimflag, irSimflagAll, "mediaArea");
+                                    Object catalogResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
                                             irSimflag, irSimflagAll, "catalogArea");
-                                    List<Map<String, Object>> mediaResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
+                                    Object mediaResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
                                             irSimflag, irSimflagAll, "mediaArea");
 
                                     if (ObjectUtil.isNotEmpty(catalogResult) ||ObjectUtil.isNotEmpty(catalogResult)) {
-                                        catalogResult = MapUtil.sortByValue(catalogResult, "value");
-
-                                        mediaResult = MapUtil.sortByValue(mediaResult, "value");
+//                                        catalogResult = MapUtil.sortByValue(catalogResult, "value");
+//
+//                                        mediaResult = MapUtil.sortByValue(mediaResult, "value");
 
                                         Map<String, Object> result = new HashMap<>();
                                         result.put("catalogArea", catalogResult);
@@ -452,12 +456,16 @@ public class SepcialReportTask implements Runnable {
                                         log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, AREA, (endMillis - startMillis)));
 
                                         ReportResource areaRR = new ReportResource();
-                                        areaRR.setImg_data(JSON.toJSONString(result));
+//                                        areaRR.setImg_data(JSON.toJSONString(result));
+                                        areaRR.setImg_data(JSON.toJSON(result).toString());
                                         areaRR.setImgType("mapChart");
                                         // 数据、图类型、图名字
-                                        areaRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(mediaResult), "mapChart", null));
+                                        Map<String, Object> objectMap = (Map<String, Object>) mediaResult;
+                                        List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
+                                        areaRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(areaData), "mapChart", null));
                                         areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
                                         reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
+//                                        reportData.setArea(ReportUtil.replaceHtml(JSON.toJSON(areaRR).toString()));
                                     }
 
                                 } catch (Exception e) {
