@@ -1623,7 +1623,7 @@ public class ColumnController {
 		indexTab.setType(ColumnConst.LIST_NO_SIM);
 		// 默认不排重
 		boolean isSimilar = false;
-		boolean irSimflag = true;
+		boolean irSimflag = false;
 		boolean irSimflagAll = false;
 		if ("netRemove".equals(simflag)) {
 			isSimilar = true;
