@@ -112,7 +112,7 @@ public class InfoListController {
 
 	@Autowired
 	private IChartAnalyzeService chartAnalyzeService;
-	
+
 	@Autowired
 	private ISearchRecordService searchRecordService;
 
@@ -285,7 +285,7 @@ public class InfoListController {
 
 	/**
 	 * 普通搜索
-	 * 
+	 *
 	 * @date Created at 2018年7月19日 下午2:02:41
 	 * @Author 谷泽昊
 	 * @param keywords
@@ -350,7 +350,7 @@ public class InfoListController {
 					null,null,null,null,null,isExport,null,UserUtils.getUser().getId()+"OrdinarySearch",searchPage,searchType);
 		}
 	}
-	
+
 	@FormatResult
 	@ApiOperation("搜索历史记录")
 	@RequestMapping(value = "/searchRecordList", method = RequestMethod.GET)
@@ -606,7 +606,7 @@ public class InfoListController {
 		return trslk;
 	}
 	//@EnableRedis 这块不能加缓存，页面删除会失效  20191107
-	@FormatResult                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+	@FormatResult
 	@ApiOperation("相似文章列表 做统一列表  返回格式和日常监测跳的列表页一样")
 	@RequestMapping(value = "/listsim", method = RequestMethod.GET)
 	public Object simList(
@@ -891,7 +891,7 @@ public class InfoListController {
 
 	/**
 	 * 详情页相似文章接口 通过sid获取keyworld再根据语句查询
-	 * 
+	 *
 	 * @Author mawen
 	 * @throws TRSException
 	 * @throws TRSSearchException
@@ -1079,6 +1079,27 @@ public class InfoListController {
         System.err.println("方法结束" + System.currentTimeMillis());
         return all;
     }
+
+	/**
+	 * 详情页获得视频源链接
+	 * @Author lilei
+	 * @throws TRSException
+	 * @throws TRSSearchException
+	 */
+	@ApiOperation("视频/短视频进入详情页获得原链接")
+	@FormatResult
+	@RequestMapping(value = "/getVideoAddress", method = RequestMethod.GET)
+	public Object getVideoAddress(@ApiParam("get/send get获得原链接,send发送请求") @RequestParam(value = "getSend",defaultValue = "send") String getSend,
+								  @ApiParam("网站类型") @RequestParam(value = "webSource", required = false) String webSource,
+								  @ApiParam("视频链接") @RequestParam(value = "nreserved1", required = false) String address) throws Exception{
+		//去获得原链接
+		if(getSend.equals("send")){
+			String result = HttpUtil.doGet("","utf-8");
+			return "send";
+		}else{ //返回原链接
+			return "https://aweme.snssdk.com/aweme/v1/playwm/?video_id=v0d00f280000bttda75u3iofno5502hg&ratio=720p&line=0";
+		}
+	}
 
 	@ApiOperation("实时获取微博信息")
 	@FormatResult
@@ -1565,7 +1586,7 @@ public class InfoListController {
 
 	/**
 	 * 删除列表数据
-	 * 
+	 *
 	 * @date Created at 2017年11月27日 下午5:25:02
 	 * @Author 谷泽昊
 	 * @param sid
@@ -1603,7 +1624,7 @@ public class InfoListController {
 
 	/**
 	 * 查主贴对应的回帖
-	 * 
+	 *
 	 * @param sid
 	 * @param trslk
 	 * @param nreserved1

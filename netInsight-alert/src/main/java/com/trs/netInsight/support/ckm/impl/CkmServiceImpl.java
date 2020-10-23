@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- * 
+ *
  * File Created at 2018年3月2日
- * 
+ *
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -70,7 +70,7 @@ public class CkmServiceImpl implements ICkmService {
 	@Value("${support.ckm.password}")
 	private String password;
 
-	
+
 	public static final String ANGER = "愤怒";
 	public static final String DISGUST = "厌恶";
 	public static final String FEAR = "恐惧";
@@ -92,10 +92,10 @@ public class CkmServiceImpl implements ICkmService {
         TreebankLanguagePack tlp = new ChineseTreebankLanguagePack();
         gsf = tlp.grammaticalStructureFactory();
     }
-	
+
 	/**
 	 * 获取CKM客户端
-	 * 
+	 *
 	 * @return
 	 */
 	public TrsCkmSoapClient getClient() {
@@ -813,7 +813,7 @@ public class CkmServiceImpl implements ICkmService {
 
 	/**
 	 * 根据热点相似语料创建对应模板,如果已经存在该模板,直接返回true
-	 * 
+	 *
 	 * @param modeName
 	 *            模板名称
 	 * @param simData
@@ -851,7 +851,7 @@ public class CkmServiceImpl implements ICkmService {
 
 	/**
 	 * 计算文本之前的相关度
-	 * 
+	 *
 	 * @param modeName
 	 *            模板名称
 	 * @param corpus
@@ -891,7 +891,7 @@ public class CkmServiceImpl implements ICkmService {
 
 	/**
 	 * 根据模板名称删除模板
-	 * 
+	 *
 	 * @param modeName
 	 * @return
 	 * @throws CkmSoapException
@@ -926,7 +926,7 @@ public class CkmServiceImpl implements ICkmService {
 		int ploItem = 0;
 		String typeUpperCase = ploType.toUpperCase();
 		TrsCkmSoapClient client = this.getClient();
-		
+
 		switch (typeUpperCase){
 			case "NAME_AREA_ORGANIZATION":
 				ploItem = PloType.NAME_AREA_ORGANIZATION.getCode();
@@ -944,8 +944,8 @@ public class CkmServiceImpl implements ICkmService {
 				ploItem = PloType.ALL.getCode();
 				break;
 		}
-		
-		
+
+
 //		if ("NAME_AREA_ORGANIZATION".equals(typeUpperCase)) {
 //			// 抽取人名/地名/机构名
 //			ploItem = PloType.NAME_AREA_ORGANIZATION.getCode();
@@ -1020,7 +1020,7 @@ public class CkmServiceImpl implements ICkmService {
 		result.put("keyword", keywords);
 		return result;
 	}
-	
+
 	@SuppressWarnings("unused")
 	@Override
 	public Map<String, Integer> emotionDivide(String content) throws CkmSoapException {
@@ -1029,7 +1029,7 @@ public class CkmServiceImpl implements ICkmService {
 		//模板名，可视情况而定
 		String catModelName = "emotion2";
 		TrsCkmSoapClient client = this.getClient();
-		
+
 		//最后装结果的map
 		Map<String, Integer> afterCalculateMap = new HashMap<String, Integer>();
 		//分词接口，该接口只分词，不做排重处理，故往后调用还可统计词频
@@ -1049,7 +1049,7 @@ public class CkmServiceImpl implements ICkmService {
 			while(iterator.hasNext()){
 				builder += iterator.next();
 			}
-			
+
 			RuleCATField[] ruleFields = new RuleCATField[1];
 			ruleFields[0] = new RuleCATField(builder, field);
 			if(StringUtil.isNotEmpty(builder)){
@@ -1066,7 +1066,7 @@ public class CkmServiceImpl implements ICkmService {
 					int happyScore = 0;
 					int sadnessScore = 0;
 					int amazedScore = 0;
-					
+
 					//初始化各项分数百分比
 					int angerPercent = 0;
 					int disgustPercent = 0;
@@ -1074,12 +1074,12 @@ public class CkmServiceImpl implements ICkmService {
 					int happyPercent = 0;
 					int sadnessPercent = 0;
 					int amazedPercent = 0;
-					
+
 					for(int i = 0; i < res.length; i++){
 //						System.out.println(res[i].getMatchword()+"\r");
 //						System.out.println(res[i].getMatchwordcount()+"\r");
 //						System.out.println(res[i].getLabel()+"\r");
-						
+
 						//获得各项情绪的独自分数并计算百分比
 						String emotionType = res[i].getLabel();
 						//分类别计算分数
@@ -1103,7 +1103,7 @@ public class CkmServiceImpl implements ICkmService {
 						if(AMAZED.equals(emotionType)){
 							amazedScore += res[i].getMatchwordcount();
 						}
-						
+
 					}
 					//throws ParseException?
 					//因为返回结果res[i].getMatchwordcount()属于int类型，所以暂时不用BigDecimal来初始化相关的分数，所以此处的计算也没有用BigDecimal中的除法（.divide）等
@@ -1113,7 +1113,7 @@ public class CkmServiceImpl implements ICkmService {
 					happyPercent = (int) new BigDecimal((float)happyScore/totalScore*5).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 					sadnessPercent = (int) new BigDecimal((float)sadnessScore/totalScore*5).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 					amazedPercent = (int) new BigDecimal((float)amazedScore/totalScore*5).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-					
+
 					afterCalculateMap.put(ANGER, angerPercent);
 					afterCalculateMap.put(DISGUST, disgustPercent);
 					afterCalculateMap.put(FEAR, fearPercent);
@@ -1124,7 +1124,7 @@ public class CkmServiceImpl implements ICkmService {
 				}
 			}
 		}
-		
+
 		return null;
 	}
 
