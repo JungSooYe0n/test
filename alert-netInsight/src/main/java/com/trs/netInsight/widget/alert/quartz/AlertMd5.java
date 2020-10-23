@@ -13,6 +13,7 @@ import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.Frequency;
 import com.trs.netInsight.widget.alert.entity.PastMd5;
@@ -70,7 +71,16 @@ public class AlertMd5 implements Job {
            for(int i=0;i<rules1.size();i++){
                String userid =  rules1.get(i).getUserId();
                User user = userRepository.findOne(userid);
-               if(user!=null&&user.getStatus().equals("0")){
+               //剩余有效期转换
+               if(user != null){
+                   if (UserUtils.FOREVER_DATE.equals(user.getExpireAt())){
+                       user.setSurplusDate("永久");
+                   }else {
+                       String days = com.trs.netInsight.util.DateUtil.timeDifferenceDays(user.getExpireAt());
+                       user.setSurplusDate(days);
+                   }
+               }
+               if(user!=null && "0".equals(user.getStatus()) && !"过期".equals(user.getSurplusDate())){
                    rules.add(rules1.get(i));
                }
            }
@@ -161,8 +171,22 @@ public class AlertMd5 implements Job {
                             }
                         });
                         if (alertList.size() > 0) {
-                            log.info("按热度值预警，有数据可发送，预警：" + alertRule.getId() + "，名字：" + alertRule.getTitle());
+                            log.info("按热度值预警，有数据可发送，预警：" + alertRule.getId() + "，名字：" + alertRule.getTitle()+",数据条数："+alertList.size());
                             List<Map<String, String>> sendMap = formatData(alertList,alertRule);
+                            //去除标题重复的预警信息，保留一条
+                            for (int i = 0; i < sendMap.size(); i++) {
+                                Map m1 = sendMap.get(i);
+
+                                for (int j = i+1; j < sendMap.size(); j++) {
+                                    Map m2 = sendMap.get(j);
+                                    if(m1.get("title").equals(m2.get("title"))){
+                                        sendMap.remove(j);
+                                        j--;
+                                    }
+
+                                }
+
+                            }
                             if(sendMap.size() >0){
                                 Map<String, Object> map = new HashMap<>();
                                 map.put("listMap", sendMap);
@@ -228,6 +252,7 @@ public class AlertMd5 implements Job {
             map.put("url", ftsDocumentAlert.getUrlName());
             map.put("titleWhole", ftsDocumentAlert.getTitleWhole());
             map.put("title", ftsDocumentAlert.getTitle());
+            map.put("content", ftsDocumentAlert.getContent());
             map.put("fullContent", ftsDocumentAlert.getFullContent());
             map.put("groupName", ftsDocumentAlert.getGroupName());
             map.put("sid", ftsDocumentAlert.getSid());

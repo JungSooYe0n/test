@@ -427,6 +427,8 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
      */
     @FtsField("IR_RETWEETED_URL")
     private String retweetedUrl;
+    @FtsField("IR_IMG_URL")
+    private String imgUrl;
     /**
      * 电子报专属  vreserved1 + vreserved2 确定一个位置
      */

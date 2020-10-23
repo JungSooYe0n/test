@@ -424,15 +424,15 @@ public class InfoListController {
 			}
 			// 默认不排重
 			boolean isSimilar = false;
-			boolean irSimflag = true;
+			boolean irSimflag = false;
 			boolean irSimflagAll = false;
-			/*if ("netRemove".equals(simflag)) {
+			if ("netRemove".equals(simflag)) {
 				isSimilar = true;
 			} else if ("urlRemove".equals(simflag)) {
 				irSimflag = true;
 			} else if ("sourceRemove".equals(simflag)) {
 				irSimflagAll = true;
-			}*/
+			}
 			if("positioCon".equals(keyWordIndex)){
 				keyWordIndex = "1";
 			}else if("positionKey".equals(keyWordIndex)){
@@ -1776,7 +1776,8 @@ public class InfoListController {
 //	加入已读 标 针对用户
 	private void readArticle(FtsDocumentCommonVO ftsDocumentCommonVO) throws com.trs.hybase.client.TRSException,TRSException{
 		User user = UserUtils.getUser();
-		if (ObjectUtil.isNotEmpty(user)){
+		//     该功能针对 机构管理员 或 普通用户
+		if (ObjectUtil.isNotEmpty(user) && (UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(user))){
 			Organization organization = organizationRepository.findOne(user.getOrganizationId());
 			if (ObjectUtil.isNotEmpty(organization) && organization.isExclusiveHybase()){
 				//			有小库情况下  才能使用已读标

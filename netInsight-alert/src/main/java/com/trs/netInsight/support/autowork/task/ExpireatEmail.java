@@ -56,6 +56,7 @@ public class ExpireatEmail extends AbstractTask {
 				throw new JobException(e);
 			}
 			if (n == 10 || n == 5 || n == 3 || n == 2 || n == 1) {
+//			if (n < 10 && n >0) {
 				// 机构名
 				Organization organization = organizationRepository.findOne(user.getOrganizationId());
 				String organizationName = organization.getOrganizationName();
@@ -66,7 +67,9 @@ public class ExpireatEmail extends AbstractTask {
 				if (StringUtil.isNotEmpty(configValueByKey) ){
 					receivers = configValueByKey.endsWith(";") ? configValueByKey + user.getEmail()
 							: configValueByKey + ";" + user.getEmail();
-
+					if (StringUtil.isNotEmpty(platform)){
+						receivers = receivers.endsWith(";") ?   receivers +platform : receivers + ";" + platform;
+					}
 				}else if (StringUtil.isNotEmpty(platform)){
 					receivers = platform.endsWith(";") ? platform + user.getEmail()
 							: platform + ";" + user.getEmail();
@@ -79,16 +82,16 @@ public class ExpireatEmail extends AbstractTask {
 				map.put("organizationName", organizationName);
 				map.put("displayName", user.getDisplayName());// 昵称
 				String phone = user.getPhone();
-				if (StringUtil.isNotEmpty(phone)) {
-					map.put("phone", phone);
-				} else {
-					map.put("phone", 0);
-				}
+//				if (StringUtil.isNotEmpty(phone)) {
+				map.put("phone", phone);
+//				} else {
+//					map.put("phone", 0);
+//				}
 				map.put("email", email);
 				map.put("expireat", user.getExpireAt());
 				map.put("n", n);
 				try {
-					mailSendService.sendEmail(EXPIREAT_TEMPLATE, "网察账号到期预警", map, receivers);
+					mailSendService.sendEmail(EXPIREAT_TEMPLATE, "网察4.0账号到期预警", map, receivers);
 				} catch (Exception e) {
 					throw new JobException(e);
 				}

@@ -1,10 +1,13 @@
 package com.trs.netInsight.widget.alert.quartz;
 
+import com.alibaba.fastjson.JSON;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
@@ -26,6 +29,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparingLong;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * 定时任务类
@@ -43,8 +51,10 @@ public class AlertNum implements Job {
     @Autowired
     private UserRepository userRepository;
 
+
     public static final String hashName = "TOPIC";
     public static final String hashKey = "SID";
+    public static final String DATA = "DATA";
 
 
     @Override
@@ -59,7 +69,16 @@ public class AlertNum implements Job {
             for(int i=0;i<rules1.size();i++){
                 String userid =  rules1.get(i).getUserId();
                 User user = userRepository.findOne(userid);
-                if(user!=null&&user.getStatus().equals("0")){
+                //剩余有效期转换
+                if(user != null){
+                    if (UserUtils.FOREVER_DATE.equals(user.getExpireAt())){
+                        user.setSurplusDate("永久");
+                    }else {
+                        String days = com.trs.netInsight.util.DateUtil.timeDifferenceDays(user.getExpireAt());
+                        user.setSurplusDate(days);
+                    }
+                }
+                if(user != null && "0".equals(user.getStatus()) && !"过期".equals(user.getSurplusDate())){
                     rules.add(rules1.get(i));
                 }
             }
@@ -89,18 +108,45 @@ public class AlertNum implements Job {
                                     }
                                 }
                                 if (dataList.size() > 0) {
-                                    //将当前数据挨个转化为对应的数据格式，并发送
-                                    if (dataList.size() > 20) {
-                                        dataList = dataList.subList(dataList.size() - 20, dataList.size());
-                                    }
                                     List<Map<String, String>> listMap = new ArrayList<>();
                                     for (Object data : dataList) {
                                         Map<String, String> dataMap = (LinkedHashMap<String, String>) data;
-                                        Object vo = AutoAlertRedisUtil.getOneDataForHash(dataMap.get(hashName), dataMap.get(hashKey));
+                                        Map<String, String> vo = new LinkedHashMap<>();
+                                        String str = dataMap.get(DATA);
+                                        vo = JSON.parseObject(str,LinkedHashMap.class);
+                                        //Object vo = AutoAlertRedisUtil.getOneDataForHash(dataMap.get(hashName), dataMap.get(hashKey));
                                         Map<String, String> oneMap = this.formatData(vo,alertRule);
                                         if(oneMap != null ){
                                             listMap.add(oneMap);
                                         }
+                                    }
+                                    //去除标题重复的预警信息，保留一条
+                                    for (int i = 0; i < listMap.size(); i++) {
+                                        Map m1 = listMap.get(i);
+
+                                        for (int j = i+1; j < listMap.size(); j++) {
+                                            Map m2 = listMap.get(j);
+                                            if(m1.get("title").equals(m2.get("title"))){
+                                                listMap.remove(j);
+                                                j--;
+                                            }
+
+                                        }
+
+                                    }
+                                    //将当前数据挨个转化为对应的数据格式，并发送
+                                    if (listMap.size() > 20) {
+                                        listMap = listMap.subList(listMap.size() - 20, listMap.size());
+//                                        String keyWords = alertRule.getAnyKeyword();
+//                                        Map<String,String> map = JSON.parseObject(keyWords,HashMap.class);
+//                                        keyWords = map.get("keyWords");
+//                                        for(Map<String, String> list:listMap){
+//                                            if (ObjectUtil.isNotEmpty(list.get("content"))) {
+//                                                list.put("content",list.get("content").replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+//                                            }
+//                                            list.put("title",list.get("title").replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+//                                            list.put("titleWhole",list.get("titleWhole").replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+//                                        }
                                     }
                                     if(listMap.size() >0){
                                         Map<String, Object> map = new HashMap<>();
@@ -193,7 +239,8 @@ public class AlertNum implements Job {
         content = StringUtil.replaceImgNew(content);
         String cutContent = StringUtil.cutContentPro(content, 150);
 
-        title = StringUtil.replaceImgNew(title);
+        title =StringUtil.cutContentPro(StringUtil.replaceImgNew(title), 150);
+
         if (Const.GROUPNAME_WEIBO.equals(groupName)) {
 
             ftsDocumentAlert = new FtsDocumentAlert(sid, cutContent, content, cutContent,content, urlName, urlTime, siteName, groupName,

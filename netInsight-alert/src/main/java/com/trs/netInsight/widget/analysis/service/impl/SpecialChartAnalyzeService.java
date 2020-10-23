@@ -6232,6 +6232,25 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 				contrastField = FtsFieldConst.FIELD_AUTHORS;
 			}
 			queryBuilder.filterField(contrastField, "\""+key+"\"", Operator.Equal);
+		}else if (SpecialChartType.CHART_LINE_SITE.equals(specialChartType)){//传播分析站点
+			String mediaLevel = specialProject.getMediaLevel();
+			if (mediaLevel.contains("其它")){
+				queryBuilder.filterField("中央党媒", mediaLevel, Operator.NotEqual);
+				queryBuilder.filterField("地方党媒", mediaLevel, Operator.NotEqual);
+				queryBuilder.filterField("政府网站", mediaLevel, Operator.NotEqual);
+				queryBuilder.filterField("重点商业媒体", mediaLevel, Operator.NotEqual);
+			}else {
+				queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, mediaLevel, Operator.Equal);
+			}
+			if (StringUtil.isNotEmpty(key)) {
+				String contrastField = FtsFieldConst.FIELD_SITENAME;
+				if (Const.GROUPNAME_WEIBO.equals(source)) {
+					contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+				} else if (Const.MEDIA_TYPE_TF.contains(source)) {
+					contrastField = FtsFieldConst.FIELD_AUTHORS;
+				}
+				queryBuilder.filterField(contrastField, "\"" + key + "\"", Operator.Equal);
+			}
 		}else{
 			throw new TRSSearchException("未获取到检索条件");
 		}

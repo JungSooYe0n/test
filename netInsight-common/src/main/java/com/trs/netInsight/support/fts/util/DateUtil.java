@@ -10,6 +10,7 @@ import com.trs.netInsight.support.fts.entity.FtsDocument;
 import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
+import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -1199,6 +1200,36 @@ public class DateUtil {
 			return "刚刚";
 		}
 	}
+	public static boolean getNowBetween30Day(Date datetime) {
+		if (ObjectUtil.isEmpty(datetime)) {
+			return false;
+		}
+		Calendar calendar = new GregorianCalendar();
+		Date trialTime = new Date();
+		calendar.setTime(trialTime);
+		Calendar ca = Calendar.getInstance();
+
+		ca.setTime(datetime);
+		String M = ((ca.get(Calendar.MONTH) + 1) + "").length() == 1 ? "0" + (ca.get(Calendar.MONTH) + 1)
+				: (ca.get(Calendar.MONTH) + 1) + "";
+		String d = (ca.get(Calendar.DATE) + "").length() == 1 ? "0" + ca.get(Calendar.DATE)
+				: ca.get(Calendar.DATE) + "";
+		String h = (ca.get(Calendar.HOUR_OF_DAY) + "").length() == 1 ? "0" + ca.get(Calendar.HOUR_OF_DAY)
+				: ca.get(Calendar.HOUR_OF_DAY) + "";
+		String m = (ca.get(Calendar.MINUTE) + "").length() == 1 ? "0" + ca.get(Calendar.MINUTE)
+				: ca.get(Calendar.MINUTE) + "";
+		if (calendar.get(Calendar.YEAR) != ca.get(Calendar.YEAR)
+				|| calendar.get(Calendar.MONTH) != ca.get(Calendar.MONTH)) {
+			return true;
+		} else if (calendar.get(Calendar.DATE) > ca.get(Calendar.DATE)) {
+			int date = calendar.get(Calendar.DATE) - ca.get(Calendar.DATE);
+			if (date >= 30) return true;
+
+		}else {
+			return false;
+		}
+		return false;
+	}
 
 	public static Long[] getCurrentDayIntervalTime() {
 		String date = formatDateAfter(format2String(new Date(), FMT_TRS_yMd), FMT_TRS_yMd, -1);
@@ -2289,7 +2320,8 @@ public class DateUtil {
 		QueryBuilder builder = new QueryBuilder();
 		//限制时间范围查库 时间不存在时底层限制在一个月内导致有些信息查询不到
 		if(StringUtil.isNotEmpty(urlTime)){
-			SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd2);
+			SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
+			SimpleDateFormat sdf1 = new SimpleDateFormat(DateUtil.yyyyMMdd2);
 			Date start = null;
 			Date end = null;
 			String startString ;
@@ -2302,8 +2334,8 @@ public class DateUtil {
 				}
 				DateUtil.compareTime(list,DateUtil.yyyyMMdd2);
 				try {
-					start = sdf.parse(list.get(0));
-					end = sdf.parse(list.get(list.size()-1));
+					start = sdf1.parse(list.get(0));
+					end = sdf1.parse(list.get(list.size()-1));
 					startString = list.get(0);
 					endString = list.get(list.size()-1);
 				} catch (ParseException e) {
@@ -2314,7 +2346,7 @@ public class DateUtil {
 					start = sdf.parse(split[0]);
 					end = new Date();
 					startString = split[0].replace("-", "").replace(" ", "").replace(":", "").substring(0, 8);
-					endString = sdf.format(end);
+					endString = sdf.format(end).replace("-", "").replace(" ", "").replace(":", "").substring(0, 8);
 				} catch (ParseException e) {
 					throw new TRSException(e);
 				}
