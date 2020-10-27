@@ -438,7 +438,7 @@ public final class StringUtil {
 		content = content.replaceAll(img25,"");
         content = content.replaceAll("<img src=","");
 		content = content.replaceAll("<IMAGE SRC=","");
-		content = content.replaceAll("<font color='...","");
+		//content = content.replaceAll("<font color='...","");
 		content = content.replaceAll(video1,"");
 		content = content.replaceAll(video2,"");
 		content = content.replaceAll(videoSuffix1,"");
