@@ -112,8 +112,9 @@ public class AlertNum implements Job {
                                     for (Object data : dataList) {
                                         Map<String, String> dataMap = (LinkedHashMap<String, String>) data;
                                         Map<String, String> vo = new LinkedHashMap<>();
-                                        String str = dataMap.get(DATA);
-                                        vo = JSON.parseObject(str,LinkedHashMap.class);
+                                        Object str = dataMap.get(DATA);
+                                        vo = JSON.parseObject(str.toString(),LinkedHashMap.class);
+                                        //Object vo = dataMap.get(DATA);
                                         //Object vo = AutoAlertRedisUtil.getOneDataForHash(dataMap.get(hashName), dataMap.get(hashKey));
                                         Map<String, String> oneMap = this.formatData(vo,alertRule);
                                         if(oneMap != null ){
@@ -132,7 +133,7 @@ public class AlertNum implements Job {
                                             }
 
                                         }
-
+                                       System.out.println(listMap.get(i).get("content"));
                                     }
                                     //将当前数据挨个转化为对应的数据格式，并发送
                                     if (listMap.size() > 20) {
@@ -236,10 +237,10 @@ public class AlertNum implements Job {
                 imgUrl = imgSrcList.get(0);
             }
         }
-        content = StringUtil.replaceImgNew(content);
+        content = StringUtil.replaceImgNew2(content);
         String cutContent = StringUtil.cutContentPro(content, 150);
 
-        title =StringUtil.cutContentPro(StringUtil.replaceImgNew(title), 150);
+        title =StringUtil.cutContentPro(StringUtil.replaceImgNew2(title), 150);
 
         if (Const.GROUPNAME_WEIBO.equals(groupName)) {
 
