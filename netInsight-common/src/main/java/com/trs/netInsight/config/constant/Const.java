@@ -66,10 +66,6 @@ public class Const {
      * FaceBook 和twitter等海外媒体  默认
      */
     public static final String DEFAULT_HYBASE_OVERSEAS = "system2.overseasMedia_180419";
-    /**
-     * 视频+短视频  默认
-     */
-    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402";
 
 
     /**
@@ -92,7 +88,11 @@ public class Const {
     /**
      * 视频+短视频
      */
-    public static String HYBASE_VIDEO = "system2.media_200402";
+    public static String HYBASE_VIDEO = "system2.media_200402_null";
+    /**
+     * 视频+短视频  默认
+     */
+    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402_null";
 
     /**
      * hybase传统库
