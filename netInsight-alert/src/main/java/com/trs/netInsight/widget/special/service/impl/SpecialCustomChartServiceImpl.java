@@ -66,6 +66,12 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         if (chartPage != null &&chartPage.getContent() != null && chartPage.getContent().size() > 0) {
             result = new ArrayList<>();
             for (SpecialCustomChart chart : chartPage.getContent()) {
+                if(chart.isWeight()&&chart.getSort()==null){
+                    chart.setSort("hittitle");
+                }
+                if(!chart.isWeight()&&chart.getSort()==null){
+                    chart.setSort("desc");
+                }
                 Map<String, Object> chartMap = new HashMap<>();
                 chartMap.put("id", chart.getId());
                 chartMap.put("name", chart.getName());
@@ -79,6 +85,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("keyWord", chart.getKeyWord());
                 chartMap.put("keyWordIndex", chart.getKeyWordIndex());
                 chartMap.put("weight", chart.isWeight());
+                chartMap.put("sort",chart.getSort());
                 chartMap.put("excludeWords", chart.getExcludeWords());
                 chartMap.put("excludeWordsIndex", chart.getExcludeWordsIndex());
                 chartMap.put("excludeWeb", chart.getExcludeWeb());

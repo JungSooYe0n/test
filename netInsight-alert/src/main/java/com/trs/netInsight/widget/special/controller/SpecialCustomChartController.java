@@ -121,6 +121,7 @@ public class SpecialCustomChartController {
             @ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "timeRange", value = "发布时间范围(2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
+            @ApiImplicitParam(name = "sort", value = "排序方式", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
             @ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
@@ -143,6 +144,7 @@ public class SpecialCustomChartController {
                                  @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
                                  @RequestParam(value = "monitorSite", required = false) String monitorSite,
                                  @RequestParam(value = "weight", required = false) boolean weight,
+                                 @RequestParam(value = "sort", required = false) String sort,
                                  @RequestParam(value = "simflag", required = false) String simflag,
                                  @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
                                  @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
@@ -246,6 +248,7 @@ public class SpecialCustomChartController {
                     keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, specialId, sequence, specialType1,mediaLevel, mediaIndustry, contentIndustry,
                     filterInfo, contentArea, mediaArea);
             customChart.setExcludeWordsIndex(excludeWordsIndex);
+            customChart.setSort(sort);
             customChart = specialCustomChartService.saveSpecialCustomChart(customChart);
             result.add(customChart);
         }
@@ -298,6 +301,7 @@ public class SpecialCustomChartController {
             @ApiImplicitParam(name = "groupName", value = "数据来源(可多值,中间以';'隔开,默认为新闻)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "timeRange", value = "发布时间范围(2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "weight", value = "标题权重", dataType = "boolean", paramType = "query", required = false),
+            @ApiImplicitParam(name = "sort", value = "排序方式", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "simflag", value = "排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "tabWidth", value = "栏目是不是通栏，50为半栏，100为通栏", dataType = "int", paramType = "query", required = false),
             @ApiImplicitParam(name = "mediaLevel", value = "媒体等级", dataType = "String", paramType = "query"),
@@ -320,6 +324,7 @@ public class SpecialCustomChartController {
                                     @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
                                     @RequestParam(value = "monitorSite", required = false) String monitorSite,
                                     @RequestParam(value = "weight", required = false) boolean weight,
+                                    @RequestParam(value = "sort", required = false) String sort,
                                     @RequestParam(value = "simflag", required = false) String simflag,
                                     @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
                                     @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
@@ -425,7 +430,7 @@ public class SpecialCustomChartController {
             customChart.setMediaArea(mediaArea);
             customChart.setWeight(weight);
             customChart.setTabWidth(tabWidth);
-
+            customChart.setSort(sort);
             return specialCustomChartService.saveSpecialCustomChart(customChart);
         } catch (Exception e) {
             log.error("栏目下自定义图表修改报错", e);

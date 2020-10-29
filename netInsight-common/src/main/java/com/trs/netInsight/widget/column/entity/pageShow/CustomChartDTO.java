@@ -28,6 +28,7 @@ public class CustomChartDTO implements Serializable {
     private String keyWord;
     private String keyWordIndex;
     private Boolean weight;
+    private String sort;
     private String excludeWords;
     private String excludeWordsIndex;
     private String excludeWeb;
@@ -55,6 +56,12 @@ public class CustomChartDTO implements Serializable {
     }
 
     public CustomChartDTO(CustomChart customChart) {
+        if(customChart.isWeight()&&customChart.getSort()==null){
+            customChart.setSort("hittitle");
+        }
+        if(!customChart.isWeight()&&customChart.getSort()==null){
+            customChart.setSort("desc");
+        }
         this.id = customChart.getId();
         this.name = customChart.getName();
         this.columnType = customChart.getSpecialType();
@@ -68,6 +75,7 @@ public class CustomChartDTO implements Serializable {
         this.keyWord = customChart.getKeyWord();
         this.keyWordIndex = customChart.getKeyWordIndex();
         this.weight = customChart.isWeight();
+        this.sort = customChart.getSort();
         this.excludeWords = customChart.getExcludeWords();
         this.excludeWordsIndex = customChart.getExcludeWordIndex();
         this.excludeWeb = customChart.getExcludeWeb();

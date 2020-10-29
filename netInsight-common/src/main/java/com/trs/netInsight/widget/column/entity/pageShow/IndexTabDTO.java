@@ -36,6 +36,7 @@ public class IndexTabDTO implements Serializable {
     private String keyWord;
     private String keyWordIndex;
     private Boolean weight;
+    private String sort;
     private String excludeWords;
     private String excludeWordsIndex;
     private String excludeWeb;
@@ -72,6 +73,12 @@ public class IndexTabDTO implements Serializable {
 
     public IndexTabDTO(IndexTabMapper mapper){
         IndexTab tab = mapper.getIndexTab();
+        if(tab.isWeight()&&tab.getSort()==null){
+            tab.setSort("hittitle");
+        }
+        if(!tab.isWeight()&&tab.getSort()==null){
+            tab.setSort("desc");
+        }
         this.id = mapper.getId();
         this.name = tab.getName();
         this.chartType = tab.getType();
@@ -116,6 +123,7 @@ public class IndexTabDTO implements Serializable {
         this.keyWord= keywordJson;
         this.keyWordIndex= tab.getKeyWordIndex();
         this.weight= tab.isWeight();
+        this.sort=tab.getSort();
         this.excludeWords= tab.getExcludeWords();
         this.excludeWordsIndex=tab.getExcludeWordIndex();
         this.excludeWeb= tab.getExcludeWeb();

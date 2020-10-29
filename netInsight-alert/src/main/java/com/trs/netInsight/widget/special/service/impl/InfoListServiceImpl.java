@@ -6199,13 +6199,13 @@ public class InfoListServiceImpl implements IInfoListService {
 									   String type, String read, String preciseFilter, String imgOcr) throws TRSException {
 		try {
 			User loginUser = UserUtils.getUser();
-			if(specialProject.getSort()!=null){
-				if("asc".equals(specialProject.getSort())||"desc".equals(specialProject.getSort())){
-					specialProject.setWeight(false);
-				}else{
-					specialProject.setWeight(true);
-				}
-			}
+//			if(specialProject.getSort()!=null){
+//				if("asc".equals(specialProject.getSort())||"desc".equals(specialProject.getSort())){
+//					specialProject.setWeight(false);
+//				}else{
+//					specialProject.setWeight(true);
+//				}
+//			}
 			QueryBuilder builder = null;
 			if (StringUtil.isNotEmpty(time)) {
 				builder = specialProject.toSearchBuilder(pageNo, pageSize, false);
