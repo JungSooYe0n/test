@@ -1286,7 +1286,7 @@ public class Hybase8SearchImpl implements FullTextSearch {
 
 		log.debug("------>"+StringUtil.isNotEmpty(indices));
 		log.debug("------>"+!indices.contains(Const.SINAUSERS));
-		if (StringUtil.isNotEmpty(indices) && !indices.contains(Const.SINAUSERS))
+		if (StringUtil.isNotEmpty(indices) && !indices.contains(Const.SINAUSERS) && !indices.contains(Const.SINAREVIEWS))
 			indices = indices + ";" + Const.INSERT;
 		if (UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(user)){
 			Organization org = organizationRepository.findOne(user.getOrganizationId());

@@ -627,6 +627,32 @@ public class AlertRule extends BaseEntity {
 			String groupTrsl = StringUtils.join(groupList, " OR ");
 			queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
 		}
+		// simflag排重 1000为不重复
+		if (repetition) {
+			if (StringUtils.isNotBlank(queryTrsl)) {
+				queryTrsl = queryTrsl + " AND (" + FtsFieldConst.FIELD_SIMFLAG + ":(1000 OR \"\"))";
+			} else {
+				queryTrsl = FtsFieldConst.FIELD_SIMFLAG + ":(1000 OR \"\")";
+			}
+		}
+		// 该配置默认清除历史配置
+//		if (irSimflagOpen) {
+//			irSimflag = true;
+//		}
+		if (irSimflag) {
+			if (StringUtils.isNotBlank(queryTrsl)) {
+				queryTrsl = queryTrsl + " AND (" + Const.IR_SIMFLAG_TRSL + ")";
+			} else {
+				queryTrsl = Const.IR_SIMFLAG_TRSL;
+			}
+		}
+		if (irSimflagAll) {
+			if (StringUtils.isNotBlank(queryTrsl)) {
+				queryTrsl = queryTrsl + " AND (" + Const.IR_SIMFLAGALL_TRSL + ")";
+			} else {
+				queryTrsl = Const.IR_SIMFLAGALL_TRSL;
+			}
+		}
 		return queryTrsl;
 
 	}

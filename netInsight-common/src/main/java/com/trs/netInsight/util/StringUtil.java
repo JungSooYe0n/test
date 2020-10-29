@@ -409,6 +409,82 @@ public final class StringUtil {
 		return content;
 	}
 
+	public static String replaceImgNew2(String content) {
+		if (StringUtils.isBlank(content)) {
+			return content;
+		}
+		Pattern pat = Pattern.compile(img);
+		Matcher mat = pat.matcher(content);
+		content = content.replaceAll(img, "");
+		content = content.replaceAll(img2, "");
+		content = content.replaceAll(img3,"");
+		content = content.replaceAll(img4,"");
+		content = content.replaceAll(img5,"");
+
+		content = content.replaceAll(img6,"");
+		content = content.replaceAll(img7,"");
+		content = content.replaceAll(img8,"");
+		content = content.replaceAll(img9,"");
+		content = content.replaceAll(img11,"");
+		content = content.replaceAll(img12,"");
+		content = content.replaceAll(img13,"");
+		content = content.replaceAll(img14,"");
+
+		content = content.replaceAll(img20,"");
+		content = content.replaceAll(img21,"");
+		content = content.replaceAll(img22,"");
+		content = content.replaceAll(img23,"");
+		content = content.replaceAll(img24,"");
+		content = content.replaceAll(img25,"");
+        content = content.replaceAll("<img src=","");
+		content = content.replaceAll("<IMAGE SRC=","");
+		//content = content.replaceAll("<font color='...","");
+		content = content.replaceAll(video1,"");
+		content = content.replaceAll(video2,"");
+		content = content.replaceAll(videoSuffix1,"");
+		content = content.replaceAll(videoSuffix2,"");
+		content = content.replaceAll(aHref1,"");
+		content = content.replaceAll(aHref2,"");
+
+		//去掉多余的注释标签
+		content = content.replaceAll(annotation1,"");
+		content = content.replaceAll(annotation2,"");
+		content = content.replaceAll(annotationSuffix1,"");
+		content = content.replaceAll(annotationSuffix2,"");
+
+		pat = Pattern.compile(nbsp);
+		mat = pat.matcher(content);
+		content = mat.replaceAll(" ");
+
+		pat = Pattern.compile(nbsp1);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+		pat = Pattern.compile(nbsp2);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+		pat = Pattern.compile(nbsps);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+		pat = Pattern.compile(quot);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+
+//		pat = Pattern.compile(gt);
+//		mat = pat.matcher(content);
+//		content = mat.replaceAll("");
+//		pat = Pattern.compile(gt1);
+//		mat = pat.matcher(content);
+//		content = mat.replaceAll("");
+
+		pat = Pattern.compile(rn);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+		return content;
+	}
+
 	/**
 	 * 去除\n \r \t
 	 * 
@@ -1022,9 +1098,10 @@ public final class StringUtil {
 			// 得到<img />数据
 			img = m_image.group();
 			// 匹配<img>中的src数据
-			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png)").matcher(img);
+//			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png)").matcher(img);
+			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png).\\s*(.*?)[^>]*?(>|&gt;|&guot;|nbsp;)").matcher(img);
 			while (m.find()) {
-				pics.add(m.group());
+				pics.add(m.group().replace("&quot;/&gt;","").replace("&amp;","&").replace("&quot;","").replace("&gt;","").replace("&nbsp;",""));
 			}
 		}
 		return pics;

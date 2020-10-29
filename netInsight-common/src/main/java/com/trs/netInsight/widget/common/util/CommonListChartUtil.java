@@ -340,6 +340,7 @@ public class CommonListChartUtil {
                     if(StringUtil.isEmpty(title)){
                         map.put("title", vo.getContent());
                     }
+                    map.put("imgUrl",vo.getImgUrl());
                     map.put("abstracts", vo.getContent());
                     map.put("author", vo.getAuthors());
                     map.put("srcName", vo.getSrcName());

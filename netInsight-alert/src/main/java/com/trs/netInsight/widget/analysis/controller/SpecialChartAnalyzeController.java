@@ -795,7 +795,9 @@ public class SpecialChartAnalyzeController {
 			QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
 			searchBuilder.setGroupName(groupName);
 			Date hyStartDate = new Date();
-			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
+//			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
+//					irSimflag,irSimflagAll,areaType);
+			Object resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
 					irSimflag,irSimflagAll,areaType);
             RequestTimeLog requestTimeLog = new RequestTimeLog();
 			requestTimeLog.setTabId(specialId);
@@ -3118,7 +3120,7 @@ public class SpecialChartAnalyzeController {
 					timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
 				}
 			}
-			simflag = "urlRemove";
+//			simflag = "urlRemove";
 			specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 					mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
 			// 跟统计表格一样 如果来源没选 就不查数据
