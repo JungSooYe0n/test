@@ -824,8 +824,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				}
 				if (ObjectUtil.isNotEmpty(user)) {
 					record.addColumn(FtsFieldConst.FIELD_SubGroup_ID, user.getSubGroupId());
+					record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
 				}
-				record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
+				//record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
 				record.addColumn(FtsFieldConst.FIELD_ORGANIZATION_ID, each.get("organizationId"));
 				String alertId = UUID.randomUUID().toString();
 				record.addColumn(FtsFieldConst.FIELD_ALERT_ID, alertId);
