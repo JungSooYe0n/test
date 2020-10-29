@@ -386,6 +386,7 @@ public class SpecialController {
 			@ApiImplicitParam(name = "source", value = "来源", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "groupName", value = "分组名", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "weight", value = "是否按照权重查找", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "sort", value = "排序方式", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "simflag", value = "排重方式 不排，全网排,url排", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "excludeWeb", value = "排除网站", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "server", value = "是否转换为server表达式", dataType = "boolean", paramType = "query", required = false),
@@ -404,6 +405,7 @@ public class SpecialController {
 			@RequestParam(value = "source", required = false) String source,
 			@RequestParam(value = "groupName", required = false) String groupName,
 			@RequestParam(value = "weight", required = false) boolean weight,
+		    @RequestParam(value = "sort", required = false) String sort,
 			@RequestParam(value = "simflag", required = false) String simflag,
 			@RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 			@RequestParam(value = "server", required = false) boolean server,
@@ -492,6 +494,7 @@ public class SpecialController {
 						groupId, timerange, isSimilar, irSimflag, weight, server,irSimflagAll,excludeWeb);
 				String imgUrl = "";
 				specialProject.setImgUrl(imgUrl);
+				specialProject.setSort(sort);
 				specialProject.setStart(new SimpleDateFormat("yyyyMMddHHmmss").format(startTime));
 				specialProject.setEnd(new SimpleDateFormat("yyyyMMddHHmmss").format(endTime));
 				// specialProject.setServer(server);
@@ -830,6 +833,7 @@ public class SpecialController {
 								@RequestParam(value = "searchScope", required = false, defaultValue = "TITLE") String searchScope,
 								@RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialType,
 								@RequestParam(value = "weight", required = false) boolean weight,
+								@RequestParam(value = "sort", required = false) String sort,
 								@RequestParam(value = "excludeWeb", required = false) String excludeWeb,
 								@RequestParam(value = "monitorSite", required = false) String monitorSite,
 								@RequestParam(value = "simflag", required = false) String simflag,
@@ -897,7 +901,7 @@ public class SpecialController {
 			}
 			SpecialProject updateSpecial = specialService.updateSpecial(specialId, type, specialName,
 					anyKeywords, excludeWords,excludeWordsIndex, trsl, scope, startTime, endTime, source,
-					timerange, isSimilar, weight, irSimflag, server,irSimflagAll,excludeWeb, monitorSite,mediaLevel,
+					timerange, isSimilar, weight,sort, irSimflag, server,irSimflagAll,excludeWeb, monitorSite,mediaLevel,
 					 mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
 
 			// 修改专题成功,触发修改该专题当前日期指数

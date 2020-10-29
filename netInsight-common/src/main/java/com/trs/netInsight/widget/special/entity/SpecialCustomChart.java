@@ -147,6 +147,12 @@ public class SpecialCustomChart extends BaseEntity{
     private boolean weight = false;
 
     /**
+     * 排序方式
+     */
+    @Column(name = "sort")
+    private String sort;
+
+    /**
      * 50为半栏 100为通栏
      */
     @Column(name = "tab_width")

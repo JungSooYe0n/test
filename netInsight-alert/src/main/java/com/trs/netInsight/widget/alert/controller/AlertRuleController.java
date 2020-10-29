@@ -211,7 +211,7 @@ public class AlertRuleController {
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
 			throws TRSException {
-
+		//anyKeyword = "[{\"wordSpace\":0,\"wordOrder\":\"false\",\"keyWords\":\"湖人总冠军\"}]";
 		//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受可创建资源数量的限制）
 		User loginUser = UserUtils.getUser();
 		Organization organization = null;

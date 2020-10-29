@@ -590,6 +590,12 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 		for (AlertRule alertRule : countList){
 			alertRule.setGroupName(CommonListChartUtil.formatPageShowGroupName(alertRule.getGroupName()));
+			if(alertRule.isWeight()&&alertRule.getSort()==null){
+				alertRule.setSort("hittitle");
+			}
+			if(!alertRule.isWeight()&&alertRule.getSort()==null){
+				alertRule.setSort("desc");
+			}
 		}
 		return countList;
 	}

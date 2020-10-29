@@ -91,7 +91,7 @@ public class WeixinMessageUtil {
 	/**
 	 * 关注后提示
 	 */
-	public static final String SUBSCRIBE_INFO = "感谢您的关注，TRS社会化媒体分析服务（网察）。";
+	public static final String SUBSCRIBE_INFO = "感谢您关注TRS网络舆情大数据分析平台。";
 	
 	/**
 	 * 成功解除绑定

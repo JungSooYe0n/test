@@ -20,6 +20,7 @@ import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
+import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.entity.emuns.SpecialFlag;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.home.service.IHomeService;
@@ -168,7 +169,7 @@ public class SpecialServiceImpl implements ISpecialService {
 	public SpecialProject updateSpecial(String specialId, SpecialType type, String specialName,
 			String anyKeywords, String excludeWords,String excludeWordsIndex, String trsl,
 			SearchScope scope, Date startTime, Date endTime, String source, String timerange, boolean similar,
-			boolean weight, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String monitorSite,String mediaLevel,
+			boolean weight,String sort, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String monitorSite,String mediaLevel,
 										String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea) throws Exception {
 		SpecialProject specialProject = specialProjectRepository.findOne(specialId);
 		// 修改专项
@@ -189,6 +190,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setIrSimflag(irSimflag);
 		specialProject.setLastModifiedTime(new Date());
 		specialProject.setWeight(weight);
+		specialProject.setSort(sort);
 		specialProject.setServer(server);
 		specialProject.setIrSimflagAll(irSimflagAll);
 		specialProject.setExcludeWeb(excludeWeb);
@@ -571,7 +573,14 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("keyWord", tab.getAnyKeywords());
 					map.put("keyWordIndex", tab.getSearchScope());
 					map.put("excludeWordsIndex",tab.getExcludeWordIndex());
+					if(tab.isWeight()&&tab.getSort()==null){
+						tab.setSort("hittitle");
+					}
+					if(!tab.isWeight()&&tab.getSort()==null){
+						tab.setSort("desc");
+					}
 					map.put("weight", tab.isWeight());
+					map.put("sort", tab.getSort());
 					map.put("excludeWords", tab.getExcludeWords());
 					map.put("excludeWeb", tab.getExcludeWeb());
 					map.put("monitorSite", tab.getMonitorSite());
