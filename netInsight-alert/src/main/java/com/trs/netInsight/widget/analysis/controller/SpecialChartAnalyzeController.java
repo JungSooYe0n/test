@@ -795,7 +795,9 @@ public class SpecialChartAnalyzeController {
 			QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
 			searchBuilder.setGroupName(groupName);
 			Date hyStartDate = new Date();
-			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
+//			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
+//					irSimflag,irSimflagAll,areaType);
+			Object resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
 					irSimflag,irSimflagAll,areaType);
             RequestTimeLog requestTimeLog = new RequestTimeLog();
 			requestTimeLog.setTabId(specialId);

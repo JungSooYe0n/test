@@ -14,6 +14,7 @@ import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
+import com.trs.netInsight.widget.analysis.entity.DistrictInfo;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -275,27 +276,148 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 if(categoryInfos == null || categoryInfos.getGroupList().size() ==0){
                     return null;
                 }
+                //地图下钻走
+                if(type.startsWith(Const.mapto)){
+                    return getMaptoData(categoryInfos,type,resultKey);
+                }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
-                for (Map.Entry<String, List<String>> entry : areaMap.entrySet()) {
-                    Map<String, Object> reMap = new HashMap<String, Object>();
-                    int num = 0;
-                    // 查询结果之间相互对比 所以把城市放开也不耽误查询速度
-                    for (GroupInfo classEntry : categoryInfos) {
-                        String area = classEntry.getFieldValue();
-                        //将从hybase查询到的地域 信息转化为页面中要显示的样子，也跟从mysql库中查询到的一样
-                        area = Const.PAGE_SHOW_PROVINCE_NAME.get(area);
-                        if(entry.getKey().equals(area)){
-                            num = (int)classEntry.getCount();
-                            break;
+                if ("special".equals(type)) {
+//                    省（包含自治区）、市（包含直辖市）、行政区
+                    Map<String, Object> provinceMap = new HashMap<String, Object>();
+                    Map<String, Object> cityMap = new HashMap<String, Object>();
+                    Map<String, Object> specialARMap = new HashMap<String, Object>();
+                    for (Map.Entry<String, List<String>> entry : areaMap.entrySet()) {
+                        Map<String, Object> reMap = new HashMap<String, Object>();
+                        int num = 0;
+                        // 查询结果之间相互对比 所以把城市放开也不耽误查询速度
+                        for (GroupInfo classEntry : categoryInfos) {
+                            String area = classEntry.getFieldValue();
+                            //将从hybase查询到的地域 信息转化为页面中要显示的样子，也跟从mysql库中查询到的一样
+                            area = Const.PAGE_SHOW_PROVINCE_NAME.get(area);
+                            if(entry.getKey().equals(area)){
+                                num = (int)classEntry.getCount();
+                                break;
+                            }
                         }
+                        reMap.put(resultKey.getContrastField(), entry.getKey());
+                        reMap.put(resultKey.getCountField(), num);
+                        list.add(reMap);
+
+                        if (num > 0){
+                            if ("北京".equals(entry.getKey()) || "天津".equals(entry.getKey()) || "上海".equals(entry.getKey()) || "重庆".equals(entry.getKey())){
+                                cityMap.put(entry.getKey(),num);
+                            } else if ("香港".equals(entry.getKey()) || "澳门".equals(entry.getKey())) {
+                                specialARMap.put(entry.getKey(),num);
+                            } else {
+                                provinceMap.put(entry.getKey(),num);
+                            }
+                        }
+
+                        if (FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){  //  内容地域
+                            for (String city : entry.getValue()) {
+                                int num2 = 0;
+                                int numJiLin = 0;
+                                // 因为吉林省市同名,单独拿出,防止按区域名称分类统计错误
+                                for (GroupInfo classEntry : categoryInfos) {
+                                    if (classEntry.getFieldValue().contains(city) && !classEntry.getFieldValue().contains("吉林省\\吉林市")) {
+                                        num2 += classEntry.getCount();
+                                    } else if (classEntry.getFieldValue().contains("吉林省\\吉林市")) {
+                                        numJiLin += classEntry.getCount();
+                                    }
+                                }
+                                // 把.之前的去掉
+                                String[] citySplit = city.split(".");
+                                if (citySplit.length > 1) {
+                                    city = citySplit[citySplit.length - 1];
+                                }
+
+                                if ("吉林".equals(city)) {
+                                    if (numJiLin > 0){
+                                        cityMap.put(city,numJiLin);
+                                    }
+                                }else {
+                                    if (num2 > 0){
+                                        if (Const.CITY_BEIJING.contains(city)){
+                                            cityMap.put("北京",num2);
+                                        } else if (Const.CITY_TIANJIN.contains(city)){
+                                            cityMap.put("天津",num2);
+                                        } else if (Const.CITY_SHANGHAI.contains(city)){
+                                            cityMap.put("上海",num2);
+                                        } else if (Const.CITY_CHONGQING.contains(city)){
+                                            cityMap.put("重庆",num2);
+                                        } else if (!Const.CITY_AOMEN.contains(city) && !Const.CITY_XIANGGANG.contains(city)){
+                                            cityMap.put(city,num2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+//                        else { // 媒体地域
+//
+//                        }
                     }
-                    reMap.put(resultKey.getContrastField(), entry.getKey());
-                    reMap.put(resultKey.getCountField(), num);
-                    list.add(reMap);
+                    Map<String, Object> returnMap = new HashMap<String, Object>();
+                    returnMap.put("areaData",list);
+                    returnMap.put("province",provinceMap.size());
+                    returnMap.put("city",cityMap.size());
+                    returnMap.put("specialAR",specialARMap.size());
+                    return returnMap;
+                } else {
+                    for (Map.Entry<String, List<String>> entry : areaMap.entrySet()) {
+                        Map<String, Object> reMap = new HashMap<String, Object>();
+                        int num = 0;
+                        // 查询结果之间相互对比 所以把城市放开也不耽误查询速度
+                        for (GroupInfo classEntry : categoryInfos) {
+                            String area = classEntry.getFieldValue();
+                            //将从hybase查询到的地域 信息转化为页面中要显示的样子，也跟从mysql库中查询到的一样
+                            area = Const.PAGE_SHOW_PROVINCE_NAME.get(area);
+                            if(entry.getKey().equals(area)){
+                                num = (int)classEntry.getCount();
+                                break;
+                            }
+                        }
+                        reMap.put(resultKey.getContrastField(), entry.getKey());
+                        reMap.put(resultKey.getCountField(), num);
+                        list.add(reMap);
+                    }
                 }
             } catch (Exception e) {
                 throw new TRSSearchException(e);
             }
+        }
+        return list;
+    }
+
+    /**
+     * 地图下钻
+     * @param categoryInfos
+     * @param type
+     * @return
+     */
+    public List<Map<String,Object>> getMaptoData(GroupResult categoryInfos,String type,ChartResultField resultKey){
+        String[] ts = type.split("_");
+        if(ts.length<=1) return null;
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String,Integer> bjmap = new HashMap<>();
+        List<DistrictInfo> citys = districtInfoService.getAreasByCode(ts[1]);
+        for (GroupInfo classEntry : categoryInfos) {
+            String area = classEntry.getFieldValue();
+            int num2 = (int)classEntry.getCount();
+            for(DistrictInfo d: citys){
+                if(area.lastIndexOf(d.getAreaName()) >0){
+                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
+                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+                }
+            }
+        }
+
+        for(Map.Entry<String, Integer> entry : bjmap.entrySet()){
+            Map<String,Object> mm = new HashMap<>();
+            String mapKey = entry.getKey();
+            Integer mapValue = entry.getValue();
+            mm.put(resultKey.getContrastField(), mapKey);
+            mm.put(resultKey.getCountField(), mapValue);
+            list.add(mm);
         }
         return list;
     }

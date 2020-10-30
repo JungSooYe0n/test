@@ -1058,6 +1058,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mapto", value = "地图下钻", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "imgOcr", value = "OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})
 	public Object selectChart(@RequestParam("id") String id,
@@ -1088,6 +1089,7 @@ public class ColumnController {
 							  @RequestParam(value = "mediaArea", required = false) String mediaArea,
 							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
 							  @RequestParam(value = "imgOcr", defaultValue = "ALL", required = false) String imgOcr,
+							  @RequestParam(value = "mapto", defaultValue = "", required = false) String mapto,
 							  @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws SearchException, TRSException {
 		log.info("【日常监测图表查询】随机数： "+randomNum);
@@ -1187,6 +1189,8 @@ public class ColumnController {
 		}
 		AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 		ColumnConfig config = new ColumnConfig();
+		//地图下钻使用
+		if(mapto!=null && !mapto.equals("")) config.setMapto(mapto);
 		if(openFiltrate != null && openFiltrate){
 			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default", "", "",
 					"", "",read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
