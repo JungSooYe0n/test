@@ -4891,13 +4891,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 						if(i == 0) {
 							HashMap<String, String> hashMap = new HashMap<>();
 							siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-							hashMap.put("name", siteName + "-" + name);
+							hashMap.put("name", siteName + "-" + name+"-"+mediaLevel);
 							mapList.add(hashMap);
 						}else {
 							String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
 							if (!newSiteName.equals(siteName)){
 								HashMap<String, String> hashMap = new HashMap<>();
-								hashMap.put("name", newSiteName + "-" + name);
+								hashMap.put("name", newSiteName + "-" + name+"-"+mediaLevel);
 								mapList.add(hashMap);
 								break;
 							}
