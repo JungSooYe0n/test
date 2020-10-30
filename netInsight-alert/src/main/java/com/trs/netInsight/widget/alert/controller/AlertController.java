@@ -107,7 +107,8 @@ public class AlertController {
 			PageAlert pageAlert = alertService.alertListHybase(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
 
 			if (ObjectUtil.isEmpty(pageAlert) || pageAlert.getContent() == null || pageAlert.getContent().size() ==0) {
-				time = "30d";
+				//站内弹窗数据时间限制为当天
+				time = "0d";
 				pageAlert = alertService.alertListHybase(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
 			}
 
