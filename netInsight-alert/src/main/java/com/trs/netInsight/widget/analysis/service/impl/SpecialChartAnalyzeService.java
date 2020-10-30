@@ -793,7 +793,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		return resultMap;
 	}
 	@Override
-	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
+	public Object getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
+//	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
 			throws TRSException {
 		ObjectUtil.assertNull(searchBuilder.asTRSL(), "地域分布检索表达式");
 		List<Map<String, Object>> resultMap = new ArrayList<>();
@@ -804,21 +805,35 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		ChartResultField chartResultField = new ChartResultField("name","value");
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
-		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
-		if(resultMap == null){
+//		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
+		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groupName, contrastField, "special", chartResultField);
+		List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
+		if(objectMap == null || areaData == null || areaData.size() == 0){
 			return null;
 		}
-		for(Map<String,Object> oneMap : resultMap){
+		for(Map<String,Object> oneMap : areaData){
 			oneMap.put("contrast",areaType);
 		}
-		if(resultMap != null && resultMap.size() >0){
-			Collections.sort(resultMap, (o1, o2) -> {
+		if(areaData != null && areaData.size() >0){
+			Collections.sort(areaData, (o1, o2) -> {
 				Integer seq1 = (Integer) o1.get("value");
 				Integer seq2 = (Integer) o2.get("value");
 				return seq2.compareTo(seq1);
 			});
 		}
-		return resultMap;
+//		for(Map<String,Object> oneMap : resultMap){
+//			oneMap.put("contrast",areaType);
+//		}
+//		if(resultMap != null && resultMap.size() >0){
+//			Collections.sort(resultMap, (o1, o2) -> {
+//				Integer seq1 = (Integer) o1.get("value");
+//				Integer seq2 = (Integer) o2.get("value");
+//				return seq2.compareTo(seq1);
+//			});
+//		}
+		objectMap.put("areaData",areaData);
+		return objectMap;
+//		return resultMap;
 	}
 	@Override
 	public List<Map<String, Object>> getAreaCountForHome(QueryBuilder searchBuilder, String[] timeArray,
@@ -4876,13 +4891,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 						if(i == 0) {
 							HashMap<String, String> hashMap = new HashMap<>();
 							siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-							hashMap.put("name", siteName + "-" + name);
+							hashMap.put("name", siteName + "-" + name+"-"+mediaLevel);
 							mapList.add(hashMap);
 						}else {
 							String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
 							if (!newSiteName.equals(siteName)){
 								HashMap<String, String> hashMap = new HashMap<>();
-								hashMap.put("name", newSiteName + "-" + name);
+								hashMap.put("name", newSiteName + "-" + name+"-"+mediaLevel);
 								mapList.add(hashMap);
 								break;
 							}
@@ -6232,6 +6247,25 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 				contrastField = FtsFieldConst.FIELD_AUTHORS;
 			}
 			queryBuilder.filterField(contrastField, "\""+key+"\"", Operator.Equal);
+		}else if (SpecialChartType.CHART_LINE_SITE.equals(specialChartType)){//传播分析站点
+			String mediaLevel = specialProject.getMediaLevel();
+			if (mediaLevel.contains("其它")){
+				queryBuilder.filterField("中央党媒", mediaLevel, Operator.NotEqual);
+				queryBuilder.filterField("地方党媒", mediaLevel, Operator.NotEqual);
+				queryBuilder.filterField("政府网站", mediaLevel, Operator.NotEqual);
+				queryBuilder.filterField("重点商业媒体", mediaLevel, Operator.NotEqual);
+			}else {
+				queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, mediaLevel, Operator.Equal);
+			}
+			if (StringUtil.isNotEmpty(key)) {
+				String contrastField = FtsFieldConst.FIELD_SITENAME;
+				if (Const.GROUPNAME_WEIBO.equals(source)) {
+					contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+				} else if (Const.MEDIA_TYPE_TF.contains(source)) {
+					contrastField = FtsFieldConst.FIELD_AUTHORS;
+				}
+				queryBuilder.filterField(contrastField, "\"" + key + "\"", Operator.Equal);
+			}
 		}else{
 			throw new TRSSearchException("未获取到检索条件");
 		}

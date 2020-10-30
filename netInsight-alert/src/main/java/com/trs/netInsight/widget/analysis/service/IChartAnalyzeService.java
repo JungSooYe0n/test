@@ -157,8 +157,9 @@ public interface IChartAnalyzeService {
 	 * @return
 	 * @throws TRSException
 	 */
-	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar, boolean irSimflag,boolean irSimflagAll,String areaType)
-			throws TRSException;
+//	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar, boolean irSimflag,boolean irSimflagAll,String areaType)
+	public Object getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
+	throws TRSException;
 
 	/**
 	 * 根据时间范围检索

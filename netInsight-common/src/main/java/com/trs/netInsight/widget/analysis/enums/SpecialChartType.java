@@ -85,7 +85,11 @@ public enum SpecialChartType {
     /**
      * 饼状图 - 情绪统计，喜怒哀乐惧等
      */
-    CHART_PIE_MOOD("moodStatistics","情绪分析饼状图 - 喜怒哀乐惧等","ALL");
+    CHART_PIE_MOOD("moodStatistics","情绪分析饼状图 - 喜怒哀乐惧等","ALL"),
+    /**
+     * 传播分析站点
+     */
+    CHART_LINE_SITE("spreadAnalysisSiteName","传播分析站点","ALL");
 
 
     private String typeCode;
