@@ -100,6 +100,11 @@ public class ColumnConfig {
 	 * 地域分布图
 	 */
 	//private String area;
+
+	/**
+	 * 地图下钻
+	 */
+	private String mapto;
 	/**
 	 * 词云
 	 */

