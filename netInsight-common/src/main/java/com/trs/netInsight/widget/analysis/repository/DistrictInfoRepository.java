@@ -17,9 +17,12 @@ public interface DistrictInfoRepository extends PagingAndSortingRepository<Distr
 
 	/**
 	 * 根据地域id检索列表
-	 * 
+	 *
 	 * @param areaId
 	 * @return
 	 */
 	public List<DistrictInfo> findById(String areaId);
+
+	List<DistrictInfo> findByIdLike(String id);
+
 }

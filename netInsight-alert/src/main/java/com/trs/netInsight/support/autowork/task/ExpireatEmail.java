@@ -82,11 +82,8 @@ public class ExpireatEmail extends AbstractTask {
 				map.put("organizationName", organizationName);
 				map.put("displayName", user.getDisplayName());// 昵称
 				String phone = user.getPhone();
-//				if (StringUtil.isNotEmpty(phone)) {
+
 				map.put("phone", phone);
-//				} else {
-//					map.put("phone", 0);
-//				}
 				map.put("email", email);
 				map.put("expireat", user.getExpireAt());
 				map.put("n", n);
