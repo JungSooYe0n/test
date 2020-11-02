@@ -66,6 +66,10 @@ public class Const {
      * FaceBook 和twitter等海外媒体  默认
      */
     public static final String DEFAULT_HYBASE_OVERSEAS = "system2.overseasMedia_180419";
+    /**
+     * 视频+短视频  默认
+     */
+    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402";
 
 
     /**
@@ -88,11 +92,7 @@ public class Const {
     /**
      * 视频+短视频
      */
-    public static String HYBASE_VIDEO = "system2.media_200402_null";
-    /**
-     * 视频+短视频  默认
-     */
-    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402_null";
+    public static String HYBASE_VIDEO = "system2.media_200402";
 
     /**
      * hybase传统库
@@ -1523,8 +1523,6 @@ public class Const {
     public static final String GATHER_AUDITING = "审核中";
     public static final String[] REMOVEMEDIAS = new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
             "大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点","惠头条号"};
-
-    public static final String mapto = "mapto_";
 
 }
 

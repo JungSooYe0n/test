@@ -21,7 +21,7 @@ import java.util.*;
 
 /**
  * 地域热力图
- *
+ * 
  * @author 北京拓尔思信息技术股份有限公司
  * @since changjiang @ 2018年4月8日
  */
@@ -47,9 +47,7 @@ public class MapColumn extends AbstractColumn {
 			contrast = ColumnConst.CONTRAST_TYPE_HIT_ARTICLE;
 		}
 		try {
-        	String type = "column";
-        	if(config.getMapto()!=null && !config.getMapto().equals("")) type = Const.mapto+config.getMapto();
-			list = (List<Map<String, Object>>) commonChartService.getMapColumnData(builder, sim, irSimflag, irSimflagAll, groupNames, contrastField, type,resultField);
+			list = (List<Map<String, Object>>) commonChartService.getMapColumnData(builder, sim, irSimflag, irSimflagAll, groupNames, contrastField, "column",resultField);
 			if(list == null){
 				return null;
 			}

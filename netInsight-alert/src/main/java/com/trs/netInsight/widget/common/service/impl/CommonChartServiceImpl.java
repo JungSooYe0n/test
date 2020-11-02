@@ -14,7 +14,6 @@ import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
-import com.trs.netInsight.widget.analysis.entity.DistrictInfo;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -276,12 +275,8 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 if(categoryInfos == null || categoryInfos.getGroupList().size() ==0){
                     return null;
                 }
-                //地图下钻走
-                if(type.startsWith(Const.mapto)){
-                    return getMaptoData(categoryInfos,type,resultKey);
-                }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
-                if ("special".equals(type)) {
+                if ("special".equals(type)){
 //                    省（包含自治区）、市（包含直辖市）、行政区
                     Map<String, Object> provinceMap = new HashMap<String, Object>();
                     Map<String, Object> cityMap = new HashMap<String, Object>();
@@ -384,40 +379,6 @@ public class CommonChartServiceImpl implements ICommonChartService {
             } catch (Exception e) {
                 throw new TRSSearchException(e);
             }
-        }
-        return list;
-    }
-
-    /**
-     * 地图下钻
-     * @param categoryInfos
-     * @param type
-     * @return
-     */
-    public List<Map<String,Object>> getMaptoData(GroupResult categoryInfos,String type,ChartResultField resultKey){
-        String[] ts = type.split("_");
-        if(ts.length<=1) return null;
-        List<Map<String, Object>> list = new ArrayList<>();
-        Map<String,Integer> bjmap = new HashMap<>();
-        List<DistrictInfo> citys = districtInfoService.getAreasByCode(ts[1]);
-        for (GroupInfo classEntry : categoryInfos) {
-            String area = classEntry.getFieldValue();
-            int num2 = (int)classEntry.getCount();
-            for(DistrictInfo d: citys){
-                if(area.lastIndexOf(d.getAreaName()) >0){
-                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
-                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
-                }
-            }
-        }
-
-        for(Map.Entry<String, Integer> entry : bjmap.entrySet()){
-            Map<String,Object> mm = new HashMap<>();
-            String mapKey = entry.getKey();
-            Integer mapValue = entry.getValue();
-            mm.put(resultKey.getContrastField(), mapKey);
-            mm.put(resultKey.getCountField(), mapValue);
-            list.add(mm);
         }
         return list;
     }

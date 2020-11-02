@@ -1,8 +1,8 @@
 /*
  * Project: netInsight
- *
+ * 
  * File Created at 2017年11月21日
- *
+ * 
  * Copyright 2017 trs Corporation Limited.
  * All rights reserved.
  *
@@ -109,34 +109,14 @@ public class DistrictInfoServiceImpl implements IDistrictInfoService {
 		return area;
 	}
 
-	@Override
-	public DistrictInfo getCodeBy(String city) {
-		// 先确定是省还是市
-		Criteria<DistrictInfo> criteria = new Criteria<>();
-		criteria.add(Restrictions.eq("areaName", city));
-		criteria.add(Restrictions.eq("areaType", "1"));
-		List<DistrictInfo> provienceInfos = districtInfoRepository.findAll(criteria);
-		DistrictInfo districtInfo = provienceInfos.get(0);
-		return districtInfo;
-	}
-
-	@Override
-	public List<DistrictInfo> getAreasByCode(String city) {
-
-		DistrictInfo districtInfo = getCodeBy(city);
-
-		List<DistrictInfo> provienceInfos = districtInfoRepository.findByIdLike(districtInfo.getId()+"%");
-		return provienceInfos;
-	}
-
 }
 
 /**
  * Revision history
  * -------------------------------------------------------------------------
- *
+ * 
  * Date Author Note
- *
+ * 
  * When I wrote this, only God and I understood what I was doing But now, God
  * only knows!
  * -------------------------------------------------------------------------
