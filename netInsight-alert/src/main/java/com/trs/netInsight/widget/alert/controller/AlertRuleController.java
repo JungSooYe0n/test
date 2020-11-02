@@ -752,6 +752,11 @@ public class AlertRuleController {
 			log.error("进入listDocument方法:" + System.currentTimeMillis());
 			String keywordIndex = "positioCon";
 			AlertRule alertRule = alertRuleRepository.findOne(id);
+			if(alertRule.getSort()!=null){
+				if("hittitle".equals(alertRule.getSort())){
+					alertRule.setWeight(true);
+				}
+			}
 			SpecialType specialType = alertRule.getSpecialType();
 			String groupName = alertRule.getGroupName();
 			if(groupName == null || "".equals(groupName)){
