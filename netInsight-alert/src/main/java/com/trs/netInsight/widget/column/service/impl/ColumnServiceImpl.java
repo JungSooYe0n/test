@@ -2341,10 +2341,8 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 			try {
 				AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 				ColumnConfig config = new ColumnConfig();
-				if(indexTab.getSort()!=null){
-						if("hittitle".equals(indexTab.getSort())){
+						if("hittitle".equals(sort)){
 							indexTab.setWeight(true);
-						}
 				}
 				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort,  invitationCard,

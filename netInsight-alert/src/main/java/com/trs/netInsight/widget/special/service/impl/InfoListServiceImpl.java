@@ -6199,10 +6199,8 @@ public class InfoListServiceImpl implements IInfoListService {
 									   String type, String read, String preciseFilter, String imgOcr) throws TRSException {
 		try {
 			User loginUser = UserUtils.getUser();
-			if(specialProject.getSort()!=null){
-				if("hittitle".equals(specialProject.getSort())){
+				if("hittitle".equals(sort)){
 					specialProject.setWeight(true);
-				}
 			}
 			QueryBuilder builder = null;
 			if (StringUtil.isNotEmpty(time)) {
