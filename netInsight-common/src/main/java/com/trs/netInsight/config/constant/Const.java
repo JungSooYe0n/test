@@ -88,11 +88,11 @@ public class Const {
     /**
      * 视频+短视频
      */
-    public static String HYBASE_VIDEO = "system2.media_200402_null";
+    public static String HYBASE_VIDEO = "system2.media_200402";
     /**
      * 视频+短视频  默认
      */
-    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402_null";
+    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402";
 
     /**
      * hybase传统库
