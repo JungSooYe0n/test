@@ -215,7 +215,7 @@ public class AlertMd5 implements Job {
         for(FtsDocumentCommonVO vo :voList){
             FtsDocumentAlert ftsDocumentAlert = null;
             String title = vo.getTitle();
-            title = StringUtil.replaceImgNew(title);
+            //title = StringUtil.replaceImgNew(title);
             String content = vo.getContent();
             String imgUrl = "";
             if (content != null) {
