@@ -59,6 +59,7 @@ public final class StringUtil {
 	public static final String video1 = "(?=&lt;video&nbsp;src=).+?(?=&quot;&gt;)";
 	public static final String video2 = "(?=&lt;AUDIO&nbsp;SRC=).+?(?=&quot;&gt;)";
 	public static final String video3 = "<video src=";
+	public static final String video4 = "<VIDEO SRC=";
 	public static final String videoSuffix1 = "&lt;/video&gt;";
 	public static final String videoSuffix2 = "</video>";
 	public static final String aHref1 = "(?=&lt;a).+?(?=&quot;&gt;)";
@@ -441,9 +442,10 @@ public final class StringUtil {
 		content = content.replaceAll("<IMAGE SRC=","");
 		content = content.replaceAll("<img class=","");
 		//content = content.replaceAll("<font color='...","");
-		content = content.replaceAll(video3,"");
-		content = content.replaceAll(video2,"");
 		content = content.replaceAll(video1,"");
+		content = content.replaceAll(video2,"");
+		content = content.replaceAll(video3,"");
+		content = content.replaceAll(video4,"");
 		content = content.replaceAll(videoSuffix1,"");
 		content = content.replaceAll(videoSuffix2,"");
 		content = content.replaceAll(aHref1,"");
