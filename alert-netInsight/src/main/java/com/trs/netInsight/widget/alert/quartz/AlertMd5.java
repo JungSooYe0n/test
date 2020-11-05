@@ -372,10 +372,12 @@ public class AlertMd5 implements Job {
             Organization organization = organizationRepository.findOne(user.getOrganizationId());
             if (organization != null) {
                 // 数据来源来源
-                String dataSources = organization.getDataSources();
+                //String dataSources = organization.getDataSources();
+                //热度预警数据来源
+                String dataSources = alertRule.getGroupName();
                 // 新闻,论坛,博客,微博,微信,客户端,电子报,Twitter
                 if (StringUtils.isNotBlank(dataSources) && !StringUtils.equals(dataSources, "ALL")) {
-                    String[] dataSourcesArr = dataSources.split(",");
+                    String[] dataSourcesArr = dataSources.split(";");
                     StringBuffer buffer = new StringBuffer();
                     if (dataSourcesArr != null && dataSourcesArr.length > 0) {
                         buffer.append(FtsFieldConst.FIELD_GROUPNAME).append(":(");
