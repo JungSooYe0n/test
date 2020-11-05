@@ -404,21 +404,23 @@ public class CommonChartServiceImpl implements ICommonChartService {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                if(area.lastIndexOf(d.getAreaName()) >0){
+                String formatArea = d.getAreaName().replace("市","").replace("区","");
+                if(area.indexOf(formatArea) >0){
                     if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
                     else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
                 }
             }
         }
 
-        for(Map.Entry<String, Integer> entry : bjmap.entrySet()){
+        for(DistrictInfo d: citys){
             Map<String,Object> mm = new HashMap<>();
-            String mapKey = entry.getKey();
-            Integer mapValue = entry.getValue();
+            String mapKey = d.getAreaName();
+            Integer mapValue = bjmap.get(mapKey)==null?0:bjmap.get(mapKey);
             mm.put(resultKey.getContrastField(), mapKey);
             mm.put(resultKey.getCountField(), mapValue);
             list.add(mm);
         }
+
         return list;
     }
 

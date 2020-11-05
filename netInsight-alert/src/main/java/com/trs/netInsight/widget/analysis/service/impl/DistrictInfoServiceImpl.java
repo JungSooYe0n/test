@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.trs.netInsight.config.constant.Const;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -125,7 +126,7 @@ public class DistrictInfoServiceImpl implements IDistrictInfoService {
 
 		DistrictInfo districtInfo = getCodeBy(city);
 
-		List<DistrictInfo> provienceInfos = districtInfoRepository.findByIdLike(districtInfo.getId()+"%");
+		List<DistrictInfo> provienceInfos = districtInfoRepository.findByIdLike(districtInfo.getId()+Const.maptopri+"%");
 		return provienceInfos;
 	}
 

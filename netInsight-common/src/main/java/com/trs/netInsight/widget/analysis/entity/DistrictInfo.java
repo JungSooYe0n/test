@@ -22,7 +22,7 @@ import javax.persistence.Table;
 public class DistrictInfo extends BaseEntity {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 6225998731657562428L;
 
@@ -41,7 +41,7 @@ public class DistrictInfo extends BaseEntity {
 
 	/**
 	 * 有参构造
-	 * 
+	 *
 	 * @param areaName
 	 * @param areaType
 	 */
