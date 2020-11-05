@@ -916,7 +916,28 @@ public class InfoListController {
 		}
 		return buffer.toString();
 	}
+	@RequestMapping(value = "/setReadArticle",method = RequestMethod.GET)
+public Object setReadArticle(@ApiParam("sid") @RequestParam("sid") String sids, @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName)throws TRSException{
+		try {
+			String[] groupNameArray = groupName.split(";");
+			String[] sidArray = sids.split(";");
+			if(groupNameArray.length != sidArray.length){
+				return new TRSException("所传sid和groupName的个数不相同");
+			}
+			QueryBuilder queryBuilder = new QueryBuilder();
+//			if (Const.PAGE_SHOW_WEIBO.contains(groupName)){
+//				queryBuilder.filterField(FtsFieldConst.FIELD_MID, sid, Operator.Equal);
+//			}else if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
+//				queryBuilder.filterField(FtsFieldConst.FIELD_HKEY, sid, Operator.Equal);
+//			}else {
+//				queryBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.Equal);
+//			}
 
+		} catch (Exception e) {
+			throw new TRSException("设置已读失败,message" + e);
+		}
+		return "success";
+	}
     /**
      * 信息列表页单条的详情
      *
