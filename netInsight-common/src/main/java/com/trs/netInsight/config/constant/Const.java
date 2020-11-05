@@ -1525,6 +1525,9 @@ public class Const {
             "大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点","惠头条号"};
 
     public static final String mapto = "mapto_";
+//    地图下钻,通过省获得市,id拼接前缀
+    public static final String maptopri = "0000";
+
 
 }
 
