@@ -1058,7 +1058,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "mapto", value = "地图下钻", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mapto", value = "地图下钻省", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "imgOcr", value = "OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})
 	public Object selectChart(@RequestParam("id") String id,
