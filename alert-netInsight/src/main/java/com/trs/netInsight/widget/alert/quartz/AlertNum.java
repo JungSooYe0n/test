@@ -133,7 +133,7 @@ public class AlertNum implements Job {
                                             }
 
                                         }
-                                       System.out.println(listMap.get(i).get("content"));
+                                       //System.out.println(listMap.get(i).get("content"));
                                     }
                                     //将当前数据挨个转化为对应的数据格式，并发送
                                     if (listMap.size() > 20) {
