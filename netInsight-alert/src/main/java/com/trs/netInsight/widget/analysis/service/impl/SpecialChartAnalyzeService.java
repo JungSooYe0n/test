@@ -796,6 +796,11 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	public Object getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
 //	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
 			throws TRSException {
+		String type = "special";
+		if(areaType.startsWith(Const.mapto)){
+			type = Const.mapto+areaType.split("_")[1]+"_"+type;
+			areaType = areaType.split("_")[2];
+		}
 		ObjectUtil.assertNull(searchBuilder.asTRSL(), "地域分布检索表达式");
 		List<Map<String, Object>> resultMap = new ArrayList<>();
 		if (timeArray != null) {
@@ -806,7 +811,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
 //		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
-		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groupName, contrastField, "special", chartResultField);
+		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groupName, contrastField, type, chartResultField);
 		List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
 		if(objectMap == null || areaData == null || areaData.size() == 0){
 			return null;

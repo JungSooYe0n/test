@@ -271,14 +271,21 @@ public class CommonChartServiceImpl implements ICommonChartService {
         List<Map<String, Object>> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(groupName)) {
             try {
-                //地图部分专家或者普通，因为没有分类对比表达式
-                GroupResult categoryInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName,  "", contrastField, type);
+                //地图部分专家或者普通，因为没有分类对比表达式 地图下钻时:type=mapto_北京_column
+                String typeTmp = type;
+                String areaName = "";
+                if(type.startsWith(Const.mapto)){
+                    areaName = typeTmp.split("_")[1];
+                    typeTmp = typeTmp.split("_")[2];
+                }
+                GroupResult categoryInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName,  "", contrastField, typeTmp);
                 if(categoryInfos == null || categoryInfos.getGroupList().size() ==0){
                     return null;
                 }
                 //地图下钻走
                 if(type.startsWith(Const.mapto)){
-                    return getMaptoData(categoryInfos,type,resultKey);
+                    if(typeTmp.equals("special")) return getMaptoDataS(categoryInfos,areaName,resultKey);
+                    else return getMaptoData(categoryInfos,areaName,resultKey);
                 }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
                 if ("special".equals(type)) {
@@ -389,17 +396,15 @@ public class CommonChartServiceImpl implements ICommonChartService {
     }
 
     /**
-     * 地图下钻
+     * 地图下钻 -- 日常监测
      * @param categoryInfos
-     * @param type
+     * @param areaName
      * @return
      */
-    public List<Map<String,Object>> getMaptoData(GroupResult categoryInfos,String type,ChartResultField resultKey){
-        String[] ts = type.split("_");
-        if(ts.length<=1) return null;
+    public List<Map<String,Object>> getMaptoData(GroupResult categoryInfos,String areaName,ChartResultField resultKey){
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String,Integer> bjmap = new HashMap<>();
-        List<DistrictInfo> citys = districtInfoService.getAreasByCode(ts[1]);
+        List<DistrictInfo> citys = districtInfoService.getAreasByCode(areaName);
         for (GroupInfo classEntry : categoryInfos) {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
@@ -422,6 +427,43 @@ public class CommonChartServiceImpl implements ICommonChartService {
         }
 
         return list;
+    }
+    /**
+     * 地图下钻 -- 专题分析
+     * @param categoryInfos
+     * @param areaName
+     * @return
+     */
+    public Map<String,Object> getMaptoDataS(GroupResult categoryInfos,String areaName,ChartResultField resultKey){
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String,Integer> bjmap = new HashMap<>();
+        List<DistrictInfo> citys = districtInfoService.getAreasByCode(areaName);
+        for (GroupInfo classEntry : categoryInfos) {
+            String area = classEntry.getFieldValue();
+            int num2 = (int)classEntry.getCount();
+            for(DistrictInfo d: citys){
+                String formatArea = d.getAreaName().replace("市","").replace("区","");
+                if(area.indexOf(formatArea) >0){
+                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
+                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+                }
+            }
+        }
+
+        for(DistrictInfo d: citys){
+            Map<String,Object> mm = new HashMap<>();
+            String mapKey = d.getAreaName();
+            Integer mapValue = bjmap.get(mapKey)==null?0:bjmap.get(mapKey);
+            mm.put(resultKey.getContrastField(), mapKey);
+            mm.put(resultKey.getCountField(), mapValue);
+            list.add(mm);
+        }
+
+        Map<String, Object> returnMap = new HashMap<String, Object>();
+        returnMap.put("areaData",list);
+        returnMap.put("city",citys.size());
+        return returnMap;
+
     }
 
 

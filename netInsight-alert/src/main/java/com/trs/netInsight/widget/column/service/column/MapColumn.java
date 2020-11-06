@@ -48,7 +48,7 @@ public class MapColumn extends AbstractColumn {
 		}
 		try {
         	String type = "column";
-        	if(config.getMapto()!=null && !config.getMapto().equals("")) type = Const.mapto+config.getMapto();
+        	if(config.getMapto()!=null && !config.getMapto().equals("")) type = Const.mapto+config.getMapto()+"_"+type;
 			list = (List<Map<String, Object>>) commonChartService.getMapColumnData(builder, sim, irSimflag, irSimflagAll, groupNames, contrastField, type,resultField);
 			if(list == null){
 				return null;
