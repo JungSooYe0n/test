@@ -6199,13 +6199,9 @@ public class InfoListServiceImpl implements IInfoListService {
 									   String type, String read, String preciseFilter, String imgOcr) throws TRSException {
 		try {
 			User loginUser = UserUtils.getUser();
-//			if(specialProject.getSort()!=null){
-//				if("asc".equals(specialProject.getSort())||"desc".equals(specialProject.getSort())){
-//					specialProject.setWeight(false);
-//				}else{
-//					specialProject.setWeight(true);
-//				}
-//			}
+				if("hittitle".equals(sort)){
+					specialProject.setWeight(true);
+			}
 			QueryBuilder builder = null;
 			if (StringUtil.isNotEmpty(time)) {
 				builder = specialProject.toSearchBuilder(pageNo, pageSize, false);
@@ -6214,7 +6210,12 @@ public class InfoListServiceImpl implements IInfoListService {
 			} else {
 				builder = specialProject.toSearchBuilder(pageNo, pageSize, true);
 			}
-
+//	阅读标记	已读/未读
+			if ("已读".equals(read)){//已读
+				builder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+			}else if ("未读".equals(read)){//未读
+				builder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
+			}
 			//查看OCR - 图片
 			if (StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)) {
 				if ("img".equals(imgOcr)) { // 看有ocr的

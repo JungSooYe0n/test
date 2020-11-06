@@ -2327,6 +2327,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}else{
 			builder = specialProject.toSearchBuilder(0, 20, true);
 		}
+		//	阅读标记	已读/未读
+		if ("已读".equals(read)){//已读
+			builder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+		}else if ("未读".equals(read)){//未读
+			builder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
+		}
 		//查看OCR - 图片
 		if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
 			if("img".equals(imgOcr)){ // 看有ocr的
@@ -4896,13 +4902,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 						if(i == 0) {
 							HashMap<String, String> hashMap = new HashMap<>();
 							siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-							hashMap.put("name", siteName + "-" + name);
+							hashMap.put("name", siteName + "-" + name+"-"+mediaLevel);
 							mapList.add(hashMap);
 						}else {
 							String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
 							if (!newSiteName.equals(siteName)){
 								HashMap<String, String> hashMap = new HashMap<>();
-								hashMap.put("name", newSiteName + "-" + name);
+								hashMap.put("name", newSiteName + "-" + name+"-"+mediaLevel);
 								mapList.add(hashMap);
 								break;
 							}

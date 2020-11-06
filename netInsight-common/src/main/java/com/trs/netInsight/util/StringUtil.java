@@ -58,6 +58,7 @@ public final class StringUtil {
 
 	public static final String video1 = "(?=&lt;video&nbsp;src=).+?(?=&quot;&gt;)";
 	public static final String video2 = "(?=&lt;AUDIO&nbsp;SRC=).+?(?=&quot;&gt;)";
+	public static final String video3 = "<video src=";
 	public static final String videoSuffix1 = "&lt;/video&gt;";
 	public static final String videoSuffix2 = "</video>";
 	public static final String aHref1 = "(?=&lt;a).+?(?=&quot;&gt;)";
@@ -69,7 +70,7 @@ public final class StringUtil {
 	public static final String annotationSuffix1 = "--&gt;";
 	public static final String annotation2 = "(?=<!--).+?(?=-->)";
 	public static final String annotationSuffix2 = "-->";
-	public static final String font1 = "<font color=red>";// ;<font
+	public static final String font1 = "<font color='red'>";// ;<font
 															// color=red>相思苦</font>
 	public static final String font2 = "</font>";
 
@@ -438,9 +439,11 @@ public final class StringUtil {
 		content = content.replaceAll(img25,"");
         content = content.replaceAll("<img src=","");
 		content = content.replaceAll("<IMAGE SRC=","");
+		content = content.replaceAll("<img class=","");
 		//content = content.replaceAll("<font color='...","");
-		content = content.replaceAll(video1,"");
+		content = content.replaceAll(video3,"");
 		content = content.replaceAll(video2,"");
+		content = content.replaceAll(video1,"");
 		content = content.replaceAll(videoSuffix1,"");
 		content = content.replaceAll(videoSuffix2,"");
 		content = content.replaceAll(aHref1,"");
@@ -472,12 +475,14 @@ public final class StringUtil {
 		mat = pat.matcher(content);
 		content = mat.replaceAll("");
 
-//		pat = Pattern.compile(gt);
-//		mat = pat.matcher(content);
-//		content = mat.replaceAll("");
-//		pat = Pattern.compile(gt1);
-//		mat = pat.matcher(content);
-//		content = mat.replaceAll("");
+		pat = Pattern.compile(gt);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+		pat = Pattern.compile(gt1);
+		mat = pat.matcher(content);
+		content = mat.replaceAll("");
+		content = content.replaceAll("</font","</font>");
+		content = content.replaceAll("<font color='red'","<font color='red'>");
 
 		pat = Pattern.compile(rn);
 		mat = pat.matcher(content);
@@ -727,6 +732,7 @@ public final class StringUtil {
 				title = replaceNRT(replaceFont(replaceImg(title)));
 				title = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
 				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
+				title = title.replaceAll("<font color='red'>", "").replaceAll("</font>", "");
 				buffer.append(i + "、").append(title).append("\\n\\n");
 				i++;
 			}
