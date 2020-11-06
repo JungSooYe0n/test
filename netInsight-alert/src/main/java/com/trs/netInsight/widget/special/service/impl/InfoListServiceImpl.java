@@ -6210,7 +6210,12 @@ public class InfoListServiceImpl implements IInfoListService {
 			} else {
 				builder = specialProject.toSearchBuilder(pageNo, pageSize, true);
 			}
-
+//	阅读标记	已读/未读
+			if ("已读".equals(read)){//已读
+				builder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+			}else if ("未读".equals(read)){//未读
+				builder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
+			}
 			//查看OCR - 图片
 			if (StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)) {
 				if ("img".equals(imgOcr)) { // 看有ocr的

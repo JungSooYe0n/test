@@ -77,6 +77,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -917,14 +918,105 @@ public class InfoListController {
 		return buffer.toString();
 	}
 	@RequestMapping(value = "/setReadArticle",method = RequestMethod.GET)
-public Object setReadArticle(@ApiParam("sid") @RequestParam("sid") String sids, @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName)throws TRSException{
+public Object setReadArticle(@ApiParam("sid") @RequestParam(value = "sid",required = true) String sids,
+							 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
+							 @ApiParam("文章的urltime") @RequestParam(value = "urltime", required = false) String urltime,
+							 @ApiParam("trslk") @RequestParam(value = "trslk",required = false) String trslk)throws TRSException{
 		try {
-			String[] groupNameArray = groupName.split(";");
+			String[] groupNames = groupName.split(";");
 			String[] sidArray = sids.split(";");
-			if(groupNameArray.length != sidArray.length){
+			if(groupNames.length != sidArray.length){
 				return new TRSException("所传sid和groupName的个数不相同");
 			}
+			QueryBuilder builderTime = DateUtil.timeBuilder(urltime);
+			Date start = builderTime.getStartTime();
+			Date end = builderTime.getEndTime();
+			SimpleDateFormat format = new SimpleDateFormat(DateUtil.yyyyMMdd2);
+			String startString = format.format(start);
+			String endString = format.format(end);
+			String trsl = null;
+			if (StringUtil.isNotEmpty(trslk)) {
+				 trsl = RedisUtil.getString(trslk);
+			}
+
 			QueryBuilder queryBuilder = new QueryBuilder();
+			List<String> idList = new ArrayList<>();
+			List<String> weixinList = new ArrayList<>();
+			List<String> weiboList = new ArrayList<>();
+			List<String> groupName_other = new ArrayList<>();
+			List<FtsDocumentCommonVO> result = new ArrayList<>();
+			for (int i = 0; i < sidArray.length; i++) {
+				String tgroupName = Const.SOURCE_GROUPNAME_CONTRAST.get(groupNames[i]);
+				if (Const.MEDIA_TYPE_WEIXIN.contains(tgroupName)) {
+					weixinList.add(sidArray[i]);
+				} else if (Const.PAGE_SHOW_WEIBO.contains(tgroupName)){
+					weiboList.add(sidArray[i]);
+				}else {
+					idList.add(sidArray[i]);
+					if (!groupName_other.contains(groupNames[i])) {
+						groupName_other.add(groupNames[i]);
+					}
+				}
+			}
+			if (idList.size() > 0){
+				QueryBuilder builder = new QueryBuilder();
+				if (StringUtil.isNotEmpty(trsl)) {
+					builder.filterByTRSL(trsl);
+				}
+				if (StringUtil.isNotEmpty(startString) && StringUtil.isNotEmpty(endString)) {
+					builder.filterField(FtsFieldConst.FIELD_URLTIME, new String[]{startString + "000000", endString + "235959"}, Operator.Between);
+				}
+				builder.filterField(FtsFieldConst.FIELD_SID, StringUtils.join(idList, " OR "), Operator.Equal);
+				builder.page(0, idList.size() * 2);
+				String searchGroupName = StringUtils.join(groupName_other, ";");
+				log.info("选中查询数据表达式 - 全部：" + builder.asTRSL());
+				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder,false,false,false,searchGroupName,null,UserUtils.getUser(),false);
+				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				if (content.getPageItems() != null && content.getPageItems().size() > 0) {
+					result.addAll(content.getPageItems());
+				}
+			}
+			if (weixinList.size() > 0) {
+				QueryBuilder builderWeiXin = new QueryBuilder();//微信的表达式
+				if (StringUtil.isNotEmpty(trsl)) {
+					builderWeiXin.filterByTRSL(trsl);
+				}
+				if (StringUtil.isNotEmpty(startString) && StringUtil.isNotEmpty(endString)) {
+					builderWeiXin.filterField(FtsFieldConst.FIELD_URLTIME, new String[]{startString + "000000", endString + "235959"}, Operator.Between);
+				}
+				String weixinids = StringUtils.join(weixinList, " OR ");
+				builderWeiXin.filterField(FtsFieldConst.FIELD_HKEY, weixinids, Operator.Equal);
+				builderWeiXin.page(0, weixinList.size() * 2);
+				log.info("预警查询数据表达式 - 微信：" + builderWeiXin.asTRSL());
+				InfoListResult infoListResult = commonListService.queryPageList(builderWeiXin,false,false,false,Const.TYPE_WEIXIN,null,UserUtils.getUser(),false);
+				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				if (content.getPageItems() != null && content.getPageItems().size() > 0) {
+					result.addAll(content.getPageItems());
+				}
+			}
+			if (weiboList.size() > 0) {
+				QueryBuilder builderWeiBo = new QueryBuilder();//微信的表达式
+				if (StringUtil.isNotEmpty(trsl)) {
+					builderWeiBo.filterByTRSL(trsl);
+				}
+				if (StringUtil.isNotEmpty(startString) && StringUtil.isNotEmpty(endString)) {
+					builderWeiBo.filterField(FtsFieldConst.FIELD_URLTIME, new String[]{startString + "000000", endString + "235959"}, Operator.Between);
+				}
+				String weiboids = StringUtils.join(weiboList, " OR ");
+				builderWeiBo.filterField(FtsFieldConst.FIELD_MID, weiboids, Operator.Equal);
+				builderWeiBo.page(0, weiboList.size() * 2);
+				log.info("预警查询数据表达式 - 微信：" + builderWeiBo.asTRSL());
+				InfoListResult infoListResult = commonListService.queryPageList(builderWeiBo,false,false,false,Const.GROUPNAME_WEIBO,null,UserUtils.getUser(),false);
+				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				if (content.getPageItems() != null && content.getPageItems().size() > 0) {
+					result.addAll(content.getPageItems());
+				}
+			}
+			if (null != result && result.size() > 0) {
+				for (FtsDocumentCommonVO ftsDocumentCommonVO : result) {
+					readArticle(ftsDocumentCommonVO);
+				}
+			}
 //			if (Const.PAGE_SHOW_WEIBO.contains(groupName)){
 //				queryBuilder.filterField(FtsFieldConst.FIELD_MID, sid, Operator.Equal);
 //			}else if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
