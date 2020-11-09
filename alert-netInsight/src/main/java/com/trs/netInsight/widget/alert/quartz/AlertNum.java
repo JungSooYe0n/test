@@ -213,8 +213,8 @@ public class AlertNum implements Job {
             }
         }
         String retweetedMid = (String) dataMap.get(FtsFieldConst.FIELD_RETWEETED_MID);
-        Long commtCount = dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT) == null ? 0 : Long.parseLong(dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT).toString());
-        Long rttCount = dataMap.get(FtsFieldConst.FIELD_RTTCOUNT) == null ? 0 : Long.parseLong(dataMap.get(FtsFieldConst.FIELD_RTTCOUNT).toString());
+        Long commtCount = dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT) == null ? 0 : Long.parseLong(dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT).toString().equals("")?"0":dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT).toString());
+        Long rttCount = dataMap.get(FtsFieldConst.FIELD_RTTCOUNT) == null ? 0 : Long.parseLong(dataMap.get(FtsFieldConst.FIELD_RTTCOUNT).toString().equals("")?"0":dataMap.get(FtsFieldConst.FIELD_RTTCOUNT).toString());
         String keywords = (String) dataMap.get(FtsFieldConst.FIELD_KEYWORDS);
         String channel = (String) dataMap.get(FtsFieldConst.FIELD_CHANNEL);
 
