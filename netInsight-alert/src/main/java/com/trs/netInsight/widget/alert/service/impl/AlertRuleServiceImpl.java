@@ -1223,7 +1223,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				}
 				break;
 		}
-		InfoListResult docList = commonListService.queryPageList(builder,simflag,irsimflag,irSimflagAll,Const.GROUPNAME_TWITTER,"alert",loginUser,false);
+		InfoListResult docList = commonListService.queryPageList(builder,simflag,irsimflag,irSimflagAll,source,"alert",loginUser,false);
 		return setInfoData(docList,wordIndex);
 	}
 	@Override
