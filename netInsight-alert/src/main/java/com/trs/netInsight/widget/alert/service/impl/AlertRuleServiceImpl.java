@@ -1592,7 +1592,10 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			Map<String, Object> map = new HashMap<>();
 			map.put("listMap", ListMap);
 			map.put("size", list.size());
-			// 自动预警标题
+			// 手动预警标题
+			if(content==null){
+				content = "手动预警";
+			}
 			map.put("title", content);
 
 			if (StringUtils.isNotBlank(sendWay)) {
