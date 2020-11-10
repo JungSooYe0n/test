@@ -14,6 +14,7 @@ import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
 import com.trs.netInsight.widget.alert.util.AutoAlertRedisUtil;
 import com.trs.netInsight.widget.alert.util.ScheduleUtil;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.kafka.entity.AlertKafkaSend;
 import com.trs.netInsight.widget.kafka.util.AlertKafkaUtil;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
@@ -107,6 +108,7 @@ public class AlertNum implements Job {
                                         dataList.add(data);
                                     }
                                 }
+                                List<String> groupList = CommonListChartUtil.formatGroupName(alertRule.getGroupName());
                                 if (dataList.size() > 0) {
                                     List<Map<String, String>> listMap = new ArrayList<>();
                                     for (Object data : dataList) {
@@ -117,7 +119,7 @@ public class AlertNum implements Job {
                                         //Object vo = dataMap.get(DATA);
                                         //Object vo = AutoAlertRedisUtil.getOneDataForHash(dataMap.get(hashName), dataMap.get(hashKey));
                                         Map<String, String> oneMap = this.formatData(vo,alertRule);
-                                        if(oneMap != null ){
+                                        if(oneMap != null && groupList.contains(oneMap.get("groupName"))){
                                             listMap.add(oneMap);
                                         }
                                     }
