@@ -39,7 +39,6 @@ import com.trs.netInsight.widget.base.enums.ESGroupName;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.HotRating;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
@@ -56,8 +55,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -70,7 +67,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.trs.netInsight.config.constant.ChartConst.*;
-import static com.trs.netInsight.config.constant.Const.MEDIA_LEVEL;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -5223,7 +5219,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType) throws IOException {
+	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType, String sheet) throws IOException {
 		ExcelData content = new ExcelData();
 		if (specialChartType != null) {
 			if (StringUtil.isNotEmpty(data)) {
@@ -5247,7 +5243,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				}
 			}
 		}
-		return ExcelFactory.getInstance().export(content);
+		return ExcelFactory.getInstance().export1(content,sheet);
 	}
 	/**
 	 * 专题分析饼图和柱状图数据的导出

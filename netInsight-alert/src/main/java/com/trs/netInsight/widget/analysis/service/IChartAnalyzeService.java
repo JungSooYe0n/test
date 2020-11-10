@@ -516,10 +516,11 @@ public interface IChartAnalyzeService {
 	 * 专题分析图表数据导出
 	 * @param data
 	 * @param specialChartType
+	 * @param sheet
 	 * @return
 	 * @throws IOException
 	 */
-	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType) throws IOException;
+	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType, String sheet) throws IOException;
 	/**
 	 * 专题分析饼图和柱状图数据导出
 	 * @param dataType
