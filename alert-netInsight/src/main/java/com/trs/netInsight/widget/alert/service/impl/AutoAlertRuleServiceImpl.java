@@ -83,7 +83,7 @@ public class AutoAlertRuleServiceImpl implements IAutoAlertRuleService {
         insertParam.put(AlertAutoConst.source, source);
         insertParam.put(AlertAutoConst.queryTrsl, queryTrsl);
         insertParam.put(AlertAutoConst.alertStatus, stopStatus.toString());
-        String result = HttpUtil.doPost(alertAutoServer + AlertAutoConst.add_alertRule, insertParam, "utf-8");
+        String result = HttpUtil.doPost(alertAutoServer + AlertAutoConst.submit_alertRule, insertParam, "utf-8");
         return AutoAlertRuleResult.StringToObject(result);
     }
 

@@ -131,6 +131,16 @@ public class InfoListController {
 	 */
 	@Value("${http.client}")
 	private boolean httpClient;
+
+	/**
+	 * 获取短视频连接服务地址
+	 */
+	@Value("${http.getdouyin.url}")
+	private String douyinUrl;
+
+	@Value("${http.getkuaishou.url}")
+	private String kuaishouUrl;
+
 	/**
 	 * 独立预警服务地址
 	 */
@@ -1205,15 +1215,22 @@ public class InfoListController {
 	@FormatResult
 	@RequestMapping(value = "/getVideoAddress", method = RequestMethod.GET)
 	public Object getVideoAddress(@ApiParam("get/send get获得原链接,send发送请求") @RequestParam(value = "getSend",defaultValue = "send") String getSend,
-								  @ApiParam("网站类型") @RequestParam(value = "webSource", required = false) String webSource,
-								  @ApiParam("视频链接") @RequestParam(value = "nreserved1", required = false) String address) throws Exception{
+								  @ApiParam("来源") @RequestParam(value = "siteName", required = false) String siteName,
+								  @ApiParam("视频链接") @RequestParam(value = "urlName", required = false) String urlName) throws Exception{
+		Map<String, String> insertParam = new HashMap<>();
+		String nameKey = "";
+		insertParam.put("address",urlName);
+		insertParam.put("vKey",nameKey);
+		String result = null;
 		//去获得原链接
-		if(getSend.equals("send")){
-			String result = HttpUtil.doGet("","utf-8");
-			return "send";
-		}else{ //返回原链接
-			return "https://aweme.snssdk.com/aweme/v1/playwm/?video_id=v0d00f280000bttda75u3iofno5502hg&ratio=720p&line=0";
+		//返回原链接
+		if(siteName!=null&&"抖音".equals(siteName)){
+			result = HttpUtil.doPost(douyinUrl, insertParam, "utf-8");
 		}
+		if(siteName!=null&&"快手".equals(siteName)){
+			result = HttpUtil.doPost(kuaishouUrl, insertParam, "utf-8");
+		}
+		return result;
 	}
 
 	@ApiOperation("实时获取微博信息")
