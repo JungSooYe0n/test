@@ -917,8 +917,10 @@ public class InfoListController {
 		}
 		return buffer.toString();
 	}
+	@FormatResult
+	@ApiOperation("设置已读接口")
 	@RequestMapping(value = "/setReadArticle",method = RequestMethod.GET)
-public Object setReadArticle(@ApiParam("sid") @RequestParam(value = "sid",required = true) String sids,
+	public Object setReadArticle(@ApiParam("sid") @RequestParam(value = "sid",required = true) String sids,
 							 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
 							 @ApiParam("文章的urltime") @RequestParam(value = "urltime", required = false) String urltime,
 							 @ApiParam("trslk") @RequestParam(value = "trslk",required = false) String trslk)throws TRSException{

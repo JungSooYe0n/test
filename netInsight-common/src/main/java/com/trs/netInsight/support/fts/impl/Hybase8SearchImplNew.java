@@ -73,7 +73,8 @@ public class Hybase8SearchImplNew implements FullTextSearch {
 
     @Value("${system.hybase.search.irSimflag.open}")
     private boolean irSimflagOpen;
-
+    @Value("${system.hybase.isSet80.open}")
+    private boolean isHybase80;
     private static final int MAX_PAGE_SIZE = 512 * 2;
     private List<KnowledgeBase> findByClassify(KnowledgeClassify classify) {
         if(ObjectUtil.isEmpty(classify)){
@@ -433,7 +434,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             searchParams.setColorColumns(String.join(";", FtsParser.getHighLightField(FtsDocumentCommonVO.class)));
             String searchParam = extractUrlTimeByCommonBuilder(query, true, type);
             searchParams.setProperty("search.range.filter", searchParam);
-            if (isOverOneByTrsl(trsl, true, type)) {
+            try {
+                trsl = changeSetTrslTime(trsl,searchParam);
+            } catch (TRSSearchException e) {
+                return null;
+//                throw new TRSSearchException("时间范围不在权限之内",1008);
+            }
+            if (isHybase80 && isOverOneByTrsl(trsl, true, type)) {
                 searchParams.setProperty("search.match.rate", "80");
             }
             long from = (pageNo < 0) ? 0 : pageNo * pageSize;
@@ -473,6 +480,8 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                 throw new TRSSearchException("检索异常,表达式过长", e);
             }else if (e.getMessage().contains("timed out")){
                 throw new TRSSearchException("检索异常,检索超时", e);
+            }else if (e.getMessage().contains("时间范围不在权限之内")){
+                throw new TRSSearchException("时间范围不在权限之内",1008);
             }
             throw new com.trs.netInsight.handler.exception.TRSException("检索异常", e);
         } finally {
@@ -749,8 +758,13 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             SearchParams searchParams = new SearchParams();
             searchParams.setTimeOut(60);
             String search = extractByTrsl(trsl, true, type);
-
-            if (isOverOneByTrsl(trsl, true, type)) {
+            try {
+                trsl = changeSetTrslTime(trsl,search);
+            } catch (TRSSearchException e) {
+                return null;
+//                throw new TRSSearchException("时间范围不在权限之内",1008);
+            }
+            if (isHybase80 && isOverOneByTrsl(trsl, true, type)) {
                 log.error("trsl------------>"+trsl);
                 searchParams.setProperty("search.match.rate", "80");
             }
@@ -788,6 +802,8 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                 throw new TRSSearchException("分类统计失败,表达式过长", e);
             }else if (e.getMessage().contains("timed out")){
                 throw new TRSSearchException("分类统计失败,检索超时", e);
+            }else if (e.getMessage().contains("时间范围不在权限之内")){
+                throw new TRSSearchException("时间范围不在权限之内",1008);
             }
             throw new TRSSearchException("分类统计失败", e);
         } finally {
@@ -1304,7 +1320,72 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         return searchParam;
     }
 
+private String changeSetTrslTime(String trsl,String search) throws TRSSearchException {
+    if (StringUtils.isNotBlank(trsl)) {
+        String param = null;
+        if (trsl.contains(FtsFieldConst.FIELD_URLTIME)) {
+            int be = trsl.indexOf(FtsFieldConst.FIELD_URLTIME);
+            param = trsl.substring(be, trsl.indexOf("]", be) + 1);
+            String timeRangeByTrsl = TrslUtil.getTimeRangeByTrsl(param);
+            String timeRangeBysearch = TrslUtil.getTimeRangeByTrsl(search);
+            if (StringUtils.isNotBlank(timeRangeByTrsl)) {
+                String[] times = timeRangeByTrsl.split(";");
+                String[] searchTimes = timeRangeBysearch.split(";");
+                if (times != null && times.length > 1) {
+                    Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
+                    Date startDate = DateUtil.stringToDate(searchTimes[0], DateUtil.yyyyMMddHHmmss);
+                    if (endDate.before(startDate)) {
+                        // 因为开始时间已经是根据权限范围设置 所以结束时间在开始时间之前 证明不在范围之内
+                        throw new TRSSearchException("时间范围不在权限之内",1008);
+                    }
+                   return trsl.replace(times[0],searchTimes[0]);
+                }
+            }
 
+        } else if (trsl.contains(FtsFieldConst.FIELD_LOADTIME)) {
+            int be = trsl.indexOf(FtsFieldConst.FIELD_LOADTIME);
+            param = trsl.substring(be, trsl.indexOf("]", be) + 1);
+            String timeRangeByTrsl = TrslUtil.getLoadTimeRangeByTrsl(param);
+            String timeRangeBysearch = TrslUtil.getTimeRangeByTrsl(search);
+            if (StringUtils.isNotBlank(timeRangeByTrsl)) {
+                String[] times = timeRangeByTrsl.split(";");
+                String[] searchTimes = timeRangeBysearch.split(";");
+                if (times != null && times.length > 1) {
+                    if (times != null && times.length > 1) {
+                        Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
+                        Date startDate = DateUtil.stringToDate(searchTimes[0], DateUtil.yyyyMMddHHmmss);
+                        if (endDate.before(startDate)) {
+                            // 因为开始时间已经是根据权限范围设置 所以结束时间在开始时间之前 证明不在范围之内
+                            throw new TRSSearchException("时间范围不在权限之内",1008);
+                        }
+                        return trsl.replace(times[0],searchTimes[0]);
+                    }
+                }
+            }
+
+        } else if (trsl.contains(FtsFieldConst.FIELD_HYLOAD_TIME)) {
+            int be = trsl.indexOf(FtsFieldConst.FIELD_HYLOAD_TIME);
+            param = trsl.substring(be, trsl.indexOf("]", be) + 1);
+            String timeRangeByTrsl = TrslUtil.getHybaseTimeRangeByTrsl(param);
+            String timeRangeBysearch = TrslUtil.getTimeRangeByTrsl(search);
+            if (StringUtils.isNotBlank(timeRangeByTrsl)) {
+                String[] times = timeRangeByTrsl.split(";");
+                String[] searchTimes = timeRangeBysearch.split(";");
+                if (times != null && times.length > 1) {
+                    Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
+                    Date startDate = DateUtil.stringToDate(searchTimes[0], DateUtil.yyyyMMddHHmmss);
+                    if (endDate.before(startDate)) {
+                        // 因为开始时间已经是根据权限范围设置 所以结束时间在开始时间之前 证明不在范围之内
+                        throw new TRSSearchException("时间范围不在权限之内",1008);
+                    }
+                    return trsl.replace(times[0],searchTimes[0]);
+                }
+            }
+
+        }
+    }
+    return trsl;
+    }
     /**
      * 根据表达式抽取检索时间范围
      *
@@ -1437,7 +1518,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                             Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
                             // 进行时间对比
                             Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
-                            if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
+                            if (DateUtil.isBetween30Day(dataDate[0])) return true;
                         }
                     }
 
@@ -1456,7 +1537,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                             Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
                             // 进行时间对比
                             Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
-                            if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
+                            if (DateUtil.isBetween30Day(dataDate[0])) return true;
                         }
                     }
 
@@ -1475,7 +1556,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                             Date endDate = DateUtil.stringToDate(times[1], DateUtil.yyyyMMddHHmmss);
                             // 进行时间对比
                             Date[] dataDate = dataDate(startDate, endDate, isDataDate, type);
-                            if (DateUtil.getNowBetween30Day(dataDate[0])) return true;
+                            if (DateUtil.isBetween30Day(dataDate[0])) return true;
                             return false;
                         }
                     }
@@ -1528,6 +1609,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                     // 如果表达式的开始时间在机构限制时间之前，则选择机构限制时间
                     if (startTime.before(beginDate)) {
                         startTime = beginDate;
+                        if (endTime.before(startTime)){
+
+                        }
                     }
                     // 如果表达式的结束时间在机构限制时间之后，则选择机构限制时间
                     if (endTime.after(endDate)) {
@@ -1535,7 +1619,8 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                     }
                     //判断开始时间和结束时间，如果开始时间在结束时间后面，则开始时间等于结束时间
                     if (startTime.after(endTime)) {
-                        startTime = endTime;
+//                        startTime = endTime;
+                        endTime = startTime;
                     }
                     return new Date[]{startTime, endTime};
                 }
