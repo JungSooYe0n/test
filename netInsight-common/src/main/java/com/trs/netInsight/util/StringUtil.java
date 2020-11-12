@@ -306,6 +306,7 @@ public final class StringUtil {
 		content = content.replaceAll(annotation2,"");
 		content = content.replaceAll(annotationSuffix1,"");
 		content = content.replaceAll(annotationSuffix2,"");
+		content = content.replaceAll("---","");
 
 		pat = Pattern.compile(nbsp);
 		mat = pat.matcher(content);
@@ -450,6 +451,8 @@ public final class StringUtil {
 		content = content.replaceAll(videoSuffix2,"");
 		content = content.replaceAll(aHref1,"");
 		content = content.replaceAll(aHref2,"");
+
+		content = content.replaceAll("---","");
 
 		//去掉多余的注释标签
 		content = content.replaceAll(annotation1,"");
@@ -838,20 +841,20 @@ public final class StringUtil {
 				// 关键词出现在中点之前，长度又大于160的，直接取前面160个字符
 				if (position <= midpoint) {
 					content = content.substring(0, size);
-					return content + "...";
+					return content + "---";
 					// 关键词出现在中点之后，中点之后的长度又大于80的，取中点前后共160字符长度
 				} else if (position > midpoint && remain > size / 2) {
 					content = content.substring(position - size / 2, position + size / 2);
-					return "..." + content + "...";
+					return "---" + content + "---";
 					// 关键词出现在中点之后，中点之后的长度又小于80的，取最后的160字符
 				} else if (position > midpoint && remain < size / 2) {
 					content = content.substring(content.length() - size / 2, content.length());
-					return "..." + content;
+					return "---" + content;
 				}
 				// 有些标题无标红关键字，但是长度需要控制
 			} else {
 				content = content.substring(0, size);
-				return content + "...";
+				return content + "---";
 			}
 		}
 
@@ -905,10 +908,10 @@ public final class StringUtil {
 					content = content.substring(0,endPosition);
 				}
 
-			return content + "...";
+			return content + "---";
 		}else {
 			content = content.substring(0, size);
-			return content + "...";
+			return content + "---";
 		}
 	}
 
