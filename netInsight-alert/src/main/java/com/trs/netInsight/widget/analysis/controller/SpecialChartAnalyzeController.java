@@ -3728,7 +3728,7 @@ Date startDate = new Date();
 	public void exportChartData(HttpServletResponse response,
 						   @ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType",required = true) String chartType,
 						   @ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data,
-						   @ApiParam("sheet") @RequestParam(value = "sheet", required = false) String sheet) {
+						   @ApiParam("前端传sheet页名称") @RequestParam(value = "sheet", required = false) String sheet) {
 		try {
 			SpecialChartType specialChartType = chooseType(chartType);
 			ServletOutputStream outputStream = response.getOutputStream();
