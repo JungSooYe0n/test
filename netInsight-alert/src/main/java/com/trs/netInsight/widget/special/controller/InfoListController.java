@@ -61,6 +61,7 @@ import com.trs.netInsight.widget.special.service.ISpecialProjectService;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
+import com.trs.netInsight.widget.util.VideoRedisUtil;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -139,6 +140,12 @@ public class InfoListController {
 
 	@Value("${http.getkuaishou.url}")
 	private String kuaishouUrl;
+
+	@Value("${video.play.dy.prefix}")
+	private String videoPlaydyPrefix;
+
+	@Value("${video.play.ks.prefix}")
+	private String videoPlayksPrefix;
 
 	/**
 	 * 独立预警服务地址
@@ -1122,21 +1129,23 @@ public Object setReadArticle(@ApiParam("sid") @RequestParam("sid") String sids, 
 	@RequestMapping(value = "/getVideoAddress", method = RequestMethod.GET)
 	public Object getVideoAddress(@ApiParam("get/send get获得原链接,send发送请求") @RequestParam(value = "getSend",defaultValue = "send") String getSend,
 								  @ApiParam("来源") @RequestParam(value = "siteName", required = false) String siteName,
-								  @ApiParam("视频链接") @RequestParam(value = "urlName", required = false) String urlName) throws Exception{
+								  @ApiParam("视频id") @RequestParam(value = "sid", required = false) String sid) throws Exception{
 		Map<String, String> insertParam = new HashMap<>();
-		String nameKey = "";
-		insertParam.put("address",urlName);
-		insertParam.put("vKey",nameKey);
+		insertParam.put("video_id",sid);
 		String result = null;
+		Object url = null;
 		//去获得原链接
 		//返回原链接
 		if(siteName!=null&&"抖音".equals(siteName)){
 			result = HttpUtil.doPost(douyinUrl, insertParam, "utf-8");
+			url = VideoRedisUtil.getOneDataForString(videoPlaydyPrefix+sid);
 		}
 		if(siteName!=null&&"快手".equals(siteName)){
 			result = HttpUtil.doPost(kuaishouUrl, insertParam, "utf-8");
+			url = VideoRedisUtil.getOneDataForString(videoPlayksPrefix+sid);
 		}
-		return result;
+		log.info(result);
+		return url;
 	}
 
 	@ApiOperation("实时获取微博信息")
@@ -1860,5 +1869,13 @@ public Object setReadArticle(@ApiParam("sid") @RequestParam("sid") String sids, 
 			}
 		}
 
+	}
+
+	public static void main(String[] args) {
+		Map<String, String> insertParam = new HashMap<>();
+		insertParam.put("video_id","6893667536206875912");
+		String result = HttpUtil.doPost("http://119.254.92.53:39000/api/v1/douyin/video",insertParam,"utf-8");
+		String url = VideoRedisUtil.getOneDataForList("DYVideo:mp4_urls:"+"6893667536206875912").toString();
+		System.out.println(url);
 	}
 }
