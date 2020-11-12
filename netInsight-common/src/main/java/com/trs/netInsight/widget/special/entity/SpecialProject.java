@@ -786,22 +786,22 @@ public class SpecialProject extends BaseEntity {
 								buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
-
+//								buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
-
+//								buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
-
+//								buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-
+//								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(keyWords).append("))");
 							}
 							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-
+//								buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(keyWords).append("))");
 							}
 							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-
+//								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(keyWords).append("))");
 							}
 							buffer.append(")");
 

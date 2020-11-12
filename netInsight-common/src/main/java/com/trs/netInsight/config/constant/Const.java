@@ -287,6 +287,18 @@ public class Const {
      * 微博 按照 IR_RETWEETED_MID=(0 OR "") 判断为原发
      */
     public static final String PRIMARY_WEIBO = FtsFieldConst.FIELD_RETWEETED_MID + ":(0 OR \"\")";
+    /**
+     * 微博 按照 IR_VERIFIED=(1 0R 2 OR 3 OR 4 OR 5 OR 6 OR 7) 判断为微博机构认证
+     */
+    public static final String ORGANIZATION_WEIBO = FtsFieldConst.FIELD_VERIFIED + ":(1 0R 2 OR 3 OR 4 OR 5 OR 6 OR 7)";
+    /**
+     * 微博 按照 IR_VERIFIED=(0) 判断为微博个人认证
+     */
+    public static final String PERSON_WEIBO = FtsFieldConst.FIELD_VERIFIED + ":(0)";
+    /**
+     * 微博 按照 IR_VERIFIED=(-1 OR 9 OR 200 OR 220) 判断为普通用户（无认证）
+     */
+    public static final String NONE_WEIBO = FtsFieldConst.FIELD_VERIFIED + ":(-1 OR 200 OR 220)";
 
     /**
      * 论坛 按照 IR_NRESERVED1=(0 OR "") 判断为原发

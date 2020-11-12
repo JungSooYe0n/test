@@ -951,7 +951,6 @@ public class InfoListController {
 				 trsl = RedisUtil.getString(trslk);
 			}
 
-			QueryBuilder queryBuilder = new QueryBuilder();
 			List<String> idList = new ArrayList<>();
 			List<String> weixinList = new ArrayList<>();
 			List<String> weiboList = new ArrayList<>();
@@ -982,7 +981,7 @@ public class InfoListController {
 				builder.page(0, idList.size() * 2);
 				String searchGroupName = StringUtils.join(groupName_other, ";");
 				log.info("选中查询数据表达式 - 全部：" + builder.asTRSL());
-				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder,false,false,false,searchGroupName,null,UserUtils.getUser(),false);
+				InfoListResult infoListResult = commonListService.queryPageList(builder,false,false,false,searchGroupName,null,UserUtils.getUser(),false);
 				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 				if (content.getPageItems() != null && content.getPageItems().size() > 0) {
 					result.addAll(content.getPageItems());
