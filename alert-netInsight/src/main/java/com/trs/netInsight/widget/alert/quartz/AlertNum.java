@@ -224,10 +224,10 @@ public class AlertNum implements Job {
         String urlTimeString = (String) dataMap.get(FtsFieldConst.FIELD_URLTIME);
 
         DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-        Date loadTime = null;
+        //Date loadTime = null;
         Date urlTime = null;
         try {
-            loadTime = format.parse(loadTimeString);
+           // loadTime = format.parse(loadTimeString);
             urlTime = format.parse(urlTimeString);
         } catch (ParseException e) {
             e.printStackTrace();
