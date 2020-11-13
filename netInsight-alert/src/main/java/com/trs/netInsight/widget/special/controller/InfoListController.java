@@ -934,8 +934,10 @@ public class InfoListController {
 		}
 		return buffer.toString();
 	}
+	@FormatResult
+	@ApiOperation("设置已读接口")
 	@RequestMapping(value = "/setReadArticle",method = RequestMethod.GET)
-public Object setReadArticle(@ApiParam("sid") @RequestParam(value = "sid",required = true) String sids,
+	public Object setReadArticle(@ApiParam("sid") @RequestParam(value = "sid",required = true) String sids,
 							 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
 							 @ApiParam("文章的urltime") @RequestParam(value = "urltime", required = false) String urltime,
 							 @ApiParam("trslk") @RequestParam(value = "trslk",required = false) String trslk)throws TRSException{
@@ -956,7 +958,6 @@ public Object setReadArticle(@ApiParam("sid") @RequestParam(value = "sid",requir
 				 trsl = RedisUtil.getString(trslk);
 			}
 
-			QueryBuilder queryBuilder = new QueryBuilder();
 			List<String> idList = new ArrayList<>();
 			List<String> weixinList = new ArrayList<>();
 			List<String> weiboList = new ArrayList<>();
@@ -987,7 +988,7 @@ public Object setReadArticle(@ApiParam("sid") @RequestParam(value = "sid",requir
 				builder.page(0, idList.size() * 2);
 				String searchGroupName = StringUtils.join(groupName_other, ";");
 				log.info("选中查询数据表达式 - 全部：" + builder.asTRSL());
-				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder,false,false,false,searchGroupName,null,UserUtils.getUser(),false);
+				InfoListResult infoListResult = commonListService.queryPageList(builder,false,false,false,searchGroupName,null,UserUtils.getUser(),false);
 				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 				if (content.getPageItems() != null && content.getPageItems().size() > 0) {
 					result.addAll(content.getPageItems());

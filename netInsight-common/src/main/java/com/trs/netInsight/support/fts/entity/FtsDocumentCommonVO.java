@@ -166,6 +166,26 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
     /**
      * 正负面
      */
+    @FtsField("IR_APPRAISE_NEW")
+    private String appraiseNew;
+    /**
+     * 正负面
+     */
+    @FtsField("IR_APPRAISE_SVM")
+    private String appraiseSvm;
+    /**
+     * 正负面
+     */
+    @FtsField("IR_APPRAISE_VALUE")
+    private String appraiseValue;
+    /**
+     * 正负面
+     */
+    @FtsField("IR_APPRAISE_SVM2")
+    private String appraiseSvm2;
+    /**
+     * 正负面
+     */
     @FtsField("IR_APPRAISE")
     private String appraise;
 

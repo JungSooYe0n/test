@@ -1200,6 +1200,14 @@ public class DateUtil {
 			return "刚刚";
 		}
 	}
+	public static boolean isBetween30Day(Date datetime){
+		if (ObjectUtil.isEmpty(datetime)) {
+			return false;
+		}
+		Date trialTime = new Date();
+		if ((trialTime.getTime() - datetime.getTime())/(1000*24*60*60) > 30) return true;
+		return false;
+	}
 	public static boolean getNowBetween30Day(Date datetime) {
 		if (ObjectUtil.isEmpty(datetime)) {
 			return false;
@@ -2317,6 +2325,7 @@ public class DateUtil {
 	 * @throws TRSException 
 	 */
 	public static QueryBuilder timeBuilder(String urlTime) throws TRSException{
+		urlTime = urlTime.replace("至今", formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
 		QueryBuilder builder = new QueryBuilder();
 		//限制时间范围查库 时间不存在时底层限制在一个月内导致有些信息查询不到
 		if(StringUtil.isNotEmpty(urlTime)){

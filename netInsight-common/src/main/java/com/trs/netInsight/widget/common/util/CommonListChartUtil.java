@@ -291,7 +291,10 @@ public class CommonListChartUtil {
                     map.put("emotion","中性");
                     map.put("isEmotion",null);
                 }
-
+                map.put("appraiseNew",vo.getAppraiseNew());
+                map.put("appraiseSvm",vo.getAppraiseSvm());
+                map.put("appraiseValue",vo.getAppraiseValue());
+                map.put("appraiseSvm2",vo.getAppraiseSvm2());
                 map.put("nreserved1", null);
                 map.put("hkey", null);
                 if (Const.PAGE_SHOW_LUNTAN.equals(groupName)) {
