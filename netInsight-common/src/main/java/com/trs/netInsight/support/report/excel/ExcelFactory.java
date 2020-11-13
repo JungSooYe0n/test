@@ -50,10 +50,11 @@ public class ExcelFactory {
 	public ByteArrayOutputStream export1(ExcelData data,String sheet1) throws IOException {
 		Workbook workbook = new  XSSFWorkbook();//xlsx
 //		Workbook  workbook = new  HSSFWorkbook();//xls
-		Sheet sheet = workbook.createSheet(ExcelConst.EXCEL_SHEET);
+		String excel_sheet = ExcelConst.EXCEL_SHEET;
 		if(sheet1!=null){
-           sheet = workbook.createSheet(sheet1);
+			excel_sheet = sheet1;
 		}
+		Sheet sheet = workbook.createSheet(excel_sheet);
 		// 标头样式
 		CellStyle style = workbook.createCellStyle();
 		style.setAlignment(HorizontalAlignment.CENTER);
