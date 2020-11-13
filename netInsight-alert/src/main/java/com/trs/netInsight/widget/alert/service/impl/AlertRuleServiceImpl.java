@@ -1593,9 +1593,9 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			map.put("listMap", ListMap);
 			map.put("size", list.size());
 			// 手动预警标题
-			if(content==null||"".equals(content)){
-				content = "手动预警";
-			}
+//			if(content==null||"".equals(content)){
+//				content = "手动预警";
+//			}
 			map.put("title", content);
 
 			if (StringUtils.isNotBlank(sendWay)) {

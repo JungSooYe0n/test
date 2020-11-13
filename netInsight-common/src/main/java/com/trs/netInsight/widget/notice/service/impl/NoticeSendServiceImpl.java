@@ -195,7 +195,10 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
 								.replace("SIZE", String.valueOf(size)).replace("USERNAME",
 										userName);
-
+                    if("".equals(subject)){
+                        alertTitle = WeixinMessageUtil.ALERT_TITLE_TWO.replace("SIZE", String.valueOf(size)).replace("USERNAME",
+                                userName);
+                    }
 					List<AlertAccount> accountList = new ArrayList<>();
 					if (findByUserName != null) {
 						accountList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
@@ -662,9 +665,16 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						if (user_.getUserName() == null) {
 							user_.setUserName("");
 						}
+						if(subject==null){
+							subject="";
+						}
 						String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
 								.replace("SIZE", String.valueOf(size)).replace("USERNAME",
 										user_.getUserName());
+						if("".equals(subject)){
+							alertTitle = WeixinMessageUtil.ALERT_TITLE_TWO.replace("SIZE", String.valueOf(size)).replace("USERNAME",
+									user_.getUserName());
+						}
 						for (String openId : receivers) {
 							if (StringUtil.isNotEmpty(openId)) {
 								log.error("netinsightUrl:" + wechatNetinsightUrl);
