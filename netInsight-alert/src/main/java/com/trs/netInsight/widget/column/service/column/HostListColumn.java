@@ -12,6 +12,7 @@ import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.RedisUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.user.entity.User;
@@ -154,12 +155,23 @@ public class HostListColumn extends AbstractColumn {
         User user = UserUtils.getUser();
         //用queryCommonBuilder和QueryBuilder 是一样的的
         QueryCommonBuilder builder = super.config.getCommonBuilder();
+        IndexTab indexTab = super.config.getIndexTab();
+        boolean sim = indexTab.isSimilar();
+        boolean irSimflag = indexTab.isIrSimflag();
+        boolean irSimflagAll = indexTab.isIrSimflagAll();
         String checkGroupName = super.config.getGroupName();
         if ("ALL".equals(checkGroupName)) {
             checkGroupName = super.config.getIndexTab().getGroupName();
         }
         try {
-            return commonListService.queryPageListForHot(builder, checkGroupName, user, "column", true);
+            if ("hot".equals(this.config.getOrderBy())) {
+                //暂时先改成false，提升查询速度
+                return commonListService.queryPageListForHot(builder, checkGroupName, user, "column", true);
+            } else {
+                return commonListService.queryPageList(builder, sim, irSimflag, irSimflagAll, checkGroupName, "column", user, true);
+            }
+
+            //return commonListService.queryPageListForHot(builder, checkGroupName, user, "column", true);
         } catch (TRSException e) {
             throw new TRSSearchException(e);
         }
