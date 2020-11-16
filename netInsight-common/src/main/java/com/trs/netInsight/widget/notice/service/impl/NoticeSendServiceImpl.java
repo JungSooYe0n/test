@@ -186,7 +186,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					String alertDetailUrl = WeixinMessageUtil.ALERT_DETAILS_URL.replaceAll("ID","")
 							.replace("NETINSIGHT_URL", netinsightUrl)+id;
 
-					if(subject==null){
+					if(subject==null||StringUtils.isBlank(subject)){
 						subject="";
 					}
 					if(userName==null){
@@ -665,7 +665,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						if (user_.getUserName() == null) {
 							user_.setUserName("");
 						}
-						if(subject==null){
+						if(subject==null||StringUtils.isBlank(subject)){
 							subject="";
 						}
 						String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
