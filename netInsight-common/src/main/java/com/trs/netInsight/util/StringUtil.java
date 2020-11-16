@@ -451,6 +451,10 @@ public final class StringUtil {
 		content = content.replaceAll(videoSuffix2,"");
 		content = content.replaceAll(aHref1,"");
 		content = content.replaceAll(aHref2,"");
+		content = content.replaceAll("<a","");
+		content = content.replaceAll("<=","");
+		content = content.replaceAll("p=","");
+		content = content.replaceAll("a=","");
 
 		content = content.replaceAll("---","");
 
@@ -869,7 +873,7 @@ public final class StringUtil {
 	* @create time: 2019/9/11 14:45
 	*/
 	public static String cutContentPro(String content, int size) {
-		if(content.length()<=size){
+		if(content==null||content!=null&&content.length()<=size){
 			return content;
 		}
 		if (content.length() > size && content.contains(font1)) {
