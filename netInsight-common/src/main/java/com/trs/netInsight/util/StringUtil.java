@@ -442,6 +442,8 @@ public final class StringUtil {
         content = content.replaceAll("<img src=","");
 		content = content.replaceAll("<IMAGE SRC=","");
 		content = content.replaceAll("<img class=","");
+		content = content.replaceAll("<img ","");
+		content = content.replaceAll("<IMAGE ","");
 		//content = content.replaceAll("<font color='...","");
 		content = content.replaceAll(video1,"");
 		content = content.replaceAll(video2,"");
@@ -876,6 +878,7 @@ public final class StringUtil {
 		if(content==null||content!=null&&content.length()<=size){
 			return content;
 		}
+
 		if (content.length() > size && content.contains(font1)) {
 			String contentPro = content;
 			// 找到第一个font标签开始位置
@@ -912,10 +915,52 @@ public final class StringUtil {
 					content = content.substring(0,endPosition);
 				}
 
-			return content + "---";
+			if (content.contains("<font color='red'>")) {
+				String endsContent = content.substring(content.lastIndexOf("<font color='red'>"),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < "<font color='red'>".length() && !"<font color='red'>".equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content ;
 		}else {
 			content = content.substring(0, size);
-			return content + "---";
+			if (content.contains("<font color='red'>")) {
+				String endsContent = content.substring(content.lastIndexOf("<font color='red'>"),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < "<font color='red'>".length() && !"<font color='red'>".equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content;
 		}
 	}
 
