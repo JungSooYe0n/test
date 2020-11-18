@@ -481,6 +481,7 @@ public class ColumnController {
 						   @RequestParam(value = "filterInfo", required = false) String filterInfo,
 						   @RequestParam(value = "contentArea", required = false) String contentArea,
 						   @RequestParam(value = "mediaArea", required = false) String mediaArea,
+						   @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
 						   @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
 			throws TRSException {
 
@@ -586,6 +587,7 @@ public class ColumnController {
 		indexTab.setMediaArea(mediaArea);
 		indexTab.setContentArea(contentArea);
 		indexTab.setSort(sort);
+		indexTab.setPreciseFilter(preciseFilter);
 		if(StringUtil.isNotEmpty(indexPageId)){
 			IndexPage indexPage = indexPageService.findOne(indexPageId);
 			indexTab.setParentId(indexPage.getId());

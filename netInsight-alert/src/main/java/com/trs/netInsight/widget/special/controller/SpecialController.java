@@ -216,6 +216,7 @@ public class SpecialController {
 			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
 	@RequestMapping(value = "/addProject", method = RequestMethod.POST)
 	public Object addProject(HttpServletRequest request, @RequestParam("specialName") String specialName, // 验证空格
@@ -240,7 +241,8 @@ public class SpecialController {
 							 @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
 							 @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							 @RequestParam(value = "contentArea", required = false) String contentArea,
-							 @RequestParam(value = "mediaArea", required = false) String mediaArea) throws Exception {
+							 @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							 @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws Exception {
 		try {
 
 			//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受用户分组可创建资源数量的限制，但是受机构可创建资源数量的限制）
@@ -335,6 +337,7 @@ public class SpecialController {
 				specialProject.setMediaArea(mediaArea);
 				specialProject.setContentArea(contentArea);
 				specialProject.setSort(sort);
+				specialProject.setPreciseFilter(preciseFilter);
 				specialService.createSpecial(specialProject);
 				PerpetualPool.put(userId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
 				return specialProject;

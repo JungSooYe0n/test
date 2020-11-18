@@ -262,6 +262,9 @@ public class IndexTab extends BaseEntity implements Cloneable{
 			return StringUtils.join(Const.FILTER_INFO,";");
 		}
 	}
+	@Column(name = "precise_filter")
+	private String preciseFilter;
+
 	/**
 	 * 内容所属地域
 	 */
@@ -410,7 +413,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb,monitorSite, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
 				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,sort,tabWidth,oneName,notSids,
-				mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
+				mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,preciseFilter);
 		return indexTab;
 	}
 	
