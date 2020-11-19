@@ -4880,6 +4880,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 							"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
 				}
 				List<HashMap<String, String>> mapList = new ArrayList<>();
+
 				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, true, name, "special", UserUtils.getUser(), false);
 				if (ObjectUtil.isNotEmpty(infoListResult)) {
 					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
@@ -4888,23 +4889,55 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					if(list != null && list.size() >0){
 						resultFlag = false;
 					}
-					for (int i = 0; i < list.size(); i++) {
-						//取出两个不重复的sitename
-						if(i == 0) {
-							HashMap<String, String> hashMap = new HashMap<>();
-							siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-							hashMap.put("name", siteName + "-" + name+"-"+mediaLevel);
-							mapList.add(hashMap);
-						}else {
-							String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-							if (!newSiteName.equals(siteName)){
-								HashMap<String, String> hashMap = new HashMap<>();
-								hashMap.put("name", newSiteName + "-" + name+"-"+mediaLevel);
-								mapList.add(hashMap);
-								break;
-							}
+					if (Const.GROUPNAME_ZIMEITI.equals(name)){
+						int m = 0;
+						for (int i = 0; i < list.size(); i++) {
+							//取出两个不重复的sitename
+							if (i == m) {
+								if (StringUtil.isNotEmpty(list.get(i).getAuthors())) {
+									HashMap<String, String> hashMap = new HashMap<>();
+									siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getSiteName()+"("+list.get(i).getAuthors()+")" : list.get(i).getSiteName();
+									hashMap.put("name", siteName + "-" + name + "-" + mediaLevel);
+									mapList.add(hashMap);
+									m = i;
+								} else {
+									m++;
+								}
 
+							} else {
+								if (StringUtil.isNotEmpty(list.get(i).getAuthors())) {
+									String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getSiteName()+"("+list.get(i).getAuthors()+")" : list.get(i).getSiteName();
+									if (!newSiteName.equals(siteName)) {
+										HashMap<String, String> hashMap = new HashMap<>();
+										hashMap.put("name", newSiteName + "-" + name + "-" + mediaLevel);
+										mapList.add(hashMap);
+										break;
+									}
+								}
+
+							}
 						}
+					}else {
+						for (int i = 0; i < list.size(); i++) {
+							//取出两个不重复的sitename
+							if(i == 0) {
+
+									HashMap<String, String> hashMap = new HashMap<>();
+									siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getAuthors() : list.get(i).getSiteName();
+									hashMap.put("name", siteName + "-" + name + "-" + mediaLevel);
+									mapList.add(hashMap);
+							}else {
+								String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getAuthors()+list.get(i).getSiteName() : list.get(i).getSiteName();
+								if (!newSiteName.equals(siteName)){
+									HashMap<String, String> hashMap = new HashMap<>();
+									hashMap.put("name", newSiteName + "-" + name+"-"+mediaLevel);
+									mapList.add(hashMap);
+									break;
+								}
+
+							}
+					}
+
 					}
 					Map<String, Object> oneInfo = new HashMap<>();
 					oneInfo.put("name", mediaLevel + "-" + name);
@@ -6265,6 +6298,8 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 					contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
 				} else if (Const.MEDIA_TYPE_TF.contains(source)) {
 					contrastField = FtsFieldConst.FIELD_AUTHORS;
+				}else if (Const.GROUPNAME_ZIMEITI.contains(source) && key.contains("(")){
+					key = key.substring(0,key.indexOf("("));
 				}
 				queryBuilder.filterField(contrastField, "\"" + key + "\"", Operator.Equal);
 			}

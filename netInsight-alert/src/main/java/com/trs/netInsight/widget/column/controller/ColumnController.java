@@ -455,6 +455,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})
 	public Object addThree(@RequestParam("name") String name, @RequestParam(value = "indexPageId",required = false) String indexPageId,
 						   @RequestParam(value = "navigationId", defaultValue = "") String navigationId,
@@ -481,6 +482,7 @@ public class ColumnController {
 						   @RequestParam(value = "filterInfo", required = false) String filterInfo,
 						   @RequestParam(value = "contentArea", required = false) String contentArea,
 						   @RequestParam(value = "mediaArea", required = false) String mediaArea,
+						   @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
 						   @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
 			throws TRSException {
 
@@ -586,6 +588,7 @@ public class ColumnController {
 		indexTab.setMediaArea(mediaArea);
 		indexTab.setContentArea(contentArea);
 		indexTab.setSort(sort);
+		indexTab.setPreciseFilter(preciseFilter);
 		if(StringUtil.isNotEmpty(indexPageId)){
 			IndexPage indexPage = indexPageService.findOne(indexPageId);
 			indexTab.setParentId(indexPage.getId());

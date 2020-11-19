@@ -364,7 +364,8 @@ public class SpecialProject extends BaseEntity {
 			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
 		}
 	}
-
+	@Column(name = "precise_filter")
+	private String preciseFilter;
 	/**
 	 * 是否有条件筛选  -  例如现在列表页中的条件筛选页面
 	 * 因为在没有条件筛选的情况下，专家模式只拼接trsl，不拼接跟普通模式相同的参数
@@ -769,9 +770,9 @@ public class SpecialProject extends BaseEntity {
 
 						//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
 						if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
-						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+						|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
 						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
-						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
+						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")
 						)) {
 
 							if (buffer.length() > 0) {
@@ -786,22 +787,46 @@ public class SpecialProject extends BaseEntity {
 								buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
-//								buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
+								buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
-//								buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
+								buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
-//								buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
+								buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
+							}
+							net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(anyKeywords.trim());
+							StringBuilder childTrsl = new StringBuilder();
+							for (Object keyWord : jsonArray) {
+
+								net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
+								String keyWordsSingle = parseObject.getString("keyWords");
+								if (StringUtil.isNotEmpty(keyWordsSingle)) {
+									//防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+									String[] split = keyWordsSingle.split(",");
+									String splitNode = "";
+									for (int i = 0; i < split.length; i++) {
+										if (StringUtil.isNotEmpty(split[i])) {
+											if (split[i].endsWith(";")) {
+												split[i] = split[i].substring(0, split[i].length() - 1);
+											}
+											splitNode += split[i] + ",";
+										}
+									}
+									keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
+									childTrsl.append("((\"")
+											.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+											.append("\"))");
+								}
 							}
 							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-//								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(keyWords).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
 							}
 							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-//								buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(keyWords).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
 							}
 							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-//								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(keyWords).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
 							}
 							buffer.append(")");
 
@@ -1300,8 +1325,8 @@ public class SpecialProject extends BaseEntity {
 
 	@Transient
 	private String read;//  阅读标记
-	@Transient
-	private String preciseFilter;//精准筛选
+//	@Transient
+//	private String preciseFilter;//精准筛选
 	@Transient
 	private String emotion;//  阅读标记
 	@Transient
