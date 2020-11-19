@@ -628,6 +628,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("filterInfo", tab.getFilterInfo());
 					map.put("contentArea", tab.getContentArea());
 					map.put("mediaArea", tab.getMediaArea());
+					map.put("preciseFilter",tab.getPreciseFilter());
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏

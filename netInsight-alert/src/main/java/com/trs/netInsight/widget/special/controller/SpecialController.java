@@ -217,7 +217,8 @@ public class SpecialController {
 			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query", required = false)})
 	@RequestMapping(value = "/addProject", method = RequestMethod.POST)
 	public Object addProject(HttpServletRequest request, @RequestParam("specialName") String specialName, // 验证空格
 							 @RequestParam("timeRange") String timeRange,
