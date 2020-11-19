@@ -690,6 +690,7 @@ public class ColumnController {
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "share", value = "栏目共享标记", dataType = "boolean", paramType = "query", required = false),
 			@ApiImplicitParam(name = "copy", value = "另存为标记", dataType = "boolean", paramType = "query", required = false),
+			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "boolean", paramType = "query", required = false)})
 	public Object updateThree(@RequestParam("id") String id, @RequestParam("name") String name,
 							  @RequestParam(value = "indexPageId",required = false) String indexPageId,
@@ -718,6 +719,7 @@ public class ColumnController {
 							  @RequestParam(value = "mediaArea", required = false) String mediaArea,
 							  @RequestParam(value = "share", defaultValue = "false") boolean share,
 							  @RequestParam(value = "copy", defaultValue = "false") boolean copy,
+							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
 							  @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
 			throws TRSException {
 
@@ -824,6 +826,7 @@ public class ColumnController {
 			indexTab.setContentArea(contentArea);
 			indexTab.setWeight(weight);
 			indexTab.setSort(sort);
+			indexTab.setPreciseFilter(preciseFilter);
 			IndexPage indexPage = null;
 			// 根据另存为标识选择另存为与修改操作
 			if (copy) {

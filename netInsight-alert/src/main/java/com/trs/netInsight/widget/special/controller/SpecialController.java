@@ -825,7 +825,8 @@ public class SpecialController {
 			@ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")
+			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query", required = false),
 	})
 	@RequestMapping(value = "/update", method = RequestMethod.POST)
 	public Object updateSpecial(@RequestParam("specialId") String specialId,
@@ -848,7 +849,8 @@ public class SpecialController {
 								@RequestParam(value = "contentIndustry", required = false) String contentIndustry,
 								@RequestParam(value = "filterInfo", required = false) String filterInfo,
 								@RequestParam(value = "contentArea", required = false) String contentArea,
-								@RequestParam(value = "mediaArea", required = false) String mediaArea) throws TRSException {
+								@RequestParam(value = "mediaArea", required = false) String mediaArea,
+								@RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
 
 		//若为机构管理员或者普通用户 若为普通模式，判断关键字字数
 		User loginUser = UserUtils.getUser();
@@ -906,7 +908,7 @@ public class SpecialController {
 			SpecialProject updateSpecial = specialService.updateSpecial(specialId, type, specialName,
 					anyKeywords, excludeWords,excludeWordsIndex, trsl, scope, startTime, endTime, source,
 					timerange, isSimilar, weight,sort, irSimflag, server,irSimflagAll,excludeWeb, monitorSite,mediaLevel,
-					 mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
+					 mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,preciseFilter);
 
 			// 修改专题成功,触发修改该专题当前日期指数
 			fixedThreadPool.execute(() -> computeBySpecialId(specialId, new Date(), new Date()));
