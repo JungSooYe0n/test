@@ -74,7 +74,7 @@ public final class StringUtil {
 	public static final String font1 = "<font color='red'>";// ;<font
 															// color=red>相思苦</font>
 	public static final String font2 = "</font>";
-
+	public static final String font3 = "<font color=red>";
 	// Emoji表情字符
 	public static final String emoji1 = "[\\ud83c\\udc00-\\ud83c\\udfff]|[\\ud83d\\udc00-\\ud83d\\udfff]|[\\u2600-\\u27ff]";
 	public static final String emoji2 = "[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]";
@@ -875,7 +875,31 @@ public final class StringUtil {
 	* @create time: 2019/9/11 14:45
 	*/
 	public static String cutContentPro(String content, int size) {
-		if(content==null||content!=null&&content.length()<=size){
+		if(content==null){
+			return content;
+		}
+		if(content!=null&&content.length()<=size){
+			if (content.contains("<font color='red'>")) {
+				String endsContent = content.substring(content.lastIndexOf("<font color='red'>"),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < "<font color='red'>".length() && !"<font color='red'>".equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
 			return content;
 		}
 
@@ -964,6 +988,127 @@ public final class StringUtil {
 		}
 	}
 
+	/*
+	 * @Description: 截取内容用于列表展示(只允许带有Font标签)改进版方法
+	 * @param: content
+	 * @param: size
+	 * @return: java.lang.String
+	 * @Author: Likenan
+	 * @create time: 2020/11/19 14:45
+	 */
+	public static String cutContentMd5(String content, int size) {
+		if(content==null){
+			return content;
+		}
+		if(content!=null&&content.length()<=size){
+			if (content.contains(font3)) {
+				String endsContent = content.substring(content.lastIndexOf(font3),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < font3.length() && !font3.equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content;
+		}
+
+		if (content.length() > size && content.contains(font3)) {
+			String contentPro = content;
+			// 找到第一个font标签开始位置
+			int startPosition = content.indexOf(font3);
+			//找到第一个font标签结束位置
+			int endPosition = content.indexOf(font2)+7;
+			if(endPosition<size){//第一个font标签都在size范围.
+				for (int i =0;i<content.length()/23;i++){
+					//将content重新赋值,第一个font后面的内容
+					contentPro = contentPro.substring(endPosition,contentPro.length());
+					int subInt = content.indexOf(contentPro);//截取点在完整content的位置
+
+					if (contentPro.contains(font3)) {
+						int start = contentPro.indexOf(font3)+subInt;
+						int end = contentPro.indexOf(font2)+7+subInt;
+						endPosition = contentPro.indexOf(font2)+7;
+
+						if(end>size && start >=size){//循环内的标签只要不是卡在size之间.都可以直接截取
+							content = content.substring(0,size);
+							break;
+						}else if(end>size && start<size) {//标签卡在size之间,那就多截取一点点.与size不完全符合,木办法
+							content = content.substring(0, end);
+							break;
+						}
+
+					}else {//后面没有font便签了,那就直接截取
+						content = content.substring(0,size);
+						break;
+					}
+				}
+			}else if(endPosition>size && startPosition >=size){//第一个标签都不在size的范围之内,那无须顾虑,直接截取
+				content = content.substring(0,size);
+			}else if(endPosition>=size && startPosition<size){//标签卡在size之间,那就多截取一点点.与size不完全符合,木办法
+				content = content.substring(0,endPosition);
+			}
+
+			if (content.contains(font3)) {
+				String endsContent = content.substring(content.lastIndexOf(font3),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < font3.length() && !font3.equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content ;
+		}else {
+			content = content.substring(0, size);
+			if (content.contains(font3)) {
+				String endsContent = content.substring(content.lastIndexOf(font3),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < font3.length() && !font3.equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content;
+		}
+	}
 	/*
 	 * @Description: 截取正文 - 在命中第一个font标签的情况下，截取100个字符
 	 */
