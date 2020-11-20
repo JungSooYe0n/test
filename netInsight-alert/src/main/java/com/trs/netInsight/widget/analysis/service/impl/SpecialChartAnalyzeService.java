@@ -2464,7 +2464,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 									}
 									keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 									childTrsl.append("((\"")
-											.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+											.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
 											.append("\"))");
 								}
 							}

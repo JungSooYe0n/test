@@ -6016,7 +6016,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										}
 										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 										childTrsl.append("((\"")
-												.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+												.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
 												.append("\"))");
 									}
 								}
@@ -6412,7 +6412,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										}
 										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 										childTrsl.append("((\"")
-												.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+												.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
 												.append("\"))");
 									}
 								}
@@ -7463,7 +7463,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										}
 										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 										childTrsl.append("((\"")
-												.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+												.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
 												.append("\"))");
 									}
 								}

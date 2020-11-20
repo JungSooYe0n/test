@@ -545,7 +545,7 @@ public class ColumnConfig {
 									}
 									keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 									childTrsl.append("((\"")
-											.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+											.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
 											.append("\"))");
 								}
 							}
@@ -556,7 +556,7 @@ public class ColumnConfig {
 								buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
 							}
 							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("*))");
 							}
 						}
 
