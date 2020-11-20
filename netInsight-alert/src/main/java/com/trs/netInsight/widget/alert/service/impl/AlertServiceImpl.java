@@ -462,7 +462,8 @@ public class AlertServiceImpl implements IAlertService {
 				}
 				// 检验收藏
 				pageItem.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(pageItem.getSid())));
-				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">").replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
+				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+				//pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">").replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
 				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
 				pageItem.setGroupName(CommonListChartUtil.formatPageShowGroupName(pageItem.getGroupName()));
 				String copyTitle = pageItem.getTitleWhole();
