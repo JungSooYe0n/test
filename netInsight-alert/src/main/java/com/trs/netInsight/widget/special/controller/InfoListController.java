@@ -503,7 +503,8 @@ public class InfoListController {
 			@ApiImplicitParam(name = "fuzzyValue", value = "结果中搜索", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "invitationCard", value = "论坛主贴 0 /回帖 1 所有=主贴+回帖+转帖", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "forwardPrimary", value = "微博 原发 primary / 转发 forward", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "checkedSource", value = "当前列表页对应的的媒体类型", dataType = "String", paramType = "query", required = false)})
+			@ApiImplicitParam(name = "checkedSource", value = "当前列表页对应的的媒体类型", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "svmTest", value = "测试选项", dataType = "String", paramType = "query", required = false)})
 	@RequestMapping(value = "/searchList", method = RequestMethod.POST)
     public Object searchList(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
                              @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
@@ -539,7 +540,8 @@ public class InfoListController {
                              @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary,
                              @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
                              @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
-                             @RequestParam(value = "checkedSource", defaultValue = "ALL") String checkedSource
+                             @RequestParam(value = "checkedSource", defaultValue = "ALL") String checkedSource,
+							 @RequestParam(value = "svmTest", required = false) String svmTest
     ) throws TRSException {
 		log.warn("专项检测信息列表  开始调用接口");
 		//防止前端乱输入
@@ -607,7 +609,7 @@ public class InfoListController {
 			return infoListService.advancedSearchList(isSimilar, irSimflag, irSimflagAll, pageNo, pageSize, sort,
 					keywords, searchType, time, keyWordIndex, weight, monitorSite, excludeWeb, emotion, read, excludeWords, excludeWordsIndex, source,
 					mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,
-					preciseFilter, invitationCard, forwardPrimary, fuzzyValue, fuzzyValueScope, imgOcr,"advance");
+					preciseFilter, invitationCard, forwardPrimary, fuzzyValue, fuzzyValueScope, imgOcr,"advance",svmTest);
 
 			//return null;
 		} catch (Exception e) {

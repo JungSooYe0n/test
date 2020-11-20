@@ -2418,9 +2418,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 					//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
 					if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
-						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+						|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
 						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
-						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
+						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")
 					)) {
 
 						if (buffer.length() > 0) {
@@ -2435,22 +2435,48 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 							buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
-
+							buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
-
+							buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
-
+							buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
 						}
-						if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+						if (StringUtil.isNotEmpty(specialProject.getAnyKeywords())) {
+							net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(specialProject.getAnyKeywords().trim());
+							StringBuilder childTrsl = new StringBuilder();
+							for (Object keyWord : jsonArray) {
 
-						}
-						if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-
-						}
-						if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-
+								net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
+								String keyWordsSingle = parseObject.getString("keyWords");
+								if (StringUtil.isNotEmpty(keyWordsSingle)) {
+									//防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+									String[] split = keyWordsSingle.split(",");
+									String splitNode = "";
+									for (int i = 0; i < split.length; i++) {
+										if (StringUtil.isNotEmpty(split[i])) {
+											if (split[i].endsWith(";")) {
+												split[i] = split[i].substring(0, split[i].length() - 1);
+											}
+											splitNode += split[i] + ",";
+										}
+									}
+									keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
+									childTrsl.append("((\"")
+											.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+											.append("\"))");
+								}
+							}
+							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
+							}
+							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
+							}
+							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
+							}
 						}
 						buffer.append(")");
 						sourceList.remove(Const.GROUPNAME_WEIBO);
@@ -4896,7 +4922,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 							if (i == m) {
 								if (StringUtil.isNotEmpty(list.get(i).getAuthors())) {
 									HashMap<String, String> hashMap = new HashMap<>();
-									siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getSiteName()+"("+list.get(i).getAuthors()+")" : list.get(i).getSiteName();
+									siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getAuthors() : list.get(i).getSiteName();
 									hashMap.put("name", siteName + "-" + name + "-" + mediaLevel);
 									mapList.add(hashMap);
 									m = i;
@@ -4906,7 +4932,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 							} else {
 								if (StringUtil.isNotEmpty(list.get(i).getAuthors())) {
-									String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getSiteName()+"("+list.get(i).getAuthors()+")" : list.get(i).getSiteName();
+									String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getAuthors() : list.get(i).getSiteName();
 									if (!newSiteName.equals(siteName)) {
 										HashMap<String, String> hashMap = new HashMap<>();
 										hashMap.put("name", newSiteName + "-" + name + "-" + mediaLevel);
@@ -6298,8 +6324,9 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 					contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
 				} else if (Const.MEDIA_TYPE_TF.contains(source)) {
 					contrastField = FtsFieldConst.FIELD_AUTHORS;
-				}else if (Const.GROUPNAME_ZIMEITI.contains(source) && key.contains("(")){
-					key = key.substring(0,key.indexOf("("));
+				}else if (Const.GROUPNAME_ZIMEITI.contains(source)){
+					contrastField = FtsFieldConst.FIELD_AUTHORS;
+//					key = key.substring(0,key.indexOf("("));
 				}
 				queryBuilder.filterField(contrastField, "\"" + key + "\"", Operator.Equal);
 			}

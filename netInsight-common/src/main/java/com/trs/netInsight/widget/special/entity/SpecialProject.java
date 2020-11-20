@@ -795,38 +795,40 @@ public class SpecialProject extends BaseEntity {
 							if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
 								buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
 							}
-							net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(anyKeywords.trim());
-							StringBuilder childTrsl = new StringBuilder();
-							for (Object keyWord : jsonArray) {
+							if (StringUtil.isNotEmpty(anyKeywords)) {
+								net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(anyKeywords.trim());
+								StringBuilder childTrsl = new StringBuilder();
+								for (Object keyWord : jsonArray) {
 
-								net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
-								String keyWordsSingle = parseObject.getString("keyWords");
-								if (StringUtil.isNotEmpty(keyWordsSingle)) {
-									//防止关键字以多个 , （逗号）结尾，导致表达式故障问题
-									String[] split = keyWordsSingle.split(",");
-									String splitNode = "";
-									for (int i = 0; i < split.length; i++) {
-										if (StringUtil.isNotEmpty(split[i])) {
-											if (split[i].endsWith(";")) {
-												split[i] = split[i].substring(0, split[i].length() - 1);
+									net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
+									String keyWordsSingle = parseObject.getString("keyWords");
+									if (StringUtil.isNotEmpty(keyWordsSingle)) {
+										//防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+										String[] split = keyWordsSingle.split(",");
+										String splitNode = "";
+										for (int i = 0; i < split.length; i++) {
+											if (StringUtil.isNotEmpty(split[i])) {
+												if (split[i].endsWith(";")) {
+													split[i] = split[i].substring(0, split[i].length() - 1);
+												}
+												splitNode += split[i] + ",";
 											}
-											splitNode += split[i] + ",";
 										}
+										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
+										childTrsl.append("((\"")
+												.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
+												.append("\"))");
 									}
-									keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
-									childTrsl.append("((\"")
-											.append(keyWordsSingle.replaceAll("[,|，]", "\") AND (\"").replaceAll("[;|；]+", "\" OR \""))
-											.append("\"))");
 								}
-							}
-							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
-							}
-							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-								buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
-							}
-							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
+								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
+								}
+								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
+								}
+								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
+								}
 							}
 							buffer.append(")");
 
