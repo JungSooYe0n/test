@@ -29,21 +29,16 @@ import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.enums.Store;
 import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
-import com.trs.netInsight.widget.analysis.entity.ClassInfo;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.service.IFavouritesService;
-import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.*;
 import com.trs.netInsight.widget.special.entity.enums.SearchPage;
-import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.special.service.ISpecialProjectService;
-import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
-import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +47,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import javax.transaction.Transactional;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -153,6 +147,12 @@ public class InfoListServiceImpl implements IInfoListService {
 		while (++times < 40) {
 			List<AsyncDocument> list = TimingCachePool.get("async:" + pageId);
 			if (ObjectUtil.isNotEmpty(list)) {
+				Collections.sort(list, new Comparator<AsyncDocument>() {
+					@Override
+					public int compare(AsyncDocument o1, AsyncDocument o2) {
+						return (int) (o2.getSimNum() - o1.getSimNum());
+					}
+				});
 				return list;
 			}
 			valueFromRedis = RedisFactory.getValueFromRedis("async:" + pageId);
