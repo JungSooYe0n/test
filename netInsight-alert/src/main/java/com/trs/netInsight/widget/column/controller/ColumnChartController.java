@@ -239,6 +239,7 @@ public class ColumnChartController {
         return null;
     }
 private void saveSequence(String tabId,String pageId,String indexId,IndexFlag indexFlag){
+//        if (StringUtil.isNotEmpty(pageId)){
     List<IndexSequence> indexSequenceList = indexSequenceRepository.findByParentIdOrderBySequence(pageId);
     boolean isChange = false;
     Integer seq = 1;

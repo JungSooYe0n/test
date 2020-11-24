@@ -9,14 +9,9 @@ import com.trs.netInsight.widget.alert.entity.AlertAccount;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.repository.AlertAccountRepository;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
-import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.column.entity.IndexTab;
-import com.trs.netInsight.widget.column.entity.NavigationConfig;
+import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
-import com.trs.netInsight.widget.column.repository.IndexPageRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabRepository;
-import com.trs.netInsight.widget.column.repository.NavigationRepository;
+import com.trs.netInsight.widget.column.repository.*;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
 import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
@@ -60,6 +55,10 @@ public class HelpService {
 
     @Autowired
     private AlertRuleRepository alertRuleRepository;
+    @Autowired
+    private StatisticalChartRepository statisticalChartRepository;
+    @Autowired
+    private CustomChartRepository customChartRepository;
 
     public Object save(IndexTab indexTab, boolean share) {
         IndexTab save = indexTabRepository.save(indexTab);
@@ -179,6 +178,28 @@ public class HelpService {
                 mapper.setUserId("dataSync");
                 mapper.setOrganizationId(subGroup.getOrganizationId());
                 indexTabMapperRepository.save(mapper);
+                List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentIdAndIsTop(indexTabMapper.getId(), true);
+                if (statisticalChartList != null && statisticalChartList.size() > 0) {
+                    for (StatisticalChart oneSc : statisticalChartList) {
+                        oneSc.setUserId("dataSync");
+                        oneSc.setParentId(mapper.getId());
+                        oneSc.setSubGroupId(subGroup.getId());
+                        oneSc.setOrganizationId(subGroup.getOrganizationId());
+                    }
+                    statisticalChartRepository.save(statisticalChartList);
+                }
+                //获取当前栏目被置顶的自定义图表
+                List<CustomChart> customChartList = customChartRepository.findByParentIdAndIsTop(indexTabMapper.getId(), true);
+                if (customChartList != null && customChartList.size() > 0) {
+                    for (CustomChart oneCc : customChartList) {
+                        oneCc.setUserId("dataSync");
+                        oneCc.setParentId(mapper.getId());
+                        oneCc.setSubGroupId(subGroup.getId());
+                        oneCc.setOrganizationId(subGroup.getOrganizationId());
+                    }
+                    customChartRepository.save(customChartList);
+                }
+
             }
         }
         if (ObjectUtil.isNotEmpty(indexPage.getChildrenPage())){
@@ -215,6 +236,29 @@ public class HelpService {
                 mapper.setSubGroupId(subGroup.getId());
                 mapper.setOrganizationId(subGroup.getOrganizationId());
                 indexTabMapperRepository.save(mapper);
+                List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentIdAndIsTop(indexTabMapper.getId(), true);
+                if (statisticalChartList != null && statisticalChartList.size() > 0) {
+                    for (StatisticalChart oneSc : statisticalChartList) {
+                        oneSc.setUserId("dataSync");
+                        oneSc.setParentId(mapper.getId());
+                        oneSc.setSubGroupId(subGroup.getId());
+                        oneSc.setOrganizationId(subGroup.getOrganizationId());
+                    }
+                    statisticalChartRepository.save(statisticalChartList);
+                }
+
+                //获取当前栏目被置顶的自定义图表
+                List<CustomChart> customChartList = customChartRepository.findByParentIdAndIsTop(indexTabMapper.getId(), true);
+                if (customChartList != null && customChartList.size() > 0) {
+                    for (CustomChart oneCc : customChartList) {
+                        oneCc.setUserId("dataSync");
+                        oneCc.setParentId(mapper.getId());
+                        oneCc.setSubGroupId(subGroup.getId());
+                        oneCc.setOrganizationId(subGroup.getOrganizationId());
+                    }
+                    customChartRepository.save(customChartList);
+                }
+
             }
         }
         if (ObjectUtil.isNotEmpty(columnSyncLevel)){

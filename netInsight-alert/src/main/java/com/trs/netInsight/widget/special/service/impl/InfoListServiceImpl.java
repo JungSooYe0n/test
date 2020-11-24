@@ -5955,30 +5955,6 @@ public class InfoListServiceImpl implements IInfoListService {
 							}
 							buffer.append("(");
 							buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
-//							if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
-//								buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
-//							}
-//							if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
-//								buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
-//							}
-//							if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
-//
-//							}
-//							if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
-//
-//							}
-//							if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
-//
-//							}
-//							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-//
-//							}
-//							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-//
-//							}
-//							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-//
-//							}
 							if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
 								buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
 							}
@@ -5998,6 +5974,7 @@ public class InfoListServiceImpl implements IInfoListService {
 								keywords = keywords.trim();
 								net.sf.json.JSONArray jsonArray2 = net.sf.json.JSONArray.fromObject(keywords);
 								StringBuilder childTrsl = new StringBuilder();
+								StringBuilder childTrsl2 = new StringBuilder();
 								for (Object keyWord : jsonArray2) {
 
 									net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
@@ -6017,14 +5994,18 @@ public class InfoListServiceImpl implements IInfoListService {
 										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 										childTrsl.append("((\"")
 												.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
-												.append("\"))");
+												.append("*\"))");
+										childTrsl2.append("((")
+												.append(keyWordsSingle.replaceAll("[,|，]", "*) AND (").replaceAll("[;|；]+", "* OR "))
+												.append("*))");
 									}
 								}
 								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl2.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
@@ -6394,6 +6375,7 @@ public class InfoListServiceImpl implements IInfoListService {
 							if (StringUtil.isNotEmpty(specialProject.getAnyKeywords())) {
 								net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(specialProject.getAnyKeywords().trim());
 								StringBuilder childTrsl = new StringBuilder();
+								StringBuilder childTrsl2 = new StringBuilder();
 								for (Object keyWord : jsonArray) {
 
 									net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
@@ -6413,14 +6395,18 @@ public class InfoListServiceImpl implements IInfoListService {
 										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 										childTrsl.append("((\"")
 												.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
-												.append("\"))");
+												.append("*\"))");
+										childTrsl2.append("((")
+												.append(keyWordsSingle.replaceAll("[,|，]", "*) AND (").replaceAll("[;|；]+", "* OR "))
+												.append("*))");
 									}
 								}
 								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl2.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
@@ -7445,6 +7431,7 @@ public class InfoListServiceImpl implements IInfoListService {
 								keywords = keywords.trim();
 								net.sf.json.JSONArray jsonArray2 = net.sf.json.JSONArray.fromObject(keywords);
 								StringBuilder childTrsl = new StringBuilder();
+								StringBuilder childTrsl2 = new StringBuilder();
 								for (Object keyWord : jsonArray2) {
 
 									net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
@@ -7464,14 +7451,18 @@ public class InfoListServiceImpl implements IInfoListService {
 										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 										childTrsl.append("((\"")
 												.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
-												.append("\"))");
+												.append("*\"))");
+										childTrsl2.append("((")
+												.append(keyWordsSingle.replaceAll("[,|，]", "*) AND (").replaceAll("[;|；]+", "* OR "))
+												.append("*))");
 									}
 								}
 								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl2.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");

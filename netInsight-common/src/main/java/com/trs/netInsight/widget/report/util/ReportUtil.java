@@ -1086,7 +1086,7 @@ public class ReportUtil {
 
 			List<String> hitWords = new ArrayList<>();
 			//所有命中关键词
-			while (m.find()) {
+			while (m.find() && hitWords.size() < 6) {
 				String trim = m.group(1).trim();
 				if (!hitWords.contains(trim)) {
 					hitWords.add(trim);

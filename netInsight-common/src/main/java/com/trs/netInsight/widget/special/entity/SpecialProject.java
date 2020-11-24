@@ -798,6 +798,7 @@ public class SpecialProject extends BaseEntity {
 							if (StringUtil.isNotEmpty(anyKeywords)) {
 								net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(anyKeywords.trim());
 								StringBuilder childTrsl = new StringBuilder();
+								StringBuilder childTrsl2 = new StringBuilder();
 								for (Object keyWord : jsonArray) {
 
 									net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
@@ -817,14 +818,18 @@ public class SpecialProject extends BaseEntity {
 										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
 										childTrsl.append("((\"")
 												.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
-												.append("\"))");
+												.append("*\"))");
+										childTrsl2.append("((")
+												.append(keyWordsSingle.replaceAll("[,|，]", "*) AND (").replaceAll("[;|；]+", "* OR "))
+												.append("*))");
 									}
 								}
 								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl2.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
