@@ -782,7 +782,7 @@ public class ApiController {
         keywords = jsonArray.toJSONString();
         return infoListController.searchList(pageNo,pageSize,sort,keywords,"precise",time,simflag,"1",false,"","",emotion,
                 0,false,"","","1","ALL","","","",
-                "","","","","",invitationCard,forwarPrimary,"","",groupName);
+                "","","","","",invitationCard,forwarPrimary,"","",groupName,"");
     }
 
     /**

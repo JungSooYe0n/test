@@ -666,6 +666,6 @@ public interface IInfoListService {
 									 String keywords, String searchType, String time, String keyWordIndex, boolean weight, String monitorSite,
 									 String excludeWeb, String emotion, String read, String excludeWords, String excludeWordsIndex, String source,
 									 String mediaLevel, String mediaIndustry, String contentIndustry, String filterInfo, String contentArea, String mediaArea,
-									 String preciseFilter, String invitationCard, String forwardPrimary, String fuzzyValue, String fuzzyValueScope,String imgOcr, String type) throws TRSException;
+									 String preciseFilter, String invitationCard, String forwardPrimary, String fuzzyValue, String fuzzyValueScope,String imgOcr, String type,String svmTest) throws TRSException;
 }
 

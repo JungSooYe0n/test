@@ -352,7 +352,7 @@ public class CommonListChartUtil {
                     }
                 }
 
-                if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
+                if(Const.PAGE_SHOW_WEIXIN.equals(groupName) || Const.PAGE_SHOW_FACEBOOK.equals(groupName)){
                     map.put("img", null);
                     //前端页面显示需要，与后端无关
                     map.put("isImg", false);
@@ -366,6 +366,7 @@ public class CommonListChartUtil {
 
                 map.put("simNum", 0);
                 map.put("readFlag",vo.isReadFlag());
+                map.put("hitWord",ReportUtil.calcuRedWord(true, vo.getTitle(), vo.getExportContent()));
 
                 resultList.add(map);
             }
