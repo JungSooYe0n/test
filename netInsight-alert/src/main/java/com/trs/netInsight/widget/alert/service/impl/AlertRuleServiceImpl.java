@@ -214,7 +214,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			String documentContent = StringUtil.removeFourChar(ftsDocument.getContent());
 			documentContent =StringUtil.replaceEmoji(documentContent);
 			documentContent =StringUtil.replaceImg(documentContent) ;
-			//documentContent = StringUtil.notFontEnd(documentContent, 150);
+			documentContent = StringUtil.notFontEnd(documentContent, 150);
 
 			map.put("content", documentContent);
 			map.put("nreserved1", ftsDocument.getNreserved1());
@@ -317,7 +317,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			String documentContent = StringUtil.removeFourChar(ftsDocument.getContent());
 			documentContent =StringUtil.replaceEmoji(documentContent);
 			documentContent =StringUtil.replaceImg(documentContent) ;
-			//documentContent = StringUtil.notFontEnd(documentContent, 150);
+			documentContent = StringUtil.notFontEnd(documentContent, 150);
 			map.put("content", documentContent);
 			Date urlTime = ftsDocument.getUrlTime();
 			SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
@@ -410,7 +410,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			String documentContent = StringUtil.removeFourChar(ftsDocument.getStatusContent());
 			documentContent =StringUtil.replaceEmoji(documentContent);
 			documentContent =StringUtil.replaceImg(documentContent) ;
-			//documentContent = StringUtil.notFontEnd(documentContent, 150);
+			documentContent = StringUtil.notFontEnd(documentContent, 150);
 			map.put("content", documentContent);
 			map.put("screenName", ftsDocument.getScreenName());
 			map.put("rttCount", String.valueOf(ftsDocument.getRttCount()));
@@ -511,7 +511,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			String documentContent = StringUtil.removeFourChar(ftsDocument.getStatusContent());
 			documentContent =StringUtil.replaceEmoji(documentContent);
 			documentContent =StringUtil.replaceImg(documentContent) ;
-			//documentContent = StringUtil.notFontEnd(documentContent, 150);
+			documentContent = StringUtil.notFontEnd(documentContent, 150);
 			map.put("content", documentContent);
 			map.put("screenName", ftsDocument.getScreenName());
 			map.put("rttCount", String.valueOf(ftsDocument.getRttCount()));
