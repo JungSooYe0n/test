@@ -2384,7 +2384,7 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 	 * 日常监测图表数据导出
 	 */
 	@Override
-	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType) throws IOException {
+	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType, String sheet) throws IOException {
 		ExcelData content = new ExcelData();
 		if (indexTabType != null) {
 			if (StringUtil.isNotEmpty(data)) {
@@ -2410,7 +2410,7 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 				}
 			}
 		}
-		return ExcelFactory.getInstance().export(content);
+		return ExcelFactory.getInstance().export1(content,sheet);
 	}
 
 	/**

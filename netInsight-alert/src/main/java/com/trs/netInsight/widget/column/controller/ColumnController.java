@@ -1708,11 +1708,12 @@ public class ColumnController {
 	public void exportChartData(HttpServletResponse response,
 								@ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType") String chartType,
 								@ApiParam("前端给回需要导出的内容") @RequestParam(value = "data") String data,
+                                @ApiParam("前端传sheet页名称") @RequestParam(value = "sheet", required = false) String sheet,
 								@ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum) {
 		try {
 			IndexTabType indexTabType = ColumnFactory.chooseType(chartType);
 			ServletOutputStream outputStream = response.getOutputStream();
-			columnService.exportChartData(data,indexTabType).writeTo(outputStream);
+			columnService.exportChartData(data,indexTabType,sheet).writeTo(outputStream);
 		} catch (Exception e) {
 			log.error("导出excel出错！", e);
 		}

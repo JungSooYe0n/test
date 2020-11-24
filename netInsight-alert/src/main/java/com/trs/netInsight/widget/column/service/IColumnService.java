@@ -211,7 +211,7 @@ public interface IColumnService {
 	 * @return
 	 * @throws IOException
 	 */
-	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType) throws IOException;
+	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType, String sheet) throws IOException;
 }
 
 /**

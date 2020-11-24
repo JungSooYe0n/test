@@ -928,7 +928,7 @@ public class ExportController {
 				.filter(entry->entry.getValue()>=1)
 				.map(entry->entry.getKey())
 				.collect(Collectors.toList());
-		System.out.println(list.toString());
+		//System.out.println(list.toString());
 		List<ExportField> exportField =new ArrayList<>();
 		for(int i=0;i<list.size();i++){
 			for(int j=0;j<exportField1.size();j++){
