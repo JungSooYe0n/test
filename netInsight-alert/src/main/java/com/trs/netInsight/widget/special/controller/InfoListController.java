@@ -739,9 +739,9 @@ public class InfoListController {
 		}
 
 		InfoListResult infoListResult = null;
-		if("hot".equals(sort)){
-			infoListResult= commonListService.queryPageListForHot(builder, source, loginUser, typeSim, false);
-		}else{
+//		if("hot".equals(sort)){
+//			infoListResult= commonListService.queryPageListForHot(builder, source, loginUser, typeSim, false);
+//		}else{
 			switch (sort) { // 排序
 				case "desc":
 					builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
@@ -754,7 +754,7 @@ public class InfoListController {
 					break;
 			}
 			infoListResult =  commonListService.queryPageList(builder, sim, irsimflag, false, source, typeSim, loginUser, false);
-		}
+//		}
 		if (infoListResult != null) {
 			if (infoListResult.getContent() != null) {
 				String trslkForPage = infoListResult.getTrslk();

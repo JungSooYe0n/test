@@ -147,12 +147,12 @@ public class InfoListServiceImpl implements IInfoListService {
 		while (++times < 40) {
 			List<AsyncDocument> list = TimingCachePool.get("async:" + pageId);
 			if (ObjectUtil.isNotEmpty(list)) {
-				Collections.sort(list, new Comparator<AsyncDocument>() {
-					@Override
-					public int compare(AsyncDocument o1, AsyncDocument o2) {
-						return (int) (o2.getSimNum() - o1.getSimNum());
-					}
-				});
+//				Collections.sort(list, new Comparator<AsyncDocument>() {
+//					@Override
+//					public int compare(AsyncDocument o1, AsyncDocument o2) {
+//						return (int) (o2.getSimNum() - o1.getSimNum());
+//					}
+//				});
 				return list;
 			}
 			valueFromRedis = RedisFactory.getValueFromRedis("async:" + pageId);

@@ -243,7 +243,7 @@ public class AlertNum implements Job {
         String cutContent = StringUtil.cutContentPro(content, 150);
 
         title =StringUtil.replaceImgNew2(title);
-        title = StringUtil.cutContentPro(title, 150);
+        //title = StringUtil.cutContentPro(title, 150);
         if (Const.GROUPNAME_WEIBO.equals(groupName)) {
 
             ftsDocumentAlert = new FtsDocumentAlert(sid, cutContent, content, cutContent,content, urlName, urlTime, siteName, groupName,
