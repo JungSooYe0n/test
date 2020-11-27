@@ -130,7 +130,9 @@ public class ThymeleafController {
                                 content = ftsDocumentAlert.getContent();
                             }
                             map.put("content", content.replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
-                            map.put("titleWhole", StringUtil.calcuCutLength(ftsDocumentAlert.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"),80));
+                            String titleWhone = StringUtil.calcuCutLength(ftsDocumentAlert.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"),80);
+                            titleWhone = StringUtil.cutContentPro(titleWhone,80);
+                            map.put("titleWhole", titleWhone);
                             listMap.add(map);
                         }
                         returnMap.put("datas", listMap);
