@@ -99,7 +99,7 @@ public class ThymeleafController {
             if (ObjectUtil.isNotEmpty(pagedList) && ObjectUtil.isNotEmpty(pagedList.getPageItems().get(0))){
                 FtsDocumentAlertType ftsDocumentAlertType = pagedList.getPageItems().get(0);
                 returnMap.put("alertTime", ftsDocumentAlertType.getAlertTime());
-                returnMap.put("size", ftsDocumentAlertType.getSize());
+                //returnMap.put("size", ftsDocumentAlertType.getSize());
 
                 String alertIds = ftsDocumentAlertType.getIds();
 
@@ -136,6 +136,7 @@ public class ThymeleafController {
                             listMap.add(map);
                         }
                         returnMap.put("datas", listMap);
+                        returnMap.put("size", listMap.size());
                     }
                 }else {
                     returnMap.put("datas", null);
