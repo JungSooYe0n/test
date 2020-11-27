@@ -99,7 +99,7 @@ public class ThymeleafController {
             if (ObjectUtil.isNotEmpty(pagedList) && ObjectUtil.isNotEmpty(pagedList.getPageItems().get(0))){
                 FtsDocumentAlertType ftsDocumentAlertType = pagedList.getPageItems().get(0);
                 returnMap.put("alertTime", ftsDocumentAlertType.getAlertTime());
-                returnMap.put("size", ftsDocumentAlertType.getSize());
+                //returnMap.put("size", ftsDocumentAlertType.getSize());
 
                 String alertIds = ftsDocumentAlertType.getIds();
 
@@ -130,10 +130,13 @@ public class ThymeleafController {
                                 content = ftsDocumentAlert.getContent();
                             }
                             map.put("content", content.replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"));
-                            map.put("titleWhole", StringUtil.calcuCutLength(ftsDocumentAlert.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"),80));
+                            String titleWhone = StringUtil.calcuCutLength(ftsDocumentAlert.getTitleWhole().replaceAll("&lt;","<").replaceAll("&nbsp;"," ").replaceAll("&gt;",">"),80);
+                            titleWhone = StringUtil.cutContentPro(titleWhone,80);
+                            map.put("titleWhole", titleWhone);
                             listMap.add(map);
                         }
                         returnMap.put("datas", listMap);
+                        returnMap.put("size", listMap.size());
                     }
                 }else {
                     returnMap.put("datas", null);
