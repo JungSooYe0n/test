@@ -475,7 +475,7 @@ public class SpecialCustomChartController {
                               @ApiParam("折线图展示类型") @RequestParam(value = "showType", required = false) String showType,
                               @ApiParam("词云的类型") @RequestParam(value = "entityType", defaultValue = "keywords", required = false) String entityType,
                               @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
-                              @ApiParam("对比类型主要是针对地图") @RequestParam(value = "contrast", required = false) String contrast)
+                              @ApiParam("对比类型主要是针对地图") @RequestParam(value = "mapContrast", required = false) String contrast)
             throws TRSException {
         Date startDate = new Date();
         User user = UserUtils.getUser();

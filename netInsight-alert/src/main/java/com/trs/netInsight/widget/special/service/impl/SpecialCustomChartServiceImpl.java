@@ -666,7 +666,24 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             List<Map<String, Object>> list = new ArrayList<>();
             queryBuilder.setPageSize(Integer.MAX_VALUE);
             ChartResultField resultField = new ChartResultField("name", "value");
-            list = (List<Map<String, Object>>) commonChartService.getMapColumnData(queryBuilder, sim, irSimflag, irSimflagAll, groupName, FtsFieldConst.FIELD_CATALOG_AREA, "special", resultField);
+           /* Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(queryBuilder, sim, irSimflag, irSimflagAll, groupName, FtsFieldConst.FIELD_CATALOG_AREA, "special", resultField);
+            List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
+            if(objectMap == null || areaData == null || areaData.size() == 0){
+                return null;
+            }
+            for(Map<String,Object> oneMap : areaData){
+                oneMap.put("contrast",contrast);
+            }
+            if(areaData != null && areaData.size() >0){
+                Collections.sort(areaData, (o1, o2) -> {
+                    Integer seq1 = (Integer) o1.get("value");
+                    Integer seq2 = (Integer) o2.get("value");
+                    return seq2.compareTo(seq1);
+                });
+            }
+            objectMap.put("areaData",areaData);
+            return objectMap;*/
+            list = (List<Map<String, Object>>) commonChartService.getMapColumnData(queryBuilder, sim, irSimflag, irSimflagAll, groupName, FtsFieldConst.FIELD_CATALOG_AREA, "", resultField);
             if (list == null) {
                 return null;
             }
