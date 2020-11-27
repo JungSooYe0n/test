@@ -6001,14 +6001,14 @@ public class InfoListServiceImpl implements IInfoListService {
 									}
 								}
 								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl2.toString()).append("))");
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append("))");
 								}
 							}
 							buffer.append(")");
@@ -6402,14 +6402,14 @@ public class InfoListServiceImpl implements IInfoListService {
 									}
 								}
 								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl2.toString()).append("))");
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append("))");
 								}
 							}
 							buffer.append(")");
@@ -7458,14 +7458,14 @@ public class InfoListServiceImpl implements IInfoListService {
 									}
 								}
 								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl2.toString()).append("))");
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl2.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append("))");
 								}
 							}
 							buffer.append(")");

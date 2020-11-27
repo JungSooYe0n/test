@@ -356,6 +356,10 @@ public class CommonListChartUtil {
                     map.put("img", null);
                     //前端页面显示需要，与后端无关
                     map.put("isImg", false);
+                } else if(Const.PAGE_SHOW_DUANSHIPIN.equals(groupName) || Const.PAGE_SHOW_CHANGSHIPIN.equals(groupName)) {
+                    map.put("img", vo.getImgUrl());
+                    //前端页面显示需要，与后端无关
+                    map.put("isImg", StringUtil.isEmpty(vo.getImgUrl())? false:true);
                 }else{
                     map.put("img", vo.getImgSrc());
                     //前端页面显示需要，与后端无关
