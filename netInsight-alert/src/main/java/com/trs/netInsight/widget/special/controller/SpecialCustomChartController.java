@@ -475,6 +475,7 @@ public class SpecialCustomChartController {
                               @ApiParam("折线图展示类型") @RequestParam(value = "showType", required = false) String showType,
                               @ApiParam("词云的类型") @RequestParam(value = "entityType", defaultValue = "keywords", required = false) String entityType,
                               @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+                              @ApiParam("地图下钻省") @RequestParam(value = "mapto", required = false) String mapto,
                               @ApiParam("对比类型主要是针对地图") @RequestParam(value = "contrast", required = false) String contrast)
             throws TRSException {
         Date startDate = new Date();
@@ -487,7 +488,7 @@ public class SpecialCustomChartController {
         String operation = "专题分析 - 自定义分析-"+customChart.getName();
         Date sqlEndDate = new Date();
         Date hyStartDate = new Date();
-        Object result = specialCustomChartService.selectChartData(customChart, timeRange,showType, entityType, contrast);
+        Object result = specialCustomChartService.selectChartData(customChart, timeRange,showType, entityType, contrast,mapto);
         RequestTimeLog requestTimeLog = new RequestTimeLog();
         requestTimeLog.setTabId(id);
         requestTimeLog.setTabName(customChart.getName());
