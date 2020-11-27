@@ -63,7 +63,8 @@ public interface ISpecialCustomChartService {
      * @return
      * @throws TRSException
      */
-    Object selectChartData(SpecialCustomChart customChart,String timeRange,String showType,String entityType,String contrast)throws TRSException;
+    Object selectChartData(SpecialCustomChart customChart,String timeRange,String showType,
+                           String entityType,String contrast,String mapto)throws TRSException;
 
     Object selectChar2ListtData(SpecialCustomChart customChart,String source,String key,String dateTime,String entityType,String mapContrast,String sort,int pageNo,int pageSize,
                                 String forwardPrimary,String invitationCard,String fuzzyValue,String fuzzyValueScope)throws TRSException;

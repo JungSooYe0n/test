@@ -246,7 +246,6 @@ public class CommonChartServiceImpl implements ICommonChartService {
     }
 
     //地图
-
     /**
      * 地图数据查询
      * @param builder  查询构造器 - 需要写明当前页条数和页码
@@ -257,12 +256,15 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * @param contrastField  分类统计字段，-普通模式用这个字段进行统计
      * @param type  查询类型，对应用户限制查询时间的模块相同
      * @param resultKey   这个是返回数据中对应的名字
+     * @param maptoArea 从哪下钻 北京/上海
+     * @param maptoType 类型 很多为null
      * @param <T>
      * @return
      * @throws TRSException
      */
     public <T extends IQueryBuilder> Object getMapColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
-                                                             String contrastField, String type, ChartResultField resultKey) throws TRSException {
+               String contrastField, String type, ChartResultField resultKey,String maptoArea,String maptoType
+                                            ) throws TRSException {
 
         if (StringUtil.isEmpty(contrastField)) {
             throw new OperationException("没有准确填写对比字段");
@@ -271,21 +273,15 @@ public class CommonChartServiceImpl implements ICommonChartService {
         List<Map<String, Object>> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(groupName)) {
             try {
-                //地图部分专家或者普通，因为没有分类对比表达式 地图下钻时:type=mapto_北京_column
-                String typeTmp = type;
-                String areaName = "";
-                if(type.startsWith(Const.mapto)){
-                    areaName = typeTmp.split("_")[1];
-                    typeTmp = typeTmp.split("_")[2];
-                }
-                GroupResult categoryInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName,  "", contrastField, typeTmp);
+
+                GroupResult categoryInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName,  "", contrastField, type);
                 if(categoryInfos == null || categoryInfos.getGroupList().size() ==0){
                     return null;
                 }
                 //地图下钻走
-                if(type.startsWith(Const.mapto)){
-                    if(typeTmp.equals("special")) return getMaptoDataS(categoryInfos,areaName,resultKey);
-                    else return getMaptoData(categoryInfos,areaName,resultKey);
+                if(StringUtil.isNotEmpty(maptoArea)){
+                    if(type.equals("special")) return getMaptoDataS(categoryInfos,maptoArea,resultKey,maptoType);
+                    else return getMaptoData(categoryInfos,maptoArea,resultKey);
                 }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
                 if ("special".equals(type)) {
@@ -432,9 +428,10 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * 地图下钻 -- 专题分析
      * @param categoryInfos
      * @param areaName
+     * @param maptoType 是否自定义,返回结果不一样
      * @return
      */
-    public Map<String,Object> getMaptoDataS(GroupResult categoryInfos,String areaName,ChartResultField resultKey){
+    public Object getMaptoDataS(GroupResult categoryInfos,String areaName,ChartResultField resultKey,String maptoType){
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String,Integer> bjmap = new HashMap<>();
         List<DistrictInfo> citys = districtInfoService.getAreasByCode(areaName);
@@ -458,6 +455,8 @@ public class CommonChartServiceImpl implements ICommonChartService {
             mm.put(resultKey.getCountField(), mapValue);
             list.add(mm);
         }
+        //自定义返回这样的结果
+        if(StringUtil.isNotEmpty(maptoType)) return list;
 
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put("areaData",list);
@@ -465,8 +464,6 @@ public class CommonChartServiceImpl implements ICommonChartService {
         return returnMap;
 
     }
-
-
 
     //词云图
 

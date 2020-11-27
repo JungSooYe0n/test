@@ -43,7 +43,7 @@ public interface ICommonChartService {
      * @throws TRSException
      */
     <T extends IQueryBuilder> Object getMapColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
-                                                      String contrastField, String type, ChartResultField resultKey) throws TRSException;
+                                                      String contrastField, String type, ChartResultField resultKey,String maptoArea,String maptoType) throws TRSException;
     /**
      *饼图数据查询
      * @param builder  查询构造器 - 需要写明当前页条数和页码
