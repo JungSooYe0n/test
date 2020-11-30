@@ -743,7 +743,7 @@ public final class StringUtil {
 				title = replaceNRT(replaceFont(replaceImg(title)));
 				title = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
 				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
-				title = title.replaceAll("<font color='red'>", "").replaceAll("</font>", "");
+				title = title.replaceAll("<font color='red'>", "").replaceAll("<font color=red>", "").replaceAll("</font>", "");
 				buffer.append(i + "、").append(title).append("\\n\\n");
 				i++;
 			}
