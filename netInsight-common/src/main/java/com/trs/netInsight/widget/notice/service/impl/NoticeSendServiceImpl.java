@@ -139,6 +139,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 				return Message.getMessage(CodeUtils.FAIL, "没有账号！", null);
 			case SMS:// 站内
+				if(user_==null){
+					return Message.getMessage(CodeUtils.FAIL, "非相同站点！", null);
+				}
 				String[] split = receivers.split(";");
 				for (String receiver : split) {
 					String ids = this.addAlertOrAlertBackups( list, receiver, SendWay.SMS, userId,"send");
@@ -834,9 +837,8 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				}
 				if (ObjectUtil.isNotEmpty(user)) {
 					record.addColumn(FtsFieldConst.FIELD_SubGroup_ID, user.getSubGroupId());
-					record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
 				}
-				//record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
+				record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
 				record.addColumn(FtsFieldConst.FIELD_ORGANIZATION_ID, each.get("organizationId"));
 				String alertId = UUID.randomUUID().toString();
 				record.addColumn(FtsFieldConst.FIELD_ALERT_ID, alertId);
