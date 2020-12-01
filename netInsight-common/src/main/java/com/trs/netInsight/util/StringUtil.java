@@ -54,6 +54,7 @@ public final class StringUtil {
 	public static final String img23 = "(?=<IMG SRC=).+?(?=\">)";
 	public static final String img24 = "(?=<img src=).+?(?=>)";
 	public static final String img25 = "(?=<img src=).+?(?= \">)";
+	public static final String img26 = "(?=&lt;img&nbsp;src=).+?(?=&nbsp;/&gt;)";
 
 
 	public static final String video1 = "(?=&lt;video&nbsp;src=).+?(?=&quot;&gt;)";
@@ -293,7 +294,7 @@ public final class StringUtil {
 		content = content.replaceAll(img12,"");
 		content = content.replaceAll(img13,"");
 		content = content.replaceAll(img14,"");
-
+		content = content.replaceAll(img26,"");
 		content = content.replaceAll(video1,"");
 		content = content.replaceAll(video2,"");
 		content = content.replaceAll(videoSuffix1,"");
@@ -344,6 +345,7 @@ public final class StringUtil {
 		}
 		Pattern pat = Pattern.compile(img);
 		Matcher mat = pat.matcher(content);
+		content = content.replaceAll(img26,"");
 		content = content.replaceAll(img, "");
 		content = content.replaceAll(img2, "");
 		content = content.replaceAll(img3,"");
@@ -365,6 +367,7 @@ public final class StringUtil {
 		content = content.replaceAll(img23,"");
 		content = content.replaceAll(img24,"");
 		content = content.replaceAll(img25,"");
+
 
 		content = content.replaceAll(video1,"");
 		content = content.replaceAll(video2,"");
@@ -402,9 +405,9 @@ public final class StringUtil {
 		pat = Pattern.compile(gt);
 		mat = pat.matcher(content);
 		content = mat.replaceAll("");
-		pat = Pattern.compile(gt1);
-		mat = pat.matcher(content);
-		content = mat.replaceAll("");
+//		pat = Pattern.compile(gt1);
+//		mat = pat.matcher(content);
+//		content = mat.replaceAll("");
 
 		pat = Pattern.compile(rn);
 		mat = pat.matcher(content);

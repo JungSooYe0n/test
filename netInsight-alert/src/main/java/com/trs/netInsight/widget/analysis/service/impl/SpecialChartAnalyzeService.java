@@ -716,7 +716,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 		ChartResultField chartResultField = new ChartResultField("area_name","area_count");
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
-		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, FtsFieldConst.FIELD_CATALOG_AREA,"special",chartResultField);
+		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,
+				irSimflagAll,groupName, FtsFieldConst.FIELD_CATALOG_AREA,"special",chartResultField,null,null);
 //		try {
 //			Map<String, List<String>> areaMap = districtInfoService.allAreas();
 //			GroupResult categoryInfos = hybase8SearchService.categoryQuery(searchBuilder.isServer(),
@@ -792,6 +793,11 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	public Object getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
 //	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
 			throws TRSException {
+		String maptoArea = null;
+		if(areaType.startsWith(Const.mapto)){
+			maptoArea = Const.mapto+areaType.split("_")[1];
+			areaType = areaType.split("_")[2];
+		}
 		ObjectUtil.assertNull(searchBuilder.asTRSL(), "地域分布检索表达式");
 		List<Map<String, Object>> resultMap = new ArrayList<>();
 		if (timeArray != null) {
@@ -802,7 +808,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
 //		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
-		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groupName, contrastField, "special", chartResultField);
+		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar,
+				irSimflag, irSimflagAll, groupName, contrastField, "special", chartResultField,maptoArea,null);
 		List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
 		if(objectMap == null || areaData == null || areaData.size() == 0){
 			return null;
@@ -2473,14 +2480,14 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 								}
 							}
 							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
-								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl.toString()).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl2.toString()).append("))");
 							}
 							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
 								buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl2.toString()).append("))");
 								buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl2.toString()).append("))");
 							}
 							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl.toString()).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append("))");
 							}
 						}
 						buffer.append(")");

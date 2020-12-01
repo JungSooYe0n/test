@@ -1123,7 +1123,7 @@ public class InfoListController {
             	ftsDocument.setAppraise("中性");
 			}
 if(Const.GROUPNAME_FACEBOOK.equals(groupName)){
-            	ftsDocument.setExportContent(StringUtil.replaceImg(ftsDocument.getExportContent()));
+            	ftsDocument.setExportContent(StringUtil.replaceImgNew(ftsDocument.getExportContent()));
 }
             if (Const.GROUPNAME_WEIBO.equals(groupName)){
 				realInfoThreadPool.execute(()->infoListService.getRealTimeInfoOfStatus(ftsDocument.getUrlName(),ftsDocument.getSid()));

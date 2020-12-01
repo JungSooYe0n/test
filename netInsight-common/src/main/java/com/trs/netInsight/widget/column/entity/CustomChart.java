@@ -296,5 +296,12 @@ public class CustomChart extends BaseEntity {
         this.contentArea = contentArea;
         this.mediaArea = mediaArea;
     }
-
+public CustomChart copy(){
+        CustomChart customChart = new CustomChart(name, trsl, xyTrsl, type, contrast, excludeWeb,monitorSite, timeRange,hide, keyWord,
+                excludeWords,excludeWordIndex, keyWordIndex, groupName,similar, irSimflag,irSimflagAll,
+                weight, tabWidth, parentId,sequence,specialType,mediaLevel,mediaIndustry,contentIndustry,
+                filterInfo, contentArea,mediaArea);
+        customChart.setIsTop(true);
+        return customChart;
+}
 }
