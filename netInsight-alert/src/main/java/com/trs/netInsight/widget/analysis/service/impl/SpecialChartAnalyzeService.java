@@ -5026,7 +5026,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		String contrastField = FtsFieldConst.FIELD_SITENAME;
 		if(Const.GROUPNAME_WEIBO.equals(groupName)){
 			contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
-		}else if(Const.MEDIA_TYPE_TF.contains(groupName)){
+		}else if(Const.MEDIA_TYPE_TF.contains(groupName) || Const.GROUPNAME_ZIMEITI.contains(groupName)){
 			contrastField = FtsFieldConst.FIELD_AUTHORS;
 		}
 		Boolean resultFlag = true;

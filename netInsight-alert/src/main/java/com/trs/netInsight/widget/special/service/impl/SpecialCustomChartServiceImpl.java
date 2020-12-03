@@ -668,7 +668,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             queryBuilder.setPageSize(Integer.MAX_VALUE);
             ChartResultField resultField = new ChartResultField("name", "value");
             list = (List<Map<String, Object>>) commonChartService.getMapColumnData(queryBuilder, sim, irSimflag,
-                    irSimflagAll, groupName, FtsFieldConst.FIELD_CATALOG_AREA, "special", resultField,mapto,"customer");
+                    irSimflagAll, groupName, FtsFieldConst.FIELD_CATALOG_AREA, "", resultField,mapto,"customer");
             if (list == null) {
                 return null;
             }
