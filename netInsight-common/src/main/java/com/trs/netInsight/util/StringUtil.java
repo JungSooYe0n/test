@@ -746,7 +746,7 @@ public final class StringUtil {
 				title = replaceNRT(replaceFont(replaceImg(title)));
 				title = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
 				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
-				title = title.replaceAll("<font color='red'>", "").replaceAll("</font>", "");
+				title = title.replaceAll("<font color='red'>", "").replaceAll("<font color=red>", "").replaceAll("</font>", "");
 				buffer.append(i + "、").append(title).append("\\n\\n");
 				i++;
 			}
@@ -887,9 +887,9 @@ public final class StringUtil {
 						content.length());
 				if (!endsContent.contains("</font>")) {
 					if (endsContent.contains("</")) {
-						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>";
 					} else {
-						content = content + "</font>...";
+						content = content + "</font>";
 					}
 				}
 			}
@@ -897,12 +897,12 @@ public final class StringUtil {
 			if (-1 != content.lastIndexOf("<f")) {
 				String end = content.substring(content.lastIndexOf("<f"), content.length());
 				if (end.length() < "<font color='red'>".length() && !"<font color='red'>".equals(end)) {
-					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+					content = content.substring(0, content.lastIndexOf("<f"));
 				}
 			}
-			if (!content.endsWith("...")) {
-				content = content + "...";
-			}
+//			if (!content.endsWith("...")) {
+//				content = content + "...";
+//			}
 			return content;
 		}
 
@@ -1009,9 +1009,9 @@ public final class StringUtil {
 						content.length());
 				if (!endsContent.contains("</font>")) {
 					if (endsContent.contains("</")) {
-						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>";
 					} else {
-						content = content + "</font>...";
+						content = content + "</font>";
 					}
 				}
 			}
@@ -1019,12 +1019,12 @@ public final class StringUtil {
 			if (-1 != content.lastIndexOf("<f")) {
 				String end = content.substring(content.lastIndexOf("<f"), content.length());
 				if (end.length() < font3.length() && !font3.equals(end)) {
-					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+					content = content.substring(0, content.lastIndexOf("<f"));
 				}
 			}
-			if (!content.endsWith("...")) {
-				content = content + "...";
-			}
+//			if (!content.endsWith("...")) {
+//				content = content + "...";
+//			}
 			return content;
 		}
 

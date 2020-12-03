@@ -480,7 +480,11 @@ public class ReplyServiceImpl implements IReplyService {
 						if (list != null && list.size() > 0) {
 
 							for (AlertAccount alertAccount : list) {
+								//解除绑定
 								User user = userService.findById(alertAccount.getUserId());
+								AlertAccount account = alertAccountService.findByAccountAndUserIdAndType(alertAccount.getAccount(), user.getId(),
+										SendWay.WE_CHAT);
+								alertAccountService.delete(account);
 								if(null!=user){//有可能账号被删了
 									buffer.append(WeixinMessageUtil.BIND_LIST_INFO
 											.replace("DISPLAYNAME", chooseString(user.getDisplayName()))
