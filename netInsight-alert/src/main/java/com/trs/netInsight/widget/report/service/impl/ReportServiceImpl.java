@@ -1182,6 +1182,7 @@ public class ReportServiceImpl implements IReportService {
 								newAdd.setUrlTitle(content);
 							}
 							newAdd.setAbstracts(content);
+							newAdd.setImgSrc(fav.getImgUrl());
 						}
 						screenName =  StringUtil.filterEmoji(StringUtil.replaceImg(screenName));
 						newAdd.setScreenName(screenName);
