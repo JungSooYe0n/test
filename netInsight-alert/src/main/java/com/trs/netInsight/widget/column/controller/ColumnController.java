@@ -33,7 +33,12 @@ import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.alert.constant.AlertAutoConst;
+import com.trs.netInsight.widget.alert.entity.AlertRule;
+import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
+import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
+import com.trs.netInsight.widget.alert.service.IAlertRuleService;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.*;
@@ -53,6 +58,7 @@ import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
+import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -63,6 +69,7 @@ import com.trs.netInsight.widget.user.repository.SubGroupRepository;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,6 +78,8 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 栏目操作接口
@@ -118,7 +127,11 @@ public class ColumnController {
 
 	@Autowired
 	private RequestTimeLogRepository requestTimeLogRepository;
-
+	@Autowired
+	private IAlertRuleService alertRuleService;
+	private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+	@Value("${http.alert.netinsight.url}")
+	private String alertNetinsightUrl;
 	/**
 	 * 刚加载页面时查询所有栏目（分组）
 	 */
@@ -483,7 +496,26 @@ public class ColumnController {
 						   @RequestParam(value = "contentArea", required = false) String contentArea,
 						   @RequestParam(value = "mediaArea", required = false) String mediaArea,
 						   @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
-						   @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
+						   @ApiParam("预警标题") @RequestParam(value = "timeInterval", required = false) String title,
+						   @ApiParam("定时推送时间间隔 即频率 5min;30min;1h") @RequestParam(value = "timeInterval", required = false, defaultValue = "60") int timeInterval,
+						   @ApiParam("增长量 默认0") @RequestParam(value = "growth", required = false, defaultValue = "0") int growth,
+						   @ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
+						   @ApiParam("微信表达式") @RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
+						   @ApiParam("关键词位置 TITLE；TITLE_ABSTRACT；TITLE_CONTENT") @RequestParam(value = "scope", required = false, defaultValue = "TITLE") String scope,
+						   @ApiParam("是否添加预警") @RequestParam(value = "isAddAlert", required = false, defaultValue = "false") boolean isAddAlert,
+						   @ApiParam("发送方式 ") @RequestParam(value = "sendway", defaultValue = "EMAIL", required = false) String sendWay,
+						   @ApiParam("站内用户发送方式 ") @RequestParam(value = "websiteSendWay", defaultValue = "EMAIL", required = false) String websiteSendWay,
+						   @ApiParam("站内用户id ") @RequestParam(value = "websiteId", required = false) String websiteId,
+						   @ApiParam("预警开始时间") @RequestParam(value = "alertStart", required = false, defaultValue = "00:00") String alertStartHour,
+						   @ApiParam("预警结束时间") @RequestParam(value = "alertEnd", required = false, defaultValue = "00:00") String alertEndHour,
+						   @ApiParam("预警开关 OPEN,CLOSE 默认开启") @RequestParam(value = "status", required = false, defaultValue = "OPEN") String status,
+						   @ApiParam("预警类型") @RequestParam(value = "alertType", required = false, defaultValue = "AUTO") String alertType,
+						   @ApiParam("预警模式") @RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialAlertType,
+						   @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
+						   @ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
+						   @ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
+						   @ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week,
+	@RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
 			throws TRSException {
 
 		//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受可创建资源数量的限制）
@@ -595,6 +627,46 @@ public class ColumnController {
 			indexTab.setOneName(indexPage.getName());
 		}
 
+if (isAddAlert) {
+	ScheduleStatus statusValue = ScheduleStatus.valueOf(status);
+	SearchScope scopeValue = SearchScope.valueOf(scope);
+	AlertSource alertSource = AlertSource.valueOf(alertType);
+	SpecialType sAlertType = SpecialType.valueOf(specialAlertType);
+	String frequencyId = null;
+	// 确定定时预警时走哪个方法
+	if (AlertSource.AUTO.equals(alertSource)) {
+		if ("md5".equals(countBy)) {
+			if (timeInterval == 30) {
+				frequencyId = "4";
+			} else if (timeInterval == 60) {
+				frequencyId = "5";
+			} else if (timeInterval == 120) {
+				frequencyId = "6";
+			} else if (timeInterval == 180) {
+				frequencyId = "7";
+			}
+		} else {
+			md5Num = 0;
+			md5Range = 0;
+			frequencyId = "3";// 默认按数量统计
+		}
+	}
+	// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
+	AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, isSimilar, irSimflag, irSimflagAll, groupName, keyWord,
+			excludeWords, excludeWordsIndex, excludeWeb, monitorSite, scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
+			alertEndHour, null, 0L, alertSource, week, sAlertType, trsl, statusTrsl, weChatTrsl, weight, sort, null, null,
+			countBy, frequencyId, md5Num, md5Range, false, false);
+	// timeInterval看逻辑是按分钟存储 2h 120
+	try {
+		// 验证方法
+		AlertRule addAlertRule = alertRuleService.addAlertRule(alertRule);
+		if (addAlertRule != null) {
+			fixedThreadPool.execute(() -> this.managementAutoAlertRule(addAlertRule, AlertAutoConst.alertNetInsight_save_auto));
+		}
+	} catch (Exception e) {
+		throw new OperationException("新建预警失败:" + e, e);
+	}
+}
 		return indexTabService.save(indexTab, share);
 	}
 
@@ -1882,5 +1954,28 @@ public class ColumnController {
 		}
 		System.err.println("栏目修改成功！");
 	}
-
+	/**
+	 * 请求自动预警工程项目的修改自动预警预警 - 只有按数量预警可以修改成功
+	 * 需要自动预警时，再去数据中心注册相关信息，所以将管理交给自动预警项目，自动预警项目启动时才可注册
+	 * @param alertRule
+	 * @param interfaceInfo
+	 */
+	private void managementAutoAlertRule(AlertRule alertRule, String interfaceInfo) {
+		if (alertRule != null && StringUtil.isNotEmpty(alertRule.getId()) && StringUtil.isNotEmpty(interfaceInfo)) {
+			if (AlertSource.ARTIFICIAL.equals(alertRule.getAlertType())) {
+				//当前为手动预警，不可以进行自动预警的注册，但是如果之前是自动预警，则将当前预警信息删除
+				interfaceInfo = AlertAutoConst.alertNetInsight_delete_auto;
+			}
+			if("md5".equals(alertRule.getCountBy())){
+				//当前为按热度值预警，热度值预警不在数据中心的自动预警中注册，所以需要判断之前是否有
+				interfaceInfo = AlertAutoConst.alertNetInsight_delete_auto;
+			}
+			Map<String, String> param = new HashMap<>();
+			param.put("id", alertRule.getId());
+			String result = HttpUtil.doPost(alertNetinsightUrl + interfaceInfo, param, "utf-8");
+			log.info("接口请求结果为：" + result);
+		} else {
+			log.info("方法执行失败，当前存在个别数据为空");
+		}
+	}
 }
