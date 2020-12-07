@@ -181,12 +181,12 @@ public class CommonListServiceImpl implements ICommonListService {
             builder.setPageSize(builder.getPageSize() >= 1 ? builder.getPageSize() : 10);
             builder.setPageNo(builder.getPageNo() >= 0 ? builder.getPageNo() : 0);
 
-//            String trslk = pageId + "trslk";
-//            RedisUtil.setString(trslk, builder.asTRSL());
-//            builder.setKeyRedis(trslk);
-//            log.info("正式列表查询表达式：" + builder.asTRSL());
-//            String trslkHot = pageId + "hot";
-//            RedisUtil.setString(trslkHot, builder.asTRSL());
+            String trslk = pageId + "trslk";
+            RedisUtil.setString(trslk, builder.asTRSL());
+            builder.setKeyRedis(trslk);
+            log.info("正式列表查询表达式：" + builder.asTRSL());
+            String trslkHot = pageId + "hot";
+            RedisUtil.setString(trslkHot, builder.asTRSL());
             PagedList<FtsDocumentCommonVO> pagedList = queryPageListBase(builder, sim, irSimflag, irSimflagAll, type);
             StringBuffer midBuffer = new StringBuffer();
             StringBuffer hkeyBuffer = new StringBuffer();
@@ -231,12 +231,12 @@ public class CommonListServiceImpl implements ICommonListService {
                     sidBuffer.append(")");
                     builder.filterByTRSL_NOT(sidBuffer.toString());
                 }
-            String trslk = pageId + "trslk";
-            RedisUtil.setString(trslk, builder.asTRSL());
+            String trslk_sim = pageId + "trslksim";
+            RedisUtil.setString(trslk_sim, builder.asTRSL());
             builder.setKeyRedis(trslk);
             log.info("正式列表查询表达式：" + builder.asTRSL());
-            String trslkHot = pageId + "hot";
-            RedisUtil.setString(trslkHot, builder.asTRSL());
+            String trslkHot_sim = pageId + "hotsim";
+            RedisUtil.setString(trslkHot_sim, builder.asTRSL());
 
             if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() >0) {
                 //统一处理返回数据的格式
