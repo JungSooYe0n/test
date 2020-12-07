@@ -265,7 +265,9 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                     if (StringUtil.isNotEmpty(title)) {
                         title = StringUtil.filterEmoji(StringUtil.replaceImg(title));
                     }
+                    if (Const.GROUPNAME_ZIMEITI.equals(fav.getGroupName()) && "微头条".equals(fav.getSiteName())) title = "";
                     newAdd.setTitle(title);
+
                     newAdd.setUrlTitle(title);
                     String abstracts = fav.getAbstracts();
                     if (StringUtil.isNotEmpty(abstracts)) {
