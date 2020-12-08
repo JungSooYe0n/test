@@ -787,6 +787,23 @@ public class CommonListServiceImpl implements ICommonListService {
                         }
                     }
                 }
+            }else{
+                for (FtsDocumentCommonVO document : documentList) {
+                    AsyncDocument asyncDocument = new AsyncDocument();
+                    AsyncInfo asyncInfo = new AsyncInfo();
+
+                    asyncDocument.setId(document.getSid());
+
+                    if (ObjectUtil.isEmpty(asyncDocument.getSimNum())){
+                        asyncDocument.setSimNum(0L);
+                    }
+                    asyncList.add(asyncDocument);
+                    asyncInfo.setAsyncDocument(asyncDocument);
+                    asyncInfo.setMd5(document.getMd5Tag());
+                    asyncInfo.setDatabase(database);
+                    asyncInfo.setGroupName(document.getGroupName());
+                    asyncInfoList.add(asyncInfo);
+                }
             }
 
 //            for (FtsDocumentCommonVO document : documentList) {

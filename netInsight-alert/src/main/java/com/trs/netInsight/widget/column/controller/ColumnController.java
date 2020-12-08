@@ -33,7 +33,12 @@ import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.alert.constant.AlertAutoConst;
+import com.trs.netInsight.widget.alert.entity.AlertRule;
+import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
+import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
+import com.trs.netInsight.widget.alert.service.IAlertRuleService;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.*;
@@ -53,6 +58,7 @@ import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
+import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import com.trs.netInsight.widget.special.service.IInfoListService;
 import com.trs.netInsight.widget.user.entity.Organization;
@@ -63,6 +69,7 @@ import com.trs.netInsight.widget.user.repository.SubGroupRepository;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,6 +78,8 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 栏目操作接口
@@ -118,7 +127,11 @@ public class ColumnController {
 
 	@Autowired
 	private RequestTimeLogRepository requestTimeLogRepository;
-
+	@Autowired
+	private IAlertRuleService alertRuleService;
+	private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+	@Value("${http.alert.netinsight.url}")
+	private String alertNetinsightUrl;
 	/**
 	 * 刚加载页面时查询所有栏目（分组）
 	 */
@@ -424,11 +437,11 @@ public class ColumnController {
 	 * @throws OperationException
 	 */
 	@FormatResult
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_ADD_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
-			systemLogOperationPosition = "添加二级栏目（图表）：${indexPageId}/@{name}",methodDescription="添加栏目:${name}")
+//	@Log(systemLogOperation = SystemLogOperation.COLUMN_ADD_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
+//			systemLogOperationPosition = "添加二级栏目（图表）：${indexPageId}/@{name}",methodDescription="添加栏目:${name}")
 	@RequestMapping(value = "/addIndexTab", method = RequestMethod.POST)
 	@ApiOperation("三级栏目（图表）添加接口")
-	@ApiImplicitParams({ @ApiImplicitParam(name = "name", value = "三级栏目名", dataType = "String", paramType = "query"),
+	/*@ApiImplicitParams({ @ApiImplicitParam(name = "name", value = "三级栏目名", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "indexPageId", value = "父分组Id", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "navigationId", value = "导航栏id(非自定义情况下不传)", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "type", value = "图表类型", dataType = "String", paramType = "query"),
@@ -456,34 +469,82 @@ public class ColumnController {
 			@ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})
-	public Object addThree(@RequestParam("name") String name, @RequestParam(value = "indexPageId",required = false) String indexPageId,
-						   @RequestParam(value = "navigationId", defaultValue = "") String navigationId,
-						   @RequestParam("columnType") String columnType,
-						   @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
-						   @RequestParam(value = "trsl", required = false) String trsl,
-						   @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
-						   @RequestParam(value = "keyWord", required = false) String keyWord,
-						   @RequestParam(value = "excludeWords", required = false) String excludeWords,
-						   @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
-						   @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
-						   @RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
-						   @RequestParam(value = "timeRange", required = false) String timeRange,
-						   @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
-						   @RequestParam(value = "monitorSite", required = false) String monitorSite,
-						   @RequestParam(value = "weight", required = false) boolean weight,
-						   @RequestParam(value = "sort", required = false) String sort,
-						   @RequestParam(value = "simflag", required = false) String simflag,
-						   @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
-						   @RequestParam(value = "share", defaultValue = "false") boolean share,
-						   @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
-						   @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
-						   @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
-						   @RequestParam(value = "filterInfo", required = false) String filterInfo,
-						   @RequestParam(value = "contentArea", required = false) String contentArea,
-						   @RequestParam(value = "mediaArea", required = false) String mediaArea,
-						   @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
-						   @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
+			@ApiImplicitParam(name = "title", value = "预警标题", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "timeInterval", value = "定时推送时间间隔 即频率 5min;30min;1h", dataType = "int", paramType = "query", required = false),
+			@ApiImplicitParam(name = "title", value = "预警标题", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "title", value = "预警标题", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "title", value = "预警标题", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "title", value = "预警标题", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "title", value = "预警标题", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "title", value = "预警标题", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "title", value = "预警标题", dataType = "String", paramType = "query", required = false),
+			@ApiParam("预警标题") @RequestParam(value = "title", required = false) String title,
+			@ApiParam("定时推送时间间隔 即频率 5min;30min;1h") @RequestParam(value = "timeInterval", required = false, defaultValue = "60") int timeInterval,
+			@ApiParam("增长量 默认0") @RequestParam(value = "growth", required = false, defaultValue = "0") int growth,
+	@ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
+	@ApiParam("微信表达式") @RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
+	@ApiParam("关键词位置 TITLE；TITLE_ABSTRACT；TITLE_CONTENT") @RequestParam(value = "scope", required = false, defaultValue = "TITLE") String scope,
+	@ApiParam("是否添加预警") @RequestParam(value = "isAddAlert", required = false, defaultValue = "false") boolean isAddAlert,
+	@ApiParam("发送方式 ") @RequestParam(value = "sendway", defaultValue = "EMAIL", required = false) String sendWay,
+	@ApiParam("站内用户发送方式 ") @RequestParam(value = "websiteSendWay", defaultValue = "EMAIL", required = false) String websiteSendWay,
+	@ApiParam("站内用户id ") @RequestParam(value = "websiteId", required = false) String websiteId,
+	@ApiParam("预警开始时间") @RequestParam(value = "alertStart", required = false, defaultValue = "00:00") String alertStartHour,
+	@ApiParam("预警结束时间") @RequestParam(value = "alertEnd", required = false, defaultValue = "00:00") String alertEndHour,
+	@ApiParam("预警开关 OPEN,CLOSE 默认开启") @RequestParam(value = "status", required = false, defaultValue = "OPEN") String status,
+	@ApiParam("预警类型") @RequestParam(value = "alertType", required = false, defaultValue = "AUTO") String alertType,
+	@ApiParam("预警模式") @RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialAlertType,
+	@ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
+	@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
+	@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
+	@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week,
+			@ApiImplicitParam(name = "randomNum", value = "随机数", dataType = "String", paramType = "query")})*/
+	public Object addThree(@ApiParam("三级栏目名") @RequestParam("name") String name,
+						   @ApiParam("父分组Id") @RequestParam(value = "indexPageId",required = false) String indexPageId,
+						   @ApiParam("导航栏id(非自定义情况下不传)") @RequestParam(value = "navigationId", defaultValue = "") String navigationId,
+						   @ApiParam("栏目模式类型：COMMON 普通模式、SPECIAL专家模式") @RequestParam("columnType") String columnType,
+						   @ApiParam("图表类型") @RequestParam("type") String type,@ApiParam("分类对比类型") @RequestParam(value = "contrast", required = false) String contrast,
+						   @ApiParam("检索表达式")@RequestParam(value = "trsl", required = false) String trsl,
+						   @ApiParam("XY轴检索表达式") @RequestParam(value = "xyTrsl", required = false) String xyTrsl,
+						   @ApiParam("关键词") @RequestParam(value = "keyWord", required = false) String keyWord,
+						   @ApiParam("排除词[雾霾;沙尘暴]") @RequestParam(value = "excludeWords", required = false) String excludeWords,
+						   @ApiParam("排除词命中位置(0:标题,1:标题+正文,2:标题+摘要)") @RequestParam(value = "excludeWordsIndex", required = false) String excludeWordsIndex,
+						   @ApiParam("关键词位置(0:标题,1:标题+正文,2:标题+摘要)") @RequestParam(value = "keyWordIndex", required = false) String keyWordIndex,
+						   @ApiParam("数据来源(可多值,中间以';'隔开)")@RequestParam(value = "groupName", required = false, defaultValue = "ALL") String groupName,
+						   @ApiParam("发布时间范围(2017-10-01 00:00:00;2017-10-20 00:00:00)") @RequestParam(value = "timeRange", required = false) String timeRange,
+						   @ApiParam("排除网站") @RequestParam(value = "excludeWeb", required = false) String excludeWeb,
+						   @ApiParam("监测网站")@RequestParam(value = "monitorSite", required = false) String monitorSite,
+						   @ApiParam("标题权重")@RequestParam(value = "weight", required = false) boolean weight,
+						   @ApiParam("排序方式")@RequestParam(value = "sort", required = false) String sort,
+						   @ApiParam("排重方式 不排 no，全网排 netRemove,url排 urlRemove,跨数据源排 sourceRemove") @RequestParam(value = "simflag", required = false) String simflag,
+						   @ApiParam("栏目是不是通栏，50为半栏，100为通栏") @RequestParam(value = "tabWidth", required = false, defaultValue = "50") int tabWidth,
+						   @ApiParam("是否共享标记") @RequestParam(value = "share", defaultValue = "false") boolean share,
+						   @ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+						   @ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+						   @ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+						   @ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+						   @ApiParam("预警标题") @RequestParam(value = "title", required = false) String title,
+						   @ApiParam("定时推送时间间隔 即频率 5min;30min;1h") @RequestParam(value = "timeInterval", required = false, defaultValue = "60") int timeInterval,
+						   @ApiParam("增长量 默认0") @RequestParam(value = "growth", required = false, defaultValue = "0") int growth,
+						   @ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
+						   @ApiParam("微信表达式") @RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
+						   @ApiParam("关键词位置 TITLE；TITLE_ABSTRACT；TITLE_CONTENT") @RequestParam(value = "scope", required = false, defaultValue = "TITLE") String scope,
+						   @ApiParam("是否添加预警") @RequestParam(value = "isAddAlert", required = false, defaultValue = "false") boolean isAddAlert,
+						   @ApiParam("发送方式 ") @RequestParam(value = "sendway", defaultValue = "EMAIL", required = false) String sendWay,
+						   @ApiParam("站内用户发送方式 ") @RequestParam(value = "websiteSendWay", defaultValue = "EMAIL", required = false) String websiteSendWay,
+						   @ApiParam("站内用户id ") @RequestParam(value = "websiteId", required = false) String websiteId,
+						   @ApiParam("预警开始时间") @RequestParam(value = "alertStart", required = false, defaultValue = "00:00") String alertStartHour,
+						   @ApiParam("预警结束时间") @RequestParam(value = "alertEnd", required = false, defaultValue = "00:00") String alertEndHour,
+						   @ApiParam("预警开关 OPEN,CLOSE 默认开启") @RequestParam(value = "status", required = false, defaultValue = "OPEN") String status,
+						   @ApiParam("预警类型") @RequestParam(value = "alertType", required = false, defaultValue = "AUTO") String alertType,
+						   @ApiParam("预警模式") @RequestParam(value = "specialType", required = false, defaultValue = "COMMON") String specialAlertType,
+						   @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
+						   @ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
+						   @ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
+						   @ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week,
+	@RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
 			throws TRSException {
 
 		//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受可创建资源数量的限制）
@@ -595,6 +656,46 @@ public class ColumnController {
 			indexTab.setOneName(indexPage.getName());
 		}
 
+if (isAddAlert) {
+	ScheduleStatus statusValue = ScheduleStatus.valueOf(status);
+	SearchScope scopeValue = SearchScope.valueOf(scope);
+	AlertSource alertSource = AlertSource.valueOf(alertType);
+	SpecialType sAlertType = SpecialType.valueOf(specialAlertType);
+	String frequencyId = null;
+	// 确定定时预警时走哪个方法
+	if (AlertSource.AUTO.equals(alertSource)) {
+		if ("md5".equals(countBy)) {
+			if (timeInterval == 30) {
+				frequencyId = "4";
+			} else if (timeInterval == 60) {
+				frequencyId = "5";
+			} else if (timeInterval == 120) {
+				frequencyId = "6";
+			} else if (timeInterval == 180) {
+				frequencyId = "7";
+			}
+		} else {
+			md5Num = 0;
+			md5Range = 0;
+			frequencyId = "3";// 默认按数量统计
+		}
+	}
+	// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
+	AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, isSimilar, irSimflag, irSimflagAll, groupName, keyWord,
+			excludeWords, excludeWordsIndex, excludeWeb, monitorSite, scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
+			alertEndHour, null, 0L, alertSource, week, sAlertType, trsl, statusTrsl, weChatTrsl, weight, sort, null, null,
+			countBy, frequencyId, md5Num, md5Range, false, false);
+	// timeInterval看逻辑是按分钟存储 2h 120
+	try {
+		// 验证方法
+		AlertRule addAlertRule = alertRuleService.addAlertRule(alertRule);
+		if (addAlertRule != null) {
+			fixedThreadPool.execute(() -> this.managementAutoAlertRule(addAlertRule, AlertAutoConst.alertNetInsight_save_auto));
+		}
+	} catch (Exception e) {
+		throw new OperationException("新建预警失败:" + e, e);
+	}
+}
 		return indexTabService.save(indexTab, share);
 	}
 
@@ -1882,5 +1983,28 @@ public class ColumnController {
 		}
 		System.err.println("栏目修改成功！");
 	}
-
+	/**
+	 * 请求自动预警工程项目的修改自动预警预警 - 只有按数量预警可以修改成功
+	 * 需要自动预警时，再去数据中心注册相关信息，所以将管理交给自动预警项目，自动预警项目启动时才可注册
+	 * @param alertRule
+	 * @param interfaceInfo
+	 */
+	private void managementAutoAlertRule(AlertRule alertRule, String interfaceInfo) {
+		if (alertRule != null && StringUtil.isNotEmpty(alertRule.getId()) && StringUtil.isNotEmpty(interfaceInfo)) {
+			if (AlertSource.ARTIFICIAL.equals(alertRule.getAlertType())) {
+				//当前为手动预警，不可以进行自动预警的注册，但是如果之前是自动预警，则将当前预警信息删除
+				interfaceInfo = AlertAutoConst.alertNetInsight_delete_auto;
+			}
+			if("md5".equals(alertRule.getCountBy())){
+				//当前为按热度值预警，热度值预警不在数据中心的自动预警中注册，所以需要判断之前是否有
+				interfaceInfo = AlertAutoConst.alertNetInsight_delete_auto;
+			}
+			Map<String, String> param = new HashMap<>();
+			param.put("id", alertRule.getId());
+			String result = HttpUtil.doPost(alertNetinsightUrl + interfaceInfo, param, "utf-8");
+			log.info("接口请求结果为：" + result);
+		} else {
+			log.info("方法执行失败，当前存在个别数据为空");
+		}
+	}
 }
