@@ -760,6 +760,7 @@ public class SpecialChartAnalyzeController {
 					   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 					   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
                        @ApiParam("随机数") @RequestParam(value = "randomNum", required = false) String randomNum,
+                       @ApiParam("地图下钻省") @RequestParam(value = "mapto", required = false) String mapto,
 					   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", defaultValue = "ALL",required = false) String imgOcr
 					   ) throws Exception {
 		long start = new Date().getTime();
@@ -797,6 +798,10 @@ public class SpecialChartAnalyzeController {
 			Date hyStartDate = new Date();
 //			List<Map<String, Object>> resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
 //					irSimflag,irSimflagAll,areaType);
+			//地图下钻使用
+			if(StringUtil.isNotEmpty(mapto)){
+				areaType = Const.mapto+mapto+"_"+areaType;
+			}
 			Object resultMap = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArray,isSimilar,
 					irSimflag,irSimflagAll,areaType);
             RequestTimeLog requestTimeLog = new RequestTimeLog();

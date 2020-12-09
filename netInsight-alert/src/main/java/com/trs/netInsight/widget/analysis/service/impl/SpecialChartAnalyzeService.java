@@ -720,7 +720,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 		ChartResultField chartResultField = new ChartResultField("area_name","area_count");
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
-		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, FtsFieldConst.FIELD_CATALOG_AREA,"special",chartResultField);
+		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,
+				irSimflagAll,groupName, FtsFieldConst.FIELD_CATALOG_AREA,"special",chartResultField,null,null);
 //		try {
 //			Map<String, List<String>> areaMap = districtInfoService.allAreas();
 //			GroupResult categoryInfos = hybase8SearchService.categoryQuery(searchBuilder.isServer(),
@@ -796,6 +797,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	public Object getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
 //	public List<Map<String, Object>> getAreaCount(QueryBuilder searchBuilder, String[] timeArray,boolean isSimilar,boolean irSimflag,boolean irSimflagAll,String areaType)
 			throws TRSException {
+		String maptoArea = null;
+		if(areaType.startsWith(Const.mapto)){
+			maptoArea = areaType.split("_")[1];
+//			maptoArea = Const.mapto+areaType.split("_")[1];
+			areaType = areaType.split("_")[2];
+		}
 		ObjectUtil.assertNull(searchBuilder.asTRSL(), "地域分布检索表达式");
 		List<Map<String, Object>> resultMap = new ArrayList<>();
 		if (timeArray != null) {
@@ -806,7 +813,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		searchBuilder.setPageSize(Integer.MAX_VALUE);
 		String contrastField = "mediaArea".equals(areaType) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
 //		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
-		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groupName, contrastField, "special", chartResultField);
+		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar,
+				irSimflag, irSimflagAll, groupName, contrastField, "special", chartResultField,maptoArea,null);
 		List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
 		if(objectMap == null || areaData == null || areaData.size() == 0){
 			return null;
@@ -2321,6 +2329,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
 		}else{
 			builder = specialProject.toSearchBuilder(0, 20, true);
+		}
+		//	阅读标记	已读/未读
+		if ("已读".equals(read)){//已读
+			builder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
+		}else if ("未读".equals(read)){//未读
+			builder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
 		}
 		//查看OCR - 图片
 		if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
@@ -4891,13 +4905,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 						if(i == 0) {
 							HashMap<String, String> hashMap = new HashMap<>();
 							siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-							hashMap.put("name", siteName + "-" + name);
+							hashMap.put("name", siteName + "-" + name+"-"+mediaLevel);
 							mapList.add(hashMap);
 						}else {
 							String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
 							if (!newSiteName.equals(siteName)){
 								HashMap<String, String> hashMap = new HashMap<>();
-								hashMap.put("name", newSiteName + "-" + name);
+								hashMap.put("name", newSiteName + "-" + name+"-"+mediaLevel);
 								mapList.add(hashMap);
 								break;
 							}

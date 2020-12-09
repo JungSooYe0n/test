@@ -390,7 +390,9 @@ public class AlertServiceImpl implements IAlertService {
 			queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,source.split(";"),Operator.Equal);
 		}
 //		时间  发预警的时间  这里应该是loadTime
-		queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange(time),Operator.Between);
+//		queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange(time),Operator.Between);
+		//时间 这里按需求改为urlTime
+		queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME,DateUtil.formatTimeRange(time),Operator.Between);
 		queryBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, true);
 
 		if ("微博".equals(source)){

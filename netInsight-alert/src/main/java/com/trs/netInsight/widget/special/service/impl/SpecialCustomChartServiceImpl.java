@@ -402,7 +402,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
     }
 
         @Override
-    public Object selectChartData(SpecialCustomChart customChart, String timeRange, String showType, String entityType, String contrast) throws TRSException {
+    public Object selectChartData(SpecialCustomChart customChart, String timeRange, String showType,
+                                  String entityType, String contrast,String mapto) throws TRSException {
         if (StringUtil.isNotEmpty(timeRange)) {
             customChart.setTimeRange(timeRange);
         }
@@ -414,7 +415,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         } else if (IndexTabType.WORD_CLOUD.equals(indexTabType)) {
             result = getWordCloudData(customChart, commonBuilder, entityType);
         } else if (IndexTabType.MAP.equals(indexTabType)) {
-            result = getMapData(customChart, commonBuilder, contrast);
+            result = getMapData(customChart, commonBuilder, contrast,mapto);
         } else if (IndexTabType.CHART_LINE.equals(indexTabType)) {
             result = getChartLineData(customChart, commonBuilder, showType);
         } else if (IndexTabType.CHART_PIE.equals(indexTabType) || IndexTabType.CHART_BAR.equals(indexTabType)) {
@@ -657,7 +658,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         }
     }
 
-    private Object getMapData(SpecialCustomChart customChart, QueryBuilder queryBuilder, String contrast) throws TRSSearchException {
+    private Object getMapData(SpecialCustomChart customChart, QueryBuilder queryBuilder, String contrast,String mapto) throws TRSSearchException {
         try {
             boolean irSimflag = customChart.isIrSimflag();
             boolean sim = customChart.isSimilar();
@@ -666,7 +667,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             List<Map<String, Object>> list = new ArrayList<>();
             queryBuilder.setPageSize(Integer.MAX_VALUE);
             ChartResultField resultField = new ChartResultField("name", "value");
-            list = (List<Map<String, Object>>) commonChartService.getMapColumnData(queryBuilder, sim, irSimflag, irSimflagAll, groupName, FtsFieldConst.FIELD_CATALOG_AREA, "special", resultField);
+            list = (List<Map<String, Object>>) commonChartService.getMapColumnData(queryBuilder, sim, irSimflag,
+                    irSimflagAll, groupName, FtsFieldConst.FIELD_CATALOG_AREA, "special", resultField,mapto,"customer");
             if (list == null) {
                 return null;
             }

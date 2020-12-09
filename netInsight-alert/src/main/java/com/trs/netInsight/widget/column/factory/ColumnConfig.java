@@ -349,7 +349,7 @@ public class ColumnConfig {
 		//	阅读标记	已读/未读
 		if ("已读".equals(read)){//已读
 			queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.Equal);
-		}else if ("已读".equals(read)){//已读
+		}else if ("未读".equals(read)){//已读
 			queryBuilder.filterField(FtsFieldConst.FIELD_READ, UserUtils.getUser().getId(),Operator.NotEqual);
 		}
 		// 排除网站

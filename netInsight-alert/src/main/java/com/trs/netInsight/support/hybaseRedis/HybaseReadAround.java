@@ -115,6 +115,7 @@ public class HybaseReadAround {
             result = point.proceed(paramValues);// 方法运行
             if(result != null){
                 RedisUtil.setObject(redisKey,result);
+                RedisUtil.expire(redisKey,120,TimeUnit.MINUTES);
                 RedisUtil.setString(redisKeyAddTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
             }
             return result;

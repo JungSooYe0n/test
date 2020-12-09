@@ -133,7 +133,7 @@ public class AlertNum implements Job {
                                             }
 
                                         }
-                                       //System.out.println(listMap.get(i).get("content"));
+                                       System.out.println(listMap.get(i).get("content"));
                                     }
                                     //将当前数据挨个转化为对应的数据格式，并发送
                                     if (listMap.size() > 20) {
@@ -240,7 +240,7 @@ public class AlertNum implements Job {
         content = StringUtil.replaceImgNew2(content);
         String cutContent = StringUtil.cutContentPro(content, 150);
 
-        title =StringUtil.cutContentPro(StringUtil.replaceImgNew2(title), 150);
+        title =StringUtil.replaceImgNew2(title);
 
         if (Const.GROUPNAME_WEIBO.equals(groupName)) {
 
