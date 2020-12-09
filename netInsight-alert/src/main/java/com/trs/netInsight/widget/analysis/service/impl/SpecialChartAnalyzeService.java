@@ -799,7 +799,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			throws TRSException {
 		String maptoArea = null;
 		if(areaType.startsWith(Const.mapto)){
-			maptoArea = Const.mapto+areaType.split("_")[1];
+			maptoArea = areaType.split("_")[1];
+//			maptoArea = Const.mapto+areaType.split("_")[1];
 			areaType = areaType.split("_")[2];
 		}
 		ObjectUtil.assertNull(searchBuilder.asTRSL(), "地域分布检索表达式");
