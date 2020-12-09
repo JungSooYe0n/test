@@ -2,12 +2,7 @@ package com.trs.netInsight.widget.alert.service.impl;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
@@ -18,7 +13,9 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
+import com.trs.netInsight.widget.alert.entity.AlertAccount;
 import com.trs.netInsight.widget.alert.entity.PageAlert;
+import com.trs.netInsight.widget.alert.entity.repository.AlertAccountRepository;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.service.IFavouritesService;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +72,8 @@ public class AlertServiceImpl implements IAlertService {
 	private FullTextSearch hybase8SearchServiceNew;
 	@Autowired
 	private IFavouritesService favouritesService;
+	@Autowired
+	private AlertAccountRepository alertAccountRepository;
 
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
@@ -381,6 +380,10 @@ public class AlertServiceImpl implements IAlertService {
 			queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,userName,Operator.Equal);
 		}else {
 			if (!"ALL".equals(receivers)) {
+				List<AlertAccount> alertAccounts = alertAccountRepository.findByUserAccountAndName(userName,receivers);
+				if(alertAccounts.size()>0){
+					receivers = alertAccounts.get(0).getAccount();
+				}
 				queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,receivers,Operator.Equal);
 			}
 			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
@@ -471,6 +474,19 @@ public class AlertServiceImpl implements IAlertService {
 					copyTitle = copyTitle.replaceAll("<font color=red>", "").replaceAll("</font>", "");
 					pageItem.setCopyTitle(copyTitle);
 				}
+				List<String> sendWays = Arrays.asList(pageItem.getSendWay().split(";"));
+				List<String> receiver = Arrays.asList(pageItem.getReceiver().split(";"));
+
+				for(int i=0;i<sendWays.size();i++){
+					if("WE_CHAT".equals(sendWays.get(i))){
+						String account = receiver.get(i);
+						List<AlertAccount> alertAccount =  alertAccountRepository.findByAccount(account);
+						if(alertAccount.size()>0){
+							receiver.set(i,alertAccount.get(0).getName());
+						}
+					}
+				}
+              pageItem.setReceiver(org.apache.commons.lang.StringUtils.join(receiver.toArray(), ";"));
 			}
 			PageAlert pageAlert = new PageAlert();
 			pageAlert.setContent(ftsDocumentAlertPagedList.getPageItems());
