@@ -60,6 +60,9 @@ public class LoginController {
 	@Value("${form.login.success.url}")
 	private String loginSuccessUrl;
 
+	@Value("${singleLoginAddress}")
+	private String singleLoginAddress;
+
 	@Autowired
 	private IUserService userService;
 
@@ -387,6 +390,38 @@ public class LoginController {
 			modelMap.addAttribute("message", e.getMessage());
 			return "login";
 		}
+	}
+	/**
+	 * 单点登录接口
+	 *
+	 * @date Created at 2018年7月2日 下午3:49:18
+	 * @param userName
+	 * @param password
+	 * @param request
+	 * @param response
+	 * @return http://localhost:28088/netInsight/user/singleLogin?userName=lilingshao&password=1q2w3e4R
+	 * @throws TRSException
+	 */
+	@Log(systemLogOperation = SystemLogOperation.FORM_LOGIN, systemLogType = SystemLogType.LOGIN, methodDescription = "登录账号为：${userName}", systemLogOperationPosition = "登录账号为：@{userName}")
+	@RequestMapping(value = "/singleLogin", method = {RequestMethod.GET,RequestMethod.POST})
+	public String singleLogin(@RequestParam(value = "userName") String userName,
+							  @RequestParam(value = "password") String password,
+							  HttpServletRequest request, HttpServletResponse response) {
+		UsernamePasswordToken token = new UsernamePasswordToken(userName, password, false);
+		try {
+			loginService.login(token, userName, NetworkUtil.getIpAddress(request));
+			User user = userService.findByUserName(userName);
+			user = UserUtils.checkOrganization(user);
+			if (user != null){
+				return "redirect:" + singleLoginAddress;
+			}else{
+//				return "用户名密码错误!";
+				return "login";
+			}
+		} catch (Exception e) {
+			log.error("登录失败：", e);
+		}
+		return "login";
 	}
 
 	/**

@@ -29,7 +29,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.servlet.Filter;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -212,8 +215,28 @@ public class ShiroConfiguration {
 		CookieRememberMeManager cookieRememberMeManager = new CookieRememberMeManager();
 		cookieRememberMeManager.setCookie(rememberMeCookie());
 		// rememberMe cookie加密的密钥 建议每个项目都不一样 默认AES算法 密钥长度(128 256 512 位)
-		cookieRememberMeManager.setCipherKey(Base64.decode("3AvVhmFLUs0KTA3Kprsdag=="));
+//		cookieRememberMeManager.setCipherKey(Base64.decode("3AvVhmFLUs0KTA3Kprsdag=="));
+		//shiro反序列化漏洞修复
+		cookieRememberMeManager.setCipherKey(generateNewKey());
 		return cookieRememberMeManager;
+	}
+	/**
+	 * 随机生成秘钥，参考org.apache.shiro.crypto.AbstractSymmetricCipherService#generateNewKey(int)
+	 * @return
+	 */
+	public static byte[] generateNewKey() {
+		KeyGenerator kg;
+		try {
+			kg = KeyGenerator.getInstance("AES");
+		} catch (Exception var5) {
+			String msg = "Unable to acquire AES algorithm.  This is required to function.";
+			throw new IllegalStateException(msg, var5);
+		}
+
+		kg.init(128);
+		SecretKey key = kg.generateKey();
+		byte[] encoded = key.getEncoded();
+		return encoded;
 	}
 
 	/**
@@ -348,6 +371,8 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/user/forbidden", "anon");
 		// form表单登录
 		filterChainDefinitionMap.put("/doLogin", "anon");
+		//单点登录
+		filterChainDefinitionMap.put("/singleLogin", "anon");
 		// 获取模拟登录的token
 		filterChainDefinitionMap.put("/getSimulatedLoginToken", "anon");
 		// 测试原生检索
