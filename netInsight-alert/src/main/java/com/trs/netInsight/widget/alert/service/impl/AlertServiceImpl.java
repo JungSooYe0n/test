@@ -481,7 +481,9 @@ public class AlertServiceImpl implements IAlertService {
 					if("WE_CHAT".equals(sendWays.get(i))){
 						String account = receiver.get(i);
 						List<AlertAccount> alertAccount =  alertAccountRepository.findByAccount(account);
-						receiver.set(i,alertAccount.get(0).getName());
+						if(alertAccount.size()>0){
+							receiver.set(i,alertAccount.get(0).getName());
+						}
 					}
 				}
               pageItem.setReceiver(org.apache.commons.lang.StringUtils.join(receiver.toArray(), ";"));
