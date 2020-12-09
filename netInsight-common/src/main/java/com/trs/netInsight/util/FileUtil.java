@@ -35,7 +35,7 @@ public class FileUtil {
 
 
 	/**
-	 * 写 
+	 * 写
 	 * @param userId
 	 */
 	private static void OtJson(String userId){
@@ -442,6 +442,17 @@ public class FileUtil {
 			ins.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 创建文件夹
+	 * @param uri
+	 */
+	public static void mkDirs(String uri){
+		File file =new File(uri);
+		if(!file.exists() && !file.isDirectory()){
+			file.mkdirs();
 		}
 	}
 
