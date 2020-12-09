@@ -437,8 +437,8 @@ public class ColumnController {
 	 * @throws OperationException
 	 */
 	@FormatResult
-//	@Log(systemLogOperation = SystemLogOperation.COLUMN_ADD_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
-//			systemLogOperationPosition = "添加二级栏目（图表）：${indexPageId}/@{name}",methodDescription="添加栏目:${name}")
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_ADD_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
+			systemLogOperationPosition = "添加二级栏目（图表）：${indexPageId}/@{name}",methodDescription="添加栏目:${name}")
 	@RequestMapping(value = "/addIndexTab", method = RequestMethod.POST)
 	@ApiOperation("三级栏目（图表）添加接口")
 	/*@ApiImplicitParams({ @ApiImplicitParam(name = "name", value = "三级栏目名", dataType = "String", paramType = "query"),
@@ -525,7 +525,6 @@ public class ColumnController {
 						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
-						   @ApiParam("预警标题") @RequestParam(value = "title", required = false) String title,
 						   @ApiParam("定时推送时间间隔 即频率 5min;30min;1h") @RequestParam(value = "timeInterval", required = false, defaultValue = "60") int timeInterval,
 						   @ApiParam("增长量 默认0") @RequestParam(value = "growth", required = false, defaultValue = "0") int growth,
 						   @ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
@@ -681,7 +680,7 @@ if (isAddAlert) {
 		}
 	}
 	// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
-	AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, isSimilar, irSimflag, irSimflagAll, groupName, keyWord,
+	AlertRule alertRule = new AlertRule(statusValue, name, timeInterval, growth, isSimilar, irSimflag, irSimflagAll, groupName, keyWord,
 			excludeWords, excludeWordsIndex, excludeWeb, monitorSite, scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 			alertEndHour, null, 0L, alertSource, week, sAlertType, trsl, statusTrsl, weChatTrsl, weight, sort, null, null,
 			countBy, frequencyId, md5Num, md5Range, false, false);
