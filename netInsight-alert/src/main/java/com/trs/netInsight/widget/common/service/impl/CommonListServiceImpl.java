@@ -194,22 +194,21 @@ public class CommonListServiceImpl implements ICommonListService {
             for (int i = 0; i < pagedList.size(); i++) {
                 FtsDocumentCommonVO ftsDocumentCommonVO = pagedList.get(i);
                 String id = ftsDocumentCommonVO.getSid();
-                if (StringUtil.isNotEmpty(id)) {
-                    //id不为空，则去掉当前文章
-                    if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())) {
-                        if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
-                            midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id);
-                        } else {
-                            midBuffer.append(" OR ").append(id);
-                        }
-                    } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())) {
-                        if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
-                            hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id);
-                        } else {
-                            hkeyBuffer.append(" OR ").append(id);
-                        }
+                if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getMid())) {
+                    if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
+                        midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(ftsDocumentCommonVO.getMid());
                     } else {
-                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)){
+                        midBuffer.append(" OR ").append(ftsDocumentCommonVO.getMid());
+                    }
+                } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getHkey())) {
+                    if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
+                        hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(ftsDocumentCommonVO.getHkey());
+                    } else {
+                        hkeyBuffer.append(" OR ").append(ftsDocumentCommonVO.getHkey());
+                    }
+                } else {
+                    if(StringUtil.isNotEmpty(id)) {
+                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)) {
                             sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
                         } else {
                             sidBuffer.append(" OR ").append(id);
@@ -428,11 +427,15 @@ public class CommonListServiceImpl implements ICommonListService {
             builder.setPageNo(builder.getPageNo() >= 0 ? builder.getPageNo() : 0);
 
             String trslk = pageId + "trslk";
+            String trslk_sim = pageId + "trslksim";
             RedisUtil.setString(trslk, builder.asTRSL());
+            RedisUtil.setString(trslk_sim, builder.asTRSL());
             builder.setKeyRedis(trslk);
             log.info("正式列表查询表达式：" + builder.asTRSL());
             String trslkHot = pageId + "hot";
+            String trslkHot_sim = pageId + "hotsim";
             RedisUtil.setString(trslkHot, builder.asTRSL());
+            RedisUtil.setString(trslkHot_sim, builder.asTRSL());
             //在方法开始时拼接过数据源，则这个不再拼接
             PagedList<FtsDocumentCommonVO> pagedList = queryPageListForHotBase(builder, type);
             if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
@@ -705,28 +708,28 @@ public class CommonListServiceImpl implements ICommonListService {
                 String id = ftsDocumentCommonVO.getSid();
                 String groupName = ftsDocumentCommonVO.getGroupName();
                 groupNames.add(groupName);
-                if (StringUtil.isNotEmpty(id)) {
                     //id不为空，则去掉当前文章
-                    if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())) {
+                    if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getMid())) {
                         if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
-                            midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id);
+                            midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(ftsDocumentCommonVO.getMid());
                         } else {
-                            midBuffer.append(" OR ").append(id);
+                            midBuffer.append(" OR ").append(ftsDocumentCommonVO.getMid());
                         }
-                    } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())) {
+                    } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getHkey())) {
                         if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
-                            hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id);
+                            hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(ftsDocumentCommonVO.getHkey());
                         } else {
-                            hkeyBuffer.append(" OR ").append(id);
+                            hkeyBuffer.append(" OR ").append(ftsDocumentCommonVO.getHkey());
                         }
                     } else {
-                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)){
-                            sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
-                        } else {
-                            sidBuffer.append(" OR ").append(id);
+                        if(StringUtil.isNotEmpty(id)) {
+                            if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)) {
+                                sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
+                            } else {
+                                sidBuffer.append(" OR ").append(id);
+                            }
                         }
                     }
-                }
             }
             if (ObjectUtil.isNotEmpty(md5List)){
                 QueryBuilder searchBuilder = new QueryBuilder();

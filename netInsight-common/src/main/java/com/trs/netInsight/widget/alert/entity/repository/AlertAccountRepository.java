@@ -195,7 +195,7 @@ public interface AlertAccountRepository
 	 * @param name
 	 * @return
 	 */
-	public List<AlertAccount> findByUserAccountAndName(String account, String name);
+	public List<AlertAccount> findByUserIdAndName(String account, String name);
 
 
 }
