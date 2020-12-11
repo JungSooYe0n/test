@@ -380,7 +380,7 @@ public class AlertServiceImpl implements IAlertService {
 			queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,userName,Operator.Equal);
 		}else {
 			if (!"ALL".equals(receivers)) {
-				List<AlertAccount> alertAccounts = alertAccountRepository.findByUserAccountAndName(userName,receivers);
+				List<AlertAccount> alertAccounts = alertAccountRepository.findByUserIdAndName(userId,receivers);
 				if(alertAccounts.size()>0){
 					receivers = alertAccounts.get(0).getAccount();
 				}
