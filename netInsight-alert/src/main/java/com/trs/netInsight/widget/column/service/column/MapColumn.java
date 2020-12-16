@@ -8,14 +8,20 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.util.SpringUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
+import com.trs.netInsight.widget.analysis.entity.DistrictInfo;
+import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
+import com.trs.netInsight.widget.analysis.service.impl.DistrictInfoServiceImpl;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
+import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.user.entity.User;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -26,7 +32,8 @@ import java.util.*;
  * @since changjiang @ 2018年4月8日
  */
 public class MapColumn extends AbstractColumn {
-
+	@Autowired
+	private IDistrictInfoService districtInfoService2;
 	@Override
 	public Object getColumnData(String timeRange) throws TRSSearchException {
 		//用queryCommonBuilder和QueryBuilder 是一样的的
@@ -95,7 +102,15 @@ public class MapColumn extends AbstractColumn {
 			}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
 				areaMap = Const.CONTTENT_PROVINCE_NAME;
 			}
-			commonBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(area) +")");
+			if (StringUtil.isEmpty(areaMap.get(area))){
+//				DistrictInfoServiceImpl tt = (DistrictInfoServiceImpl) SpringUtil.getBean("districtInfoServiceImpl");
+//				DistrictInfo citys = tt.getCityByCode(area);
+				String[] cityAreas = area.split(";");
+				String cityArea = cityAreas.length>1 ? areaMap.get(cityAreas[0])+"\\\\"+cityAreas[1] : area;
+				commonBuilder.filterByTRSL(contrastField + ":(" +cityArea +")");
+			}else {
+				commonBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(area) + ")");
+			}
 		}
 		// 取userId
 		User loginUser = UserUtils.getUser();

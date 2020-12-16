@@ -6312,7 +6312,14 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 			}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
 				areaMap = Const.CONTTENT_PROVINCE_NAME;
 			}
-			queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) +")");
+			if (StringUtil.isEmpty(areaMap.get(key))){
+				String[] cityAreas = key.split(";");
+				String cityArea = cityAreas.length>1 ? areaMap.get(cityAreas[0])+"\\\\"+cityAreas[1] : key;
+				queryBuilder.filterByTRSL(contrastField + ":(" +cityArea +")");
+			}else {
+				queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) + ")");
+			}
+//			queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) +")");
 		}else if(SpecialChartType.CHART_BAR_CROSS.equals(specialChartType)){ //活跃账号
 			String contrastField = FtsFieldConst.FIELD_SITENAME;
 			if(Const.GROUPNAME_WEIBO.equals(source)){
