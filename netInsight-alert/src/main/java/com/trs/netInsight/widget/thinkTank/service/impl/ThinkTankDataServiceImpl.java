@@ -4,6 +4,7 @@ import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.FileUtil;
 import com.trs.netInsight.widget.thinkTank.entity.ThinkTankData;
+import com.trs.netInsight.widget.thinkTank.entity.emnus.ThinkTankType;
 import com.trs.netInsight.widget.thinkTank.repository.ThinkTankDataRepository;
 import com.trs.netInsight.widget.thinkTank.service.IThinkTankDataService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class ThinkTankDataServiceImpl implements IThinkTankDataService {
     @Value("${pdf.file.path}")
     private String pdfPath;
     @Override
-    public String saveReportPdf(String reportTitle, String reportTime, MultipartFile[] multipartFiles) throws TRSException {
+    public String saveReportPdf(String reportTitle, String reportTime, MultipartFile[] multipartFiles,ThinkTankType reportType) throws TRSException {
         //上传文件
         String pdfName = "";
         String picName = "";
@@ -90,7 +91,7 @@ public class ThinkTankDataServiceImpl implements IThinkTankDataService {
             }
         }
 
-        ThinkTankData thinkTankData = new ThinkTankData(reportTitle, picName, reportTime, pdfName,picDetailName);
+        ThinkTankData thinkTankData = new ThinkTankData(reportTitle, picName, reportTime, pdfName,picDetailName,reportType);
         thinkTankDataRepository.save(thinkTankData);
         return "sussess";
     }
@@ -113,6 +114,16 @@ public class ThinkTankDataServiceImpl implements IThinkTankDataService {
         Pageable pageable = new PageRequest(pageNo, pageSize, sort);
         return thinkTankDataRepository.findByPdfNameNot(pdfName,pageable);
     }
+
+    @Override
+    public Page<ThinkTankData> findByReportType(int pageNo, int pageSize, ThinkTankType reportType) {
+        //默认排序（创建日期降序排，即最新创建的在上面）
+        Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+
+        Pageable pageable = new PageRequest(pageNo, pageSize, sort);
+        return thinkTankDataRepository.findByReportType(reportType,pageable);
+    }
+
     @Override
     public List<ThinkTankData> findByPicDetailNameNotAndPicDetailNameIsNotNull(int pageNo, int pageSize, String reportTitle) {
 

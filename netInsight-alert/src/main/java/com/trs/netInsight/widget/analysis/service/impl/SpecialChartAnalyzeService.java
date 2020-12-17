@@ -6401,7 +6401,8 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
-			String[] split = fuzzyValue.split(",");
+//			String[] split = fuzzyValue.split(",");
+            String[] split = fuzzyValue.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {

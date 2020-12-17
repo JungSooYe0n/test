@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.thinkTank.entity;
 
 import com.trs.netInsight.widget.base.entity.BaseEntity;
+import com.trs.netInsight.widget.thinkTank.entity.emnus.ThinkTankType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -52,6 +53,8 @@ public class ThinkTankData extends BaseEntity {
     @Column(name = "pdf_name")
     private String pdfName;
 
+    @Column(name = "report_type")
+    private ThinkTankType reportType;
    @Transient
    private String pdfToPngName;
 
@@ -60,11 +63,12 @@ public class ThinkTankData extends BaseEntity {
         return pdfName.replace(".pdf", ".png");
     }
 
-    public ThinkTankData(String reportTitle, String pictureName, String reportTime, String pdfName,String picDetailName) {
+    public ThinkTankData(String reportTitle, String pictureName, String reportTime, String pdfName,String picDetailName,ThinkTankType reportType) {
         this.reportTitle = reportTitle;
         this.pictureName = pictureName;
         this.reportTime = reportTime;
         this.pdfName = pdfName;
         this.picDetailName = picDetailName;
+        this.reportType = reportType;
     }
 }
