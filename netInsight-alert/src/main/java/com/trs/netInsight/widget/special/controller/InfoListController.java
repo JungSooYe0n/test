@@ -647,7 +647,7 @@ public class InfoListController {
 		String typeSim = "detail";//默认时间一年，用到的情况：①trslk失效；②trlk对应的trsl表达式没有时间范围控制
 		boolean sim = false;// 默认走相似文章列表
 		Boolean irsimflag = true; // 相似文章计算  要先站内排重之后再筛选  为true  要站内排重
-		trslk = RedisUtil.getString(trslk+"sim");
+		trslk = RedisUtil.getString(trslk);
 		if(StringUtil.isNotEmpty(trslk)){
 			//相似文章计算要先去掉排重
 			trslk = removeSimflag(trslk);

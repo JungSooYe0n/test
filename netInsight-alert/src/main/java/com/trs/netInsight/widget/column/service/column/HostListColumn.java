@@ -111,7 +111,7 @@ public class HostListColumn extends AbstractColumn {
                 }
                 map.put("commtCount", vo.getCommtCount());
                 map.put("rttCount", vo.getRttCount());
-                map.put("simNum", String.valueOf(vo.getSimCount()-1));
+                map.put("simNum", String.valueOf(vo.getSimCount()));
                 // 获得时间差,三天内显示时间差,剩下消失urltime
                 Map<String, String> timeDifference = DateUtil.timeDifference(vo);
                 boolean isNew = false;
