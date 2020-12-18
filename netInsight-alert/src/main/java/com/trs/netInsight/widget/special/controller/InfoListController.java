@@ -759,6 +759,19 @@ public class InfoListController {
 			if (infoListResult.getContent() != null) {
 				String trslkForPage = infoListResult.getTrslk();
 				PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslkForPage,null);
+//				//去除url重复的数据，保留一条
+//				List<Object> items = resultContent.getPageItems();
+//				for (int i = 0; i < items.size(); i++) {
+//					Map<String, String> m1 = (Map<String, String>) items.get(i);
+//					for (int j = i+1; j < items.size(); j++) {
+//						Map<String, String> m2 = (Map<String, String>) items.get(j);
+//						if(m1.get("urlName").equals(m2.get("urlName"))){
+//							items.remove(j);
+//							j--;
+//						}
+//
+//					}
+//				}
 				infoListResult.setContent(resultContent);
 			}
 		}

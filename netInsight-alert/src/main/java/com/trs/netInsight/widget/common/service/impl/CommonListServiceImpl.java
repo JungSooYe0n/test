@@ -188,48 +188,48 @@ public class CommonListServiceImpl implements ICommonListService {
             String trslkHot = pageId + "hot";
             RedisUtil.setString(trslkHot, builder.asTRSL());
             PagedList<FtsDocumentCommonVO> pagedList = queryPageListBase(builder, sim, irSimflag, irSimflagAll, type);
-            StringBuffer midBuffer = new StringBuffer();
-            StringBuffer hkeyBuffer = new StringBuffer();
-            StringBuffer sidBuffer = new StringBuffer();
-            for (int i = 0; i < pagedList.size(); i++) {
-                FtsDocumentCommonVO ftsDocumentCommonVO = pagedList.get(i);
-                String id = ftsDocumentCommonVO.getSid();
-                if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getMid())) {
-                    if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
-                        midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(ftsDocumentCommonVO.getMid());
-                    } else {
-                        midBuffer.append(" OR ").append(ftsDocumentCommonVO.getMid());
-                    }
-                } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getHkey())) {
-                    if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
-                        hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(ftsDocumentCommonVO.getHkey());
-                    } else {
-                        hkeyBuffer.append(" OR ").append(ftsDocumentCommonVO.getHkey());
-                    }
-                } else {
-                    if(StringUtil.isNotEmpty(id)) {
-                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)) {
-                            sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
-                        } else {
-                            sidBuffer.append(" OR ").append(id);
-                        }
-                    }
-                }
-            }
-
-//                排除所属ID
-                if (ObjectUtil.isNotEmpty(midBuffer.toString())){
-                    midBuffer.append(")");
-                    builder.filterByTRSL_NOT(midBuffer.toString());
-                }
-                if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
-                    hkeyBuffer.append(")");
-                    builder.filterByTRSL_NOT(hkeyBuffer.toString());
-                }
-                if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
-                    sidBuffer.append(")");
-                    builder.filterByTRSL_NOT(sidBuffer.toString());
-                }
+//            StringBuffer midBuffer = new StringBuffer();
+//            StringBuffer hkeyBuffer = new StringBuffer();
+//            StringBuffer sidBuffer = new StringBuffer();
+//            for (int i = 0; i < pagedList.size(); i++) {
+//                FtsDocumentCommonVO ftsDocumentCommonVO = pagedList.get(i);
+//                String id = ftsDocumentCommonVO.getSid();
+//                if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getMid())) {
+//                    if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
+//                        midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(ftsDocumentCommonVO.getMid());
+//                    } else {
+//                        midBuffer.append(" OR ").append(ftsDocumentCommonVO.getMid());
+//                    }
+//                } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getHkey())) {
+//                    if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
+//                        hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(ftsDocumentCommonVO.getHkey());
+//                    } else {
+//                        hkeyBuffer.append(" OR ").append(ftsDocumentCommonVO.getHkey());
+//                    }
+//                } else {
+//                    if(StringUtil.isNotEmpty(id)) {
+//                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)) {
+//                            sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
+//                        } else {
+//                            sidBuffer.append(" OR ").append(id);
+//                        }
+//                    }
+//                }
+//            }
+//
+////                排除所属ID
+//                if (ObjectUtil.isNotEmpty(midBuffer.toString())){
+//                    midBuffer.append(")");
+//                    builder.filterByTRSL_NOT(midBuffer.toString());
+//                }
+//                if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
+//                    hkeyBuffer.append(")");
+//                    builder.filterByTRSL_NOT(hkeyBuffer.toString());
+//                }
+//                if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
+//                    sidBuffer.append(")");
+//                    builder.filterByTRSL_NOT(sidBuffer.toString());
+//                }
             String trslk_sim = pageId + "trslksim";
             RedisUtil.setString(trslk_sim, builder.asTRSL());
             builder.setKeyRedis(trslk);
@@ -749,18 +749,18 @@ public class CommonListServiceImpl implements ICommonListService {
                     searchBuilder.setDatabase(database);
                 }
 //                排除所属ID
-                if (ObjectUtil.isNotEmpty(midBuffer.toString())){
-                    midBuffer.append(")");
-                    searchBuilder.filterByTRSL_NOT(midBuffer.toString());
-                }
-                if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
-                    hkeyBuffer.append(")");
-                    searchBuilder.filterByTRSL_NOT(hkeyBuffer.toString());
-                }
-                if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
-                    sidBuffer.append(")");
-                    searchBuilder.filterByTRSL_NOT(sidBuffer.toString());
-                }
+//                if (ObjectUtil.isNotEmpty(midBuffer.toString())){
+//                    midBuffer.append(")");
+//                    searchBuilder.filterByTRSL_NOT(midBuffer.toString());
+//                }
+//                if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
+//                    hkeyBuffer.append(")");
+//                    searchBuilder.filterByTRSL_NOT(hkeyBuffer.toString());
+//                }
+//                if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
+//                    sidBuffer.append(")");
+//                    searchBuilder.filterByTRSL_NOT(sidBuffer.toString());
+//                }
                 searchBuilder.setPageSize(50);
                 GroupResult groupInfos = commonListService.categoryQuery(searchBuilder, sim, irSimflag, irSimflagAll,FtsFieldConst.FIELD_MD5TAG, type);
                 if (ObjectUtil.isNotEmpty(groupInfos)){
