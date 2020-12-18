@@ -1,6 +1,7 @@
 package com.trs.netInsight.widget.thinkTank.repository;
 
 import com.trs.netInsight.widget.thinkTank.entity.ThinkTankData;
+import com.trs.netInsight.widget.thinkTank.entity.emnus.ThinkTankType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -20,5 +21,6 @@ public interface ThinkTankDataRepository extends PagingAndSortingRepository<Thin
     List<ThinkTankData> findByReportTitleLike(String reportTitle, Pageable pageable);
     List<ThinkTankData> findByPicDetailNameNotAndPicDetailNameIsNotNull(String reportTitle, Pageable pageable);
     Page<ThinkTankData> findByPdfNameNot(String pdfName, Pageable pageable);
+    Page<ThinkTankData> findByReportType(ThinkTankType reportType, Pageable pageable);
 
 }

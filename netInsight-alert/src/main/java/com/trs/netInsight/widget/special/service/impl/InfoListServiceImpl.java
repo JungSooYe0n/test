@@ -5795,7 +5795,7 @@ public class InfoListServiceImpl implements IInfoListService {
 
 			// 结果中搜索
 			if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
-				String[] split = fuzzyValue.split(",");
+				String[] split = fuzzyValue.split("\\s+|,");
 				String splitNode = "";
 				for (int i = 0; i < split.length; i++) {
 					if (StringUtil.isNotEmpty(split[i])) {
@@ -5823,7 +5823,7 @@ public class InfoListServiceImpl implements IInfoListService {
 				}
 				if ("fullText".equals(hybaseField)) {
 					fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
-							.replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND \"")
+							.replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
 							.replaceAll("[;|；]+", "\" OR \"")).append("\"))");
 				} else {
 					fuzzyBuilder.append(hybaseField).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
@@ -5985,7 +5985,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										String splitNode = "";
 										for (int i = 0; i < split.length; i++) {
 											if (StringUtil.isNotEmpty(split[i])) {
-												if (split[i].endsWith(";")) {
+												if (split[i].endsWith(";") || split[i].endsWith("；")) {
 													split[i] = split[i].substring(0, split[i].length() - 1);
 												}
 												splitNode += split[i] + ",";
@@ -6386,7 +6386,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										String splitNode = "";
 										for (int i = 0; i < split.length; i++) {
 											if (StringUtil.isNotEmpty(split[i])) {
-												if (split[i].endsWith(";")) {
+												if (split[i].endsWith(";") || split[i].endsWith("；")) {
 													split[i] = split[i].substring(0, split[i].length() - 1);
 												}
 												splitNode += split[i] + ",";
@@ -6434,7 +6434,8 @@ public class InfoListServiceImpl implements IInfoListService {
 
 			// 结果中搜索
 			if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)) {
-				String[] split = keywords.split(",");
+//				String[] split = keywords.split(",");
+				String[] split = keywords.split("\\s+|,");
 				String splitNode = "";
 				for (int i = 0; i < split.length; i++) {
 					if (StringUtil.isNotEmpty(split[i])) {
@@ -6867,10 +6868,11 @@ public class InfoListServiceImpl implements IInfoListService {
 					List<FtsDocumentCommonVO> ftsQuery = content2.getPageItems();
 					if (ObjectUtil.isEmpty(ftsQuery)) return null;
 					String channelIndustry = ftsQuery.get(0).getChannelIndustry();
+					String industryType = ftsQuery.get(0).getIndustryType();
 					String siteName = ftsQuery.get(0).getSiteName();
 					String groupNameInResult = ftsQuery.get(0).getGroupName();
-					if (StringUtil.isNotEmpty(channelIndustry)) {//优先查channelIndustry
-						String[] split = channelIndustry.split(";");
+					if (StringUtil.isNotEmpty(industryType)) {//优先查channelIndustry
+						String[] split = industryType.split(";");
 						StringBuilder stringBuilder = new StringBuilder();
 						for (String s : split) {
 							String[] splitInner = s.split("\\\\");
@@ -6885,7 +6887,7 @@ public class InfoListServiceImpl implements IInfoListService {
 							if (channelString.endsWith(" AND ")) {
 								channelString = channelString.substring(0, channelString.length() - 5);
 							}
-							channelBuilder.filterField(FtsFieldConst.FIELD_CHANNEL_INDUSTRY, channelString, Operator.Equal);
+							channelBuilder.filterField(FtsFieldConst.FIELD_CONTENT_INDUSTRY, channelString, Operator.Equal);
 						}
 						//在channel的基础上再加上groupName
 //						channelBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, groupNameInResult, Operator.Equal);
@@ -6894,7 +6896,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 					//排除自己
 					channelBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.NotEqual);
-					InfoListResult infoListResult = commonListService.queryPageList(channelBuilder, false, false, false, groupName, null, UserUtils.getUser(), false);
+					InfoListResult infoListResult = commonListService.queryPageList(channelBuilder, false, true, false, groupName, null, UserUtils.getUser(), false);
 					if (ObjectUtil.isEmpty(infoListResult)) return null;
 					PagedList<FtsDocumentCommonVO> content3 = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 					List<FtsDocumentCommonVO> channelList = content3.getPageItems();
@@ -6955,7 +6957,7 @@ public class InfoListServiceImpl implements IInfoListService {
 			List<Map<String, Object>> resultMap = new ArrayList<>();
 			ChartResultField chartResultField = new ChartResultField("name","value");
 			String contrastField = FtsFieldConst.FIELD_TAG;
-			map.put("simTopic",commonChartService.getBarColumnData(queryBuilder,false,false,false,Const.GROUPNAME_WEIBO,null,contrastField,null,chartResultField));
+			map.put("simTopic",commonChartService.getBarColumnData(queryBuilder,false,true,false,Const.GROUPNAME_WEIBO,null,contrastField,null,chartResultField));
 			map.put("simCount", 5);
 			map.put("simuList", everyArticle);
 		} else if (Const.MEDIA_TYPE_TF.contains(source)) {//海外的没出方案
@@ -7442,7 +7444,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										String splitNode = "";
 										for (int i = 0; i < split.length; i++) {
 											if (StringUtil.isNotEmpty(split[i])) {
-												if (split[i].endsWith(";")) {
+												if (split[i].endsWith(";") || split[i].endsWith("；")) {
 													split[i] = split[i].substring(0, split[i].length() - 1);
 												}
 												splitNode += split[i] + ",";

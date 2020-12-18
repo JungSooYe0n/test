@@ -219,7 +219,13 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
                     areaMap = Const.CONTTENT_PROVINCE_NAME;
                 }
-                queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) +")");
+                if (StringUtil.isEmpty(areaMap.get(key))){
+                    String[] cityAreas = key.split(";");
+                    String cityArea = cityAreas.length>1 ? areaMap.get(cityAreas[0])+"\\\\"+cityAreas[1] : key;
+                    queryBuilder.filterByTRSL(contrastField + ":(" +cityArea +")");
+                }else {
+                    queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) + ")");
+                }
 
             }else if (IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType) || IndexTabType.CHART_BAR.equals(indexTabType)) {
                 if(IndexTabType.CHART_LINE.equals(indexTabType)){
@@ -319,7 +325,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
 
             // 结果中搜索
             if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
-                String[] split = fuzzyValue.split(",");
+//                String[] split = fuzzyValue.split(",");
+                String[] split = fuzzyValue.split("\\s+|,");
                 String splitNode = "";
                 for (int i = 0; i < split.length; i++) {
                     if (StringUtil.isNotEmpty(split[i])) {
@@ -347,7 +354,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 }
                 if ("fullText".equals(hybaseField)) {
                     fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
-                            .replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND \"")
+                            .replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
                             .replaceAll("[;|；]+", "\" OR \"")).append("\"))");
                 } else {
                     fuzzyBuilder.append(hybaseField).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")

@@ -2510,6 +2510,14 @@ public class ReportServiceImpl implements IReportService {
 				predicate.add(cb.isNull(root.get("libraryId")));
 
 				if (StringUtil.isNotEmpty(keyword)) {
+					String[] split = keyword.split("\\s+|,");
+					String splitNode = "";
+					for (int i = 0; i < split.length; i++) {
+						if (StringUtil.isNotEmpty(split[i])) {
+							splitNode += split[i] + ",";
+						}
+					}
+					String tkeyword = splitNode.substring(0, splitNode.length() - 1);
 					List<Predicate> predicateKeyWord = new ArrayList<>();
 					switch (fuzzyValueScope) {
 						case "title":

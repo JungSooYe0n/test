@@ -253,7 +253,11 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
      */
     @FtsField("IR_CHANNEL_INDUSTRY")
     private String channelIndustry;
-
+    /**
+     * 内容行业
+     */
+    @FtsField("IR_INDUSTRY_TYPE")
+    private String industryType;
 
     /**
      * 是否发送过预警

@@ -702,6 +702,14 @@ public class InfoListController {
 		}
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {
+			String[] split = fuzzyValue.split("\\s+|,");
+			String splitNode = "";
+			for (int i = 0; i < split.length; i++) {
+				if (StringUtil.isNotEmpty(split[i])) {
+					splitNode += split[i] + ",";
+				}
+			}
+			fuzzyValue = splitNode.substring(0, splitNode.length() - 1);
 			StringBuffer trsl = new StringBuffer();
 			switch (fuzzyValueScope){
 				case "title":
