@@ -6896,7 +6896,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					}
 					//排除自己
 					channelBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.NotEqual);
-					InfoListResult infoListResult = commonListService.queryPageList(channelBuilder, false, false, false, groupName, null, UserUtils.getUser(), false);
+					InfoListResult infoListResult = commonListService.queryPageList(channelBuilder, false, true, false, groupName, null, UserUtils.getUser(), false);
 					if (ObjectUtil.isEmpty(infoListResult)) return null;
 					PagedList<FtsDocumentCommonVO> content3 = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 					List<FtsDocumentCommonVO> channelList = content3.getPageItems();
@@ -6957,7 +6957,7 @@ public class InfoListServiceImpl implements IInfoListService {
 			List<Map<String, Object>> resultMap = new ArrayList<>();
 			ChartResultField chartResultField = new ChartResultField("name","value");
 			String contrastField = FtsFieldConst.FIELD_TAG;
-			map.put("simTopic",commonChartService.getBarColumnData(queryBuilder,false,false,false,Const.GROUPNAME_WEIBO,null,contrastField,null,chartResultField));
+			map.put("simTopic",commonChartService.getBarColumnData(queryBuilder,false,true,false,Const.GROUPNAME_WEIBO,null,contrastField,null,chartResultField));
 			map.put("simCount", 5);
 			map.put("simuList", everyArticle);
 		} else if (Const.MEDIA_TYPE_TF.contains(source)) {//海外的没出方案
