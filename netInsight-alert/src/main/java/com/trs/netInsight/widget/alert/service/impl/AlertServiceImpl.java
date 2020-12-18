@@ -415,7 +415,8 @@ public class AlertServiceImpl implements IAlertService {
 			}
 		}
 		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)){
-			String[] split = keywords.split(",");
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
