@@ -5985,7 +5985,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										String splitNode = "";
 										for (int i = 0; i < split.length; i++) {
 											if (StringUtil.isNotEmpty(split[i])) {
-												if (split[i].endsWith(";")) {
+												if (split[i].endsWith(";") || split[i].endsWith("；")) {
 													split[i] = split[i].substring(0, split[i].length() - 1);
 												}
 												splitNode += split[i] + ",";
@@ -6386,7 +6386,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										String splitNode = "";
 										for (int i = 0; i < split.length; i++) {
 											if (StringUtil.isNotEmpty(split[i])) {
-												if (split[i].endsWith(";")) {
+												if (split[i].endsWith(";") || split[i].endsWith("；")) {
 													split[i] = split[i].substring(0, split[i].length() - 1);
 												}
 												splitNode += split[i] + ",";
@@ -7444,7 +7444,7 @@ public class InfoListServiceImpl implements IInfoListService {
 										String splitNode = "";
 										for (int i = 0; i < split.length; i++) {
 											if (StringUtil.isNotEmpty(split[i])) {
-												if (split[i].endsWith(";")) {
+												if (split[i].endsWith(";") || split[i].endsWith("；")) {
 													split[i] = split[i].substring(0, split[i].length() - 1);
 												}
 												splitNode += split[i] + ",";
