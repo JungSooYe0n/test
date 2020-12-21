@@ -120,6 +120,11 @@ public class WeixinMessageUtil {
 	 */
 	public static final String ALERT_TITLE="关于（SUBJECT）预警信息共SIZE条\\n来自账号：USERNAME";
 
+	/**
+	 * 微信预警通知标题(手动未填写标题)
+	 */
+	public static final String ALERT_TITLE_TWO="预警信息共SIZE条\\n来自账号：USERNAME";
+
 	// ----------------------------------------------------------------
 	/**
 	 * 请求消息类型：文本

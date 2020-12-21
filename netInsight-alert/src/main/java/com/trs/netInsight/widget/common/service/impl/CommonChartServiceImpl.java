@@ -246,7 +246,6 @@ public class CommonChartServiceImpl implements ICommonChartService {
     }
 
     //地图
-
     /**
      * 地图数据查询
      * @param builder  查询构造器 - 需要写明当前页条数和页码
@@ -257,12 +256,15 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * @param contrastField  分类统计字段，-普通模式用这个字段进行统计
      * @param type  查询类型，对应用户限制查询时间的模块相同
      * @param resultKey   这个是返回数据中对应的名字
+     * @param maptoArea 从哪下钻 北京/上海
+     * @param maptoType 类型 很多为null
      * @param <T>
      * @return
      * @throws TRSException
      */
     public <T extends IQueryBuilder> Object getMapColumnData(T builder, Boolean sim, Boolean irSimflag, Boolean irSimflagAll, String groupName,
-                                                             String contrastField, String type, ChartResultField resultKey) throws TRSException {
+               String contrastField, String type, ChartResultField resultKey,String maptoArea,String maptoType
+                                            ) throws TRSException {
 
         if (StringUtil.isEmpty(contrastField)) {
             throw new OperationException("没有准确填写对比字段");
@@ -271,14 +273,15 @@ public class CommonChartServiceImpl implements ICommonChartService {
         List<Map<String, Object>> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(groupName)) {
             try {
-                //地图部分专家或者普通，因为没有分类对比表达式
+
                 GroupResult categoryInfos = this.getCategoryQueryData(builder, sim, irSimflag, irSimflagAll, groupName,  "", contrastField, type);
                 if(categoryInfos == null || categoryInfos.getGroupList().size() ==0){
                     return null;
                 }
                 //地图下钻走
-                if(type.startsWith(Const.mapto)){
-                    return getMaptoData(categoryInfos,type,resultKey);
+                if(StringUtil.isNotEmpty(maptoArea)){
+                    if(type.equals("special")) return getMaptoDataS(categoryInfos,maptoArea,resultKey,contrastField,maptoType);
+                    else return getMaptoData(categoryInfos,maptoArea,resultKey,contrastField);
                 }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
                 if ("special".equals(type)) {
@@ -389,26 +392,36 @@ public class CommonChartServiceImpl implements ICommonChartService {
     }
 
     /**
-     * 地图下钻
+     * 地图下钻 -- 日常监测
      * @param categoryInfos
-     * @param type
+     * @param areaName
      * @return
      */
-    public List<Map<String,Object>> getMaptoData(GroupResult categoryInfos,String type,ChartResultField resultKey){
-        String[] ts = type.split("_");
-        if(ts.length<=1) return null;
+    public List<Map<String,Object>> getMaptoData(GroupResult categoryInfos,String areaName,ChartResultField resultKey,String contrastField){
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String,Integer> bjmap = new HashMap<>();
-        List<DistrictInfo> citys = districtInfoService.getAreasByCode(ts[1]);
+        List<DistrictInfo> citys = districtInfoService.getAreasByCode(areaName);
+        Map<String,String> areaMap = null;
+        if(FtsFieldConst.FIELD_MEDIA_AREA.equals(contrastField)){
+            areaMap = Const.MEDIA_PROVINCE_NAME;
+        }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
+            areaMap = Const.CONTTENT_PROVINCE_NAME;
+        }
         for (GroupInfo classEntry : categoryInfos) {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                String formatArea = d.getAreaName().replace("市","").replace("区","");
-                if(area.indexOf(formatArea) >0){
-                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
-                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName();
+                String carea = area.replace("\\","\\\\");
+                if (carea.equals(cityArea)){
+                    bjmap.put(d.getAreaName(),num2);
                 }
+//                String formatArea = d.getAreaName().replace("市","").replace("区","");
+//                if(area.indexOf(formatArea) >0){
+//                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
+//                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+////                    else bjmap.put(d.getAreaName(),num2+bjmap.get(d.getAreaName()));
+//                }
             }
         }
 
@@ -423,8 +436,58 @@ public class CommonChartServiceImpl implements ICommonChartService {
 
         return list;
     }
+    /**
+     * 地图下钻 -- 专题分析
+     * @param categoryInfos
+     * @param areaName
+     * @param maptoType 是否自定义,返回结果不一样
+     * @return
+     */
+    public Object getMaptoDataS(GroupResult categoryInfos,String areaName,ChartResultField resultKey,String contrastField,String maptoType){
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String,Integer> bjmap = new HashMap<>();
+        List<DistrictInfo> citys = districtInfoService.getAreasByCode(areaName);
+        Map<String,String> areaMap = null;
+        if(FtsFieldConst.FIELD_MEDIA_AREA.equals(contrastField)){
+            areaMap = Const.MEDIA_PROVINCE_NAME;
+        }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
+            areaMap = Const.CONTTENT_PROVINCE_NAME;
+        }
+        for (GroupInfo classEntry : categoryInfos) {
+            String area = classEntry.getFieldValue();
+            int num2 = (int)classEntry.getCount();
+            for(DistrictInfo d: citys){
+                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName();
+                String carea = area.replace("\\","\\\\");
+                if (carea.equals(cityArea)){
+                    bjmap.put(d.getAreaName(),num2);
+                }
+//                String formatArea = d.getAreaName().replace("市","").replace("区","");
+//                if(area.indexOf(formatArea) >0){
+//                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
+//                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+////                    else bjmap.put(d.getAreaName(),num2+bjmap.get(d.getAreaName()));
+//                }
+            }
+        }
 
+        for(DistrictInfo d: citys){
+            Map<String,Object> mm = new HashMap<>();
+            String mapKey = d.getAreaName();
+            Integer mapValue = bjmap.get(mapKey)==null?0:bjmap.get(mapKey);
+            mm.put(resultKey.getContrastField(), mapKey);
+            mm.put(resultKey.getCountField(), mapValue);
+            list.add(mm);
+        }
+        //自定义返回这样的结果
+        if(StringUtil.isNotEmpty(maptoType)) return list;
 
+        Map<String, Object> returnMap = new HashMap<String, Object>();
+        returnMap.put("areaData",list);
+        returnMap.put("city",citys.size());
+        return returnMap;
+
+    }
 
     //词云图
 

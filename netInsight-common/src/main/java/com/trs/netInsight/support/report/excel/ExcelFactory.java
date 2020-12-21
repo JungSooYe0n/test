@@ -47,11 +47,14 @@ public class ExcelFactory {
 	 * 导出数据到Excel
 	 */
 	@SuppressWarnings({ "resource", "deprecation" })
-	public ByteArrayOutputStream export(ExcelData data) throws IOException {
+	public ByteArrayOutputStream export1(ExcelData data,String sheet1) throws IOException {
 		Workbook workbook = new  XSSFWorkbook();//xlsx
 //		Workbook  workbook = new  HSSFWorkbook();//xls
-		Sheet sheet = workbook.createSheet(ExcelConst.EXCEL_SHEET);
-
+		String excel_sheet = ExcelConst.EXCEL_SHEET;
+		if(sheet1!=null){
+			excel_sheet = sheet1;
+		}
+		Sheet sheet = workbook.createSheet(excel_sheet);
 		// 标头样式
 		CellStyle style = workbook.createCellStyle();
 		style.setAlignment(HorizontalAlignment.CENTER);
@@ -156,6 +159,113 @@ public class ExcelFactory {
 	 * 导出数据到Excel
 	 */
 	@SuppressWarnings({ "resource", "deprecation" })
+	public ByteArrayOutputStream export(ExcelData data) throws IOException {
+		Workbook workbook = new  XSSFWorkbook();//xlsx
+//		Workbook  workbook = new  HSSFWorkbook();//xls
+		Sheet sheet = workbook.createSheet(ExcelConst.EXCEL_SHEET);
+		// 标头样式
+		CellStyle style = workbook.createCellStyle();
+		style.setAlignment(HorizontalAlignment.CENTER);
+
+		// 填充表头
+		Row row = sheet.createRow(0);
+		Cell cell;
+		for (int i = 0; i < data.column(); i++) {
+			cell = row.createCell(i);
+			cell.setCellValue(data.getHead(i));
+			cell.setCellStyle(style);
+		}
+
+		//填充头和内容
+		List<List<String>> rowAndCell = data.getRowAndCell();
+		for (int i = 0; i < rowAndCell.size(); i++) {
+			Row row1 = sheet.createRow(0);
+			Cell cell1;
+			List<String> strings = rowAndCell.get(i);
+			for (int j = 0; j < strings.size(); j++) {
+				cell1 = row1.createCell(j);
+				cell1.setCellValue(data.getHead(j));
+				cell1.setCellStyle(style);
+			}
+
+		}
+		// 超链接样式
+		CellStyle linkStyle = workbook.createCellStyle();
+		Font cellFont = workbook.createFont();
+		cellFont.setUnderline((byte) 1);
+		cellFont.setColor(HSSFColor.BLUE.index);
+		linkStyle.setFont(cellFont);
+
+		// 填充数据
+		Row newRow;
+		for (int i = 0; i < data.row(); i++) {
+			List<DataRow> dataRow = data.getRow(i);
+			newRow = sheet.createRow(i + 1);
+			for (int j = 0; j < dataRow.size(); j++) {
+				Object value = dataRow.get(j).getValue();
+				if (value instanceof Date) {
+					newRow.createCell(j).setCellValue(
+							new SimpleDateFormat(DateUtil.yyyyMMdd).format((Date) dataRow.get(j).getValue()));
+				} else if (StringUtil.isNotEmpty(dataRow.get(j).getLink())) {
+					Cell hyperCell = newRow.createCell(j);
+					String url = dataRow.get(j).getLink();
+					url = url.startsWith("http://") ? url : "http://" + url;
+					hyperCell.setCellType(CellType.STRING);
+					hyperCell.setCellStyle(linkStyle);
+					try{
+						Hyperlink hyperlink =  workbook.getCreationHelper().createHyperlink(HyperlinkType.URL);
+						hyperlink.setAddress(url);
+						hyperCell.setCellValue(url);
+						hyperCell.setHyperlink(hyperlink);
+						hyperCell.setCellValue(url);
+					}catch(Exception e){
+						hyperCell.setCellValue(url);
+					}
+				} else {
+					Object dataValue = dataRow.get(j).getValue();
+					if(ObjectUtil.isNotEmpty(dataValue)){
+						String string = dataValue.toString();
+						if(dataValue.toString().length()>32766){//最大一格存储32767
+							string = string.substring(0, 32765);
+						}
+						Boolean isNum = string.matches("^(-?\\d+)(\\.\\d+)?$");
+						Boolean isInteger  = string.matches("^[-\\+]?[\\d]*$");
+						Cell oneCell = newRow.createCell(j);
+						if(isNum){
+							CellStyle numStyle = workbook.createCellStyle();
+							if(isInteger){
+								numStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("#,#0"));
+								oneCell.setCellValue((int)Double.parseDouble(string.trim()));
+							}else {
+								numStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("#,##0.00"));
+								oneCell.setCellValue(Double.parseDouble(string.trim()));
+							}
+							oneCell.setCellStyle(numStyle);
+						}else {
+							newRow.createCell(j).setCellValue(string);
+						}
+					} else if(dataValue != null && "0".equals(dataValue.toString())){
+						String string = dataValue.toString();
+						Cell oneCell = newRow.createCell(j);
+						CellStyle numStyle = workbook.createCellStyle();
+						numStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("#,#0"));
+						oneCell.setCellStyle(numStyle);
+						oneCell.setCellValue((int)Double.parseDouble(string.trim()));
+					}else{
+						newRow.createCell(j).setCellValue("");
+					}
+
+				}
+			}
+		}
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		workbook.write(os);
+		return os;
+	}
+	/**
+	 * 导出数据到Excel
+	 */
+	@SuppressWarnings({ "resource", "deprecation" })
 	public ByteArrayOutputStream exportOfManySheet(ExcelData data) throws IOException {
 		Workbook workbook = new XSSFWorkbook();//xlsx
 		Map<String, LinkedHashMap<Integer, List<DataRow>>> sheets = data.getSheet();
@@ -226,7 +336,7 @@ public class ExcelFactory {
 					} else {
 						Object dataValue = dataRow.get(j).getValue();
 						if (ObjectUtil.isNotEmpty(dataValue)) {
-							String string = dataValue.toString();
+							String string = dataValue.toString().replaceAll("<font color=red>","").replaceAll("<font color='red'>","").replaceAll("</font>","");
 							if (dataValue.toString().length() > 32766) {//最大一格存储32767
 								string = string.substring(0, 32765);
 						}

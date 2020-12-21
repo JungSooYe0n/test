@@ -9,14 +9,9 @@ import com.trs.netInsight.widget.alert.entity.AlertAccount;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.repository.AlertAccountRepository;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
-import com.trs.netInsight.widget.column.entity.IndexPage;
-import com.trs.netInsight.widget.column.entity.IndexTab;
-import com.trs.netInsight.widget.column.entity.NavigationConfig;
+import com.trs.netInsight.widget.column.entity.*;
 import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
-import com.trs.netInsight.widget.column.repository.IndexPageRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabMapperRepository;
-import com.trs.netInsight.widget.column.repository.IndexTabRepository;
-import com.trs.netInsight.widget.column.repository.NavigationRepository;
+import com.trs.netInsight.widget.column.repository.*;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
 import com.trs.netInsight.widget.special.entity.SpecialSubject;
 import com.trs.netInsight.widget.special.entity.repository.SpecialProjectRepository;
@@ -29,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,6 +56,10 @@ public class HelpService {
 
     @Autowired
     private AlertRuleRepository alertRuleRepository;
+    @Autowired
+    private StatisticalChartRepository statisticalChartRepository;
+    @Autowired
+    private CustomChartRepository customChartRepository;
 
     public Object save(IndexTab indexTab, boolean share) {
         IndexTab save = indexTabRepository.save(indexTab);
@@ -179,6 +179,34 @@ public class HelpService {
                 mapper.setUserId("dataSync");
                 mapper.setOrganizationId(subGroup.getOrganizationId());
                 indexTabMapperRepository.save(mapper);
+                List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentIdAndIsTop(indexTabMapper.getId(), true);
+                if (statisticalChartList != null && statisticalChartList.size() > 0) {
+                    List<StatisticalChart> statisticalChartListNew = new ArrayList<>();
+                    for (StatisticalChart oneSc : statisticalChartList) {
+                        StatisticalChart statisticalChart = oneSc.StatisticalChartCopy();
+                        statisticalChart.setUserId("dataSync");
+                        statisticalChart.setParentId(mapper.getId());
+                        statisticalChart.setSubGroupId(subGroup.getId());
+                        statisticalChart.setOrganizationId(subGroup.getOrganizationId());
+                        statisticalChartListNew.add(statisticalChart);
+                    }
+                    statisticalChartRepository.save(statisticalChartListNew);
+                }
+                //获取当前栏目被置顶的自定义图表
+                List<CustomChart> customChartList = customChartRepository.findByParentIdAndIsTop(indexTabMapper.getId(), true);
+                if (customChartList != null && customChartList.size() > 0) {
+                    List<CustomChart> customChartListNew = new ArrayList<>();
+                    for (CustomChart oneCc : customChartList) {
+                        CustomChart customChart = oneCc.copy();
+                        customChart.setUserId("dataSync");
+                        customChart.setParentId(mapper.getId());
+                        customChart.setSubGroupId(subGroup.getId());
+                        customChart.setOrganizationId(subGroup.getOrganizationId());
+                        customChartListNew.add(customChart);
+                    }
+                    customChartRepository.save(customChartListNew);
+                }
+
             }
         }
         if (ObjectUtil.isNotEmpty(indexPage.getChildrenPage())){
@@ -215,6 +243,35 @@ public class HelpService {
                 mapper.setSubGroupId(subGroup.getId());
                 mapper.setOrganizationId(subGroup.getOrganizationId());
                 indexTabMapperRepository.save(mapper);
+                List<StatisticalChart> statisticalChartList = statisticalChartRepository.findByParentIdAndIsTop(indexTabMapper.getId(), true);
+                if (statisticalChartList != null && statisticalChartList.size() > 0) {
+                    List<StatisticalChart> statisticalChartListNew = new ArrayList<>();
+                    for (StatisticalChart oneSc : statisticalChartList) {
+                        StatisticalChart statisticalChart = oneSc.StatisticalChartCopy();
+                        statisticalChart.setUserId("dataSync");
+                        statisticalChart.setParentId(mapper.getId());
+                        statisticalChart.setSubGroupId(subGroup.getId());
+                        statisticalChart.setOrganizationId(subGroup.getOrganizationId());
+                        statisticalChartListNew.add(statisticalChart);
+                    }
+                    statisticalChartRepository.save(statisticalChartListNew);
+                }
+
+                //获取当前栏目被置顶的自定义图表
+                List<CustomChart> customChartList = customChartRepository.findByParentIdAndIsTop(indexTabMapper.getId(), true);
+                if (customChartList != null && customChartList.size() > 0) {
+                    List<CustomChart> customChartListNew = new ArrayList<>();
+                    for (CustomChart oneCc : customChartList) {
+                        CustomChart customChart = oneCc.copy();
+                        customChart.setUserId("dataSync");
+                        customChart.setParentId(mapper.getId());
+                        customChart.setSubGroupId(subGroup.getId());
+                        customChart.setOrganizationId(subGroup.getOrganizationId());
+                        customChartListNew.add(customChart);
+                    }
+                    customChartRepository.save(customChartListNew);
+                }
+
             }
         }
         if (ObjectUtil.isNotEmpty(columnSyncLevel)){

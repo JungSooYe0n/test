@@ -2,6 +2,7 @@ package com.trs.netInsight.widget.thinkTank.service;
 
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.widget.thinkTank.entity.ThinkTankData;
+import com.trs.netInsight.widget.thinkTank.entity.emnus.ThinkTankType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +26,7 @@ public interface IThinkTankDataService {
      * @return
      * @throws TRSException
      */
-    public String saveReportPdf(String reportTitle, String reportTime, MultipartFile[] multipartFiles) throws TRSException;
+    public String saveReportPdf(String reportTitle, String reportTime, MultipartFile[] multipartFiles,ThinkTankType reportType) throws TRSException;
     /**
      * 分页查询
      * @param pageNo
@@ -34,7 +35,7 @@ public interface IThinkTankDataService {
      */
     public Page<ThinkTankData> findAll(int pageNo,int pageSize);
     Page<ThinkTankData> findByPdfNameNot(int pageNo,int pageSize,String pdfName);
-
+    Page<ThinkTankData> findByReportType(int pageNo,int pageSize,ThinkTankType reportType);
     List<ThinkTankData> findByPicDetailNameNotAndPicDetailNameIsNotNull(int pageNo,int pageSize,String reportTitle);
 
 

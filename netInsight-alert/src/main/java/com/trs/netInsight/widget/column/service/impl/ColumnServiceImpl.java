@@ -2341,13 +2341,9 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 			try {
 				AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 				ColumnConfig config = new ColumnConfig();
-//				if(indexTab.getSort()!=null){
-//						if("asc".equals(indexTab.getSort())||"desc".equals(indexTab.getSort())){
-//							indexTab.setWeight(false);
-//						}else{
-//							indexTab.setWeight(true);
-//						}
-//				}
+						if("hittitle".equals(sort)){
+							indexTab.setWeight(true);
+				}
 				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort,  invitationCard,
 						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
@@ -2388,7 +2384,7 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 	 * 日常监测图表数据导出
 	 */
 	@Override
-	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType) throws IOException {
+	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType, String sheet) throws IOException {
 		ExcelData content = new ExcelData();
 		if (indexTabType != null) {
 			if (StringUtil.isNotEmpty(data)) {
@@ -2414,7 +2410,7 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 				}
 			}
 		}
-		return ExcelFactory.getInstance().export(content);
+		return ExcelFactory.getInstance().export1(content,sheet);
 	}
 
 	/**

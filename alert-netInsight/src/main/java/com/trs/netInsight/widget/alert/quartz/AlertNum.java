@@ -14,6 +14,7 @@ import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
 import com.trs.netInsight.widget.alert.util.AutoAlertRedisUtil;
 import com.trs.netInsight.widget.alert.util.ScheduleUtil;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.kafka.entity.AlertKafkaSend;
 import com.trs.netInsight.widget.kafka.util.AlertKafkaUtil;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
@@ -107,6 +108,7 @@ public class AlertNum implements Job {
                                         dataList.add(data);
                                     }
                                 }
+                                List<String> groupList = CommonListChartUtil.formatGroupName(alertRule.getGroupName());
                                 if (dataList.size() > 0) {
                                     List<Map<String, String>> listMap = new ArrayList<>();
                                     for (Object data : dataList) {
@@ -117,7 +119,7 @@ public class AlertNum implements Job {
                                         //Object vo = dataMap.get(DATA);
                                         //Object vo = AutoAlertRedisUtil.getOneDataForHash(dataMap.get(hashName), dataMap.get(hashKey));
                                         Map<String, String> oneMap = this.formatData(vo,alertRule);
-                                        if(oneMap != null ){
+                                        if(oneMap != null && groupList.contains(oneMap.get("groupName"))){
                                             listMap.add(oneMap);
                                         }
                                     }
@@ -213,8 +215,8 @@ public class AlertNum implements Job {
             }
         }
         String retweetedMid = (String) dataMap.get(FtsFieldConst.FIELD_RETWEETED_MID);
-        Long commtCount = dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT) == null ? 0 : Long.parseLong(dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT).toString());
-        Long rttCount = dataMap.get(FtsFieldConst.FIELD_RTTCOUNT) == null ? 0 : Long.parseLong(dataMap.get(FtsFieldConst.FIELD_RTTCOUNT).toString());
+        Long commtCount = dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT) == null ? 0 : Long.parseLong(dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT).toString().equals("")?"0":dataMap.get(FtsFieldConst.FIELD_COMMTCOUNT).toString());
+        Long rttCount = dataMap.get(FtsFieldConst.FIELD_RTTCOUNT) == null ? 0 : Long.parseLong(dataMap.get(FtsFieldConst.FIELD_RTTCOUNT).toString().equals("")?"0":dataMap.get(FtsFieldConst.FIELD_RTTCOUNT).toString());
         String keywords = (String) dataMap.get(FtsFieldConst.FIELD_KEYWORDS);
         String channel = (String) dataMap.get(FtsFieldConst.FIELD_CHANNEL);
 
@@ -222,10 +224,10 @@ public class AlertNum implements Job {
         String urlTimeString = (String) dataMap.get(FtsFieldConst.FIELD_URLTIME);
 
         DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-        Date loadTime = null;
+        //Date loadTime = null;
         Date urlTime = null;
         try {
-            loadTime = format.parse(loadTimeString);
+           // loadTime = format.parse(loadTimeString);
             urlTime = format.parse(urlTimeString);
         } catch (ParseException e) {
             e.printStackTrace();
@@ -240,8 +242,8 @@ public class AlertNum implements Job {
         content = StringUtil.replaceImgNew2(content);
         String cutContent = StringUtil.cutContentPro(content, 150);
 
-        title =StringUtil.cutContentPro(StringUtil.replaceImgNew2(title), 150);
-
+        title =StringUtil.replaceImgNew2(title);
+        //title = StringUtil.cutContentPro(title, 150);
         if (Const.GROUPNAME_WEIBO.equals(groupName)) {
 
             ftsDocumentAlert = new FtsDocumentAlert(sid, cutContent, content, cutContent,content, urlName, urlTime, siteName, groupName,

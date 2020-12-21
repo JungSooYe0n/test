@@ -219,7 +219,13 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
                     areaMap = Const.CONTTENT_PROVINCE_NAME;
                 }
-                queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) +")");
+                if (StringUtil.isEmpty(areaMap.get(key))){
+                    String[] cityAreas = key.split(";");
+                    String cityArea = cityAreas.length>1 ? areaMap.get(cityAreas[0])+"\\\\"+cityAreas[1] : key;
+                    queryBuilder.filterByTRSL(contrastField + ":(" +cityArea +")");
+                }else {
+                    queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) + ")");
+                }
 
             }else if (IndexTabType.CHART_LINE.equals(indexTabType) || IndexTabType.CHART_PIE.equals(indexTabType) || IndexTabType.CHART_BAR.equals(indexTabType)) {
                 if(IndexTabType.CHART_LINE.equals(indexTabType)){
@@ -319,7 +325,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
 
             // 结果中搜索
             if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
-                String[] split = fuzzyValue.split(",");
+//                String[] split = fuzzyValue.split(",");
+                String[] split = fuzzyValue.split("\\s+|,");
                 String splitNode = "";
                 for (int i = 0; i < split.length; i++) {
                     if (StringUtil.isNotEmpty(split[i])) {
@@ -347,7 +354,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 }
                 if ("fullText".equals(hybaseField)) {
                     fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
-                            .replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND \"")
+                            .replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
                             .replaceAll("[;|；]+", "\" OR \"")).append("\"))");
                 } else {
                     fuzzyBuilder.append(hybaseField).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
@@ -402,7 +409,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
     }
 
         @Override
-    public Object selectChartData(SpecialCustomChart customChart, String timeRange, String showType, String entityType, String contrast) throws TRSException {
+    public Object selectChartData(SpecialCustomChart customChart, String timeRange, String showType,
+                                  String entityType, String contrast,String mapto) throws TRSException {
         if (StringUtil.isNotEmpty(timeRange)) {
             customChart.setTimeRange(timeRange);
         }
@@ -414,7 +422,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         } else if (IndexTabType.WORD_CLOUD.equals(indexTabType)) {
             result = getWordCloudData(customChart, commonBuilder, entityType);
         } else if (IndexTabType.MAP.equals(indexTabType)) {
-            result = getMapData(customChart, commonBuilder, contrast);
+            result = getMapData(customChart, commonBuilder, contrast,mapto);
         } else if (IndexTabType.CHART_LINE.equals(indexTabType)) {
             result = getChartLineData(customChart, commonBuilder, showType);
         } else if (IndexTabType.CHART_PIE.equals(indexTabType) || IndexTabType.CHART_BAR.equals(indexTabType)) {
@@ -657,7 +665,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         }
     }
 
-    private Object getMapData(SpecialCustomChart customChart, QueryBuilder queryBuilder, String contrast) throws TRSSearchException {
+    private Object getMapData(SpecialCustomChart customChart, QueryBuilder queryBuilder, String contrast,String mapto) throws TRSSearchException {
         try {
             boolean irSimflag = customChart.isIrSimflag();
             boolean sim = customChart.isSimilar();
@@ -666,7 +674,9 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
             List<Map<String, Object>> list = new ArrayList<>();
             queryBuilder.setPageSize(Integer.MAX_VALUE);
             ChartResultField resultField = new ChartResultField("name", "value");
-            list = (List<Map<String, Object>>) commonChartService.getMapColumnData(queryBuilder, sim, irSimflag, irSimflagAll, groupName, FtsFieldConst.FIELD_CATALOG_AREA, "special", resultField);
+            String contrastField = "mediaArea".equals(contrast) ? FtsFieldConst.FIELD_MEDIA_AREA : FtsFieldConst.FIELD_CATALOG_AREA;
+            list = (List<Map<String, Object>>) commonChartService.getMapColumnData(queryBuilder, sim, irSimflag,
+                    irSimflagAll, groupName,contrastField, "", resultField,mapto,"customer");
             if (list == null) {
                 return null;
             }

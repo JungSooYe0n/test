@@ -48,6 +48,7 @@ public interface IDistrictInfoService {
 	DistrictInfo getCodeBy(String city);
 
 	List<DistrictInfo> getAreasByCode(String city);
+	DistrictInfo getCityByCode(String city);
 
 }
 

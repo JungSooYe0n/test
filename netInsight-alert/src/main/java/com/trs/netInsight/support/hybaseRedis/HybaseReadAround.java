@@ -90,7 +90,7 @@ public class HybaseReadAround {
                     rt = Long.parseLong(rt.toString());
                 }
                 return rt;
-            }else if(rt != null){ //redis存在数据,10s获取不到海贝数据,则使用redis中数据
+            }/*else if(rt != null){ //redis存在数据,10s获取不到海贝数据,则使用redis中数据
                 if(returnClazz == java.lang.Long.class ){
                     rt = Long.parseLong(rt.toString());
                 }
@@ -111,10 +111,11 @@ public class HybaseReadAround {
                     resultHybase = rt;
                 }
                 return resultHybase;
-            }
+            }*/
             result = point.proceed(paramValues);// 方法运行
             if(result != null){
                 RedisUtil.setObject(redisKey,result);
+                RedisUtil.expire(redisKey,120,TimeUnit.MINUTES);
                 RedisUtil.setString(redisKeyAddTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
             }
             return result;

@@ -1,5 +1,6 @@
 package com.trs.netInsight.util;
 
+import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
@@ -198,6 +199,14 @@ public class WordSpacingUtil {
 
                 }
             }
+        }
+        StringBuilder sb1 = new StringBuilder();
+        sb1.append("NOT ").append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(")
+                .append("国内新闻)")
+                .append(" AND "+FtsFieldConst.FIELD_SITENAME).append(":(")
+                .append(String.join(" OR ",Const.REMOVEMEDIAS)).append("))");
+        if (expressionTotal.contains(sb1.toString())) {
+            expressionTotal = expressionTotal.replace(sb1.toString(), "");
         }
         QueryBuilder searchBuilder = new QueryBuilder();
         if (StringUtil.isNotEmpty(expressionTotal) && expressionTotal.endsWith(" OR ")){

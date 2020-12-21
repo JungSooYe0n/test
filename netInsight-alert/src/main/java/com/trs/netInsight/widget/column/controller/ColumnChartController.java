@@ -213,7 +213,9 @@ public class ColumnChartController {
             columnChartService.saveStatisticalChart(statisticalChart);
             if (isTop) {
             IndexTabMapper mapper = tabMapperRepository.findOne(statisticalChart.getParentId());
-            saveSequence(statisticalChart.getParentId(),mapper.getIndexPage().getId(),statisticalChart.getId(),IndexFlag.StatisticalFlag);
+            String pageId = null;
+            if (ObjectUtil.isNotEmpty(mapper.getIndexPage())) pageId = mapper.getIndexPage().getId();
+            saveSequence(statisticalChart.getParentId(),pageId,statisticalChart.getId(),IndexFlag.StatisticalFlag);
             }else {
                 indexSequenceRepository.delete(indexSequenceRepository.findByIndexId(statisticalChart.getId()));
             }
@@ -230,7 +232,9 @@ public class ColumnChartController {
             columnChartService.saveCustomChart(customChart);
             if (isTop) {
                 IndexTabMapper mapper = tabMapperRepository.findOne(customChart.getParentId());
-                saveSequence(customChart.getParentId(), mapper.getIndexPage().getId(), customChart.getId(), IndexFlag.CustomFlag);
+                String pageId = null;
+                if (ObjectUtil.isNotEmpty(mapper.getIndexPage())) pageId = mapper.getIndexPage().getId();
+                saveSequence(customChart.getParentId(),pageId, customChart.getId(), IndexFlag.CustomFlag);
             }else {
                 indexSequenceRepository.delete(indexSequenceRepository.findByIndexId(customChart.getId()));
             }
@@ -239,6 +243,7 @@ public class ColumnChartController {
         return null;
     }
 private void saveSequence(String tabId,String pageId,String indexId,IndexFlag indexFlag){
+//        if (StringUtil.isNotEmpty(pageId)){
     List<IndexSequence> indexSequenceList = indexSequenceRepository.findByParentIdOrderBySequence(pageId);
     boolean isChange = false;
     Integer seq = 1;

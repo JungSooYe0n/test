@@ -374,7 +374,7 @@ public class ApiController {
         ApiAccessToken token = getToken(request);
         String userId = token.getGrantSourceOwnerId();
         User user = userRepository.findOne(userId);
-        return specialService.selectSpecial(user);
+        return specialService.selectSpecialReNew(user);
     }
 
     /**
@@ -425,7 +425,7 @@ public class ApiController {
             pageSize = maxPageSize;
         }
         return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"",
-                "","","","",false,0,false,"","",
+                "","","","",false,0,false,"","ALL",
                 "","","","","","","","");
     }
 
@@ -477,7 +477,8 @@ public class ApiController {
     @GetMapping("/getArea")
     public Object getArea(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                           @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.area(specialId, "ALL", null, "ALL");
+        //return specialChartAnalyzeController.area(specialId, "ALL", null, "ALL");
+        return specialChartAnalyzeController.area(specialId, null, "", true, "", "", "", "", "", "", "", "", false, null, false, "", "ALL", "", "", "", "", "", "", "", "", "");
     }
 
     /**
@@ -530,11 +531,11 @@ public class ApiController {
     @GetMapping("/getTrend")
     public Object getTrend(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                            @RequestParam(value = "specialId") String specialId,
-                           @RequestParam(value = "type", defaultValue = "tradition") String type) throws Exception {
-        Object first = specialChartAnalyzeController.trendTime(specialId, 1, type, "", "ALL", "ALL");
-        Object other = specialChartAnalyzeController.trendMd5(specialId, 9, type, "","", "ALL", "ALL");
+                           @ApiParam("类型：新闻网站/微博/微信/自媒体号") @RequestParam(value = "type", required = false ,defaultValue = "新闻网站") String type) throws Exception {
+//        Object first = specialChartAnalyzeController.trendTime(specialId, 1, type, "", "ALL", "ALL");
+//        Object other = specialChartAnalyzeController.trendMd5(specialId, 9, type, "","", "ALL", "ALL");
+        Object other = specialChartAnalyzeController.affairVenation(specialId, 10, type, "", "0d", true, "", "", "", "", "", "", "", "", false, null, null, "", "", "", "", "", "", "", "", "", "");
         Map<String, Object> data = new HashMap<>();
-        data.put("first", first);
         data.put("other", other);
         return data;
     }
@@ -612,7 +613,8 @@ public class ApiController {
     @GetMapping("/getNewsSiteAnalysis")
     public Object getNewsSiteAnalysis(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                       @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
+        //return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
+        return specialChartAnalyzeController.spreadAnalysis(specialId, "0d", "ALL", true, "", "", "", "", "", "", "", "", false, null, false, "", "", "", "", "", "", "", "", "");
     }
 
     /**
@@ -782,7 +784,7 @@ public class ApiController {
         keywords = jsonArray.toJSONString();
         return infoListController.searchList(pageNo,pageSize,sort,keywords,"precise",time,simflag,"1",false,"","",emotion,
                 0,false,"","","1","ALL","","","",
-                "","","","","",invitationCard,forwarPrimary,"","",groupName);
+                "","","","","",invitationCard,forwarPrimary,"","",groupName,"");
     }
 
     /**

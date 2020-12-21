@@ -35,7 +35,7 @@ import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
  *
  * Create by yan.changjiang on 2017年11月21日
  */
-@Service
+@Service("districtInfoServiceImpl")
 public class DistrictInfoServiceImpl implements IDistrictInfoService {
 
 	@Autowired
@@ -128,6 +128,17 @@ public class DistrictInfoServiceImpl implements IDistrictInfoService {
 
 		List<DistrictInfo> provienceInfos = districtInfoRepository.findByIdLike(districtInfo.getId()+Const.maptopri+"%");
 		return provienceInfos;
+	}
+
+	@Override
+	public DistrictInfo getCityByCode(String city) {
+		// 先确定是省还是市
+		Criteria<DistrictInfo> criteria = new Criteria<>();
+		criteria.add(Restrictions.eq("areaName", city));
+		criteria.add(Restrictions.eq("areaType", "2"));
+		List<DistrictInfo> provienceInfos = districtInfoRepository.findAll(criteria);
+		DistrictInfo districtInfo = provienceInfos.get(0);
+		return districtInfo;
 	}
 
 }

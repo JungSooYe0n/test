@@ -88,11 +88,11 @@ public class Const {
     /**
      * 视频+短视频
      */
-    public static String HYBASE_VIDEO = "system2.media_200402_null";
+    public static String HYBASE_VIDEO = "system2.media_200402";
     /**
      * 视频+短视频  默认
      */
-    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402_null";
+    public static final String DEFAULT_HYBASE_VIDEO = "system2.media_200402";
 
     /**
      * hybase传统库
@@ -287,6 +287,18 @@ public class Const {
      * 微博 按照 IR_RETWEETED_MID=(0 OR "") 判断为原发
      */
     public static final String PRIMARY_WEIBO = FtsFieldConst.FIELD_RETWEETED_MID + ":(0 OR \"\")";
+    /**
+     * 微博 按照 IR_VERIFIED=(1 0R 2 OR 3 OR 4 OR 5 OR 6 OR 7) 判断为微博机构认证
+     */
+    public static final String ORGANIZATION_WEIBO = FtsFieldConst.FIELD_VERIFIED + ":(\"1\" OR \"2\" OR \"3\" OR \"4\" OR \"5\" OR \"6\" OR \"7\")";
+    /**
+     * 微博 按照 IR_VERIFIED=(0) 判断为微博个人认证
+     */
+    public static final String PERSON_WEIBO = FtsFieldConst.FIELD_VERIFIED + ":(\"0\")";
+    /**
+     * 微博 按照 IR_VERIFIED=(-1 OR 9 OR 200 OR 220) 判断为普通用户（无认证）
+     */
+    public static final String NONE_WEIBO = FtsFieldConst.FIELD_VERIFIED + ":(\"-1\" OR \"200\" OR \"220\")";
 
     /**
      * 论坛 按照 IR_NRESERVED1=(0 OR "") 判断为原发
@@ -1355,7 +1367,7 @@ public class Const {
             put("广西", "中国\\\\广西壮族自治区");
             put("西藏", "中国\\\\西藏自治区");
             put("宁夏", "中国\\\\宁夏回族自治区");
-            put("新疆", "中国\\\\新疆维吾尔族自治区");// hybase中是这个 正确是新疆维吾尔自治区
+            put("新疆", "中国\\\\新疆自治区");// hybase中是这个 正确是新疆维吾尔自治区
             put("香港", "中国\\\\香港特别行政区");
             put("澳门", "中国\\\\澳门特别行政区");
             put("其他", "其他");

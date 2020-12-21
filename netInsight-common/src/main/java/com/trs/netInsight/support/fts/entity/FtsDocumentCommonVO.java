@@ -166,6 +166,26 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
     /**
      * 正负面
      */
+    @FtsField("IR_APPRAISE_NEW")
+    private String appraiseNew;
+    /**
+     * 正负面
+     */
+    @FtsField("IR_APPRAISE_SVM")
+    private String appraiseSvm;
+    /**
+     * 正负面
+     */
+    @FtsField("IR_APPRAISE_VALUE")
+    private String appraiseValue;
+    /**
+     * 正负面
+     */
+    @FtsField("IR_APPRAISE_SVM2")
+    private String appraiseSvm2;
+    /**
+     * 正负面
+     */
     @FtsField("IR_APPRAISE")
     private String appraise;
 
@@ -233,7 +253,11 @@ public class FtsDocumentCommonVO extends IDocument implements Serializable {
      */
     @FtsField("IR_CHANNEL_INDUSTRY")
     private String channelIndustry;
-
+    /**
+     * 内容行业
+     */
+    @FtsField("IR_INDUSTRY_TYPE")
+    private String industryType;
 
     /**
      * 是否发送过预警

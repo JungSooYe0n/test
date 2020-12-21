@@ -482,6 +482,13 @@ public class RedisUtil {
 		if (StringUtils.isBlank(key)) {
 			return null;
 		}
+		try {
+			//查看key的过期时间  --- 自增后过期却不删除,导致一直是421
+			long tt = stringRedisTemplate.opsForValue().getOperations().getExpire(key);
+			if(tt<=0) return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		ValueOperations<String, String> opsForValue = stringRedisTemplate.opsForValue();
 		if (opsForValue.get(key) == null) {
 			return null;

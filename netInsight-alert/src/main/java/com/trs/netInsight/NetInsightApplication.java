@@ -3,12 +3,14 @@ package com.trs.netInsight;
 
 import java.util.Properties;
 
+import com.trs.netInsight.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -26,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import javax.servlet.MultipartConfigElement;
 
 /**
  * SpringBoot工程启动入口
@@ -84,7 +88,7 @@ public class NetInsightApplication implements CommandLineRunner {
 
 	/**
 	 * 定时调度
-	 * 
+	 *
 	 * @return Created By xiao.ying
 	 */
 	@Bean
@@ -94,7 +98,7 @@ public class NetInsightApplication implements CommandLineRunner {
 
 	/**
 	 * 定时调度
-	 * 
+	 *
 	 * @return Created By xiao.ying
 	 */
 	@Bean
@@ -126,4 +130,23 @@ public class NetInsightApplication implements CommandLineRunner {
 			}
 		};
 	}
+
+	/**
+	 * 添加临时上传文件夹,解决10天不登录系统上传文件报错问题
+	 * @return
+	 */
+	@Bean
+	public MultipartConfigElement multipartConfigElement() {
+		try {
+			String tmpdir = "/tmp/tomcat/multipartdir/";
+			FileUtil.mkDirs(tmpdir);
+			MultipartConfigFactory factory = new MultipartConfigFactory();
+			factory.setLocation(tmpdir);//指定临时文件路径，这个路径可以随便写
+			return factory.createMultipartConfig();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

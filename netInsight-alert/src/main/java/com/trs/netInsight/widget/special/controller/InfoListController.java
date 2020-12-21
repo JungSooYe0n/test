@@ -61,6 +61,7 @@ import com.trs.netInsight.widget.special.service.ISpecialProjectService;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
+import com.trs.netInsight.widget.util.VideoRedisUtil;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +78,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -130,6 +132,22 @@ public class InfoListController {
 	 */
 	@Value("${http.client}")
 	private boolean httpClient;
+
+	/**
+	 * 获取短视频连接服务地址
+	 */
+	@Value("${http.getdouyin.url}")
+	private String douyinUrl;
+
+	@Value("${http.getkuaishou.url}")
+	private String kuaishouUrl;
+
+	@Value("${video.play.dy.prefix}")
+	private String videoPlaydyPrefix;
+
+	@Value("${video.play.ks.prefix}")
+	private String videoPlayksPrefix;
+
 	/**
 	 * 独立预警服务地址
 	 */
@@ -485,7 +503,8 @@ public class InfoListController {
 			@ApiImplicitParam(name = "fuzzyValue", value = "结果中搜索", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "invitationCard", value = "论坛主贴 0 /回帖 1 所有=主贴+回帖+转帖", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "forwardPrimary", value = "微博 原发 primary / 转发 forward", dataType = "String", paramType = "query", required = false),
-			@ApiImplicitParam(name = "checkedSource", value = "当前列表页对应的的媒体类型", dataType = "String", paramType = "query", required = false)})
+			@ApiImplicitParam(name = "checkedSource", value = "当前列表页对应的的媒体类型", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "svmTest", value = "测试选项", dataType = "String", paramType = "query", required = false)})
 	@RequestMapping(value = "/searchList", method = RequestMethod.POST)
     public Object searchList(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
                              @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
@@ -521,7 +540,8 @@ public class InfoListController {
                              @RequestParam(value = "forwardPrimary", required = false) String forwardPrimary,
                              @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
                              @RequestParam(value = "fuzzyValueScope", defaultValue = "fullText", required = false) String fuzzyValueScope,
-                             @RequestParam(value = "checkedSource", defaultValue = "ALL") String checkedSource
+                             @RequestParam(value = "checkedSource", defaultValue = "ALL") String checkedSource,
+							 @RequestParam(value = "svmTest", required = false) String svmTest
     ) throws TRSException {
 		log.warn("专项检测信息列表  开始调用接口");
 		//防止前端乱输入
@@ -589,7 +609,7 @@ public class InfoListController {
 			return infoListService.advancedSearchList(isSimilar, irSimflag, irSimflagAll, pageNo, pageSize, sort,
 					keywords, searchType, time, keyWordIndex, weight, monitorSite, excludeWeb, emotion, read, excludeWords, excludeWordsIndex, source,
 					mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,
-					preciseFilter, invitationCard, forwardPrimary, fuzzyValue, fuzzyValueScope, imgOcr,"advance");
+					preciseFilter, invitationCard, forwardPrimary, fuzzyValue, fuzzyValueScope, imgOcr,"advance",svmTest);
 
 			//return null;
 		} catch (Exception e) {
@@ -627,7 +647,7 @@ public class InfoListController {
 		String typeSim = "detail";//默认时间一年，用到的情况：①trslk失效；②trlk对应的trsl表达式没有时间范围控制
 		boolean sim = false;// 默认走相似文章列表
 		Boolean irsimflag = true; // 相似文章计算  要先站内排重之后再筛选  为true  要站内排重
-		trslk = RedisUtil.getString(trslk);
+		trslk = RedisUtil.getString(trslk+"sim");
 		if(StringUtil.isNotEmpty(trslk)){
 			//相似文章计算要先去掉排重
 			trslk = removeSimflag(trslk);
@@ -682,6 +702,14 @@ public class InfoListController {
 		}
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {
+			String[] split = fuzzyValue.split("\\s+|,");
+			String splitNode = "";
+			for (int i = 0; i < split.length; i++) {
+				if (StringUtil.isNotEmpty(split[i])) {
+					splitNode += split[i] + ",";
+				}
+			}
+			fuzzyValue = splitNode.substring(0, splitNode.length() - 1);
 			StringBuffer trsl = new StringBuffer();
 			switch (fuzzyValueScope){
 				case "title":
@@ -739,6 +767,19 @@ public class InfoListController {
 			if (infoListResult.getContent() != null) {
 				String trslkForPage = infoListResult.getTrslk();
 				PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult,trslkForPage,null);
+//				//去除url重复的数据，保留一条
+//				List<Object> items = resultContent.getPageItems();
+//				for (int i = 0; i < items.size(); i++) {
+//					Map<String, String> m1 = (Map<String, String>) items.get(i);
+//					for (int j = i+1; j < items.size(); j++) {
+//						Map<String, String> m2 = (Map<String, String>) items.get(j);
+//						if(m1.get("urlName").equals(m2.get("urlName"))){
+//							items.remove(j);
+//							j--;
+//						}
+//
+//					}
+//				}
 				infoListResult.setContent(resultContent);
 			}
 		}
@@ -916,7 +957,120 @@ public class InfoListController {
 		}
 		return buffer.toString();
 	}
+	@FormatResult
+	@ApiOperation("设置已读接口")
+	@RequestMapping(value = "/setReadArticle",method = RequestMethod.GET)
+	public Object setReadArticle(@ApiParam("sid") @RequestParam(value = "sid",required = true) String sids,
+							 @ApiParam("类型") @RequestParam(value = "groupName", required = true) String groupName,
+							 @ApiParam("文章的urltime") @RequestParam(value = "urltime", required = false) String urltime,
+							 @ApiParam("trslk") @RequestParam(value = "trslk",required = false) String trslk)throws TRSException{
+		try {
+			String[] groupNames = groupName.split(";");
+			String[] sidArray = sids.split(";");
+			if(groupNames.length != sidArray.length){
+				return new TRSException("所传sid和groupName的个数不相同");
+			}
+			QueryBuilder builderTime = DateUtil.timeBuilder(urltime);
+			Date start = builderTime.getStartTime();
+			Date end = builderTime.getEndTime();
+			SimpleDateFormat format = new SimpleDateFormat(DateUtil.yyyyMMdd2);
+			String startString = format.format(start);
+			String endString = format.format(end);
+			String trsl = null;
+			if (StringUtil.isNotEmpty(trslk)) {
+				 trsl = RedisUtil.getString(trslk);
+			}
 
+			List<String> idList = new ArrayList<>();
+			List<String> weixinList = new ArrayList<>();
+			List<String> weiboList = new ArrayList<>();
+			List<String> groupName_other = new ArrayList<>();
+			List<FtsDocumentCommonVO> result = new ArrayList<>();
+			for (int i = 0; i < sidArray.length; i++) {
+				String tgroupName = Const.SOURCE_GROUPNAME_CONTRAST.get(groupNames[i]);
+				if (Const.MEDIA_TYPE_WEIXIN.contains(tgroupName)) {
+					weixinList.add(sidArray[i]);
+				} else if (Const.PAGE_SHOW_WEIBO.contains(tgroupName)){
+					weiboList.add(sidArray[i]);
+				}else {
+					idList.add(sidArray[i]);
+					if (!groupName_other.contains(groupNames[i])) {
+						groupName_other.add(groupNames[i]);
+					}
+				}
+			}
+			if (idList.size() > 0){
+				QueryBuilder builder = new QueryBuilder();
+				if (StringUtil.isNotEmpty(trsl)) {
+					builder.filterByTRSL(trsl);
+				}
+				if (StringUtil.isNotEmpty(startString) && StringUtil.isNotEmpty(endString)) {
+					builder.filterField(FtsFieldConst.FIELD_URLTIME, new String[]{startString + "000000", endString + "235959"}, Operator.Between);
+				}
+				builder.filterField(FtsFieldConst.FIELD_SID, StringUtils.join(idList, " OR "), Operator.Equal);
+				builder.page(0, idList.size() * 2);
+				String searchGroupName = StringUtils.join(groupName_other, ";");
+				log.info("选中查询数据表达式 - 全部：" + builder.asTRSL());
+				InfoListResult infoListResult = commonListService.queryPageList(builder,false,false,false,searchGroupName,null,UserUtils.getUser(),false);
+				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				if (content.getPageItems() != null && content.getPageItems().size() > 0) {
+					result.addAll(content.getPageItems());
+				}
+			}
+			if (weixinList.size() > 0) {
+				QueryBuilder builderWeiXin = new QueryBuilder();//微信的表达式
+				if (StringUtil.isNotEmpty(trsl)) {
+					builderWeiXin.filterByTRSL(trsl);
+				}
+				if (StringUtil.isNotEmpty(startString) && StringUtil.isNotEmpty(endString)) {
+					builderWeiXin.filterField(FtsFieldConst.FIELD_URLTIME, new String[]{startString + "000000", endString + "235959"}, Operator.Between);
+				}
+				String weixinids = StringUtils.join(weixinList, " OR ");
+				builderWeiXin.filterField(FtsFieldConst.FIELD_HKEY, weixinids, Operator.Equal);
+				builderWeiXin.page(0, weixinList.size() * 2);
+				log.info("预警查询数据表达式 - 微信：" + builderWeiXin.asTRSL());
+				InfoListResult infoListResult = commonListService.queryPageList(builderWeiXin,false,false,false,Const.TYPE_WEIXIN,null,UserUtils.getUser(),false);
+				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				if (content.getPageItems() != null && content.getPageItems().size() > 0) {
+					result.addAll(content.getPageItems());
+				}
+			}
+			if (weiboList.size() > 0) {
+				QueryBuilder builderWeiBo = new QueryBuilder();//微信的表达式
+				if (StringUtil.isNotEmpty(trsl)) {
+					builderWeiBo.filterByTRSL(trsl);
+				}
+				if (StringUtil.isNotEmpty(startString) && StringUtil.isNotEmpty(endString)) {
+					builderWeiBo.filterField(FtsFieldConst.FIELD_URLTIME, new String[]{startString + "000000", endString + "235959"}, Operator.Between);
+				}
+				String weiboids = StringUtils.join(weiboList, " OR ");
+				builderWeiBo.filterField(FtsFieldConst.FIELD_MID, weiboids, Operator.Equal);
+				builderWeiBo.page(0, weiboList.size() * 2);
+				log.info("预警查询数据表达式 - 微信：" + builderWeiBo.asTRSL());
+				InfoListResult infoListResult = commonListService.queryPageList(builderWeiBo,false,false,false,Const.GROUPNAME_WEIBO,null,UserUtils.getUser(),false);
+				PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				if (content.getPageItems() != null && content.getPageItems().size() > 0) {
+					result.addAll(content.getPageItems());
+				}
+			}
+			if (null != result && result.size() > 0) {
+				for (FtsDocumentCommonVO ftsDocumentCommonVO : result) {
+					readArticle(ftsDocumentCommonVO);
+				}
+			}
+//			if (Const.PAGE_SHOW_WEIBO.contains(groupName)){
+//				queryBuilder.filterField(FtsFieldConst.FIELD_MID, sid, Operator.Equal);
+//			}else if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
+//				queryBuilder.filterField(FtsFieldConst.FIELD_HKEY, sid, Operator.Equal);
+//			}else {
+//				queryBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.Equal);
+//			}
+
+		} catch (Exception e) {
+			throw new TRSException("设置已读失败,message" + e);
+		}
+		return "success";
+	}
     /**
      * 信息列表页单条的详情
      *
@@ -989,7 +1143,9 @@ public class InfoListController {
             if(StringUtil.isEmpty(ftsDocument.getAppraise())){
             	ftsDocument.setAppraise("中性");
 			}
-
+if(Const.GROUPNAME_FACEBOOK.equals(groupName)){
+            	ftsDocument.setExportContent(StringUtil.replaceImgNew(ftsDocument.getExportContent()));
+}
             if (Const.GROUPNAME_WEIBO.equals(groupName)){
 				realInfoThreadPool.execute(()->infoListService.getRealTimeInfoOfStatus(ftsDocument.getUrlName(),ftsDocument.getSid()));
 				String urlName = ftsDocument.getUrlName();
@@ -1090,15 +1246,24 @@ public class InfoListController {
 	@FormatResult
 	@RequestMapping(value = "/getVideoAddress", method = RequestMethod.GET)
 	public Object getVideoAddress(@ApiParam("get/send get获得原链接,send发送请求") @RequestParam(value = "getSend",defaultValue = "send") String getSend,
-								  @ApiParam("网站类型") @RequestParam(value = "webSource", required = false) String webSource,
-								  @ApiParam("视频链接") @RequestParam(value = "nreserved1", required = false) String address) throws Exception{
+								  @ApiParam("来源") @RequestParam(value = "siteName", required = false) String siteName,
+								  @ApiParam("视频id") @RequestParam(value = "sid", required = false) String sid) throws Exception{
+		Map<String, String> insertParam = new HashMap<>();
+		insertParam.put("video_id",sid);
+		String result = null;
+		Object url = null;
 		//去获得原链接
-		if(getSend.equals("send")){
-			String result = HttpUtil.doGet("","utf-8");
-			return "send";
-		}else{ //返回原链接
-			return "https://aweme.snssdk.com/aweme/v1/playwm/?video_id=v0d00f280000bttda75u3iofno5502hg&ratio=720p&line=0";
+		//返回原链接
+		if(siteName!=null&&"抖音".equals(siteName)){
+			result = HttpUtil.doPost(douyinUrl, insertParam, "utf-8");
+			url = VideoRedisUtil.getOneDataForString(videoPlaydyPrefix+sid);
 		}
+		if(siteName!=null&&"快手".equals(siteName)){
+			result = HttpUtil.doPost(kuaishouUrl, insertParam, "utf-8");
+			url = VideoRedisUtil.getOneDataForString(videoPlayksPrefix+sid);
+		}
+		log.info(result);
+		return url;
 	}
 
 	@ApiOperation("实时获取微博信息")
@@ -1822,5 +1987,13 @@ public class InfoListController {
 			}
 		}
 
+	}
+
+	public static void main(String[] args) {
+		Map<String, String> insertParam = new HashMap<>();
+		insertParam.put("video_id","6893667536206875912");
+		String result = HttpUtil.doPost("http://119.254.92.53:39000/api/v1/douyin/video",insertParam,"utf-8");
+		String url = VideoRedisUtil.getOneDataForList("DYVideo:mp4_urls:"+"6893667536206875912").toString();
+		System.out.println(url);
 	}
 }

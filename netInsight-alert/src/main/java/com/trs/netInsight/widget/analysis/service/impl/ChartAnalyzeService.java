@@ -3051,7 +3051,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType) throws IOException {
+	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType, String sheet) throws IOException {
 		return null;
 	}
 

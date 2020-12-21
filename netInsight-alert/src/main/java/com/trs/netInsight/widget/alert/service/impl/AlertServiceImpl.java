@@ -2,12 +2,7 @@ package com.trs.netInsight.widget.alert.service.impl;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
@@ -18,7 +13,9 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
+import com.trs.netInsight.widget.alert.entity.AlertAccount;
 import com.trs.netInsight.widget.alert.entity.PageAlert;
+import com.trs.netInsight.widget.alert.entity.repository.AlertAccountRepository;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.service.IFavouritesService;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +72,8 @@ public class AlertServiceImpl implements IAlertService {
 	private FullTextSearch hybase8SearchServiceNew;
 	@Autowired
 	private IFavouritesService favouritesService;
+	@Autowired
+	private AlertAccountRepository alertAccountRepository;
 
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
@@ -381,6 +380,10 @@ public class AlertServiceImpl implements IAlertService {
 			queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,userName,Operator.Equal);
 		}else {
 			if (!"ALL".equals(receivers)) {
+				List<AlertAccount> alertAccounts = alertAccountRepository.findByUserIdAndName(userId,receivers);
+				if(alertAccounts.size()>0){
+					receivers = alertAccounts.get(0).getAccount();
+				}
 				queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,receivers,Operator.Equal);
 			}
 			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
@@ -390,7 +393,9 @@ public class AlertServiceImpl implements IAlertService {
 			queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,source.split(";"),Operator.Equal);
 		}
 //		时间  发预警的时间  这里应该是loadTime
-		queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange(time),Operator.Between);
+//		queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange(time),Operator.Between);
+		//时间 这里按需求改为urlTime
+		queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME,DateUtil.formatTimeRange(time),Operator.Between);
 		queryBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, true);
 
 		if ("微博".equals(source)){
@@ -410,7 +415,8 @@ public class AlertServiceImpl implements IAlertService {
 			}
 		}
 		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)){
-			String[] split = keywords.split(",");
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
@@ -461,6 +467,7 @@ public class AlertServiceImpl implements IAlertService {
 				// 检验收藏
 				pageItem.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(pageItem.getSid())));
 				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+				//pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">").replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
 				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
 				pageItem.setGroupName(CommonListChartUtil.formatPageShowGroupName(pageItem.getGroupName()));
 				String copyTitle = pageItem.getTitleWhole();
@@ -468,6 +475,19 @@ public class AlertServiceImpl implements IAlertService {
 					copyTitle = copyTitle.replaceAll("<font color=red>", "").replaceAll("</font>", "");
 					pageItem.setCopyTitle(copyTitle);
 				}
+				List<String> sendWays = Arrays.asList(pageItem.getSendWay().split(";"));
+				List<String> receiver = Arrays.asList(pageItem.getReceiver().split(";"));
+
+				for(int i=0;i<sendWays.size();i++){
+					if("WE_CHAT".equals(sendWays.get(i))){
+						String account = receiver.get(i);
+						List<AlertAccount> alertAccount =  alertAccountRepository.findByAccount(account);
+						if(alertAccount.size()>0){
+							receiver.set(i,alertAccount.get(0).getName());
+						}
+					}
+				}
+              pageItem.setReceiver(org.apache.commons.lang.StringUtils.join(receiver.toArray(), ";"));
 			}
 			PageAlert pageAlert = new PageAlert();
 			pageAlert.setContent(ftsDocumentAlertPagedList.getPageItems());
