@@ -415,7 +415,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 					allPredicates.add(organizationIdIns);
 				}
 				// 账号条件。系统名称条件和机构名称条件已经在查询机构表的时候做过处理了
-				if (retrievalCondition != null && "createdUserName".equals(retrievalCondition.trim())
+				if (retrievalCondition != null && ("createdUserName".equals(retrievalCondition.trim()) || "requestIp".equals(retrievalCondition.trim()))
 						&& StringUtils.isNotBlank(retrievalInformation)) {
 					Predicate predicateLike = cb.like(root.get(retrievalCondition.trim()),
 							"%" + retrievalInformation + "%");
@@ -455,6 +455,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 			each.put("timeConsumed", e.getTimeConsumed());
 			each.put("systemLogType", e.getSystemLogType());
 			each.put("id", e.getId());
+			each.put("requestIp", e.getRequestIp());
 			resultDataList.add(each);
 		});
 		Map<String, Object> result = new HashMap<>();

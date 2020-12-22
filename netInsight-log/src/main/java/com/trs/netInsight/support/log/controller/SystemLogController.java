@@ -220,7 +220,7 @@ public class SystemLogController {
 			@ApiParam("时间") @RequestParam(value = "timeLimited") String timeLimited,
 			@ApiParam("操作") @RequestParam(value = "operation") String operation,
 			@ApiParam("timeConsumed") @RequestParam(value = "timeConsumed") String timeConsumed,
-			@ApiParam("检索条件") @RequestParam(value = "retrievalCondition", required = false) String retrievalCondition,
+			@ApiParam("检索条件 根据ip查询传 requestIp ") @RequestParam(value = "retrievalCondition", required = false) String retrievalCondition,
 			@ApiParam("检索内容") @RequestParam(value = "retrievalInformation", required = false) String retrievalInformation,
 			@ApiParam("根据时间排序") @RequestParam(value = "createTimeOrder",required = false) String createTimeOrder,
 			@ApiParam("页码") @RequestParam(value = "pageNum", required = false, defaultValue = "0") Integer pageNum,

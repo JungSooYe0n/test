@@ -38,14 +38,6 @@
 	</properties>
 
 	<dependencies>
-
-		<!-- lombok -->
-		<!--<dependency>-->
-			<!--<groupId>org.projectlombok</groupId>-->
-			<!--<artifactId>lombok</artifactId>-->
-			<!--<scope>provided</scope>-->
-			<!--&lt;!&ndash; <version>${lombok.version}</version> &ndash;&gt;-->
-		<!--</dependency>-->
 	</dependencies>
 
 	<repositories>
@@ -70,10 +62,4 @@
 			<url>http://maven.ansj.org/</url>
 		</repository>
 	</repositories>
-
-
-
-
-
-
 </project>
