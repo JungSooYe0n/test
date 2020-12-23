@@ -1331,7 +1331,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				if (source.endsWith("OR ")) {
 					source = source.substring(0, source.lastIndexOf("OR"));
 				}
-				builder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
+				//builder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
 				countBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
 			}else if("ALL".equals(source)){
 				builder.filterField(FtsFieldConst.FIELD_GROUPNAME,
