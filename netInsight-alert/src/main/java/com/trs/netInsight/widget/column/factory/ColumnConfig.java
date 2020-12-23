@@ -883,11 +883,11 @@ public class ColumnConfig {
 		//SpecialType specialType = this.indexTab.getSpecialType();
 
 		String xyTrsl = this.indexTab.getXyTrsl();
-		if (StringUtil.isNotEmpty(xyTrsl)) {
+		if (StringUtil.isNotEmpty(xyTrsl) && SpecialType.SPECIAL.equals(this.indexTab.getSpecialType())) {
 			// 专家模式，xytrsl不为空是饼、柱、折三种图
 			//查信息列表（不是点击图跳转到的列表）时需要用xyTrsl去限制
 			//如果是统计分析中的图表，也需要用xyTrsl去限制
-			if (ColumnConst.LIST_NO_SIM.equals(this.indexTab.getType()) || (this.chartPage != null && this.chartPage.equals(ChartPageInfo.StatisticalChart))) {
+//			if (ColumnConst.LIST_NO_SIM.equals(this.indexTab.getType()) || (this.chartPage != null && this.chartPage.equals(ChartPageInfo.StatisticalChart))) {
 				isFilterXyTrsl = false;
 				//(IR_URLTIME:[20200709000000 TO 20200709015959]) AND
 				//(
@@ -916,7 +916,7 @@ public class ColumnConfig {
 					this.commonBuilder.filterByTRSL("(" + sb.toString() + ")");
 				}
 			}
-		}
+//		}
 	}
 
 }
