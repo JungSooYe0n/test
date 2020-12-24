@@ -89,9 +89,9 @@
 			<#list listMap as p>
 			<li>
 					<div class="leftContent">
-						<h4><a href="${p.url!}">'${p.title!}'</a></h4>
+						<h4><a href="${p.url!}">${p.title!}</a></h4>
 						<!--content.replace(/\s|\xA0/g,'').length>200?content.slice(0,150)+ '...':content-->
-						<p>'${p.content!}'</p>
+						<p>${p.content!}</p>
 					</div>
 					<div class="rightContent">
 						<span>${p.urlTime!}</span>
