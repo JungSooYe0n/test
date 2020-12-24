@@ -1776,6 +1776,38 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                 }
             }
 
+        }else if (UserUtils.isRolePlatform(user)) {
+            HybaseShard trsHybaseShard = null;
+            String valueFromRedis = "";
+            valueFromRedis = RedisFactory.getValueFromRedis(user.getId() + "xiaoku");
+            if (StringUtil.isNotEmpty(valueFromRedis)) {
+                trsHybaseShard = ObjectUtil.toObject(valueFromRedis, HybaseShard.class);
+            } else {
+                if (StringUtil.isNotEmpty(user.getId())) {
+                    trsHybaseShard = hybaseShardService.findByOwnerUserId(user.getId());
+                    if (ObjectUtil.isNotEmpty(trsHybaseShard)) {
+                        RedisFactory.setValueToRedis(user.getId() + "xiaoku", trsHybaseShard);
+                    }
+                }
+            }
+            if (ObjectUtil.isNotEmpty(trsHybaseShard)) {
+
+                if (indices.contains(Const.HYBASE_NI_INDEX) && StringUtil.isNotEmpty(trsHybaseShard.getTradition())) {
+                    indices = indices.replaceAll(Const.HYBASE_NI_INDEX, trsHybaseShard.getTradition());
+                }
+                if (indices.contains(Const.WEIBO) && StringUtil.isNotEmpty(trsHybaseShard.getWeiBo())) {
+                    indices = indices.replaceAll(Const.WEIBO, trsHybaseShard.getWeiBo());
+                }
+                if (indices.contains(Const.WECHAT) && StringUtil.isNotEmpty(trsHybaseShard.getWeiXin())) {
+                    indices = indices.replaceAll(Const.WECHAT, trsHybaseShard.getWeiXin());
+                }
+                if (indices.contains(Const.HYBASE_OVERSEAS) && StringUtil.isNotEmpty(trsHybaseShard.getOverseas())) {
+                    indices = indices.replaceAll(Const.HYBASE_OVERSEAS, trsHybaseShard.getOverseas());
+                }
+                if (indices.contains(Const.HYBASE_VIDEO) && StringUtil.isNotEmpty(trsHybaseShard.getVideo())) {
+                    indices = indices.replaceAll(Const.HYBASE_VIDEO, trsHybaseShard.getVideo());
+                }
+            }
         }
 
         return indices;
