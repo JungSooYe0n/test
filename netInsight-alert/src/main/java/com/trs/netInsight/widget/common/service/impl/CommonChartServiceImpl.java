@@ -411,7 +411,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName();
+                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName().replace("桃园市","桃园县");
                 String carea = area.replace("\\","\\\\");
                 if (carea.equals(cityArea)){
                     bjmap.put(d.getAreaName(),num2);
@@ -457,7 +457,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName();
+                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName().replace("桃园市","桃园县");
                 String carea = area.replace("\\","\\\\");
                 if (carea.equals(cityArea)){
                     bjmap.put(d.getAreaName(),num2);

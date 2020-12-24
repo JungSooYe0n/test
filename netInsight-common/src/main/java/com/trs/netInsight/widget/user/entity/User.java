@@ -200,10 +200,15 @@ public class User extends BaseEntity {
 	 */
 	@Transient
 	private int loginCount;
-
-	@Transient
-	private boolean exclusiveHybase = false;
-
+	@Column(name = "`exclusive_hybase`")
+	private Boolean exclusiveHybase = false;
+	public Boolean isExclusiveHybase(){
+		if(this.exclusiveHybase != null && this.exclusiveHybase){
+			return this.exclusiveHybase;
+		}else{
+			return false;
+		}
+	}
 
 	/**
 	 * 到期提示是否标红
