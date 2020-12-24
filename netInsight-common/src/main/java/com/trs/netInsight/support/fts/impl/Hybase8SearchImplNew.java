@@ -788,7 +788,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if (result.getCategoryMap() != null) {
                 for (Map.Entry<String, Long> m : result.getCategoryMap().entrySet()) {
                     if (m != null) {
-                        result1.addGroup(m.getKey(), m.getValue()<=0?m.getValue():m.getValue()-1);
+                        result1.addGroup(m.getKey(), m.getValue());
                     }
                 }
                 result1.sort();

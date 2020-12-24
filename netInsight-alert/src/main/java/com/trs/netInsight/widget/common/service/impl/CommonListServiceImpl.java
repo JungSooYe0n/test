@@ -774,7 +774,7 @@ public class CommonListServiceImpl implements ICommonListService {
                             //现在计算相似文章数，默认按照减去自身
                             for (GroupInfo groupInfo : groupList) {
                                 if (StringUtil.isNotEmpty(document.getMd5Tag()) && document.getMd5Tag().equals(groupInfo.getFieldValue())){
-                                    asyncDocument.setSimNum(groupInfo.getCount());
+                                    asyncDocument.setSimNum(groupInfo.getCount()-1);
                                     break;
                                 }
                             }

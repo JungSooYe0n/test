@@ -233,7 +233,7 @@ public class Const {
      * 时间：2019-11-21
      * 预警中心专家模式。查询传统媒体表达式时，需要查询传统媒体+tf类，所以加了一个
      */
-    public static final String TYPE_NEWS_SPECIAL_ALERT = "国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;国外新闻;FaceBook;Twitter";
+    public static final String TYPE_NEWS_SPECIAL_ALERT = "国内新闻;国内论坛;国内博客;国内新闻_电子报;国内新闻_手机客户端;自媒体号;短视频;视频;国外新闻;FaceBook;Twitter";
     /**
      * 文章类型:来源-微博
      */
