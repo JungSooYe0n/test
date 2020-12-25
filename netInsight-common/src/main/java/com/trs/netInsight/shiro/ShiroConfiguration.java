@@ -440,6 +440,7 @@ public class ShiroConfiguration {
 		//舆情智库列表
 		filterChainDefinitionMap.put("/thinkTank/pageList", "anon");
 		filterChainDefinitionMap.put("/thinkTank/picture/*", "anon");
+		filterChainDefinitionMap.put("/thinkTank/totalSize", "anon");
 		//舆情智库详情
 		filterChainDefinitionMap.put("/thinkTank/pdf/*", "anon");
 		filterChainDefinitionMap.put("/thinkTank/png/*", "anon");

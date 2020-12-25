@@ -1588,7 +1588,7 @@ if (isAddAlert) {
 			Date hyStartDate = new Date();
 			Object object =  columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
 					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, mediaLevel, mediaIndustry,
-					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
+					contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr,chartPageInfo);
 			RequestTimeLog requestTimeLog = new RequestTimeLog();
 			requestTimeLog.setStartHybaseTime(hyStartDate);
 			requestTimeLog.setEndHybaseTime(new Date());
@@ -1602,7 +1602,7 @@ if (isAddAlert) {
 			Date hyStartDate = new Date();
 			Object object =  columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
 					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(),
-					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter,imgOcr);
+					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter,imgOcr,chartPageInfo);
 			RequestTimeLog requestTimeLog = new RequestTimeLog();
 			requestTimeLog.setStartHybaseTime(hyStartDate);
 			requestTimeLog.setEndHybaseTime(new Date());
@@ -1716,7 +1716,7 @@ if (isAddAlert) {
 		Date hyStartDate = new Date();
 		Object object =  columnService.selectList(indexTab, pageNo, pageSize, source, emotion, "", "", "",
 				sort, "", "", fuzzyValue, fuzzyValueScope, read, mediaLevel, mediaIndustry,
-				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
+				contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr,null);
 		RequestTimeLog requestTimeLog = new RequestTimeLog();
 		requestTimeLog.setTabId(id);
 		requestTimeLog.setTabName(indexTab.getName());
