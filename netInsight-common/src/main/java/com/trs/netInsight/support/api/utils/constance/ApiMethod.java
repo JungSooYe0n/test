@@ -136,7 +136,42 @@ public enum ApiMethod {
      * 获取专题信息列表
      */
     SpecialListInfo(2115, "specialProject list info", "2000"),
-
+    /**
+     * 获取态势评估数据
+     */
+    SituationAssessment(2116, "specialProject situationAssessment", "2000"),
+    /**
+     * 获取各舆论场趋势分析
+     */
+    WebCountLine(2117, "specialProject webCountLine", "2000"),
+    /**
+     * 获取观点分析数据
+     */
+    SentimentAnalysis(2118, "specialProject sentimentAnalysis", "2000"),
+    /**
+     * 获取正负面数据
+     */
+    EmotionOption(2119, "specialProject emotionOption", "2000"),
+    /**
+     * 获取情绪统计数据
+     */
+    MoodStatistics(2120, "specialProject moodStatistics", "2000"),
+    /**
+     * 获取舆论场发布统计数据
+     */
+    WebCommitCount(2121, "specialProject webCommitCount", "2000"),
+    /**
+     * 获取舆论场发布统计数据
+     */
+    HotMessage(2122, "specialProject hotMessage", "2000"),
+    /**
+     * 获取传播分析站点数据
+     */
+    SpreadAnalysisSiteName(2123, "specialProject spreadAnalysisSiteName", "2000"),
+    /**
+     * 获取传播分析站点数据
+     */
+    ActiveAccount(2124, "specialProject activeAccount", "2000"),
 
     // -------- Report ----------
     /**

@@ -445,6 +445,120 @@ public class ApiController {
         return specialChartAnalyzeController.webCountnew(null, specialId, "ALL", "ALL");
     }
 
+    /**
+     * 获取态势评估数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject situationAssessment", method = ApiMethod.SituationAssessment)
+    @GetMapping("/getSituationAssessment")
+    public Object getSituationAssessment(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                               @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.situationAssessment(null, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * 获取各舆论场趋势分析数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject webCountLine", method = ApiMethod.WebCountLine)
+    @GetMapping("/getWebCountLine")
+    public Object getWebCountLine(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                         @RequestParam(value = "specialId",required = true) String specialId,
+                                  @ApiParam("hour/day") @RequestParam(value = "showType",required = true) String showType) throws Exception {
+        return specialChartAnalyzeController.webCountLine(null,specialId, showType, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * 获取各舆论场发布统计数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject webCommitCount", method = ApiMethod.WebCommitCount)
+    @GetMapping("/getWebCommitCount")
+    public Object getWebCommitCount(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                  @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.webCommitCount(null,specialId,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * 获取观点分析数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject sentimentAnalysis", method = ApiMethod.SentimentAnalysis)
+    @GetMapping("/getSentimentAnalysis")
+    public Object getSentimentAnalysis(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                       @ApiParam("观点分析范围") @RequestParam(value = "viewType", required = false, defaultValue = "OFFICIAL_VIEW") String viewType,
+                                    @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.sentimentAnalysis(null,specialId,viewType,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null);
+    }
+
+    /**
+     * 获取情绪统计数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject moodStatistics", method = ApiMethod.MoodStatistics)
+    @GetMapping("/getMoodStatistics")
+    public Object getMoodStatistics(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                       @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.moodStatistics(specialId,null,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null);
+    }
+
+    /**
+     * 获取情绪统计数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject hotMessage", method = ApiMethod.HotMessage)
+    @GetMapping("/getHotMessage")
+    public Object getHotMessage(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                @ApiParam("类型：新闻网站/微博/微信/自媒体号") @RequestParam(value = "groupName", required = false ,defaultValue = "新闻网站") String groupName,
+                                @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.hotMessage(null, specialId, 8, groupName, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * 获取传播分析站点数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject spreadAnalysisSiteName", method = ApiMethod.SpreadAnalysisSiteName)
+    @GetMapping("/getSpreadAnalysisSiteName")
+    public Object getSpreadAnalysisSiteName(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.spreadAnalysisSiteName(specialId,null, false, null,null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
 
 
     /**
@@ -615,6 +729,25 @@ public class ApiController {
                                       @RequestParam(value = "specialId") String specialId) throws Exception {
         //return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
         return specialChartAnalyzeController.spreadAnalysis(specialId, "0d", "ALL", true, "", "", "", "", "", "", "", "", false, null, false, "", "", "", "", "", "", "", "", "");
+    }
+
+    /**
+     * 获取活跃账号数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject ActiveAccount", method = ApiMethod.ActiveAccount)
+    @GetMapping("/getActiveAccount")
+    public Object getActiveAccount(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                      @RequestParam(value = "specialId") String specialId) throws Exception {
+        //return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
+        return specialChartAnalyzeController.getActiveAccount(specialId, null, false,null,null,null,null,
+                null,null,null,null,null,null,
+                null,null,null,null,null,null,null,null,null,null,null);
     }
 
     /**
