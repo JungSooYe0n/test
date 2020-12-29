@@ -861,7 +861,25 @@ if (isAddAlert) {
 							  @RequestParam(value = "share", defaultValue = "false") boolean share,
 							  @RequestParam(value = "copy", defaultValue = "false") boolean copy,
 							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
-							  @RequestParam(value = "randomNum", required = false) String randomNum,HttpServletRequest request)
+							  @RequestParam(value = "randomNum", required = false) String randomNum,
+							  @ApiParam("定时推送时间间隔 即频率 5min;30min;1h") @RequestParam(value = "timeInterval", required = false, defaultValue = "60") int timeInterval,
+							  @ApiParam("增长量 默认0") @RequestParam(value = "growth", required = false, defaultValue = "0") int growth,
+							  @ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
+							  @ApiParam("微信表达式") @RequestParam(value = "weChatTrsl", required = false) String weChatTrsl,
+							  @ApiParam("关键词位置 TITLE；TITLE_ABSTRACT；TITLE_CONTENT") @RequestParam(value = "scope", required = false, defaultValue = "TITLE") String scope,
+							  @ApiParam("是否添加预警") @RequestParam(value = "isAddAlert", required = false, defaultValue = "false") boolean isAddAlert,
+							  @ApiParam("发送方式 ") @RequestParam(value = "sendway", defaultValue = "EMAIL", required = false) String sendWay,
+							  @ApiParam("站内用户发送方式 ") @RequestParam(value = "websiteSendWay", defaultValue = "EMAIL", required = false) String websiteSendWay,
+							  @ApiParam("站内用户id ") @RequestParam(value = "websiteId", required = false) String websiteId,
+							  @ApiParam("预警开始时间") @RequestParam(value = "alertStart", required = false, defaultValue = "00:00") String alertStartHour,
+							  @ApiParam("预警结束时间") @RequestParam(value = "alertEnd", required = false, defaultValue = "00:00") String alertEndHour,
+							  @ApiParam("预警开关 OPEN,CLOSE 默认开启") @RequestParam(value = "status", required = false, defaultValue = "OPEN") String status,
+							  @ApiParam("预警类型") @RequestParam(value = "alertType", required = false, defaultValue = "AUTO") String alertType,
+							  @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
+							  @ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
+							  @ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
+							  @ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week,
+							  HttpServletRequest request)
 			throws TRSException {
 
 		User loginUser = UserUtils.getUser();
@@ -931,6 +949,83 @@ if (isAddAlert) {
 			}
 			if(ColumnConst.CONTRAST_TYPE_WECHAT.equals(contrast)){
 				groupName = Const.PAGE_SHOW_WEIXIN;
+			}
+			if (isAddAlert) {
+				Organization organization = null;
+				if ((UserUtils.isRoleAdmin()|| UserUtils.isRoleOrdinary(loginUser)) && StringUtil.isNotEmpty(loginUser.getOrganizationId())){
+					organization = organizationRepository.findOne(loginUser.getOrganizationId());
+				}
+
+				if (UserUtils.isRoleAdmin()){
+					//机构管理员(通过userID查询)
+					if (organization.getColumnNum() <= alertRuleService.getSubGroupAlertCount(loginUser)){
+						throw new TRSException(CodeUtils.FAIL,"您目前创建的预警主题已达上限，如需更多，请联系相关运维人员。");
+					}
+				}
+				if (UserUtils.isRoleOrdinary(loginUser)){
+					//如果是普通用户 受用户分组 可创建资源的限制
+					//查询该用户所在的用户分组下 是否有可创建资源
+					SubGroup subGroup = subGroupRepository.findOne(loginUser.getSubGroupId());
+					//通过用户分组
+					if (subGroup.getColumnNum() <= alertRuleService.getSubGroupAlertCount(loginUser)){
+						throw new TRSException(CodeUtils.FAIL,"您目前创建的预警主题已达上限，如需更多，请联系相关运维人员。！");
+					}
+				}
+				//若为机构管理员或者普通用户 若为普通模式，判断关键字字数
+				if ((UserUtils.isRoleAdmin()|| UserUtils.isRoleOrdinary(loginUser))){
+					int chineseCount = 0;
+					if (StringUtil.isNotEmpty(keyWord)){
+						chineseCount = StringUtil.getChineseCountForSimple(keyWord);
+					}else if (StringUtil.isNotEmpty(trsl) || StringUtil.isNotEmpty(weChatTrsl) || StringUtil.isNotEmpty(statusTrsl)){
+						int trslCount = StringUtil.getChineseCount(trsl);
+						int weChatTrslCount = StringUtil.getChineseCount(weChatTrsl);
+						int statusTrslCount = StringUtil.getChineseCount(statusTrsl);
+						chineseCount = trslCount+weChatTrslCount+statusTrslCount;
+					}
+					if (ObjectUtil.isNotEmpty(organization) && (chineseCount > organization.getKeyWordsNum())){
+						throw new TRSException(CodeUtils.FAIL,"该预警主题暂时仅支持检索"+organization.getKeyWordsNum()+"个关键字，如需更多，请联系相关运维人员。");
+					}
+				}
+				if(groupName == null || "".equals(groupName)){
+					groupName = "ALL";
+				}
+				ScheduleStatus statusValue = ScheduleStatus.valueOf(status);
+				SearchScope scopeValue = SearchScope.valueOf(scope);
+				AlertSource alertSource = AlertSource.valueOf(alertType);
+				String frequencyId = null;
+				// 确定定时预警时走哪个方法
+				if (AlertSource.AUTO.equals(alertSource)) {
+					if ("md5".equals(countBy)) {
+						if (timeInterval == 30) {
+							frequencyId = "4";
+						} else if (timeInterval == 60) {
+							frequencyId = "5";
+						} else if (timeInterval == 120) {
+							frequencyId = "6";
+						} else if (timeInterval == 180) {
+							frequencyId = "7";
+						}
+					} else {
+						md5Num = 0;
+						md5Range = 0;
+						frequencyId = "3";// 默认按数量统计
+					}
+				}
+				// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
+				AlertRule alertRule = new AlertRule(statusValue, name, timeInterval, growth, isSimilar, irSimflag, irSimflagAll, groupName, keyWord,
+						excludeWords, excludeWordsIndex, excludeWeb, monitorSite, scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
+						alertEndHour, null, 0L, alertSource, week, specialType, trsl, statusTrsl, weChatTrsl, weight, sort, null, null,
+						countBy, frequencyId, md5Num, md5Range, false, false);
+				// timeInterval看逻辑是按分钟存储 2h 120
+				try {
+					// 验证方法
+					AlertRule addAlertRule = alertRuleService.addAlertRule(alertRule);
+					if (addAlertRule != null) {
+						fixedThreadPool.execute(() -> this.managementAutoAlertRule(addAlertRule, AlertAutoConst.alertNetInsight_save_auto));
+					}
+				} catch (Exception e) {
+					throw new OperationException("新建预警失败:" + e, e);
+				}
 			}
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
