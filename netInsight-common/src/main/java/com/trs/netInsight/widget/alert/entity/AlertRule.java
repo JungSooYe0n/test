@@ -332,10 +332,16 @@ public class AlertRule extends BaseEntity {
 			}*/
 
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+				if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+					this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
 			//监测网站
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+					this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			break;
@@ -409,10 +415,16 @@ public class AlertRule extends BaseEntity {
 			}*/
 			//excludeSiteName 这个字段是排除网站   不应该和 excludeWords一样都拼在 URLTITLE里 或者URLTITLE + CONTENT 里  应该拼在 IR_SITENAME字段里
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+				if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+					this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
 			//监测网站
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+					this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			
@@ -492,10 +504,16 @@ public class AlertRule extends BaseEntity {
 				}
 			}*/
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+				if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+					this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
 			//监测网站
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+					this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			break;
@@ -573,10 +591,16 @@ public class AlertRule extends BaseEntity {
 				}*/
 
 				if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+					if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+						this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+					}
 					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 				}
 				//监测网站
 				if (StringUtil.isNotEmpty(this.monitorSite)) {
+					if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+						this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+					}
 					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 				}
 				break;

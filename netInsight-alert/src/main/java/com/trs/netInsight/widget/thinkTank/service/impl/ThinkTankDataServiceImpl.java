@@ -133,6 +133,12 @@ public class ThinkTankDataServiceImpl implements IThinkTankDataService {
         Pageable pageable = new PageRequest(pageNo, pageSize, sort);
         return thinkTankDataRepository.findByPicDetailNameNotAndPicDetailNameIsNotNull(reportTitle,pageable);
     }
+
+    @Override
+    public int getCountByReportType(ThinkTankType reportType) {
+        return thinkTankDataRepository.countAllByReportType(reportType);
+    }
+
     @Override
     public List<ThinkTankData> findByReportTitleLike(int pageNo, int pageSize, String reportTitle) {
 

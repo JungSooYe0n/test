@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.HashMap;
 
 
 /**
@@ -59,7 +60,21 @@ public class ThinkTankDataController {
         }
         return thinkTankDataService.findByPdfNameNot(pageNo,pageSize,"");
     }
-
+    @ApiOperation("查询舆情智库报告信息条数")
+    @FormatResult
+    @GetMapping(value = "/totalSize")
+    public Object totalSize(){
+        //为防止前端乱输入
+        HashMap<String,Integer> hashMap = new HashMap<>();
+        hashMap.put("PoliticalEnergy",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("PoliticalEnergy")));
+        hashMap.put("OpinionObservation",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("OpinionObservation")));
+        hashMap.put("HotEventAnalysis",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("HotEventAnalysis")));
+        hashMap.put("IndustrySpecialReport",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("IndustrySpecialReport")));
+        hashMap.put("EpidemicSpecial",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("EpidemicSpecial")));
+        hashMap.put("TwoSessionsSpecial",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("TwoSessionsSpecial")));
+        hashMap.put("HotOpinionsAnalysis",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("HotOpinionsAnalysis")));
+        return hashMap;
+    }
     public static void main(String[] args) {
 
        // String pdfBinary = FileUtil.getPDFBinary("D:/netInsightWokeSpace/pdf/7月汽车行业大数据报告(1)_70ff686d-c464-4412-b280-93a60fb844c4.pdf");

@@ -174,7 +174,7 @@ public class BarColumn extends AbstractColumn {
 						break;
 					}
 				}
-			}else{
+			} else{
 				String key = super.config.getKey();
 				String contrastField = FtsFieldConst.FIELD_SITENAME;
 				if (ColumnConst.HOT_TOPIC_SORT.equals(type)) {//微博热点话题
