@@ -36,11 +36,11 @@ public class ThinkTankDataController {
     @ApiOperation("上传pdf报告及相关信息")
     @FormatResult
     @PostMapping(value = "/uploadData")
-    public Object uploadData(@ApiParam("pdf报告标题") @RequestParam(value = "reportTitle") String reportTitle,
-                             @ApiParam("报告时间") @RequestParam(value = "reportTime") String reportTime,
-                             @ApiParam("报告类型") @RequestParam(value = "reportType") String reportType,
+    public Object uploadData(@ApiParam("pdf报告标题") @RequestParam(value = "reportTitle", required = true) String reportTitle,
+                             @ApiParam("报告时间") @RequestParam(value = "reportTime", required = true) String reportTime,
+                             @ApiParam("报告类型") @RequestParam(value = "reportType", required = true) String reportType,
                             // @ApiParam("上传pdf报告对应的图片") @RequestParam(value = "pdfPicture",required = false) MultipartFile pdfPicture,
-                             @ApiParam("上传pdf报告文件") @RequestParam(value = "multipartFiles") MultipartFile[] multipartFiles) throws TRSException {
+                             @ApiParam("上传pdf报告文件") @RequestParam(value = "multipartFiles", required = true) MultipartFile[] multipartFiles) throws TRSException {
         ThinkTankType thinkTankType = ThinkTankType.valueOf(reportType);
         return thinkTankDataService.saveReportPdf(reportTitle,reportTime,multipartFiles,thinkTankType);
     }
@@ -64,7 +64,6 @@ public class ThinkTankDataController {
     @FormatResult
     @GetMapping(value = "/totalSize")
     public Object totalSize(){
-        //为防止前端乱输入
         HashMap<String,Integer> hashMap = new HashMap<>();
         hashMap.put("PoliticalEnergy",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("PoliticalEnergy")));
         hashMap.put("OpinionObservation",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("OpinionObservation")));

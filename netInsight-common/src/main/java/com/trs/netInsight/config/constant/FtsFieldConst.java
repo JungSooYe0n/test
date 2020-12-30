@@ -121,6 +121,7 @@ public class FtsFieldConst {
 	 * 站点名称
 	 */
 	public final static String FIELD_SITENAME = "IR_SITENAME";
+	public final static String FIELD_SITENAME_LIKE = "IR_SITENAME_LIKE";
 
 	/**
 	 * 情感值
@@ -354,6 +355,7 @@ public class FtsFieldConst {
 	 * 4.公众账号名称
 	 */
 	public final static String FIELD_AUTHORS = "IR_AUTHORS";
+    public final static String FIELD_AUTHORS_LIKE = "IR_AUTHORS_LIKE";
 
 	/**
 	 * 5.公众账号微信号；新加
