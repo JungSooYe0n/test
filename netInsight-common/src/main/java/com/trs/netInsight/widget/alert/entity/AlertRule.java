@@ -646,10 +646,12 @@ public class AlertRule extends BaseEntity {
 	public String getAlertRuleTrsl() throws OperationException {
 		QueryCommonBuilder queryCommonBuilder = this.toSearchBuilderCommon("noTime");
 		String queryTrsl = queryCommonBuilder.asTRSL();
-		if (StringUtil.isNotEmpty(this.getGroupName())) {
-			List<String> groupList = CommonListChartUtil.formatGroupName(this.getGroupName());
-			String groupTrsl = StringUtils.join(groupList, " OR ");
-			queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
+		if(this.specialType.equals(SpecialType.COMMON)) {
+			if (StringUtil.isNotEmpty(this.getGroupName())) {
+				List<String> groupList = CommonListChartUtil.formatGroupName(this.getGroupName());
+				String groupTrsl = StringUtils.join(groupList, " OR ");
+				queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
+			}
 		}
 		// simflag排重 1000为不重复
 		if (repetition) {
