@@ -319,6 +319,7 @@ public class UserController {
 			@ApiParam("备注") @RequestParam(value = "descriptions", required = false) String descriptions,
 			@ApiParam("是否复制栏目") @RequestParam(value = "copyFlag", required = false, defaultValue = "false") boolean copyFlag,
 			@ApiParam("机构id") @RequestParam(value = "organizationId", required = false) String organizationId,
+						  @ApiParam("是否给账户开启专享库") @RequestParam(value = "isExclusiveHybase",required = false)boolean isExclusiveHybase,
 						  @ApiParam("传统库表名") @RequestParam(value = "tradition",required = false)String tradition,
 						  @ApiParam("微博库表名") @RequestParam(value = "weiBo",required = false)String weiBo,
 						  @ApiParam("微信库表名") @RequestParam(value = "weiXin",required = false)String weiXin,
@@ -430,6 +431,7 @@ public class UserController {
 		user.setDescriptions(descriptions);
 		if (CheckRole.ROLE_PLATFORM.equals(checkRole)){
 			user.setSameTimeLogin(sameTimeLogin);
+			user.setExclusiveHybase(isExclusiveHybase);
 		}else {
 			user.setSameTimeLogin(false);
 		}

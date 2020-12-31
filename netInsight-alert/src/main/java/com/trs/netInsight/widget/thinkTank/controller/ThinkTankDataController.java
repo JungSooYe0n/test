@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.HashMap;
 
 
 /**
@@ -35,11 +36,11 @@ public class ThinkTankDataController {
     @ApiOperation("上传pdf报告及相关信息")
     @FormatResult
     @PostMapping(value = "/uploadData")
-    public Object uploadData(@ApiParam("pdf报告标题") @RequestParam(value = "reportTitle") String reportTitle,
-                             @ApiParam("报告时间") @RequestParam(value = "reportTime") String reportTime,
-                             @ApiParam("报告类型") @RequestParam(value = "reportType") String reportType,
+    public Object uploadData(@ApiParam("pdf报告标题") @RequestParam(value = "reportTitle", required = true) String reportTitle,
+                             @ApiParam("报告时间") @RequestParam(value = "reportTime", required = true) String reportTime,
+                             @ApiParam("报告类型") @RequestParam(value = "reportType", required = true) String reportType,
                             // @ApiParam("上传pdf报告对应的图片") @RequestParam(value = "pdfPicture",required = false) MultipartFile pdfPicture,
-                             @ApiParam("上传pdf报告文件") @RequestParam(value = "multipartFiles") MultipartFile[] multipartFiles) throws TRSException {
+                             @ApiParam("上传pdf报告文件") @RequestParam(value = "multipartFiles", required = true) MultipartFile[] multipartFiles) throws TRSException {
         ThinkTankType thinkTankType = ThinkTankType.valueOf(reportType);
         return thinkTankDataService.saveReportPdf(reportTitle,reportTime,multipartFiles,thinkTankType);
     }
@@ -59,7 +60,20 @@ public class ThinkTankDataController {
         }
         return thinkTankDataService.findByPdfNameNot(pageNo,pageSize,"");
     }
-
+    @ApiOperation("查询舆情智库报告信息条数")
+    @FormatResult
+    @GetMapping(value = "/totalSize")
+    public Object totalSize(){
+        HashMap<String,Integer> hashMap = new HashMap<>();
+        hashMap.put("PoliticalEnergy",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("PoliticalEnergy")));
+        hashMap.put("OpinionObservation",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("OpinionObservation")));
+        hashMap.put("HotEventAnalysis",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("HotEventAnalysis")));
+        hashMap.put("IndustrySpecialReport",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("IndustrySpecialReport")));
+        hashMap.put("EpidemicSpecial",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("EpidemicSpecial")));
+        hashMap.put("TwoSessionsSpecial",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("TwoSessionsSpecial")));
+        hashMap.put("HotOpinionsAnalysis",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("HotOpinionsAnalysis")));
+        return hashMap;
+    }
     public static void main(String[] args) {
 
        // String pdfBinary = FileUtil.getPDFBinary("D:/netInsightWokeSpace/pdf/7月汽车行业大数据报告(1)_70ff686d-c464-4412-b280-93a60fb844c4.pdf");

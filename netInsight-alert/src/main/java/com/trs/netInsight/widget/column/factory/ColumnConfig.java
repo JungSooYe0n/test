@@ -241,10 +241,10 @@ public class ColumnConfig {
 					hybaseField = FtsFieldConst.FIELD_URLTITLE;
 					break;
 				case "source":
-					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
 					break;
 			}
 			if("fullText".equals(hybaseField)){

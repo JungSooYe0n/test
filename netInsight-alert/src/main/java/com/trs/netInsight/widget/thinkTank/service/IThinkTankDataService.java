@@ -37,7 +37,7 @@ public interface IThinkTankDataService {
     Page<ThinkTankData> findByPdfNameNot(int pageNo,int pageSize,String pdfName);
     Page<ThinkTankData> findByReportType(int pageNo,int pageSize,ThinkTankType reportType);
     List<ThinkTankData> findByPicDetailNameNotAndPicDetailNameIsNotNull(int pageNo,int pageSize,String reportTitle);
-
+    int getCountByReportType(ThinkTankType reportType);
 
     List<ThinkTankData> findByReportTitleLike(int pageNo,int pageSize,String reportTitle);
 

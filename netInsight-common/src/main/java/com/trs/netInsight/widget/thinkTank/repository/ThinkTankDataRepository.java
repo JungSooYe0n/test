@@ -22,5 +22,6 @@ public interface ThinkTankDataRepository extends PagingAndSortingRepository<Thin
     List<ThinkTankData> findByPicDetailNameNotAndPicDetailNameIsNotNull(String reportTitle, Pageable pageable);
     Page<ThinkTankData> findByPdfNameNot(String pdfName, Pageable pageable);
     Page<ThinkTankData> findByReportType(ThinkTankType reportType, Pageable pageable);
+    int countAllByReportType(ThinkTankType reportType);
 
 }
