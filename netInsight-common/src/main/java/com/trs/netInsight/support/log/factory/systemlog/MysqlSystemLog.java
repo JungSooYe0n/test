@@ -274,9 +274,9 @@ public class MysqlSystemLog extends AbstractSystemLog {
 	@Override
 	public Page<SystemLog> findCurOrgLogs(String organizationId, String timeLimited, String userId,
                                           String operation, String operationDetail, String createTimeOrder,
-                                          String simpleStatus, Integer pageNum, Integer pageSize) {
+                                          String simpleStatus, Integer pageNum, Integer pageSize,String retrievalInformation) {
 		return getSysLogList(organizationId, timeLimited, userId, operation,operationDetail,
-				createTimeOrder,simpleStatus, pageNum, pageSize);
+				createTimeOrder,simpleStatus, pageNum, pageSize,retrievalInformation);
 	}
 
 	@Override
@@ -415,7 +415,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 					allPredicates.add(organizationIdIns);
 				}
 				// 账号条件。系统名称条件和机构名称条件已经在查询机构表的时候做过处理了
-				if (retrievalCondition != null && "createdUserName".equals(retrievalCondition.trim())
+				if (retrievalCondition != null && ("createdUserName".equals(retrievalCondition.trim()) || "requestIp".equals(retrievalCondition.trim()))
 						&& StringUtils.isNotBlank(retrievalInformation)) {
 					Predicate predicateLike = cb.like(root.get(retrievalCondition.trim()),
 							"%" + retrievalInformation + "%");
@@ -455,6 +455,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 			each.put("timeConsumed", e.getTimeConsumed());
 			each.put("systemLogType", e.getSystemLogType());
 			each.put("id", e.getId());
+			each.put("requestIp", e.getRequestIp());
 			resultDataList.add(each);
 		});
 		Map<String, Object> result = new HashMap<>();
@@ -583,7 +584,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 	private Page<SystemLog> getSysLogList(String organizationId, String timeLimited, String userId,
                                           String operation, String operationDetail,
                                           String createTimeOrder, String simpleStatus,
-                                          Integer pageNum, Integer pageSize) {
+                                          Integer pageNum, Integer pageSize,String retrievalInformation) {
 
 		// 原生 查询sql
 		Specification<SystemLog> criteria = new Specification<SystemLog>() {
@@ -604,6 +605,12 @@ public class MysqlSystemLog extends AbstractSystemLog {
 				if (StringUtil.isNotEmpty(simpleStatus)) {
 					Predicate userIdPredicate = cb.equal(root.get("simpleStatus").as(String.class), simpleStatus);
 					allPredicates.add(userIdPredicate);
+				}
+				// 账号条件。系统名称条件和机构名称条件已经在查询机构表的时候做过处理了
+				if (StringUtil.isNotEmpty(retrievalInformation)) {
+					Predicate predicateLike = cb.like(root.get("requestIp"),
+							"%" + retrievalInformation + "%");
+					allPredicates.add(predicateLike);
 				}
 				if (StringUtil.isNotEmpty(operation)) {
 					Predicate operationPredicate = cb.equal(root.get("systemLogType").as(String.class), operation);
