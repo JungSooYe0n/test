@@ -614,12 +614,12 @@ public class AlertRule extends BaseEntity {
 					database.add(Const.HYBASE_OVERSEAS);
 				}
 				if(this.statusTrsl != null && !"".equals(this.statusTrsl)){
-					String trsl_1  = FtsFieldConst.FIELD_GROUPNAME +  ":(\"微博\") AND (" + this.statusTrsl +")";
+					String trsl_1  = FtsFieldConst.FIELD_GROUPNAME +  ":(微博) AND (" + this.statusTrsl +")";
 					trsl = "".equals(trsl) ? "("+trsl_1 + ")" : trsl +" OR (" + trsl_1  + ")";
 					database.add(Const.WEIBO);
 				}
 				if(this.weChatTrsl != null && !"".equals(this.weChatTrsl)){
-					String trsl_1 = FtsFieldConst.FIELD_GROUPNAME +  ":(\"国内微信\" OR \"微信\" ) AND (" + this.weChatTrsl +")";
+					String trsl_1 = FtsFieldConst.FIELD_GROUPNAME +  ":(国内微信 OR 微信 ) AND (" + this.weChatTrsl +")";
 					trsl = "".equals(trsl) ? "("+trsl_1+ ")" : trsl +" OR (" + trsl_1 + ")";
 					database.add(Const.WECHAT_COMMON);
 				}
@@ -646,10 +646,12 @@ public class AlertRule extends BaseEntity {
 	public String getAlertRuleTrsl() throws OperationException {
 		QueryCommonBuilder queryCommonBuilder = this.toSearchBuilderCommon("noTime");
 		String queryTrsl = queryCommonBuilder.asTRSL();
-		if (StringUtil.isNotEmpty(this.getGroupName())) {
-			List<String> groupList = CommonListChartUtil.formatGroupName(this.getGroupName());
-			String groupTrsl = StringUtils.join(groupList, " OR ");
-			queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
+		if(this.specialType.equals(SpecialType.COMMON)) {
+			if (StringUtil.isNotEmpty(this.getGroupName())) {
+				List<String> groupList = CommonListChartUtil.formatGroupName(this.getGroupName());
+				String groupTrsl = StringUtils.join(groupList, " OR ");
+				queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
+			}
 		}
 		// simflag排重 1000为不重复
 		if (repetition) {
