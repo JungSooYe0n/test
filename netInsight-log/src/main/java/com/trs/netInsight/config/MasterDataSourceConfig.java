@@ -28,7 +28,8 @@ import java.util.Map;
         entityManagerFactoryRef="entityManagerFactoryPrimary",//配置连接工厂 entityManagerFactory
         transactionManagerRef="transactionManagerPrimary", //配置 事物管理器  transactionManager
         basePackages = {"com.trs.netInsight.widget.*",
-                "com.trs.netInsight.support.hybaseShard.*"})//设置Repository所在位置
+                "com.trs.netInsight.support.hybaseShard.*",
+                "com.trs.netInsight.support.knowledgeBase.*"})//设置Repository所在位置
 public class MasterDataSourceConfig {
 
     @Autowired
