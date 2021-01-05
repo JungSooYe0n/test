@@ -664,7 +664,13 @@ public class ColumnConfig {
 			}
 			//如果list中有其他，则其他为 其他+“”。依然是算两个
 			if(areaList.size() >0  &&  areaList.size() < areaMap.size() +1){
-				this.queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+				if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field) && this.indexTab.getGroupName().contains(Const.TYPE_WEIXIN)){
+					StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append(FtsFieldConst.FIELD_CATALOG_AREA).append(":(").append(StringUtils.join(areaList," OR ")).append(")").append(" OR ").append(FtsFieldConst.FIELD_CATALOG_AREA_MULTIPLE).append(":(").append(StringUtils.join(areaList," OR ")).append(")");
+					this.queryBuilder.filterByTRSL(stringBuilder.toString());
+				}else {
+					this.queryBuilder.filterField(field, StringUtils.join(areaList, " OR "), Operator.Equal);
+				}
 			}
 		}
 	}
