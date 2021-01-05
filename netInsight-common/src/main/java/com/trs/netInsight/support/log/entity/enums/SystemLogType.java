@@ -28,7 +28,7 @@ import lombok.Getter;
 @Getter
 public enum SystemLogType {
 	/**
-	 *  API 监控
+	 *  API 接口
 	 */
 	API("API"),
 	/**
