@@ -1099,7 +1099,10 @@ public class InfoListController {
             }else if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
                 queryBuilder.filterField(FtsFieldConst.FIELD_HKEY, sid, Operator.Equal);
             }else {
-                queryBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.Equal);
+//                queryBuilder.filterField(FtsFieldConst.FIELD_SID, sid, Operator.Equal);
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(FtsFieldConst.FIELD_SID).append(":(\"").append(sid).append("\")");
+                queryBuilder.filterByTRSL(stringBuilder.toString());
             }
         }
 

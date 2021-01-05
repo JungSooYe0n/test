@@ -1307,7 +1307,7 @@ public final class StringUtil {
 			img = m_image.group();
 			// 匹配<img>中的src数据
 //			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png)").matcher(img);
-			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png).\\s*(.*?)[^>]*?(>|&gt;|&guot;|nbsp;)").matcher(img);
+			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png).\\s*(.*?)[^>]*?(>|&gt;|&quot;|nbsp;)").matcher(img);
 			while (m.find()) {
 				pics.add(m.group().replace("&quot;/&gt;","").replace("&amp;","&").replace("&quot;","").replace("&gt;","").replace("&nbsp;",""));
 			}
