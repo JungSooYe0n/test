@@ -778,7 +778,8 @@ public final class StringUtil {
 				}
 			}
 			content = new String(conbyte);
-			return content.replaceAll("0000", "");
+			return content;
+//			return content.replaceAll("0000", "");
 		}
 		return null;
 	}
