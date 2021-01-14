@@ -337,7 +337,7 @@ public class ExcelFactory {
 						Object dataValue = dataRow.get(j).getValue();
 						if (ObjectUtil.isNotEmpty(dataValue)) {
 							String string = dataValue.toString().replaceAll("<font color=red>","").replaceAll("<font color='red'>","").replaceAll("</font>","");
-							if (dataValue.toString().length() > 32766) {//最大一格存储32767
+							if (string.length() > 32766) {//最大一格存储32767
 								string = string.substring(0, 32765);
 						}
 							Boolean isNum = string.matches("^(-?\\d+)(\\.\\d+)?$");

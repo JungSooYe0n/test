@@ -265,7 +265,7 @@ public class ReportConst {
         ROMAN2CHINESE.put(13, "十三");
         ROMAN2CHINESE.put(14, "十四");
         ROMAN2CHINESE.put(15, "十五");
-
+        ROMAN2CHINESE.put(16, "十六");
         //舆情报告新版
         CHAPTERS = new ArrayList<>();
         CHAPTERS.add("REPORTINTRO");
@@ -449,6 +449,8 @@ public class ReportConst {
     public static final String Hand_Made_TOP10_Weibo = "微博活跃用户TOP10";
     public static final String Hand_Made_TOP10_Wechat = "微信活跃用户TOP10";
     public static final String Hand_Made_TOP10_User = "活跃用户TOP10";
+    public static final String Hand_Made_Hot_News_List = "热点信息列表";
+    public static final String Hand_Made_Word_Cloud = "词云统计";
 
 
 }

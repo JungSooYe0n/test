@@ -57,7 +57,15 @@ public enum Chapter {
     /**
      * 活跃用户TOP10 ---------  因为 网站来源微信微博TOP10 融合为1个了，但是前端暂时不想改名字，所以 叫TOP10_New。，但是中文名字改了
      */
-    TOP10_News(ReportConst.Hand_Made_TOP10_User, ReportConst.CHART,9);
+    TOP10_News(ReportConst.Hand_Made_TOP10_User, ReportConst.CHART,9),
+    /**
+     * 热点信息列表
+     */
+    Hot_News_List(ReportConst.Hand_Made_Hot_News_List, ReportConst.LISTRESOURCES,10),
+    /**
+     * 词云统计
+     */
+    Word_Cloud(ReportConst.Hand_Made_Word_Cloud, ReportConst.CHART,11);
 
     String value;
     String valueType;
