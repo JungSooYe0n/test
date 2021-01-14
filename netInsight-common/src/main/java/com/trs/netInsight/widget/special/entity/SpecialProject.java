@@ -337,6 +337,10 @@ public class SpecialProject extends BaseEntity {
 		if(StringUtil.isNotEmpty(this.filterInfo)){
 			return this.filterInfo;
 		}else{
+			if (SpecialType.SPECIAL.equals(this.getSpecialType())){
+				//处理历史专家模式的信息过滤
+				return Const.NOT_FILTER_INFO;
+			}
 			return StringUtils.join(Const.FILTER_INFO,";");
 		}
 	}
