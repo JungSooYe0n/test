@@ -7,9 +7,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import com.trs.netInsight.util.DateUtil;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.report.constant.Chapter;
 import com.trs.netInsight.widget.report.constant.ReportConst;
 import com.trs.netInsight.widget.report.constant.SimplerReportConst;
@@ -27,7 +25,6 @@ import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.report.entity.ReportDataNew;
 import com.trs.netInsight.widget.report.entity.ReportNew;
 import com.trs.netInsight.widget.report.entity.ReportResource;
@@ -586,7 +583,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		titleParagraph.setAlignment(ParagraphAlignment.LEFT);
 		XWPFRun titleLine = titleParagraph.createRun();
 		titleLine.setFontSize(TITLEFONTSIZE); //
-		titleLine.setText(ROMAN2CHINESE.get(i)+"、"+title);
+		titleLine.setText(IntUtil.toChinese(i) +"、"+title);
 		titleLine.setFontFamily(TITLEFONTFAMILY);
 		titleLine.setBold(true); // 加粗
 		// 正文统一字体12号、仿宋、首行缩进
@@ -608,7 +605,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		titleParagraph.setAlignment(ParagraphAlignment.LEFT);
 		XWPFRun titleLine = titleParagraph.createRun();
 		titleLine.setFontSize(TITLEFONTSIZE); //
-		titleLine.setText(ROMAN2CHINESE.get(i)+"、"+title);
+		titleLine.setText(IntUtil.toChinese(i)+"、"+title);
 		titleLine.setFontFamily(TITLEFONTFAMILY);
 		titleLine.setBold(true); // 加粗
 		
