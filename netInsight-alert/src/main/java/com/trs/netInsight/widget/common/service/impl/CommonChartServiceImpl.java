@@ -470,7 +470,7 @@ public class CommonChartServiceImpl implements ICommonChartService {
 //                }
             }
         }
-
+int num = 0;
         for(DistrictInfo d: citys){
             Map<String,Object> mm = new HashMap<>();
             String mapKey = d.getAreaName();
@@ -478,13 +478,14 @@ public class CommonChartServiceImpl implements ICommonChartService {
             mm.put(resultKey.getContrastField(), mapKey);
             mm.put(resultKey.getCountField(), mapValue);
             list.add(mm);
+            if (mapValue > 0) num++;
         }
         //自定义返回这样的结果
         if(StringUtil.isNotEmpty(maptoType)) return list;
 
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put("areaData",list);
-        returnMap.put("city",citys.size());
+        returnMap.put("city",num);
         return returnMap;
 
     }

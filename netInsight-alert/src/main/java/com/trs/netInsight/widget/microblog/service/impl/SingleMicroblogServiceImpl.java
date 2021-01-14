@@ -146,14 +146,16 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
 
         //查看所有进度
         List<SingleMicroblogData> allSMD = singleMicroblogDataService.findAllSMDWithRandom(loginUser, urlName,microblogData.getRandom());
-
-        if (allSMD.size() == 15){
+for (SingleMicroblogData singleMicroblogData : allSMD){
+    System.out.print(singleMicroblogData.getName()+"/n");
+}
+        if (allSMD.size() == 16){
             if (ObjectUtil.isNotEmpty(microblogData)){
                 microblogData.setState("完成");
             }
             singleMicroblogDataService.save(microblogData);
         }
-        return String.valueOf(allSMD.size());
+        return String.valueOf(allSMD.size()-1);
 //        if (allSMD.size() == 16){
 //            if (ObjectUtil.isNotEmpty(microblogData)){
 //                microblogData.setState("完成");

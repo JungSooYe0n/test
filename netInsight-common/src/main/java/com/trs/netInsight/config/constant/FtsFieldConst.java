@@ -300,6 +300,7 @@ public class FtsFieldConst {
 	 * 内容地域信息 - 信息中出现的地域信息
 	 */
 	public final static String FIELD_CATALOG_AREA = "CATALOG_AREA";
+	public final static String FIELD_CATALOG_AREA_MULTIPLE = "CATALOG_AREA_MULTIPLE";
 
 	/**
 	 * 媒体地域 - 发布信息方对应的地址
