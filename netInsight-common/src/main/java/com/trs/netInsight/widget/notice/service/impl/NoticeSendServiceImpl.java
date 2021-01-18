@@ -515,7 +515,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							accountList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
 						} else {//直接传的微信号   这个人没停止预警  就发  停止预警就不发
 							//通过微信号查alertaccount中的active  true发  false不发
-							List<AlertAccount> byAccountAndUserIdAndType = alertAccountRepository.findByAccountAndUserIdAndType(webReceiver, userId, SendWay.WE_CHAT);
+							List<AlertAccount> byAccountAndUserIdAndType = alertAccountRepository.findByAccountAndType(webReceiver, SendWay.WE_CHAT);
 							AlertAccount alertaccount = null;
 							if (byAccountAndUserIdAndType.size() > 0) {
 								alertaccount = byAccountAndUserIdAndType.get(0);
