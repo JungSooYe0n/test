@@ -592,7 +592,7 @@ public class AlertRuleController {
 			}
 		} else if (SendWay.WE_CHAT.equals(type)) {
 			// 为了前段方便 把用户名 账号塞进去
-			accountList = alertAccountService.findByUserAndType(loginUser, type);
+			accountList = alertAccountService.findByUserIdAndType(loginUser.getId(), type);
 			for (AlertAccount account : accountList) {
 				if (StringUtils.isNotBlank(account.getDefinedName())) {
 					account.setName(account.getDefinedName());

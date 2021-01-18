@@ -132,7 +132,11 @@ public class AlertAccountServiceImpl implements IAlertAccountService {
 			if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
 				return changUserAccount(alertAccountRepository.findByTypeAndUserId(type, id, pageable));
 			}else {
-				return changUserAccount(alertAccountRepository.findByTypeAndSubGroupId(type, loginUser.getSubGroupId(), pageable));
+				if(SendWay.WE_CHAT.equals(type)){
+					return changUserAccount(alertAccountRepository.findByTypeAndUserId(type, id, pageable));
+				}else {
+					return changUserAccount(alertAccountRepository.findByTypeAndSubGroupId(type, loginUser.getSubGroupId(), pageable));
+				}
 			}
 		}
 		if (StringUtils.isBlank(String.valueOf(type)) && StringUtils.isNotBlank(account)) {
