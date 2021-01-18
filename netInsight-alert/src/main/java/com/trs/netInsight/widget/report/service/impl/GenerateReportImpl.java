@@ -69,10 +69,10 @@ public class GenerateReportImpl implements IGenerateReport {
 	
 	@Override
 	public String generateReport(ReportNew report, ReportDataNew reportData,
-			TemplateNew template, Map<String, List<Map<String, String>>> base64data) throws Exception{
+			String templateList, Map<String, List<Map<String, String>>> base64data) throws Exception{
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
-		List<TElementNew> elementList = JSONArray.parseArray(template.getTemplateList(), TElementNew.class);
+		List<TElementNew> elementList = JSONArray.parseArray(templateList, TElementNew.class);
 		elementList = elementList.stream().filter(e -> e.getSelected() == 1).sorted(Comparator.comparing(TElementNew::getChapterPosition)).collect(Collectors.toList());
 		int i = 0;
 		for(TElementNew element : elementList){
@@ -971,17 +971,17 @@ public class GenerateReportImpl implements IGenerateReport {
 		createRun.setColor("ff0000");//176 B0 240 f0
 		createRun.setFontFamily("楷体GB2312");
 		createRun.setBold(true);
-		if(reportName.length() > 8){
-			createRun.setText(reportName.substring(0, 8));
-			createRun.addBreak();
-			createRun.setText(reportName.substring(8));
-			 xdoc.createParagraph().createRun().setText("");//加1个空行
-			return 0;
-		}else{
+//		if(reportName.length() > 8){
+//			createRun.setText(reportName.substring(0, 8));
+//			createRun.addBreak();
+//			createRun.setText(reportName.substring(8));
+//			 xdoc.createParagraph().createRun().setText("");//加1个空行
+//			return 0;
+//		}else{
 			createRun.setText(reportName);
 			 xdoc.createParagraph().createRun().setText("");
 			return 1;
-		}
+//		}
 	}
 	private void createP2(XWPFDocument xdoc, String thisIssue,String totalIssue){
 		XWPFParagraph createParagraph2 = xdoc.createParagraph();
