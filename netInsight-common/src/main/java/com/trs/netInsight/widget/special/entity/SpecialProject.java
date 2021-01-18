@@ -337,6 +337,10 @@ public class SpecialProject extends BaseEntity {
 		if(StringUtil.isNotEmpty(this.filterInfo)){
 			return this.filterInfo;
 		}else{
+			if (SpecialType.SPECIAL.equals(this.getSpecialType())){
+				//处理历史专家模式的信息过滤
+				return Const.NOT_FILTER_INFO;
+			}
 			return StringUtils.join(Const.FILTER_INFO,";");
 		}
 	}
@@ -656,7 +660,7 @@ public class SpecialProject extends BaseEntity {
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
 				String addMonitorSite = addMonitorSite(this.monitorSite);
 				if(StringUtil.isNotEmpty(addMonitorSite)){
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE,addMonitorSite, Operator.Equal);
 				}
 			}
 			String excludeIndex = this.getExcludeWordIndex();
@@ -669,7 +673,7 @@ public class SpecialProject extends BaseEntity {
 			if (StringUtil.isNotEmpty(this.excludeWeb)) {
 				String Site = addMonitorSite(this.excludeWeb);
 				if(StringUtil.isNotEmpty(Site)){
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Site, Operator.NotEqual);
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE,Site, Operator.NotEqual);
 				}
 			}
 			//媒体等级

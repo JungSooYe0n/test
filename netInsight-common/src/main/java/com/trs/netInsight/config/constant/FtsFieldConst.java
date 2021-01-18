@@ -300,7 +300,10 @@ public class FtsFieldConst {
 	 * 内容地域信息 - 信息中出现的地域信息
 	 */
 	public final static String FIELD_CATALOG_AREA = "CATALOG_AREA";
-	public final static String FIELD_CATALOG_AREA_MULTIPLE = "CATALOG_AREA_MULTIPLE";
+	/**
+	 * CATALOG_AREA_MULTIPLE字段舍弃 改为 CATALOG_AREA_NEW
+	 */
+	public final static String FIELD_CATALOG_AREA_MULTIPLE = "CATALOG_AREA_NEW";
 
 	/**
 	 * 媒体地域 - 发布信息方对应的地址

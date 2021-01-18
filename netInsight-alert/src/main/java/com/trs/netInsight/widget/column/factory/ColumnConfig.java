@@ -346,7 +346,7 @@ public class ColumnConfig {
 		if (this.indexTab.getMonitorSite() != null && this.indexTab.getMonitorSite().split("[;|；]").length > 0) {
 			String addMonitorSite = addMonitorSite(this.indexTab.getMonitorSite());
 			if(StringUtil.isNotEmpty(addMonitorSite)){
-				this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
+				this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE,addMonitorSite, Operator.Equal);
 			}
 		}
 		//	阅读标记	已读/未读
@@ -849,7 +849,7 @@ public class ColumnConfig {
 			if (notSite.endsWith(" OR ")) {
 				notSite = notSite.substring(0, notSite.length() - 4);
 			}
-			asTRSL += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME).append(":(").append(notSite)
+			asTRSL += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME_LIKE).append(":(").append(notSite)
 					.append(")").toString();
 		}
 
