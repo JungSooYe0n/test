@@ -15,15 +15,16 @@ package com.trs.netInsight.widget.article.service.impl;
 
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.user.entity.Organization;
+import com.trs.netInsight.widget.user.entity.User;
+import com.trs.netInsight.widget.user.repository.OrganizationRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +63,8 @@ public class ArticleHybaseServiceImpl implements IArticleHybaseService {
 	private FullTextSearch hybase8SearchService;
 	@Autowired
 	private ICommonListService commonListService;
+	@Autowired
+	private OrganizationRepository organizationRepository;
 
 	@Override
 	public void addArticle(FtsDocumentInsert documentInsert)
@@ -119,6 +122,7 @@ public class ArticleHybaseServiceImpl implements IArticleHybaseService {
 		record.addColumn(FtsFieldConst.FIELD_ORGANIZATIONID, UserUtils.getUser().getOrganizationId());
 		//添加分组
 		record.addColumn(FtsFieldConst.FIELD_GROUPNAME,documentInsert.getGroupname());
+		record.addColumn(FtsFieldConst.FIELD_USER_ID,UserUtils.getUser().getId());
 		hybase8SearchService.insertRecords(record, Const.INSERT, true, null);
 	}
 
@@ -129,8 +133,34 @@ public class ArticleHybaseServiceImpl implements IArticleHybaseService {
 		query.setPageNo(pageNo);
 		query.setPageSize(pageSize);
 		query.orderBy(FtsFieldConst.FIELD_URLTIME,true);
-		String organizationId = UserUtils.getUser().getOrganizationId();
-		query.filterField(FtsFieldConst.FIELD_ORGANIZATIONID, organizationId, Operator.Equal);
+		if (UserUtils.isSuperAdmin()) {
+			List<Organization> organizations = organizationRepository.findAll();
+			List<String> orIds = new ArrayList<>();
+			for (Organization organization : organizations){
+				orIds.add(organization.getId());
+			}
+			StringBuilder sb = new StringBuilder();
+			sb.append(FtsFieldConst.FIELD_ORGANIZATIONID).append(":(").append(String.join(" OR ",orIds)).append(")");
+			query.filterByTRSL(sb.toString());
+		}else if (UserUtils.isRolePlatform()){
+			User user = UserUtils.getUser();
+			Set<Organization> organizations = user.getOrganizations();
+			List<String> orIds = new ArrayList<>();
+			for (Organization organization : organizations){
+				orIds.add(organization.getId());
+			}
+			StringBuilder sb = new StringBuilder();
+			sb.append(FtsFieldConst.FIELD_ORGANIZATIONID).append(":(").append(String.join(" OR ",orIds)).append(")");
+			query.filterByTRSL(sb.toString());
+
+		}else if (UserUtils.isRoleAdmin()){
+			String organizationId = UserUtils.getUser().getOrganizationId();
+			query.filterField(FtsFieldConst.FIELD_ORGANIZATIONID, organizationId, Operator.Equal);
+		}else {
+			query.filterField(FtsFieldConst.FIELD_USER_ID, UserUtils.getUser().getId(), Operator.Equal);
+		}
+//		String organizationId = UserUtils.getUser().getOrganizationId();
+//		query.filterField(FtsFieldConst.FIELD_ORGANIZATIONID, organizationId, Operator.Equal);
 		PagedList<FtsDocumentInsertShow> ftsPageList = commonListService.queryPageListForClass(query,FtsDocumentInsertShow.class,false,false,false,null);
 		List<FtsDocumentInsertShow> list = ftsPageList.getPageItems();
 		for(FtsDocumentInsertShow vo :list){
