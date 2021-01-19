@@ -175,7 +175,7 @@ public class SepcialReportTask implements Runnable {
                                 log.info(String.format(SPECILAREPORTLOG, OVERVIEWOFDATA));
                                 startMillis = System.currentTimeMillis();
                                 IndexTab overviewOfDataIT = searchType == 0 ? createIndexTab(keyWords, excludeWords, keyWordsIndex, excludeWebs, simflag, timeRange, weight, REPORTCHARTDATASIZE) : createIndexTab(trsl, simflag, timeRange, weight, REPORTCHARTDATASIZE);
-                                String groupName = "国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook";
+                                String groupName = "国内新闻;微博;微信;国内新闻_手机客户端;国内论坛;国内博客;国内新闻_电子报;境外媒体;Twitter;FaceBook;视频;短视频;自媒体号";
                                 overviewOfDataIT.setGroupName(groupName);
                                 overviewOfDataIT.setType(ColumnConst.CHART_PIE);
                                 overviewOfDataIT.setContrast(ColumnConst.CONTRAST_TYPE_GROUP);
