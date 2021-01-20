@@ -6268,7 +6268,8 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 				dateTime = dateTime.replaceAll("/","-");
 				dateTime = dateTime+" 00:00:00";
 				dateEndTime = dateTime.substring(0,dateTime.length()-9)+" 23:59:59";
-			}else if(dateTime.length() ==16 && DateUtil.isTimeFormatterYMDH(dateTime)){
+			}else if(dateTime.length() ==16){
+//				&& DateUtil.isTimeFormatterYMDH(dateTime)
 				dateTime = dateTime.replaceAll("/","-");
 				dateTime = dateTime+":00";
 				dateEndTime = dateTime.substring(0,dateTime.length()-6)+":59:59";
