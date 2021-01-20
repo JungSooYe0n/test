@@ -1269,7 +1269,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		if("ALL".equals(source)){
 			String groupName = alertRule.getGroupName();
 			if(StringUtil.isEmpty(groupName) || "ALL".equals(groupName) || SpecialType.SPECIAL.equals(alertRule.getSpecialType())){
-				source = Const.TYPE_NEWS_SPECIAL_ALERT;
+				source = Const.STATTOTAL_GROUP+";自媒体号;短视频;视频";
 			}else{
 				String[] groupArr = groupName.split(";");
 				List<String> groupList = new ArrayList<>();
