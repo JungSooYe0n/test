@@ -140,7 +140,7 @@ public class ArticleHybaseServiceImpl implements IArticleHybaseService {
 				orIds.add(organization.getId());
 			}
 			StringBuilder sb = new StringBuilder();
-			sb.append(FtsFieldConst.FIELD_ORGANIZATIONID).append(":(").append(String.join(" OR ",orIds)).append(")");
+			sb.append(FtsFieldConst.FIELD_ORGANIZATIONID).append(":(").append(String.join(" OR ",orIds)).append(")").append(" OR ").append(FtsFieldConst.FIELD_USER_ID).append(":(").append(UserUtils.getUser().getId()).append(")");
 			query.filterByTRSL(sb.toString());
 		}else if (UserUtils.isRolePlatform()){
 			User user = UserUtils.getUser();
@@ -150,7 +150,7 @@ public class ArticleHybaseServiceImpl implements IArticleHybaseService {
 				orIds.add(organization.getId());
 			}
 			StringBuilder sb = new StringBuilder();
-			sb.append(FtsFieldConst.FIELD_ORGANIZATIONID).append(":(").append(String.join(" OR ",orIds)).append(")");
+			sb.append(FtsFieldConst.FIELD_ORGANIZATIONID).append(":(").append(String.join(" OR ",orIds)).append(")").append(" OR ").append(FtsFieldConst.FIELD_USER_ID).append(":(").append(UserUtils.getUser().getId()).append(")");
 			query.filterByTRSL(sb.toString());
 
 		}else if (UserUtils.isRoleAdmin()){

@@ -1716,6 +1716,8 @@ public class DateUtil {
 		Pattern pattern1 = Pattern.compile("[0-9]*[hdwmyn]");
 		Pattern pattern2 = Pattern
 				.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2};\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+		Pattern pattern3 = Pattern
+				.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}:\\d{2}:\\d{2};\\d{4}-\\d{2}-\\d{2}-\\d{2}:\\d{2}:\\d{2}");
 		if (pattern1.matcher(time).matches()) {
 			// 如果满足xh/d/w/m/y(代表:近x时/天/周/月/年)这种格式
 			int timeNum = Integer.parseInt(time.substring(0, time.length() - 1));
@@ -1750,7 +1752,7 @@ public class DateUtil {
 					break;
 			}
 			return timeArray;
-		} else if (pattern2.matcher(time).matches()) {
+		} else if (pattern2.matcher(time).matches() || pattern3.matcher(time).matches()) {
 			String dString = time.replaceAll("-", "").replaceAll(" ", "").replaceAll(":", "");
 			return dString.split(";");
 		} else {
@@ -2823,8 +2825,11 @@ public class DateUtil {
 		Matcher matcher1 = pattern1.matcher(date);
 		Pattern pattern2 = Pattern
 				.compile("\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}");
+		Pattern pattern3 = Pattern
+				.compile("\\d{4}/\\d{2}/\\d{2}/\\d{2}:\\d{2}");
 		Matcher matcher2 = pattern2.matcher(date);
-		if(matcher1.find() || matcher2.find()){
+		Matcher matcher3 = pattern3.matcher(date);
+		if(matcher1.find() || matcher2.find() || matcher3.find()){
 			return true;
 		}else{
 			return false;
