@@ -1269,7 +1269,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		if("ALL".equals(source)){
 			String groupName = alertRule.getGroupName();
 			if(StringUtil.isEmpty(groupName) || "ALL".equals(groupName) || SpecialType.SPECIAL.equals(alertRule.getSpecialType())){
-				source = Const.STATTOTAL_GROUP;
+				source = Const.TYPE_NEWS_SPECIAL_ALERT;
 			}else{
 				String[] groupArr = groupName.split(";");
 				List<String> groupList = new ArrayList<>();
@@ -1331,7 +1331,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				if (source.endsWith("OR ")) {
 					source = source.substring(0, source.lastIndexOf("OR"));
 				}
-				//builder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
+				builder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
 				countBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, source, Operator.Equal);
 			}else if("ALL".equals(source)){
 				builder.filterField(FtsFieldConst.FIELD_GROUPNAME,
@@ -1581,7 +1581,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 				String documentContent = StringUtil.removeFourChar(alertEntity.getContent());
 				documentContent = StringUtil.replaceEmoji(documentContent);
 				documentContent = StringUtil.replaceImg(documentContent);
-				documentContent = StringUtil.cutContentPro(documentContent, 150);
+				documentContent = StringUtil.cutContentMd5(documentContent, 150);
 				if(Const.GROUPNAME_WEIBO.equals(alertEntity.getGroupName())){
 					map.put("title", documentContent);
 				}
