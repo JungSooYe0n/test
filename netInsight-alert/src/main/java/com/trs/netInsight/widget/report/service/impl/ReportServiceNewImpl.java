@@ -426,7 +426,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	@Override
 	public Object saveReportResource(String sids,String trslk, String userId,
 									 String groupName, String chapter, String img_data, String reportType, String templateId,
-									 String imgType, Integer chapterPosition, String reportId)  throws Exception{
+									 String imgType, Integer chapterPosition, String reportId,String mapto)  throws Exception{
 		String[] sidArray = null;
 		String[] groupNameArray = null;
 		if(StringUtil.isNotEmpty(groupName) && StringUtil.isNotEmpty(sids)){
@@ -442,7 +442,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		if(StringUtil.isNotEmpty(img_data)){
 			//准备插入图表数据
 			insertImgDataIntoResources(userId, chapter, img_data,null, null,
-					reportType, templateId, imgType, chapterPosition, reportId, reportResourcesList);
+					reportType, templateId, imgType, chapterPosition, reportId, reportResourcesList,mapto);
 		}else{
 			for (int i = 0; i < sidArray.length; i++) {
 				// 排重，资源池列表中没有此文章（即sid）或该文章没有被删除才执行add
@@ -498,7 +498,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		Chapter c = Chapter.valueOf(chapter);
 		//准备插入图表数据
 		insertImgDataIntoResources(userId, chapter, null, imgComment,null,
-				reportType, templateId, ColumnConst.CHART_BAR, c.getSequence(), null, reportResourcesList);
+				reportType, templateId, ColumnConst.CHART_BAR, c.getSequence(), null, reportResourcesList,"");
 		fixedThreadPool.execute(new ReportResourceTask(reportResourcesList));
 		if(reportResourcesList == null || reportResourcesList.size()==0){
 			return "ALLSIMILAR";
@@ -523,7 +523,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	private void insertImgDataIntoResources( String userId,
 											 String chapter, String img_data,String imgComment, String secondaryChapter,
 											 String reportType, String templateId, String imgType,
-											 Integer chapterPosition, String reportId, List<ReportResource> reportResourcesList) {
+											 Integer chapterPosition, String reportId, List<ReportResource> reportResourcesList,String mapto) {
 		ReportResource newAdd = new ReportResource();
 		newAdd.setChapter(chapter);
 		newAdd.setSecondaryChapter(secondaryChapter);
@@ -537,6 +537,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		newAdd.setResourceStatus(StringUtil.isEmpty(reportId) ? 0 : 1);
 		newAdd.setReportId(reportId);
 		newAdd.setUserId(userId);
+		newAdd.setMapto(mapto);
 		reportResourcesList.add(newAdd);
 	}
 

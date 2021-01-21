@@ -52,7 +52,7 @@ public interface IReportServiceNew {
 	public Object saveReportResource(String sids, String trslk,String userId, String groupName, String chapter,
 									 String img_data, String reportType,
 									 String templateId, String img_type, Integer chapterPosition,
-									 String reportId) throws Exception;
+									 String reportId,String mapto) throws Exception;
 
 	public Object saveOverView( String userId, String chapter,String imgComment,String reportType, String templateId) throws Exception;
 

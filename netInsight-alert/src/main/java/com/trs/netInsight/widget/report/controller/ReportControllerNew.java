@@ -188,7 +188,8 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "reportType", value = "报告类型", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "chapterPosition", value = "章节位置", dataType = "Integer", paramType = "query", required = true),
-			@ApiImplicitParam(name = "reportId", value = "报告id(此时为已生成的报告)", dataType = "reportId", paramType = "query", required = false)})
+			@ApiImplicitParam(name = "reportId", value = "报告id(此时为已生成的报告)", dataType = "reportId", paramType = "query", required = false),
+			@ApiImplicitParam(name = "mapto", value = "下钻地图地域", dataType = "mapto", paramType = "query", required = false)})
 	@Log(systemLogOperation = SystemLogOperation.REPORT_ADD_REPORT_RESOURCE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@RequestMapping(value = "/addReportResource", method = RequestMethod.POST)
 	public Object addReportResource(
@@ -202,7 +203,8 @@ public class ReportControllerNew {
 			@RequestParam(value = "reportType") String reportType,
 			@RequestParam(value = "templateId") String templateId,
 			@RequestParam(value = "chapterPosition") Integer chapterPosition,
-			@RequestParam(value = "reportId",required = false) String reportId) throws Exception {
+			@RequestParam(value = "reportId",required = false) String reportId,
+			@RequestParam(value = "mapto",required = false) String mapto) throws Exception {
 		try {
 			//页面栏目数据未加载出来就点“加入简报”操作，造成传空入库后，模板内前端页面无法显示
 			if (StringUtil.isNotEmpty(img_type) && StringUtil.isEmpty(img_data)){
@@ -218,7 +220,7 @@ public class ReportControllerNew {
 			String userId = UserUtils.getUser().getId();
 			Object result = reportServiceNew.saveReportResource(sids,trslk, userId,
 					groupName, chapter, img_data, reportType,
-					templateId, img_type, chapterPosition, reportId);
+					templateId, img_type, chapterPosition, reportId,mapto);
 			if ("fail".equals(result)) {
 				throw new OperationException("请检查sid和md5tag及groupName的数量是否一致");
 			} else if ("AllSimilar".equals(result)) {
