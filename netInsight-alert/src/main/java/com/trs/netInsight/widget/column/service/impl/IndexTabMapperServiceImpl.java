@@ -349,11 +349,11 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 						User user = userService.findOne(mapper.getUserId());
 
 
-						if(!"top".equals(mapper.getTopFlag())){
-							//对同层级的数据重新排序 - 去掉自己
-							//栏目类型为1，
-							columnService.moveSequenceForColumn(mapper.getId(), ColumnFlag.IndexTabFlag,user);
-						}
+//						if(!"top".equals(mapper.getTopFlag())){
+//							//对同层级的数据重新排序 - 去掉自己
+//							//栏目类型为1，
+//							columnService.moveSequenceForColumn(mapper.getId(), ColumnFlag.IndexTabFlag,user);
+//						}
 						//删除当前栏目对应的自定义图表
 						Integer deleteColumnChart = columnChartService.deleteCustomChartForTabMapper(mapper.getId());
 						log.info("删除当前栏目下统计和自定义图表共："+deleteColumnChart +"条");
@@ -372,6 +372,10 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 							tabMapperRepository.delete(mapper);
 						}
 						indexSequenceRepository.delete(indexSequenceRepository.findByIndexTabId(mapper.getId()));
+						indexSequenceRepository.flush();
+						tabMapperRepository.flush();
+						indexTabRepository.flush();
+
 					}
 				}
 			}
