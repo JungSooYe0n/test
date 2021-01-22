@@ -372,10 +372,6 @@ public class IndexTabMapperServiceImpl implements IIndexTabMapperService {
 							tabMapperRepository.delete(mapper);
 						}
 						indexSequenceRepository.delete(indexSequenceRepository.findByIndexTabId(mapper.getId()));
-						indexSequenceRepository.flush();
-						tabMapperRepository.flush();
-						indexTabRepository.flush();
-
 					}
 				}
 			}
