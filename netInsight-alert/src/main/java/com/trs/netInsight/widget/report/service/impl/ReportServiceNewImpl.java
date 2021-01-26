@@ -783,7 +783,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		//重新保存template，因为template_header有可能被修改
 		setTemplateHeader(templateNew, report.getTotalIssue(),
 				report.getThisIssue(), report.getPreparationUnits(), report.getPreparationAuthors(), primaryStatisticsTime,report.getReportName());
-		templateNew.setTemplateName(report.getReportName());
+		//templateNew.setTemplateName(report.getReportName());
 		templateNewRepository.save(templateNew);
 
 		//是否保存报告资源处理
