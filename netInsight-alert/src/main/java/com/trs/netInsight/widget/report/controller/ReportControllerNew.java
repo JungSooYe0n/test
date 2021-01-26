@@ -360,6 +360,7 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "reportIntro", value = "报告简介文本内容", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "dataSummary", value = "数据统计概述", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "jsonImgElements", value = "json格式的图片数据", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "statisticsTime", value = "统计时间", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "reportName", value = "报告名称", dataType = "String", paramType = "query", required = true),
@@ -374,6 +375,7 @@ public class ReportControllerNew {
 			@RequestParam(value = "templateId", required = false) String templateId,
 			@RequestParam(value = "templateList", required = false) String templateList,
 			@RequestParam(value = "reportIntro", required = false) String reportIntro,
+			@RequestParam(value = "dataSummary", required = false) String dataSummary,
 			@RequestParam(value = "jsonImgElements", required = false) String jsonImgElements,
 			@RequestParam(value = "statisticsTime", required = false) String statisticsTime,
 			@RequestParam(value = "reportName", required = false) String reportName,
@@ -381,7 +383,7 @@ public class ReportControllerNew {
 			@RequestParam(value = "totalIssue", required = false) String totalIssue,
 			@RequestParam(value = "preparationUnits", required = false) String preparationUnits,
 			@RequestParam(value = "preparationAuthors", required = false) String preparationAuthors, javax.servlet.http.HttpServletRequest request) throws Exception {
-		return sepcialReportService.createSepcial(reportId, templateId,templateList, jsonImgElements, reportIntro, statisticsTime, reportName, thisIssue, totalIssue, preparationUnits, preparationAuthors);
+		return sepcialReportService.createSepcial(reportId, templateId,templateList, jsonImgElements, reportIntro, statisticsTime, reportName, thisIssue, totalIssue, preparationUnits, preparationAuthors,dataSummary);
 	}
 	
 	/**

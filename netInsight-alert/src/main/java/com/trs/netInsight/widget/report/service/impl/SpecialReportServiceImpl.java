@@ -470,7 +470,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     }
 
     @Override
-    public ReportNew createSepcial(String reportId, String templateId,String templateList, String jsonImgElements, String reportIntro, String statisticsTime, String reportName, String thisIssue, String totalIssue, String preparationUnits, String preparationAuthors) throws Exception {
+    public ReportNew createSepcial(String reportId, String templateId,String templateList, String jsonImgElements, String reportIntro, String statisticsTime, String reportName, String thisIssue, String totalIssue, String preparationUnits, String preparationAuthors,String dataSummary) throws Exception {
         ReportNew report = reportNewRepository.findOne(reportId);
         userInputFiledHandle(statisticsTime, reportName, thisIssue, totalIssue, preparationUnits, preparationAuthors, report);
         ReportDataNew reportData = reportDataNewRepository.findOne(report.getReportDataId());
@@ -481,7 +481,7 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
 
         Map<String, List<Map<String, String>>> base64data = ReportUtil.getBase64data(jsonImgElements);
         reportData.setReportIntro(reportIntro);
-        String reportPath = generateReportImpl.generateReport(report, reportData, templateList, base64data);
+        String reportPath = generateReportImpl.generateReport(report, reportData, templateList, base64data,dataSummary);
         report.setTemplateId(templateId);
         report.setDocPath(reportPath);
 //        report.setTemplateList(templateNew.getTemplateList());

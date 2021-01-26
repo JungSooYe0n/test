@@ -87,7 +87,7 @@ public interface ISpecialReportService {
      * @param totalIssue
      * @param preparationAuthors
      */
-    ReportNew createSepcial(String reportId, String templateId,String templateList,String jsonImgElements, String reportIntro, String statisticsTime, String reportName, String thisIssue, String totalIssue, String preparationUnits, String preparationAuthors) throws Exception;
+    ReportNew createSepcial(String reportId, String templateId,String templateList,String jsonImgElements, String reportIntro, String statisticsTime, String reportName, String thisIssue, String totalIssue, String preparationUnits, String preparationAuthors,String dataSummary) throws Exception;
 
     /***
      * 从ReportServiceNewImpl跳转过来，这样专报、日报的listPreview都用1个接口
