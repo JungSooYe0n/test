@@ -69,7 +69,7 @@ public class GenerateReportImpl implements IGenerateReport {
 	
 	@Override
 	public String generateReport(ReportNew report, ReportDataNew reportData,
-			String templateList, Map<String, List<Map<String, String>>> base64data) throws Exception{
+			String templateList, Map<String, List<Map<String, String>>> base64data,String dataSummary) throws Exception{
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
 		List<TElementNew> elementList = JSONArray.parseArray(templateList, TElementNew.class);
@@ -85,9 +85,12 @@ public class GenerateReportImpl implements IGenerateReport {
 				break;
 			case OVERVIEWOFDATANew:
 				i++;
-				JSONObject object = (JSONObject)(JSONObject.parseArray(reportData.getOverviewOfdata()).get(0));
-
-				singleParagraph(xwpfDocument, OVERVIEWOFDATA, object.getString("imgComment"), i);
+//				singleParagraph(xwpfDocument, OVERVIEWOFDATA, object.getString("imgComment"), i);
+				if (StringUtil.isEmpty(dataSummary)) {
+					JSONObject object = (JSONObject)(JSONObject.parseArray(reportData.getOverviewOfdata()).get(0));
+					dataSummary =  object.getString("imgComment");
+				}
+				singleParagraph(xwpfDocument, OVERVIEWOFDATA, dataSummary, i);
 				log.info(String.format(GENERATEREPORTLOG,OVERVIEWOFDATA + DONE));
 				break;
 			case NEWSHOTTOP10New:
