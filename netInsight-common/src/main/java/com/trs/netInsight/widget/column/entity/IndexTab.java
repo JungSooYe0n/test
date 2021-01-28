@@ -417,7 +417,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb,monitorSite, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
 				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,sort,tabWidth,oneName,notSids,
-				mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,preciseFilter);
+				mediaLevel, mediaIndustry, contentIndustry, filterInfo, preciseFilter, contentArea, mediaArea);
 		return indexTab;
 	}
 	
