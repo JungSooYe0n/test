@@ -714,12 +714,12 @@ public class GenerateReportImpl implements IGenerateReport {
 			if (null == eleType){//专报
         		if(chapterDetail.indexOf("EVENTCONTEXT")!=-1){
         			//事件脉络
-					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 5);
+					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 6);
 					createTable4Context(dTable, xdoc, chapterContent, chapterDetail,true);
 				}else {
 					//专题报 改造 20191121 （热点模块要加一列 热度）
 					//列数应该按照章节类型进行判断，暂时写4
-					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 5);
+					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 6);
 					createTable(dTable, xdoc, chapterContent, chapterDetail,true);
 				}
 			}else if ("表格".equals(eleType)){//日报、周报、月报
@@ -741,11 +741,13 @@ public class GenerateReportImpl implements IGenerateReport {
 		CTTbl ttbl = xTable.getCTTbl();
 		CTTblPr tblPr = ttbl.getTblPr() == null ? ttbl.addNewTblPr() : ttbl.getTblPr();
 
+		CTTblLayoutType t = tblPr.isSetTblLayout()?tblPr.getTblLayout():tblPr.addNewTblLayout();
+		t.setType(STTblLayoutType.FIXED);//使布局固定，不随内容改变宽度
 		CTTblWidth tblWidth = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
-		tblWidth.setW(new BigInteger("8600"));
+		tblWidth.setW(new BigInteger("8700"));
 		tblWidth.setType(STTblWidth.DXA);
 		setCellTitle(xdoc, getCellHight(xTable, 0, 0), "序号", bgColor, 700);	//1000
-		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 4300);
+		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 3600);
 		int indexHead = 2;
 		if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail)
 				|| WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail)
@@ -755,19 +757,21 @@ public class GenerateReportImpl implements IGenerateReport {
 				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "转发", bgColor, 1200);	//2000
 				indexHead += 1;
 			}else {*/
-				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "热度", bgColor, 1200);	//2000
+				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "热度", bgColor, 700);	//2000
 				indexHead += 1;
 			//}
 		}
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 1200);	//2000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 800);	//2000
 		indexHead += 1;
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 2150);	//3000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 1300);	//3000
 
+		indexHead += 1;
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "链接", bgColor, 1600);	//3000
 			for(int i = 0; i < chapaterContent.size(); i++){
 				//序号
 				setCellText(xdoc, getCellHight(xTable, i + 1, 0), i + 1 + "",bgColor, 700);
 				//标题
-				setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 4300);
+				setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 3600);
 				int index = 2;
 				if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail)
 						|| WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail)
@@ -776,20 +780,26 @@ public class GenerateReportImpl implements IGenerateReport {
 					/*if (WEIBOHOTTOP10key.equals(chapterDetail)){
 						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getRttCount()==null?"0":chapaterContent.get(i).getRttCount().toString(),bgColor, 1200);
 					}else {*/
-						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1200);
+						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 700);
 					//}
 					index += 1;
 				}
 				//来源
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 1200);
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 800);
 				index += 1;
 					//时间
 				Date urlDate = chapaterContent.get(i).getUrlDate();
 				if(urlDate != null){
-					setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 2150);
+					setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 1300);
 				}else{
-					setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 2150);
+					setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 1300);
 				}
+				index += 1;
+				String urlName = chapaterContent.get(i).getUrlName();
+				if (StringUtil.isNotEmpty(urlName)){
+					urlName = urlName.replaceAll(": ","://");
+				}
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), urlName,bgColor, 1300);
 			}
 	}
 
@@ -800,38 +810,47 @@ public class GenerateReportImpl implements IGenerateReport {
 		String bgColor = "111111";
 		CTTbl ttbl = xTable.getCTTbl();
 		CTTblPr tblPr = ttbl.getTblPr() == null ? ttbl.addNewTblPr() : ttbl.getTblPr();
-
+		CTTblLayoutType t = tblPr.isSetTblLayout()?tblPr.getTblLayout():tblPr.addNewTblLayout();
+		t.setType(STTblLayoutType.FIXED);//使布局固定，不随内容改变宽度
 		CTTblWidth tblWidth = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
-		tblWidth.setW(new BigInteger("8600"));
+		tblWidth.setW(new BigInteger("8700"));
 		tblWidth.setType(STTblWidth.DXA);
 		setCellTitle(xdoc, getCellHight(xTable, 0, 0), "序号", bgColor, 700);	//1000
-		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 4300);
+		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 3300);
 		int indexHead = 2;
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 1200);	//2000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 800);	//2000
 		indexHead += 1;
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "相似文章", bgColor, 1200);	//2000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "相似文章", bgColor, 1300);	//2000
 		indexHead += 1;
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 2150);	//3000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 1300);	//3000
+		indexHead += 1;
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "链接", bgColor, 1300);	//3000
 
 		for(int i = 0; i < chapaterContent.size(); i++){
 			//序号
 			setCellText(xdoc, getCellHight(xTable, i + 1, 0), i + 1 + "",bgColor, 700);
 			//标题
-			setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 4300);
+			setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 3300);
 			int index = 2;
 			//来源
-			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 1200);
+			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 800);
 			index += 1;
 
-			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1200);
+			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1300);
 			index += 1;
 			//时间
 			Date urlDate = chapaterContent.get(i).getUrlDate();
 			if(urlDate != null){
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 2150);
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 1300);
 			}else{
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 2150);
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 1300);
 			}
+			index += 1;
+			String urlName = chapaterContent.get(i).getUrlName();
+			if (StringUtil.isNotEmpty(urlName)){
+				urlName = urlName.replaceAll(": ","://");
+			}
+			setCellText(xdoc, getCellHight(xTable, i + 1, index), urlName,bgColor, 1300);
 		}
 	}
 	private void dataSimplerListParagraph(XWPFDocument xdoc, String title, List<ReportResource> chapterContent, int i,String eleType,String chapterDetail) throws Exception {
