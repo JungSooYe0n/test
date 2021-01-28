@@ -205,6 +205,7 @@ public class FtsFieldConst {
 	 * 地域信息
 	 */
 	public final static String FIELD_LOCATION = "IR_LOCATION";
+	public final static String FIELD_LOCATION_LIKE = "IR_LOCATION_LIKE";//模糊检索使用
 	public final static String FIELD_LON = "IR_LON";
 	public final static String FIELD_POIID = "IR_POIID";
 
@@ -236,6 +237,7 @@ public class FtsFieldConst {
 	 * 转发消息的用户名  支持分类统计
 	 */
 	public final static String FIELD_RETWEETED_FROM_ALL = "IR_RETWEETED_FROM_ALL";
+	public final static String FIELD_RETWEETED_FROM_ALL_LIKE = "IR_RETWEETED_FROM_ALL_LIKE";
 	public final static String FIELD_RTATS = "IR_RTATS";
 	public final static String FIELD_RTHASHTAGS = "IR_RTHASHTAGS";
 
@@ -465,6 +467,7 @@ public class FtsFieldConst {
 	 * 超话
 	 */
 	public final static String FIELD_TAG = "IR_TAG";
+	public final static String FIELD_TAG_LIKE = "IR_TAG_LIKE";
 
 	/**
 	 * 机构

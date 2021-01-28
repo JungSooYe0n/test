@@ -882,6 +882,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		resourceCopyed.setUseage(resource.getUseage());
 		resourceCopyed.setId(resource.getId());
 		resourceCopyed.setNewsAbstract(resource.getNewsAbstract());
+		resourceCopyed.setMapto(resource.getMapto());
 		return resourceCopyed;
 	}
 	@Override
