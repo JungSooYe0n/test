@@ -799,7 +799,7 @@ public class GenerateReportImpl implements IGenerateReport {
 				if (StringUtil.isNotEmpty(urlName)){
 					urlName = urlName.replaceAll(": ","://");
 				}
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), urlName,bgColor, 1300);
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), urlName,bgColor, 1600);
 			}
 	}
 
@@ -813,7 +813,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		CTTblLayoutType t = tblPr.isSetTblLayout()?tblPr.getTblLayout():tblPr.addNewTblLayout();
 		t.setType(STTblLayoutType.FIXED);//使布局固定，不随内容改变宽度
 		CTTblWidth tblWidth = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
-		tblWidth.setW(new BigInteger("8700"));
+//		tblWidth.setW(new BigInteger("8700"));
 		tblWidth.setType(STTblWidth.DXA);
 		setCellTitle(xdoc, getCellHight(xTable, 0, 0), "序号", bgColor, 700);	//1000
 		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 3300);
