@@ -455,9 +455,11 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 
 				if (isResourceSim) {
 					List<ReportResource> thisChapterList = reportResourceRepository.findByTemplateIdAndChapter(templateId, chapter);
-					if(thisChapterList.size()>0){
-						for(ReportResource reportResource : thisChapterList)
-							reportResourceRepository.delete(reportResource);
+					if("Hot_News_List".equals(chapter)) {
+						if (thisChapterList.size() > 0) {
+							for (ReportResource reportResource : thisChapterList)
+								reportResourceRepository.delete(reportResource);
+						}
 					}
 					List<ReportResource> newChapterList = reportResourceRepository.findByTemplateIdAndChapter(templateId, chapter);
 					Integer docPosition = 0;
