@@ -5836,7 +5836,7 @@ public class InfoListServiceImpl implements IInfoListService {
 			if (null != monitorSite && !monitorSite.isEmpty()) {
 				String addMonitorSite = addMonitorSite(monitorSite);
 				if(StringUtil.isNotEmpty(addMonitorSite)){
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE,addMonitorSite, Operator.Equal);
 				}
 			}
 
@@ -5849,7 +5849,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					excludeWeb = excludeWeb.substring(0, excludeWeb.length() - 4);
 				}
 				if (!"".equals(builderTrsl)) {
-					builderTrsl += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME).append(":(").append(excludeWeb)
+					builderTrsl += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME_LIKE).append(":(").append(excludeWeb)
 							.append(")").toString();
 					queryBuilder = new QueryBuilder();
 					queryBuilder.filterByTRSL(builderTrsl);

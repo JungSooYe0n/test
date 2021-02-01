@@ -743,15 +743,16 @@ public class ReportControllerNew {
 		@ApiParam("模块类型")@RequestParam(value = "chapter", required = false)String chapter,
 		@ApiParam("模板id")@RequestParam(value = "templateId", required = false)String templateId,
 		@ApiParam("制作/完成（预览）")@RequestParam(value = "resourceStatus", required = false)int resourceStatus,
-		@ApiParam("专报中拖拽才传这个参数")@RequestParam(value = "reportId", required = false)String reportDataId,
-		@ApiParam("该记录在数据库中的id")@RequestParam(value = "id", required = false)String id
+		@ApiParam("专报中拖拽才传这个参数")@RequestParam(value = "reportDataId", required = false)String reportDataId,
+		@ApiParam("该记录在数据库中的id")@RequestParam(value = "id", required = false)String id,
+		@ApiParam("报告id")@RequestParam(value = "reportId", required = false)String reportId
 			){
 		//位置信息未别改变
 		if(docPosition == newPosition){
 			return null;
 		}
 		//处理位置信息
-		return reportServiceNew.changePosition(docPosition, newPosition, chapter, templateId, resourceStatus, id, reportDataId);
+		return reportServiceNew.changePosition(docPosition, newPosition, chapter, templateId, resourceStatus, id, reportDataId,reportId);
 	}
 
 	/**

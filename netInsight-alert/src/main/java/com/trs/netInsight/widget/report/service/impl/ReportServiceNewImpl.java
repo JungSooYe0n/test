@@ -1352,7 +1352,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	}
 
 	@Override
-	public Object changePosition(Integer docPosition, Integer newPosition, String chapter, String templateId, int resourceStatus, String id, String reportDataId) {
+	public Object changePosition(Integer docPosition, Integer newPosition, String chapter, String templateId, int resourceStatus, String id, String reportDataId,String reportId) {
 		//专报中的拖拽，因操作对象不一样，另起
 		if(StringUtil.isNotEmpty(reportDataId)){
 			//获取到该条记录
@@ -1420,12 +1420,19 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		List<ReportResource> docList = null;
 		if(resourceStatus == 1){
 			//该用户、这个资源模块的文章集合
-			docList = reportResourceRepository.findByReportIdAndChapterAndResourceStatus(templateId, chapter, resourceStatus);
+//			docList = reportResourceRepository.findByReportIdAndChapterAndResourceStatus(templateId, chapter, resourceStatus);
+			if (StringUtil.isNotEmpty(reportId)){
+				docList = reportResourceRepository.findByReportIdAndResourceStatus(reportId, 1)
+						.stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
+			}
 		}else{
-			docList = reportResourceRepository.findByTemplateIdAndChapterAndResourceStatus(templateId, chapter, resourceStatus);
+			docList = reportResourceRepository.findByTemplateIdAndChapterAndResourceStatus(templateId, chapter, resourceStatus).stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
 		}
 		//更新改doc的位置字段
-		reportResource.setDocPosition(newPosition);
+//		reportResource.setDocPosition(newPosition);
+		Integer tnewPosition = docList.get(newPosition).getDocPosition();
+		Integer tdocPosition = docList.get(docPosition).getDocPosition();
+		reportResource.setDocPosition(tnewPosition);
 		reportResourceRepository.save(reportResource);
 		if(docPosition > newPosition){//上移
 			for(int i = 0; i < docList.size(); i++){
@@ -1436,13 +1443,15 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 				}
 				//各自的位置
 				Integer position = docList.get(i).getDocPosition();
+
 				// 其他文章原位置大于或等于新位置，且小于该文章的原位置
-				if(position >= newPosition && position < docPosition && flag){
+				if(position >= tnewPosition && position < tdocPosition && flag){
 					docList.get(i).setDocPosition(position + 1);
 					reportResourceRepository.save(docList.get(i));
 				}
 				//else暂时没想到
 			}
+
 		}else{//下移
 			for(int i = 0; i < docList.size(); i++){
 				String sid2 = docList.get(i).getSid();
@@ -1453,7 +1462,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 				//各自的位置
 				Integer position = docList.get(i).getDocPosition();
 				// 其他文章原位置大于或等于新位置，且小于该文章的原位置
-				if(position <= newPosition && position > docPosition && flag){
+				if(position <= tnewPosition && position > tdocPosition && flag){
 					docList.get(i).setDocPosition(position - 1);
 					reportResourceRepository.save(docList.get(i));
 				}

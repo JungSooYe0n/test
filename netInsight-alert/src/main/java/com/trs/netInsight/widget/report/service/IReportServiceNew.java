@@ -153,7 +153,7 @@ public interface IReportServiceNew {
 
 	Object searchResources(String keyWords, String statisticsTime, Integer pageNum, Integer pageSize) throws TRSException;
 
-	Object changePosition(Integer docPosition, Integer newPosition, String chapter, String templateId, int resourceStatus, String id, String reportDataId);
+	Object changePosition(Integer docPosition, Integer newPosition, String chapter, String templateId, int resourceStatus, String id, String reportDataId,String reportId);
 
 	/**
 	 * 只为迁移历史数据
