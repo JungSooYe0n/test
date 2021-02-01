@@ -1221,12 +1221,8 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
 
     public Object findMaterialSourceByCondition(String libraryId, int pageNo, int pageSize,
                                                 List<String> groupNameList, String keyword, String fuzzyValueScope, String invitationCard,
-                                                String forwarPrimary, String time, Boolean isExport) throws TRSException {
+                                                String forwarPrimary, String sort, Boolean isExport) throws TRSException {
         User loginUer = UserUtils.getUser();
-        String start = DateUtil.formatTimeRange(time)[0];
-        String end = DateUtil.formatTimeRange(time)[1];
-        Date startTime = time == null ? new Date() : DateUtil.stringToDate(start, DateUtil.yyyyMMddHHmmss);
-        Date endTime = time == null ? new Date() : DateUtil.stringToDate(end, DateUtil.yyyyMMddHHmmss);
         //获取用户可查询的数据源
         String groupNames = StringUtils.join(groupNameList, ";");
         List<String> groupName = SourceUtil.getGroupNameList(groupNames);
@@ -1234,15 +1230,20 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
             return null;
         }
         String source = StringUtils.join(groupName, ";");
-        Sort sort = new Sort(Sort.Direction.DESC, "urltime");
-        PageRequest pageable = new PageRequest(pageNo, pageSize, sort);
+        Sort sortLimit = null;
+        if ("desc".equals(sort)) {
+            sortLimit = new Sort(Sort.Direction.DESC, "urltime");
+        } else if ("asc".equals(sort)){
+            sortLimit = new Sort(Sort.Direction.ASC, "urltime");
+        }
+
+        PageRequest pageable = new PageRequest(pageNo, pageSize, sortLimit);
         Page<Favourites> list = null;
         Specification<Favourites> criteria = new Specification<Favourites>() {
             @Override
             public Predicate toPredicate(Root<Favourites> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 List<Predicate> predicate = new ArrayList<>();
                 predicate.add(cb.equal(root.get("libraryId"), libraryId));
-                predicate.add(cb.between(root.get("createdTime"), startTime, endTime));
                 if (StringUtil.isNotEmpty(keyword) && StringUtil.isNotEmpty(fuzzyValueScope)) {
                     List<Predicate> predicateKeyWord = new ArrayList<>();
 

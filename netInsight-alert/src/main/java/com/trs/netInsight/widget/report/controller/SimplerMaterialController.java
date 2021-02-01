@@ -126,11 +126,11 @@ public class SimplerMaterialController {
             @ApiImplicitParam(name ="fuzzyValueScope",value = "在结果中搜索的范围",dataType = "String",defaultValue = "fullText",paramType = "query",required = false),
             @ApiImplicitParam(name = "forwarPrimary", value = "微博原发 primary/转发 forward", dataType = "String", paramType = "query",required = true),
             @ApiImplicitParam(name = "invitationCard", value = "论坛主贴 0 /回帖 1", dataType = "String", paramType = "query",required = true),
-            @ApiImplicitParam(name = "time", value = "时间", dataType = "String", paramType = "query",required = true),
+            @ApiImplicitParam(name = "sort", value = "排序方式", dataType = "String", paramType = "query",required = true),
             @ApiImplicitParam(name = "pageNo", value = "页码", dataType = "int", paramType = "query",required = true),
             @ApiImplicitParam(name = "pageSize", value = "页长", dataType = "int", paramType = "query",required = true)})
     @FormatResult
-    public Object findMaterialResource( String libraryId,String groupName, String fuzzyValue,String fuzzyValueScope,String forwarPrimary,String invitationCard,String time,int pageNo,int pageSize) throws Exception {
+    public Object findMaterialResource( String libraryId,String groupName, String fuzzyValue,String fuzzyValueScope,String forwarPrimary,String invitationCard,String sort,int pageNo,int pageSize) throws Exception {
 
         //防止前端乱输入
         pageSize = pageSize>=1?pageSize:10;
@@ -147,7 +147,7 @@ public class SimplerMaterialController {
                 throw new OperationException("所传参数：groupName值有误，为:"+str+"，获取我的收藏列表出错");
             }
         }
-        return materialLibraryNewService.findMaterialSourceByCondition(libraryId,pageNo,pageSize,source,fuzzyValue,fuzzyValueScope,invitationCard,forwarPrimary,time,false);
+        return materialLibraryNewService.findMaterialSourceByCondition(libraryId,pageNo,pageSize,source,fuzzyValue,fuzzyValueScope,invitationCard,forwarPrimary,sort,false);
         //历史方法  -  >  存在筛选问题，而且是从hybase拿取数据，现在从mysql拿取
         // return materialLibraryNewService.findMaterialResource(libraryId,pageNo,pageSize,groupName,fuzzyValue,invitationCard,forwarPrimary,time);
     }
