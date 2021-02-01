@@ -765,10 +765,10 @@ public class ReportUtil {
 		ReportResourceRepository reportResourceRepository = SpringUtil.getBean(ReportResourceRepository.class);
 		// 位置字段新加的，为了不删除原报告数据，先对原数据位置字段进行赋值
 		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).getDocPosition() == 0) {
-				list.get(i).setDocPosition(i + 1);
-				reportResourceRepository.save(list.get(i));
-			}
+//			if (list.get(i).getDocPosition() == 0) {
+//				list.get(i).setDocPosition(i + 1);
+//				reportResourceRepository.save(list.get(i));
+//			}
 			if(StringUtil.isNotEmpty(list.get(i).getGroupName())){
 				list.get(i).setGroupName(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(list.get(i).getGroupName()));
 			}
