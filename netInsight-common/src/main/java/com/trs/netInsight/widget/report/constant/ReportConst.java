@@ -449,7 +449,7 @@ public class ReportConst {
     public static final String Hand_Made_TOP10_Weibo = "微博活跃用户TOP10";
     public static final String Hand_Made_TOP10_Wechat = "微信活跃用户TOP10";
     public static final String Hand_Made_TOP10_User = "活跃用户TOP10";
-    public static final String Hand_Made_Hot_News_List = "热点信息列表";
+    public static final String Hand_Made_Hot_News_List = "信息列表";
     public static final String Hand_Made_Word_Cloud = "词云统计";
 
 

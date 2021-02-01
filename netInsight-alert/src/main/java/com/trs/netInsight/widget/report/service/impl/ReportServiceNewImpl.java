@@ -455,18 +455,18 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 
 				if (isResourceSim) {
 					List<ReportResource> thisChapterList = reportResourceRepository.findByTemplateIdAndChapter(templateId, chapter);
-					if("Hot_News_List".equals(chapter)) {
-						if (thisChapterList.size() > 0) {
-							for (ReportResource reportResource : thisChapterList)
-								reportResourceRepository.delete(reportResource);
-						}
-					}
-					List<ReportResource> newChapterList = reportResourceRepository.findByTemplateIdAndChapter(templateId, chapter);
+//					if("Hot_News_List".equals(chapter)) {
+//						if (thisChapterList.size() > 0) {
+//							for (ReportResource reportResource : thisChapterList)
+//								reportResourceRepository.delete(reportResource);
+//						}
+//					}
+//					List<ReportResource> newChapterList = reportResourceRepository.findByTemplateIdAndChapter(templateId, chapter);
 					Integer docPosition = 0;
-					if(newChapterList.size() == 0){
+					if(thisChapterList.size() == 0){
 						docPosition = -1;
 					}else{
-						docPosition = newChapterList.size() + 1 + i;
+						docPosition = thisChapterList.size() + 1 + i;
 					}
 					//准备插入列表数据
 					insertListDataIntoResources(docPosition, sidArray, i ,userId, groupNameArray, chapter, img_data, null,
