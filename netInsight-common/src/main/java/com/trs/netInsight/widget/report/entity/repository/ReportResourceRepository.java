@@ -102,6 +102,6 @@ public interface ReportResourceRepository
 	List<ReportResource> findByTemplateIdAndChapterAndResourceStatus(String templateId, String chapter,
                                                                      int resourceStatus);
 
-	List<ReportResource> findByReportIdAndChapterAndResourceStatus(String templateId, String chapter,
+	List<ReportResource> findByReportIdAndChapterAndResourceStatus(String reportId, String chapter,
                                                                    int resourceStatus);
 }

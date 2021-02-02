@@ -1422,7 +1422,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			//该用户、这个资源模块的文章集合
 //			docList = reportResourceRepository.findByReportIdAndChapterAndResourceStatus(templateId, chapter, resourceStatus);
 			if (StringUtil.isNotEmpty(reportId)){
-				docList = reportResourceRepository.findByReportIdAndResourceStatus(reportId, 1)
+				docList = reportResourceRepository.findByReportIdAndChapterAndResourceStatus(reportId, chapter,resourceStatus)
 						.stream().sorted(Comparator.comparing(ReportResource::getDocPosition)).collect(Collectors.toList());
 			}
 		}else{
