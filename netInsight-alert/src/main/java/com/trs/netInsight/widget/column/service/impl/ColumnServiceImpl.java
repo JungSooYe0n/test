@@ -1227,7 +1227,14 @@ sequenceRepository.flush();
 //				//对原来的同层级的数据排序
 //				this.moveSequenceForColumn(moveId,moveFlag, user);
 //			}
-List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBySequence(parentId);
+//List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBySequence(parentId);
+			User loginUser = UserUtils.getUser();
+			List<IndexSequence> indexSequenceList = null;
+			if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+				indexSequenceList = sequenceRepository.findByUserIdAndParentIdOrderBySequence(loginUser.getId(),parentId);
+			}else {
+				indexSequenceList = sequenceRepository.findBySubGroupIdAndParentIdOrderBySequence(loginUser.getSubGroupId(),parentId);
+			}
 
 
 			JSONArray array = JSONArray.parseArray(data);
