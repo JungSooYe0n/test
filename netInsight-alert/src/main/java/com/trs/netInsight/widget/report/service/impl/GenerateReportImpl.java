@@ -752,6 +752,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail)
 				|| WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail)
 				|| Chapter.Hot_Weibo.equals(Chapter.valueOf(chapterDetail))|| Chapter.Hot_News.equals(Chapter.valueOf(chapterDetail))
+				|| Chapter.Hot_News_List.equals(Chapter.valueOf(chapterDetail))
 		)){
 			/*if (WEIBOHOTTOP10key.equals(chapterDetail)){
 				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "转发", bgColor, 1200);	//2000
