@@ -464,6 +464,9 @@ public class AlertServiceImpl implements IAlertService {
 				if (ObjectUtil.isNotEmpty(pageItem.getContent())) {
 					pageItem.setContent(pageItem.getContent().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
 				}
+				if (ObjectUtil.isNotEmpty(pageItem.getAppraise())) {
+					pageItem.setAppraise(pageItem.getAppraise().replace("[","").replace("]", "").replace("\"",""));
+				}
 				// 检验收藏
 				pageItem.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(pageItem.getSid())));
 				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
