@@ -217,7 +217,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			for(int i = 0 ; i <elements.size() ; i ++){
 				TElementNew element = elements.get(i);
 				elements.remove(element);
-				element.setChapterPosition(i);
+				element.setChapterPosition(i+1);
 				elements.add(i,element);
 			}
 		}
