@@ -724,8 +724,10 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 			}else if ("表格".equals(eleType)){//日报、周报、月报
 				//列数应该按照章节类型进行判断，暂时写4
-				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 4);
-				createTable(dTable, xdoc, chapterContent, chapterDetail,false);
+				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 6);
+				createTable(dTable, xdoc, chapterContent, chapterDetail,true);
+//				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 4);
+//				createTable(dTable, xdoc, chapterContent, chapterDetail,false);
 			}else {
 				//列表
 				createWordList(xdoc,chapterContent,chapterDetail,eleType);
@@ -777,6 +779,7 @@ public class GenerateReportImpl implements IGenerateReport {
 				if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail)
 						|| WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail)
 						|| Chapter.Hot_Weibo.equals(Chapter.valueOf(chapterDetail))|| Chapter.Hot_News.equals(Chapter.valueOf(chapterDetail))
+						|| Chapter.Hot_News_List.equals(Chapter.valueOf(chapterDetail))
 				)){
 					/*if (WEIBOHOTTOP10key.equals(chapterDetail)){
 						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getRttCount()==null?"0":chapaterContent.get(i).getRttCount().toString(),bgColor, 1200);
