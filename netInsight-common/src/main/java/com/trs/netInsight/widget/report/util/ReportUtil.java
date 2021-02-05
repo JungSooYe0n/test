@@ -61,6 +61,8 @@ public class ReportUtil {
 			return String.format(getEmotion(img_data), chapter);
 		} else if ("gaugeChart".equals(imgType)) {
 			return getMapComment(img_data);
+		} else if ("wordCloudChart".equals(imgType)) {
+			return String.format(getbarComment(img_data), chapter);
 		} else{
 			log.info("没有匹配到对应的图片类型 - "+imgType);
 		}
