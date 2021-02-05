@@ -694,7 +694,7 @@ public class GenerateReportImpl implements IGenerateReport {
         XWPFParagraph titleParagraph = xdoc.createParagraph();    
         titleParagraph.setAlignment(ParagraphAlignment.LEFT);  
         XWPFRun titleLine = titleParagraph.createRun();  
-        titleLine.setText(ROMAN2CHINESE.get(i)+"、"+title);  
+        titleLine.setText(IntUtil.toChinese(i)+"、"+title);
         titleLine.setFontSize(TITLEFONTSIZE);  
         titleLine.setFontFamily(TITLEFONTFAMILY);  
         titleLine.setBold(true);
@@ -1166,7 +1166,7 @@ public class GenerateReportImpl implements IGenerateReport {
 					//时间
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					XWPFParagraph turnTime = xdoc.createParagraph();
-					turnTime.setAlignment(ParagraphAlignment.RIGHT);
+					turnTime.setAlignment(ParagraphAlignment.LEFT);
 					//1.5倍行间距
 					//turnTime.setSpacingBetween(1.5);
 					XWPFRun turnTimeRun = turnTime.createRun();
@@ -1204,7 +1204,7 @@ public class GenerateReportImpl implements IGenerateReport {
 					//siteName + 时间
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					XWPFParagraph turnTime = xdoc.createParagraph();
-					turnTime.setAlignment(ParagraphAlignment.RIGHT);
+					turnTime.setAlignment(ParagraphAlignment.LEFT);
 					//1.5倍行间距
 					//turnTime.setSpacingBetween(1.5);
 					XWPFRun turnTimeRun = turnTime.createRun();
