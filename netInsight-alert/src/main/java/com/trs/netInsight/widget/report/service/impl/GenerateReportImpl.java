@@ -1055,45 +1055,67 @@ public class GenerateReportImpl implements IGenerateReport {
 			xwpfDocument.createParagraph().createRun().setText("");
 			
 		}else if(("月报".equals(report.getReportType()) || ("周报".equals(report.getReportType())))){
+//			//第一段：红色，33号字体，居中，楷体GB2312
+//			Integer count = createP1(xwpfDocument, report.getReportName());
+//			//第二段：处理首页空白
+//			XWPFParagraph createParagraph3 = xwpfDocument.createParagraph();
+//			createParagraph3.setAlignment(ParagraphAlignment.CENTER);
+//			XWPFRun createRun3 = createParagraph3.createRun();
+//			createRun3.setFontSize(PAGEHEADFONTSIZE);
+//			createRun3.setText("（" +new SimpleDateFormat("yyyy").format(new Date()) + "年第" + report.getThisIssue() + "期  总第" + report.getTotalIssue()+"期）");
+//			createRun3.setFontFamily(PAGEHEADFONTFAMILY);
+//
+//			for(int i=0; i<(8 + count); i++){
+//				XWPFParagraph createParagraph22 = xwpfDocument.createParagraph();
+//				createParagraph22.setAlignment(ParagraphAlignment.CENTER);
+//				XWPFRun createRun22 = createParagraph22.createRun();
+//				createRun22.setText(" ");
+//				createRun22.setFontSize(20);
+//				createRun22.setTextPosition(120);
+//				createRun22.addPicture(getRedLine(), Document.PICTURE_TYPE_PNG, "1.png", 50, 50);
+//			}
+//
+//			//第四段：
+//			XWPFParagraph createParagraph4 = xwpfDocument.createParagraph();
+//			createParagraph4.setAlignment(ParagraphAlignment.CENTER);
+//			XWPFRun createRun4 = createParagraph4.createRun();
+//			createRun4.setFontSize(PAGEHEADFONTSIZE);
+//			createRun4.setText(report.getPreparationUnits());
+//			createRun4.setFontFamily(PAGEHEADFONTFAMILY);
+//			createRun4.setBold(true);
+//
+//			//第五段
+//			XWPFParagraph createParagraph5 = xwpfDocument.createParagraph();
+//			createParagraph5.setAlignment(ParagraphAlignment.CENTER);
+//			XWPFRun createRun5 = createParagraph5.createRun();
+//			createRun5.setFontSize(PAGEHEADFONTSIZE);
+//			createRun5.setText(new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
+//			createRun5.setFontFamily(PAGEHEADFONTFAMILY);
+//			createRun5.setBold(true);
+//
+//			xwpfDocument.createParagraph().createRun().setText("");
+//			xwpfDocument.createParagraph().createRun().setText("");
 			//第一段：红色，33号字体，居中，楷体GB2312
-			Integer count = createP1(xwpfDocument, report.getReportName());
-			//第二段：处理首页空白
+			createP1(xwpfDocument, report.getReportName());
+			//第二段：黑色 12号字 居中 楷体
+			createP2(xwpfDocument,report.getThisIssue(), report.getTotalIssue());
+			//第三段：黑色 12号字 居中 楷体
+			createP3(xwpfDocument, report.getPreparationUnits());
+			//第四段：
 			XWPFParagraph createParagraph3 = xwpfDocument.createParagraph();
 			createParagraph3.setAlignment(ParagraphAlignment.CENTER);
 			XWPFRun createRun3 = createParagraph3.createRun();
-			createRun3.setFontSize(PAGEHEADFONTSIZE);
-			createRun3.setText("（" +new SimpleDateFormat("yyyy").format(new Date()) + "年第" + report.getThisIssue() + "期  总第" + report.getTotalIssue()+"期）");
-			createRun3.setFontFamily(PAGEHEADFONTFAMILY);
-			
-			for(int i=0; i<(8 + count); i++){
-				XWPFParagraph createParagraph22 = xwpfDocument.createParagraph();
-				createParagraph22.setAlignment(ParagraphAlignment.CENTER);
-				XWPFRun createRun22 = createParagraph22.createRun();
-				createRun22.setText(" ");
-				createRun22.setFontSize(20);
-				createRun22.setTextPosition(120);
-				createRun22.addPicture(getRedLine(), Document.PICTURE_TYPE_PNG, "1.png", 50, 50);
-			}
-			
-			//第四段：
-			XWPFParagraph createParagraph4 = xwpfDocument.createParagraph();
-			createParagraph4.setAlignment(ParagraphAlignment.CENTER);
-			XWPFRun createRun4 = createParagraph4.createRun();
-			createRun4.setFontSize(PAGEHEADFONTSIZE);
-			createRun4.setText(report.getPreparationUnits());
-			createRun4.setFontFamily(PAGEHEADFONTFAMILY);
-			createRun4.setBold(true);
-			
+			createRun3.addPicture(getRedLine(),
+					Document.PICTURE_TYPE_PNG, "1.png", 5500000, 50000);
 			//第五段
 			XWPFParagraph createParagraph5 = xwpfDocument.createParagraph();
 			createParagraph5.setAlignment(ParagraphAlignment.CENTER);
 			XWPFRun createRun5 = createParagraph5.createRun();
 			createRun5.setFontSize(PAGEHEADFONTSIZE);
-			createRun5.setText(new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
 			createRun5.setFontFamily(PAGEHEADFONTFAMILY);
-			createRun5.setBold(true);
-			
-			xwpfDocument.createParagraph().createRun().setText("");
+			createRun5.setText("统计时间段:"+ report.getStatisticsTime());
+
+			//加个回车
 			xwpfDocument.createParagraph().createRun().setText("");
 		}
 		log.info(String.format(GENERATEREPORTLOG,"报告头" + DONE));
