@@ -4919,7 +4919,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 							"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
 				}
 				List<HashMap<String, String>> mapList = new ArrayList<>();
-
+				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, true, name, "special", UserUtils.getUser(), false);
 				if (ObjectUtil.isNotEmpty(infoListResult)) {
 					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();

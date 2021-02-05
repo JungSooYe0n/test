@@ -7290,7 +7290,7 @@ public class InfoListServiceImpl implements IInfoListService {
 			}
 			//来源网站
 			if (null != fromWebSite && !fromWebSite.isEmpty()){
-				addFieldValue(fromWebSite,queryBuilder," OR ",FtsFieldConst.FIELD_SITENAME);
+				addFieldValue(fromWebSite,queryBuilder," OR ",FtsFieldConst.FIELD_SITENAME_LIKE);
 			}
 
 			//排除网站
@@ -7302,7 +7302,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					excludeWeb = excludeWeb.substring(0, excludeWeb.length() - 4);
 				}
 				if (!"".equals(builderTrsl)){
-					builderTrsl += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME).append(":(").append(excludeWeb)
+					builderTrsl += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME_LIKE).append(":(").append(excludeWeb)
 							.append(")").toString();
 					queryBuilder = new QueryBuilder();
 					queryBuilder.filterByTRSL(builderTrsl);

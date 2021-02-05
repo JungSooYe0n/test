@@ -24,6 +24,7 @@ public class TElementNew {
 	private Integer selected;
 	//0未选中，1选中
 	private Boolean active = true;
+	private String chapterTabName;
 	public Boolean getActive(){
 		if(selected != null && selected ==1){
 			active = true;
