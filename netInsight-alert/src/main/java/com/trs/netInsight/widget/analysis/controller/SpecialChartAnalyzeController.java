@@ -1892,9 +1892,9 @@ public class SpecialChartAnalyzeController {
                     specialProject.setEnd(timeArray[1]);
                 }
             }
-			QueryBuilder statBuilder = null;
-            statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
-			statBuilder.page(0, pageSize);
+//			QueryBuilder statBuilder = null;
+//            statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
+//			statBuilder.page(0, pageSize);
 			type = CommonListChartUtil.formatPageShowGroupName(type);
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
 			builder.setPageSize(pageSize);
