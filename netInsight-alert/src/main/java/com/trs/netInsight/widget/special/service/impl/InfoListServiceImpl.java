@@ -5709,7 +5709,6 @@ public class InfoListServiceImpl implements IInfoListService {
 
 		try {
 			QueryBuilder queryBuilder =  new QueryBuilder();
-			queryBuilder.setGroupName(source);
 			JSONArray jsonArray = JSONArray.parseArray(keywords);
 			String searchKey = "";
 			Integer wordFromNum = 0;
@@ -5737,6 +5736,7 @@ public class InfoListServiceImpl implements IInfoListService {
 					queryBuilder = WordSpacingUtil.handleKeyWords(keywords, keyWordIndex, weight);
 				}
 			}
+			queryBuilder.setGroupName(source);
 			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRangeMinus1(time), Operator.Between);
 			if (StringUtil.isNotEmpty(excludeWords)) {
 				//拼凑排除词
