@@ -90,7 +90,7 @@ public class ReportConst {
     public static final String REPORTINTROkey = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATAkey = "OVERVIEWOFDATA"; // 数据统计概述
 
-    public static final String SITUATIONACCESSMENTkey = "SITUATIONACCESSMENT";
+    public static final String SITUATIONACCESSMENTkey = "SITUATIONACCESSMENT";//态势评估
     public static final String DATATRENDANALYSISkey = "DATATRENDANALYSIS"; // 数据趋势分析
     public static final String DATASOURCEANALYSISkey = "DATASOURCEANALYSIS"; // 数据来源对比
     //事件脉络

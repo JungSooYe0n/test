@@ -737,6 +737,72 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			templateNew4Page.setUserId(templateNew.getUserId());
 			templateNew4Page.setTemplateType(templateNew.getTemplateType());
 			List<TElementNew> parseArray = JSONArray.parseArray(templateNew.getTemplateList(), TElementNew.class);
+			for (TElementNew tElementNew : parseArray){
+				switch (tElementNew.getChapterDetail()){
+					case OVERVIEWOFDATANew:
+						tElementNew.setChapterTabName(OVERVIEWOFDATANew);
+					case NEWSHOTTOP10key:
+						tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+						break;
+					case WEIBOHOTTOP10key:
+						tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+						break;
+					case WECHATHOTTOP10key:
+						tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+						break;
+					case WEMEDIAkey:
+						tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+						break;
+					case WECHATEVENTCONTEXTkey:
+						tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+						break;
+					case WEIBOEVENTCONTEXTkey:
+						tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+						break;
+					case NEWSEVENTCONTEXTkey:
+						tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+						break;
+					case WEMEDIAEVENTCONTEXTkey:
+						tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+						break;
+					case NEWSPROPAFATIONANALYSISTIMELISTkey:
+						tElementNew.setChapterTabName(PROPAFATIONANALYSISkey);
+						break;
+					case WEMEDIAPROPAFATIONANALYSISTIMELISTkey:
+						tElementNew.setChapterTabName(PROPAFATIONANALYSISkey);
+						break;
+					case SITUATIONACCESSMENTkey:
+						tElementNew.setChapterTabName(SITUATIONACCESSMENTkey);
+						break;
+					case DATATRENDANALYSISkey:
+						tElementNew.setChapterTabName(DATATRENDANALYSISkey);
+						break;
+					case DATASOURCEANALYSISkey:
+						tElementNew.setChapterTabName(DATASOURCEANALYSISkey);
+						break;
+					case OPINIONANALYSISkey:
+						tElementNew.setChapterTabName(OPINIONANALYSISkey);
+						break;
+					case EMOTIONANALYSISkey:
+						tElementNew.setChapterTabName(EMOTIONANALYSISkey);
+						break;
+					case MOODSTATISTICSkey:
+						tElementNew.setChapterTabName(MOODSTATISTICSkey);
+						break;
+					case WORDCLOUDSTATISTICSkey:
+						tElementNew.setChapterTabName(WORDCLOUDSTATISTICSkey);
+						break;
+					case AREAkey:
+						tElementNew.setChapterTabName(AREAkey);
+						break;
+					case ACTIVEACCOUNTkey:
+						tElementNew.setChapterTabName(ACTIVEACCOUNTkey);
+						break;
+					case WEIBOHOTTOPICSkey:
+						tElementNew.setChapterTabName(WEIBOHOTTOPICSkey);
+						break;
+				}
+			}
             //List<TElementNew> parseArray2 = ReportUtil.tElementListHandle(parseArray);
 			templateNew4Page.setTemplateListData(parseArray);
 			

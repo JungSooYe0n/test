@@ -183,7 +183,8 @@ public class SepcialReportTask implements Runnable {
                                 try {
 //                                    overviewOfDataResult = columnSearch(overviewOfDataIT, REPORTCHARTDATASIZE, groupName);
                                     QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
-                                    searchBuilder.setGroupName(specialProject.getSource());
+//                                    searchBuilder.setGroupName(specialProject.getSource());
+                                    searchBuilder.setPageSize(20);
                                     ChartResultField resultField = new ChartResultField("name", "value");
                                     overviewOfDataResult = commonListService.queryListGroupNameStattotal(searchBuilder,specialProject.isSimilar(),specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),specialProject.getSource(),"special",resultField);
                                     endMillis = System.currentTimeMillis();
