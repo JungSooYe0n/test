@@ -724,7 +724,11 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 			}else if ("表格".equals(eleType)){//日报、周报、月报
 				//列数应该按照章节类型进行判断，暂时写4
-				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 6);
+				Integer w = 6;
+				if("Hot_News_List".equals(chapterDetail)){
+					w = 5;
+				}
+				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, w);
 				createTable(dTable, xdoc, chapterContent, chapterDetail,true);
 //				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 4);
 //				createTable(dTable, xdoc, chapterContent, chapterDetail,false);
