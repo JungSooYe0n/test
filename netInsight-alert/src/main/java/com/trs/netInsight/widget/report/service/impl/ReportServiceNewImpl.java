@@ -741,6 +741,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 				switch (tElementNew.getChapterDetail()){
 					case OVERVIEWOFDATANew:
 						tElementNew.setChapterTabName(OVERVIEWOFDATANew);
+						break;
 					case NEWSHOTTOP10key:
 						tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
 						break;

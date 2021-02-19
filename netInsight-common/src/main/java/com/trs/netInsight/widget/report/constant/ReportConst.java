@@ -121,7 +121,8 @@ public class ReportConst {
     public static final String NEWSHOTTOP10key = "NEWSHOTTOP10"; // 新闻热点TOP10
     public static final String WEIBOHOTTOP10key = "WEIBOHOTTOP10"; // 微博热点TOP10
     public static final String WECHATHOTTOP10key = "WECHATHOTTOP10"; // 微信热点TOP10
-    public static final String WEMEDIAkey = "WEMEDIAHOT"; // 自媒体号热点
+//    public static final String WEMEDIAkey = "WEMEDIAHOT"; // 自媒体号热点
+    public static final String WEMEDIAkey = "WEMEDIA"; // 自媒体号热点
 
     public static final String ACTIVEACCOUNTkey = "ACTIVEACCOUNT";
 

@@ -380,7 +380,10 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     @Override
     public void delReportResource(String reportId, String chapterDetail) throws Exception {
         ReportNew report = reportNewRepository.findOne(reportId);
+        StringBuilder stringBuilder = new StringBuilder();
+        reportNewRepository.save(report);
         ReportDataNew reportData = reportDataNewRepository.findOne(report.getReportDataId());
+        reportDataNewRepository.saveDeleteTab(StringUtil.isEmpty(reportData.getDeletedTab()) ? stringBuilder.append(chapterDetail).toString() : stringBuilder.append(reportData.getDeletedTab()).append(";").append(chapterDetail).toString(),reportData.getId());
 
         switch (chapterDetail) {
             case OVERVIEWOFDATANew:

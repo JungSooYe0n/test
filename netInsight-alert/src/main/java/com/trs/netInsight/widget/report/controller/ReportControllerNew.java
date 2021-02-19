@@ -5,17 +5,19 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.alibaba.fastjson.JSONArray;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.widget.report.constant.Chapter;
-import com.trs.netInsight.widget.report.entity.TemplateNew;
+import com.trs.netInsight.widget.report.entity.*;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +30,6 @@ import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
-import com.trs.netInsight.widget.report.entity.ReportNew;
-import com.trs.netInsight.widget.report.entity.SpecialReportGroup;
 import com.trs.netInsight.widget.report.service.IReportServiceNew;
 import com.trs.netInsight.widget.report.service.ISpecialReportService;
 
@@ -39,6 +39,10 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+
+import static com.trs.netInsight.widget.report.constant.ReportConst.*;
+import static com.trs.netInsight.widget.report.constant.ReportConst.ACTIVEACCOUNTkey;
+import static com.trs.netInsight.widget.report.constant.ReportConst.WEIBOHOTTOPICSkey;
 
 /**
  * Created by shao.guangze on 2018年5月24日 下午5:46:05
@@ -443,7 +447,81 @@ public class ReportControllerNew {
 	@RequestMapping(value = "/listAllReport", method = RequestMethod.POST)
 	@FormatResult
 	public Object listAllReport(String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize,String time){
-		return reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize,time);
+		Page<ReportNew> reportNewPage = reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize,time);
+		List<ReportNew> reportNewList = reportNewPage.getContent();
+		for (ReportNew reportNew : reportNewList){
+			String templateList = reportNew.getTemplateList();
+				List<TElementNew> parseArray = JSONArray.parseArray(templateList, TElementNew.class);
+				for (TElementNew tElementNew : parseArray) {
+					switch (tElementNew.getChapterDetail()) {
+						case OVERVIEWOFDATANew:
+							tElementNew.setChapterTabName(OVERVIEWOFDATANew);
+							break;
+						case NEWSHOTTOP10key:
+							tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+							break;
+						case WEIBOHOTTOP10key:
+							tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+							break;
+						case WECHATHOTTOP10key:
+							tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+							break;
+						case WEMEDIAkey:
+							tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+							break;
+						case WECHATEVENTCONTEXTkey:
+							tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+							break;
+						case WEIBOEVENTCONTEXTkey:
+							tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+							break;
+						case NEWSEVENTCONTEXTkey:
+							tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+							break;
+						case WEMEDIAEVENTCONTEXTkey:
+							tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+							break;
+						case NEWSPROPAFATIONANALYSISTIMELISTkey:
+							tElementNew.setChapterTabName(PROPAFATIONANALYSISkey);
+							break;
+						case WEMEDIAPROPAFATIONANALYSISTIMELISTkey:
+							tElementNew.setChapterTabName(PROPAFATIONANALYSISkey);
+							break;
+						case SITUATIONACCESSMENTkey:
+							tElementNew.setChapterTabName(SITUATIONACCESSMENTkey);
+							break;
+						case DATATRENDANALYSISkey:
+							tElementNew.setChapterTabName(DATATRENDANALYSISkey);
+							break;
+						case DATASOURCEANALYSISkey:
+							tElementNew.setChapterTabName(DATASOURCEANALYSISkey);
+							break;
+						case OPINIONANALYSISkey:
+							tElementNew.setChapterTabName(OPINIONANALYSISkey);
+							break;
+						case EMOTIONANALYSISkey:
+							tElementNew.setChapterTabName(EMOTIONANALYSISkey);
+							break;
+						case MOODSTATISTICSkey:
+							tElementNew.setChapterTabName(MOODSTATISTICSkey);
+							break;
+						case WORDCLOUDSTATISTICSkey:
+							tElementNew.setChapterTabName(WORDCLOUDSTATISTICSkey);
+							break;
+						case AREAkey:
+							tElementNew.setChapterTabName(AREAkey);
+							break;
+						case ACTIVEACCOUNTkey:
+							tElementNew.setChapterTabName(ACTIVEACCOUNTkey);
+							break;
+						case WEIBOHOTTOPICSkey:
+							tElementNew.setChapterTabName(WEIBOHOTTOPICSkey);
+							break;
+					}
+				}
+		}
+return reportNewPage;
+//		return reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize,time);
 	}
 	
 	/**

@@ -183,7 +183,8 @@ public class ReportDataNew extends BaseEntity{
 	 */
 	@Column(name = "wemedia_spread_analysis_time_list", columnDefinition = "mediumtext")
 	private String wemediaSpreadAnalysisTimeList;
-
+	@Column(name = "deleted_tab")
+	private String deletedTab;
 	/**
 	 * 极简模式  自定义模块
 	 */

@@ -493,6 +493,7 @@ public class SepcialReportTask implements Runnable {
                                 startMillis = System.currentTimeMillis();
                                 try {
                                     String source = CommonListChartUtil.changeGroupName("新闻网站");
+                                    specialProject.setSource(source);
                                     List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(source,
                                             specialProject, rangeTime, 8);
                                     endMillis = System.currentTimeMillis();
