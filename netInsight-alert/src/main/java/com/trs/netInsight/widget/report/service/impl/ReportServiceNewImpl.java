@@ -186,6 +186,9 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			List<String> originalChapterDetail = originalElements.stream().filter(e -> originalPosition.equals(e.getChapterPosition())).map(e -> e.getChapterDetail()).collect(Collectors.toList());
 			//现在模板的，模块名称与原来模板模块名称对应的，模块位置。
 			List<Integer> currentChapterPosition = currentElements.stream().filter(e -> e.getChapterDetail().equals(originalChapterDetail.get(0))).map(e -> e.getChapterPosition()).collect(Collectors.toList());
+			if(currentChapterPosition.size()>1){
+				break;
+			}
 			if(CollectionUtils.isEmpty(currentChapterPosition)){
 			    //此时说明用户所删除的章节下，有数据。
                 //所以删除该章节时会连同删除其下的数据
