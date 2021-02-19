@@ -1000,6 +1000,10 @@ public class SpecialController {
 				specialProject.setSimilar(false);
 				specialProject.setIrSimflag(false);
 				specialProject.setIrSimflagAll(true);
+			}else if ("no".equals(simflag)) { //不排重
+				specialProject.setSimilar(false);
+				specialProject.setIrSimflag(false);
+				specialProject.setIrSimflagAll(false);
 			}
 			//命中规则
 			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(specialProject.getTrsl())) {

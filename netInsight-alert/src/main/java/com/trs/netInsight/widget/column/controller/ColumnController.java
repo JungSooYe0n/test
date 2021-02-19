@@ -1390,6 +1390,10 @@ if (isAddAlert) {
 				indexTab.setSimilar(false);
 				indexTab.setIrSimflag(false);
 				indexTab.setIrSimflagAll(true);
+			}else if ("no".equals(simflag)) { //不排重
+				indexTab.setSimilar(false);
+				indexTab.setIrSimflag(false);
+				indexTab.setIrSimflagAll(false);
 			}
 			//命中规则
 			if (StringUtil.isNotEmpty(wordIndex) && StringUtil.isEmpty(indexTab.getTrsl())) {

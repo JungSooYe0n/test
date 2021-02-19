@@ -135,6 +135,8 @@ public class IndexTabDTO implements Serializable {
             this.simflag="urlRemove";
         } else if (tab.isIrSimflagAll()) {
             this.simflag= "sourceRemove";
+        }else{
+            this.simflag= "no";
         }
         this.tabWidth= mapper.getTabWidth();
         this.trsl= tab.getTrsl();

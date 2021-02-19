@@ -87,6 +87,8 @@ public class CustomChartDTO implements Serializable {
             this.simflag = "urlRemove";
         } else if (customChart.isIrSimflagAll()) {
             this.simflag = "sourceRemove";
+        }else{
+            this.simflag = "no";
         }
         this.tabWidth = customChart.getTabWidth();
         this.timeRange = customChart.getTimeRange();

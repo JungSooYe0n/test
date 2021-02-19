@@ -265,13 +265,13 @@ public class SpecialProject extends BaseEntity {
      */
     @Column(name = "ir_simflag")
     private boolean irSimflag = false;
-	public boolean isIrSimflag(){
-		if(similar == false && irSimflagAll == false){
-			return true;
-		}else{
-			return irSimflag;
-		}
-	}
+//	public boolean isIrSimflag(){
+//		if(similar == false && irSimflagAll == false){
+//			return true;
+//		}else{
+//			return irSimflag;
+//		}
+//	}
     
     /**
      * 专家模式情况下  是否转换为server表达式
@@ -1373,7 +1373,7 @@ public class SpecialProject extends BaseEntity {
 		this.conditionScreen =true;
 
 		this.similar = false;
-		this.irSimflag = true;
+		this.irSimflag = false;
 		this.irSimflagAll = false;
 		//排重
 		if ("netRemove".equals(simflag)) { //单一媒体排重

@@ -122,13 +122,13 @@ public class CustomChart extends BaseEntity {
      */
     @Column(name = "ir_simflag")
     private boolean irSimflag = false;
-    public boolean isIrSimflag(){
-        if(similar == false && irSimflagAll == false){
-            return true;
-        }else{
-            return irSimflag;
-        }
-    }
+//    public boolean isIrSimflag(){
+//        if(similar == false && irSimflagAll == false){
+//            return true;
+//        }else{
+//            return irSimflag;
+//        }
+//    }
     /**
      * 跨数据源排重
      */
