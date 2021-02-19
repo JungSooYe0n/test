@@ -45,6 +45,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 /**
  * 公共信息查询 - 调用hybase的方法
@@ -544,14 +545,23 @@ public class CommonListServiceImpl implements ICommonListService {
                 GroupInfo info = groupList.get(i);
                 QueryCommonBuilder builder1 = new QueryCommonBuilder();
                 builder1.filterByTRSL(builder.asTRSL());
-                builder1.page(0, 1);
+                builder1.page(0, 50);
                 builder1.filterField(FtsFieldConst.FIELD_MD5TAG, info.getFieldValue(), Operator.Equal);
-                builder1.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+                builder1.orderBy(FtsFieldConst.FIELD_URLTIME, false);
                 builder1.setDatabase(builder.getDatabase().split(";"));
                 PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchServiceNew.pageListCommon(builder1, sim, irSimflag, irSimflagAll, type);
 
                 if (ObjectUtil.isNotEmpty(pagedList) && pagedList.getPageItems() != null && pagedList.size() > 0) {
-                    FtsDocumentCommonVO vo = pagedList.getPageItems().get(0);
+                    List<FtsDocumentCommonVO> pageItems = pagedList.getPageItems();
+                    FtsDocumentCommonVO vo = null;
+                    int temp = 0;
+                    for (int j = 0; j < pageItems.size(); j++) {
+                        if (!Pattern.matches(".*00:00:00.*", pageItems.get(j).getUrlTime().toString())) {
+                            temp = j;
+                            break;
+                        }
+                    }
+                    vo = pageItems.get(temp);
                     vo.setSimCount(info.getCount());
                     ftsDocumentCommonVOS.add(vo);
                 }
