@@ -772,11 +772,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 1300);	//3000
 
 		indexHead += 1;
-		Integer w = 1600;
-		if(Chapter.Hot_News_List.equals(Chapter.valueOf(chapterDetail))){
-			w = 2300;
-		}
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "链接", bgColor, w);	//3000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "链接", bgColor, 1600);	//3000
 			for(int i = 0; i < chapaterContent.size(); i++){
 				//序号
 				setCellText(xdoc, getCellHight(xTable, i + 1, 0), i + 1 + "",bgColor, 700);
@@ -809,11 +805,7 @@ public class GenerateReportImpl implements IGenerateReport {
 				if (StringUtil.isNotEmpty(urlName)){
 					urlName = urlName.replaceAll(": ","://");
 				}
-				Integer w1 = 1600;
-				if(Chapter.Hot_News_List.equals(Chapter.valueOf(chapterDetail))){
-					w1 = 2300;
-				}
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), urlName,bgColor, w1);
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), urlName,bgColor, 1600);
 			}
 	}
 
