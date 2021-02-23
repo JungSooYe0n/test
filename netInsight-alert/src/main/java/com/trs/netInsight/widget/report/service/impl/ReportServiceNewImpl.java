@@ -175,34 +175,23 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		if(CollectionUtils.isEmpty(allReportResource)){
 		    return;
         }
-		Map<Integer, List<ReportResource>> collect = allReportResource.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
-		Iterator<Integer> iterator = collect.keySet().iterator();
-		List<TElementNew> originalElements = JSONArray.parseArray(templateNew.getTemplateList(), TElementNew.class);
+//		Map<Integer, List<ReportResource>> collect = allReportResource.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
+//		Iterator<Integer> iterator = collect.keySet().iterator();
+//		List<TElementNew> originalElements = JSONArray.parseArray(templateNew.getTemplateList(), TElementNew.class);
 		List<TElementNew> currentElements = JSONArray.parseArray(templateList, TElementNew.class);
 		ArrayList<ReportResource> resources2DB = new ArrayList<>();
-		while(iterator.hasNext()){
-			Integer originalPosition = iterator.next();
-			//原有模板的，当前数据所在位置的，模块名称
-			List<String> originalChapterDetail = originalElements.stream().filter(e -> originalPosition.equals(e.getChapterPosition())).map(e -> e.getChapterDetail()).collect(Collectors.toList());
-			//现在模板的，模块名称与原来模板模块名称对应的，模块位置。
-			List<Integer> currentChapterPosition = currentElements.stream().filter(e -> e.getChapterDetail().equals(originalChapterDetail.get(0))).map(e -> e.getChapterPosition()).collect(Collectors.toList());
-			if(currentChapterPosition.size()>1){
-				break;
-			}
-			if(CollectionUtils.isEmpty(currentChapterPosition)){
-			    //此时说明用户所删除的章节下，有数据。
-                //所以删除该章节时会连同删除其下的数据
-                reportResourceRepository.deleteByTemplateIdAndResourceStatusAndChapterPosition(templateNew.getId(),0,originalPosition);
-            }else if(!originalPosition.equals(currentChapterPosition.get(0))){
-				//此时说明该部分数据的chapterPosition已经改变。update
-				List<ReportResource> resources = collect.get(originalPosition).stream().map(e -> {
-					Integer integer = currentChapterPosition.get(0);
-					e.setChapterPosition(integer);
-					return e;
-				}).collect(Collectors.toList());
-				resources2DB.addAll(resources);
+		for(TElementNew currentElement:currentElements){
+			List<ReportResource> reportResources = currentElement.getChapaterContent();
+			if(reportResources!=null){
+				for(int i =0;i<reportResources.size();i++){
+					if(!reportResources.get(i).getChapterPosition().equals(currentElement.getChapterPosition())){
+						reportResources.get(i).setChapterPosition(currentElement.getChapterPosition());
+					}
+				}
+				resources2DB.addAll(reportResources);
 			}
 		}
+
 		if(!CollectionUtils.isEmpty(resources2DB)){
 			reportResourceRepository.save(resources2DB);
 		}
