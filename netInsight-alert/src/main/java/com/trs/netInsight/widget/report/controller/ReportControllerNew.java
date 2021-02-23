@@ -14,6 +14,7 @@ import com.trs.netInsight.widget.report.constant.Chapter;
 import com.trs.netInsight.widget.report.entity.*;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.docx4j.wml.Tr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
@@ -310,7 +311,9 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "statisticsTime", value = "统计时间", dataType = "String", paramType = "query" ) ,
 			@ApiImplicitParam(name = "jsonImgElements", value = "json格式的图片数据", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "resourceDeleted", value = "是否删除资源，默认删除资源", dataType = "Integer", paramType = "query")})
+			@ApiImplicitParam(name = "resourceDeleted", value = "是否删除资源，默认删除资源", dataType = "Integer", paramType = "query"),
+			@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "isUpdateTemplate", value = "是否更新对应模块", dataType = "Integer", paramType = "query", required = false)})
 	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@RequestMapping(value = "/create", method = RequestMethod.POST)
 	@FormatResult
@@ -325,7 +328,9 @@ public class ReportControllerNew {
 			@RequestParam(value = "statisticsTime",required = false)String statisticsTime,
 			@RequestParam(value = "jsonImgElements",required = false)String jsonImgElements, 
 			@RequestParam(value = "reportId", required = false)String reportId,
-			@RequestParam(value = "resourceDeleted", required = false, defaultValue = "0")Integer resourceDeleted) throws Exception {
+			@RequestParam(value = "resourceDeleted", required = false, defaultValue = "0")Integer resourceDeleted,
+			@RequestParam(value = "templateList", required = false)String templateList,
+			@RequestParam(value = "isUpdateTemplate", required = false)Integer isUpdateTemplate) throws Exception {
 		//如果reportId为空的话说明没走预览，这个时候需要把预览做的事情再做一遍————保存表头到report表中。
 		//无论该请求是从预览过来还是直接从报告资源池过来，都需要reportIntro,因为reportIntro是存在report_data表中
 		if(StringUtil.isEmpty(reportId)){
@@ -336,8 +341,9 @@ public class ReportControllerNew {
 					.withPreparationAuthors(preparationAuthors)
 					.withTemplateId(templateId)
 					.withStatisticsTime(statisticsTime)
-					.withResourceDeleted(resourceDeleted).build();
-			return reportServiceNew.create(reportIntro, jsonImgElements, report);
+					.withResourceDeleted(resourceDeleted)
+					.withTemplateList(templateList).build();
+			return reportServiceNew.create(reportIntro, jsonImgElements, report, isUpdateTemplate);
 		}else{
 			return reportServiceNew.create(reportIntro, jsonImgElements, reportId);
 		}
@@ -362,7 +368,7 @@ public class ReportControllerNew {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = false),
+			@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "reportIntro", value = "报告简介文本内容", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "dataSummary", value = "数据统计概述", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "jsonImgElements", value = "json格式的图片数据", dataType = "String", paramType = "query", required = true),
