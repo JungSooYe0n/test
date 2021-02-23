@@ -348,6 +348,8 @@ public class GenerateReportImpl implements IGenerateReport {
 	public String generateReport(ReportNew report, Map<Integer, List<ReportResource>> collect, TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data, String reportIntro) throws Exception {
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
+		//因为是生成报告，所以使用报告里的 templateList
+		templateNew.setTemplateList(report.getTemplateList());
 		List<TElementNew> elementList = ReportUtil.setResoucesIntoElements(templateNew, collect);
 //		elementList = ReportUtil.tElementListHandle(elementList);
 		AtomicInteger i = new AtomicInteger(0);

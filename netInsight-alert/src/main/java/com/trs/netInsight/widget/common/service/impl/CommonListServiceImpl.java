@@ -37,6 +37,7 @@ import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
+import org.docx4j.wml.Tr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Lazy;
@@ -545,26 +546,45 @@ public class CommonListServiceImpl implements ICommonListService {
                 GroupInfo info = groupList.get(i);
                 QueryCommonBuilder builder1 = new QueryCommonBuilder();
                 builder1.filterByTRSL(builder.asTRSL());
-                builder1.page(0, 50);
+                builder1.page(0, 200);
                 builder1.filterField(FtsFieldConst.FIELD_MD5TAG, info.getFieldValue(), Operator.Equal);
                 builder1.orderBy(FtsFieldConst.FIELD_URLTIME, false);
                 builder1.setDatabase(builder.getDatabase().split(";"));
                 PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchServiceNew.pageListCommon(builder1, sim, irSimflag, irSimflagAll, type);
 
-                if (ObjectUtil.isNotEmpty(pagedList) && pagedList.getPageItems() != null && pagedList.size() > 0) {
-                    List<FtsDocumentCommonVO> pageItems = pagedList.getPageItems();
-                    FtsDocumentCommonVO vo = null;
-                    int temp = 0;
-                    for (int j = 0; j < pageItems.size(); j++) {
-                        if (!Pattern.matches(".*00:00:00.*", pageItems.get(j).getUrlTime().toString())) {
-                            temp = j;
+                int m = 0;
+                FtsDocumentCommonVO vo = null;
+                while (m < 5) {
+                    if (ObjectUtil.isNotEmpty(pagedList) && pagedList.getPageItems() != null && pagedList.size() > 0) {
+                        List<FtsDocumentCommonVO> pageItems = pagedList.getPageItems();
+
+                        //先取前200位，首先判断最后一位的urlTime是否包含"00:00:00"，并且取得个数等于200
+                        if (pageItems.size() == 200 && Pattern.matches(".*00:00:00.*", pageItems.get(pageItems.size() - 1).getUrlTime().toString())) {
+                            //若200名的最后一位的urlTime包含"00:00:00"，重新再取一次，取5次
+                            builder1.page(m + 1, 200);
+                            pagedList = hybase8SearchServiceNew.pageListCommon(builder1, sim, irSimflag, irSimflagAll, type);
+                            m += 1;
+                            //总数只有200个
+                            vo = pageItems.get(0);
+                            vo.setSimCount(info.getCount());
+                            continue;
+                        } else {
+                            int temp = 0;
+                            for (int j = 0; j < pageItems.size(); j++) {
+                                if (!Pattern.matches(".*00:00:00.*", pageItems.get(j).getUrlTime().toString())) {
+                                    temp = j;
+                                    break;
+                                }
+                            }
+                            vo = pageItems.get(temp);
+                            vo.setSimCount(info.getCount());
                             break;
                         }
+                    } else {
+                        break;
                     }
-                    vo = pageItems.get(temp);
-                    vo.setSimCount(info.getCount());
-                    ftsDocumentCommonVOS.add(vo);
                 }
+                ftsDocumentCommonVOS.add(vo);
             }
             long endTime = System.currentTimeMillis();
             log.error("间隔HY时间：" + (endTime - startTime));
