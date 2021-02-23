@@ -1182,6 +1182,8 @@ if(Const.GROUPNAME_FACEBOOK.equals(groupName)){
                     QueryBuilder builder = new QueryBuilder();
                     HashMap<String, Object> returnMap = new HashMap<>();
                     builder.setPageSize(20);
+                    //贴吧数据详情页不标红问题
+					builder.filterByTRSL(trsl);
 //                    builder.filterField(FtsFieldConst.FIELD_MD5TAG, md5, Operator.Equal);
 					builder.filterField(FtsFieldConst.FIELD_HKEY, ftsDocument.getHkey(), Operator.Equal);
                     if ("1".equals(nreserved1)) {
