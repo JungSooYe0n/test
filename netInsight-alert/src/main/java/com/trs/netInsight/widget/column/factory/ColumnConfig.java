@@ -586,6 +586,12 @@ public class ColumnConfig {
 					}
 				}
 			}
+		} else {
+			//不是精准筛选，trslk表达式也要加上group_name的内容
+			List<String> searchSourceList = CommonListChartUtil.formatGroupName(StringUtil.isEmpty(groupName) ? source : groupName);
+			StringBuffer sb = new StringBuffer();
+			sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
+			queryBuilder.filterByTRSL(sb.toString());
 		}
 		String sidsTrsl = queryBuilder.asTRSL();
 		StringBuilder sidsTrslNew = new StringBuilder(sidsTrsl);
