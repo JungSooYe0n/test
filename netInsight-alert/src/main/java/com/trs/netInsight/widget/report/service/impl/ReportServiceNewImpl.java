@@ -841,6 +841,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		User loginUser = UserUtils.getUser();
 		report.setUserId(loginUser.getId());
 		report.setSubGroupId(loginUser.getSubGroupId());
+		report.setTemplateList(templateNew.getTemplateList());
 		reportNewRepository.save(report);
 
 		//保存报告简介
