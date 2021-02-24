@@ -349,7 +349,9 @@ public class GenerateReportImpl implements IGenerateReport {
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
 		//因为是生成报告，所以使用报告里的 templateList
-		templateNew.setTemplateList(report.getTemplateList());
+		if (!"".equals(report.getTemplateList()) && report.getTemplateList() != null) {
+			templateNew.setTemplateList(report.getTemplateList());
+		}
 		List<TElementNew> elementList = ReportUtil.setResoucesIntoElements(templateNew, collect);
 //		elementList = ReportUtil.tElementListHandle(elementList);
 		AtomicInteger i = new AtomicInteger(0);
