@@ -630,7 +630,7 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 				//动态设置
 				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decode);
-				int width = 5600000;
+				int width = 5270000;
 				int height = 3000000;
 				switch (title){
 					case DATATRENDANALYSIS:
@@ -696,7 +696,7 @@ public class GenerateReportImpl implements IGenerateReport {
 
 	private void dataListParagraph(XWPFDocument xdoc, String title,String chapterDetail, List<ReportResource> chapterContent, int i,String eleType) throws Exception {
         XWPFParagraph titleParagraph = xdoc.createParagraph();    
-        titleParagraph.setAlignment(ParagraphAlignment.LEFT);  
+        titleParagraph.setAlignment(ParagraphAlignment.LEFT);
         XWPFRun titleLine = titleParagraph.createRun();  
         titleLine.setText(IntUtil.toChinese(i)+"、"+title);
         titleLine.setFontSize(TITLEFONTSIZE);  
@@ -750,8 +750,8 @@ public class GenerateReportImpl implements IGenerateReport {
 		String bgColor = "111111";
 		CTTbl ttbl = xTable.getCTTbl();
 		CTTblPr tblPr = ttbl.getTblPr() == null ? ttbl.addNewTblPr() : ttbl.getTblPr();
-
 		CTTblLayoutType t = tblPr.isSetTblLayout()?tblPr.getTblLayout():tblPr.addNewTblLayout();
+		tblPr.addNewJc().setVal(STJc.CENTER);
 		t.setType(STTblLayoutType.FIXED);//使布局固定，不随内容改变宽度
 		CTTblWidth tblWidth = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
 		tblWidth.setW(new BigInteger("8700"));
@@ -821,6 +821,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		CTTbl ttbl = xTable.getCTTbl();
 		CTTblPr tblPr = ttbl.getTblPr() == null ? ttbl.addNewTblPr() : ttbl.getTblPr();
 		CTTblLayoutType t = tblPr.isSetTblLayout()?tblPr.getTblLayout():tblPr.addNewTblLayout();
+		tblPr.addNewJc().setVal(STJc.CENTER);
 		t.setType(STTblLayoutType.FIXED);//使布局固定，不随内容改变宽度
 		CTTblWidth tblWidth = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
 //		tblWidth.setW(new BigInteger("8700"));
@@ -1048,7 +1049,7 @@ public class GenerateReportImpl implements IGenerateReport {
 			createParagraph3.setAlignment(ParagraphAlignment.CENTER);
 			XWPFRun createRun3 = createParagraph3.createRun();
 			createRun3.addPicture(getRedLine(),
-					Document.PICTURE_TYPE_PNG, "1.png", 5500000, 50000);
+					Document.PICTURE_TYPE_PNG, "1.png", 5270000, 50000);
 			//第五段
 			XWPFParagraph createParagraph5 = xwpfDocument.createParagraph();
 			createParagraph5.setAlignment(ParagraphAlignment.CENTER);
