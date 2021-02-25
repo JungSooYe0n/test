@@ -57,6 +57,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -5870,70 +5871,46 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		boolean irSimflag = specialProject.isIrSimflag();
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
 //		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
-		 int weiboLow = 10000;
-		 int weiboMiddle = 15000;
 		 int weiboHigh = 20000;
-		 int weixinLow = 200;
-		 int weixinMiddle = 300;
 		 int weixinHigh = 500;
-		 int newsLow = 300;
-		 int newsMiddle = 500;
 		 int newsHigh = 800;
-		 int appLow = 300;
-		 int appMiddle = 500;
 		 int appHigh = 800;
-		 int zimeitiLow = 200;
-		 int zimeitiMiddle = 300;
 		 int zimeitiHigh = 500;
-		 int luntanLow = 100;
-		 int luntanMiddle = 150;
 		 int luntanHigh = 200;
 		User user = UserUtils.getUser();
 		if (StringUtil.isNotEmpty(user.getOrganizationId())) {
 			List<HotRating> hotRatingList = hotRatingRepository.findByOrganizationId(user.getOrganizationId());
 			if (ObjectUtil.isNotEmpty(hotRatingList)) {
-				weiboLow = hotRatingList.get(0).getWeiboLow();
-				weiboMiddle = hotRatingList.get(0).getWeiboMiddle();
 				weiboHigh = hotRatingList.get(0).getWeiboHigh();
-				weixinLow = hotRatingList.get(0).getWeixinLow();
-				weixinMiddle = hotRatingList.get(0).getWeixinMiddle();
 				weixinHigh = hotRatingList.get(0).getWeixinHigh();
-				newsLow = hotRatingList.get(0).getNewsLow();
-				newsMiddle = hotRatingList.get(0).getNewsMiddle();
 				newsHigh = hotRatingList.get(0).getNewsHigh();
-				appLow = hotRatingList.get(0).getAppLow();
-				appMiddle = hotRatingList.get(0).getAppMiddle();
 				appHigh = hotRatingList.get(0).getAppHigh();
-				zimeitiLow = hotRatingList.get(0).getZimeitiLow();
-				zimeitiMiddle = hotRatingList.get(0).getZimeitiMiddle();
 				zimeitiHigh = hotRatingList.get(0).getZimeitiHigh();
-				luntanLow = hotRatingList.get(0).getLuntanLow();
-				luntanMiddle = hotRatingList.get(0).getLuntanMiddle();
 				luntanHigh = hotRatingList.get(0).getLuntanHigh();
 			}
 		}
 		ChartResultField chartResultField = new ChartResultField("name","num");
-		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,Const.ALL_GROUP_COLLECT,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
+		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,specialProject.getSource(),"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
 
 		double total = 0;
 		for (Map<String, Object> mapList : list){
 		    if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("新闻"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),newsLow,newsMiddle,newsHigh) * 0.1;
+                total += getScore(Long.valueOf(mapList.get("num").toString()), newsHigh) * 0.1;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("微博"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),weiboLow,weiboMiddle,weiboHigh) * 0.4;
+                total += getScore(Long.valueOf(mapList.get("num").toString()), weiboHigh) * 0.4;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("微信"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),weixinLow,weixinMiddle,weixinHigh) * 0.3;
+                total += getScore(Long.valueOf(mapList.get("num").toString()), weixinHigh) * 0.3;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("客户端"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),appLow,appMiddle,appHigh) * 0.1;
+                total += getScore(Long.valueOf(mapList.get("num").toString()), appHigh) * 0.1;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("自媒体号"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),zimeitiLow,zimeitiMiddle,zimeitiHigh) * 0.05;
+                total += getScore(Long.valueOf(mapList.get("num").toString()), zimeitiHigh) * 0.05;
             }
             if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("论坛"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),luntanLow,luntanMiddle,luntanHigh) * 0.05;
+                total += getScore(Long.valueOf(mapList.get("num").toString()), luntanHigh) * 0.05;
             }
         }
 //        searchBuilder.setPageSize(200);
@@ -5950,20 +5927,25 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //			}
 //		}
 //		total += getScore(Long.valueOf(weiboVipNum),100,150,200) * 0.1;
-		return Integer.parseInt(new DecimalFormat("0").format(total));
+		int result = BigDecimal.valueOf(total).setScale(1, BigDecimal.ROUND_HALF_UP).intValue();
+		return result == 0 ? 1 : result;
 	}
-private int getScore(Long score,int lev1,int lev2,int lev3){
-		if (score < lev1){
-	        return 60;
-	    }
-    if (score < lev2){
-        return 80;
-    }
-    if (score < lev3){
-        return 100;
-    }
-    return 100;
-}
+
+	/**
+	 * 先算每一条的分数，再乘以实际条数
+	 * @param num 实际条数
+	 * @param high 满分为100分时的条数
+	 * @return
+	 */
+	private double getScore(Long num, int high){
+
+		if (num >= high) {
+			return 100D;
+		}
+
+		return BigDecimal.valueOf(100).divide(BigDecimal.valueOf(high)).multiply(BigDecimal.valueOf(num)).doubleValue();
+	}
+
 	/**
 	 * 当前文章对应的用户信息
 	 * @param screenName,uid
