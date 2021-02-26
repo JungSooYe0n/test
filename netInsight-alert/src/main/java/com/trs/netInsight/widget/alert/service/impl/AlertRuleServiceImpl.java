@@ -1409,8 +1409,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
 				break;
 			case "loadtime":
-				builder.orderBy(FtsFieldConst.FIELD_LOADTIME, true);
-				countBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, true);
+				builder.orderBy(FtsFieldConst.FIELD_HYLOAD_TIME, true);
+				countBuilder.orderBy(FtsFieldConst.FIELD_HYLOAD_TIME, true);
 				break;
 			case "asc":
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
