@@ -6007,7 +6007,7 @@ public class InfoListServiceImpl implements IInfoListService {
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl3.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
@@ -6413,7 +6413,7 @@ public class InfoListServiceImpl implements IInfoListService {
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl3.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
@@ -7481,7 +7481,7 @@ public class InfoListServiceImpl implements IInfoListService {
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-									buffer.append(" NOT (").append(FtsFieldConst.FIELD_SCREEN_NAME).append(":(").append(childTrsl3.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL_LIKE).append(":(").append(childTrsl3.toString()).append("))");
 								}
 								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
