@@ -5890,7 +5890,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			}
 		}
 		ChartResultField chartResultField = new ChartResultField("name","num");
-		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,specialProject.getSource(),"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
+		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,Const.ALL_GROUP_COLLECT,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
 
 		double total = 0;
 		for (Map<String, Object> mapList : list){
