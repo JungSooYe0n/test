@@ -994,8 +994,9 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	public Page<ReportNew> listAllReport(String reportType,  String searchText, String groupName, Integer pageNum, Integer pageSize,String time) {
 		//Page<ReportNew> findByReportType ;
 		User loginUser = UserUtils.getUser();
+		//现在不需要删除历史报告
 		//删除历史报告
-		deleteHistoryReportResource(reportType);
+		//deleteHistoryReportResource(reportType);
 		//往期报告
 		if("HistoryReport".equals(reportType)){
 			return findHistoryReports(searchText ,loginUser, pageNum, pageSize);
@@ -1052,7 +1053,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			}else if(INDEXTABREPORT.equals(reportType)){
 				//日常监测报
 				reportTypeDiffPredicate = cb.equal(root.get("groupName").as(String.class), groupName);
-			}else if(DAILYREPORT.equals(reportType)){
+			}/*else if(DAILYREPORT.equals(reportType)){
 				//日报
 				reportTypeDiffPredicate = cb.greaterThan(root.get("createdTime").as(Date.class), getDeletedNodeTime(DailyReportExpiration, Calendar.DAY_OF_MONTH));
 			}else if(WEEKLYREPORT.equals(reportType)){
@@ -1061,12 +1062,14 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			}else if(MONTHLYREPORT.equals(reportType)){
 				//月报
 				reportTypeDiffPredicate = cb.greaterThan(root.get("createdTime").as(Date.class), getDeletedNodeTime(MonthlyReportExpiration, Calendar.DAY_OF_MONTH));
-			}
+			}*/
 			if(StringUtil.isNotEmpty(finalSearchText)){
 				Predicate searchTextPredicate = cb.like(root.get("reportName").as(String.class), "%"+finalSearchText+"%");
 				allPredicates.add(searchTextPredicate);
 			}
-			allPredicates.add(reportTypeDiffPredicate);
+			if (reportTypeDiffPredicate != null) {
+				allPredicates.add(reportTypeDiffPredicate);
+			}
 			allPredicates.add(reportTypePredicate);
 			allPredicates.add(userPredicate);
 			allPredicates.add(docPathPredicate);
