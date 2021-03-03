@@ -408,7 +408,7 @@ public class LoginController {
 							  @RequestParam(value = "password" ,required = false) String password,
 							  @RequestParam(value = "htoken" ,required = false) String htoken,
 							  HttpServletRequest request, HttpServletResponse response) {
-		if(!StringUtil.isNotEmpty(htoken) && htoken.equals("fffda55f821cb618")){
+		if(!StringUtil.isEmpty(htoken) && htoken.equals("fffda55f821cb618")){
 			userName = "lianghuser";
 			password = "trs@300229";
 		}
