@@ -850,6 +850,7 @@ public class ReportUtil {
 			tElementNew.setChapterDetail(value.toString());
 			tElementNew.setChapterPosition(value.getSequence());
 			tElementNew.setSelected(selected);
+			tElementNew.setElementNewType("表格");
 			allChapters.add(tElementNew);
 		}
 		return allChapters;
