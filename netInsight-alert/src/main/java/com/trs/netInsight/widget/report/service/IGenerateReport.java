@@ -16,7 +16,7 @@ public interface IGenerateReport {
 
 	//专题报生成word报告  改造 20191121
 	String generateReport(ReportNew report, ReportDataNew reportDataNew,
-			TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data)throws Exception;
+			String templateList, Map<String, List<Map<String, String>>> base64data,String dataSummary)throws Exception;
 
 	//日报周报月报生成word报告
 	String generateReport(ReportNew report, Map<Integer, List<ReportResource>> collect,

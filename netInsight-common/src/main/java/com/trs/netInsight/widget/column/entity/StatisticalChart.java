@@ -76,6 +76,10 @@ public class StatisticalChart extends BaseEntity {
         this.parentId = parentId;
         this.hide = false;
     }
+    public StatisticalChart StatisticalChartCopy(){
+        StatisticalChart statisticalChart = new StatisticalChart(chartType,sequence,isTop,name,this.parentId);
+        return statisticalChart;
+    }
 
 
 }

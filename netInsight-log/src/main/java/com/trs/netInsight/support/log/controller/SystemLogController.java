@@ -144,6 +144,7 @@ public class SystemLogController {
 			@ApiParam("用户id") @RequestParam(value = "userId") String userId,
 			@ApiParam("操作") @RequestParam(value = "operation") String operation,
 			@ApiParam("操作明细(增删改查)") @RequestParam(value = "operationDetail",required = false) String systemLogOperation,
+			@ApiParam("检索条件") @RequestParam(value = "retrievalCondition", required = false) String retrievalCondition,
 			@ApiParam("根据时间排序") @RequestParam(value = "createTimeOrder",required = false) String createTimeOrder,
 			@ApiParam("操作状态") @RequestParam(value = "simpleStatus",required = false) String simpleStatus,
 			@ApiParam("步长") @RequestParam(value = "pageNum") Integer pageNum,
@@ -151,7 +152,7 @@ public class SystemLogController {
 
 		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(DepositPattern.MYSQL);
 		return abstractSystemLog.findCurOrgLogs(organizationId, timeLimited, userId, operation,
-				systemLogOperation,createTimeOrder,simpleStatus, pageNum, pageSize);
+				systemLogOperation,createTimeOrder,simpleStatus, pageNum, pageSize,retrievalCondition);
 	}
 
 	/***
@@ -220,7 +221,7 @@ public class SystemLogController {
 			@ApiParam("时间") @RequestParam(value = "timeLimited") String timeLimited,
 			@ApiParam("操作") @RequestParam(value = "operation") String operation,
 			@ApiParam("timeConsumed") @RequestParam(value = "timeConsumed") String timeConsumed,
-			@ApiParam("检索条件") @RequestParam(value = "retrievalCondition", required = false) String retrievalCondition,
+			@ApiParam("检索条件 根据ip查询传 requestIp ") @RequestParam(value = "retrievalCondition", required = false) String retrievalCondition,
 			@ApiParam("检索内容") @RequestParam(value = "retrievalInformation", required = false) String retrievalInformation,
 			@ApiParam("根据时间排序") @RequestParam(value = "createTimeOrder",required = false) String createTimeOrder,
 			@ApiParam("页码") @RequestParam(value = "pageNum", required = false, defaultValue = "0") Integer pageNum,

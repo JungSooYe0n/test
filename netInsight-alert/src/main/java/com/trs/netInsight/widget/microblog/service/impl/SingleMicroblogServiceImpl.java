@@ -146,7 +146,9 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
 
         //查看所有进度
         List<SingleMicroblogData> allSMD = singleMicroblogDataService.findAllSMDWithRandom(loginUser, urlName,microblogData.getRandom());
-
+for (SingleMicroblogData singleMicroblogData : allSMD){
+    System.out.print(singleMicroblogData.getName()+"/n");
+}
         if (allSMD.size() == 16){
             if (ObjectUtil.isNotEmpty(microblogData)){
                 microblogData.setState("完成");

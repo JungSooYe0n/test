@@ -5,17 +5,20 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.alibaba.fastjson.JSONArray;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.widget.report.constant.Chapter;
-import com.trs.netInsight.widget.report.entity.TemplateNew;
+import com.trs.netInsight.widget.report.entity.*;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.docx4j.wml.Tr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +31,6 @@ import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
-import com.trs.netInsight.widget.report.entity.ReportNew;
-import com.trs.netInsight.widget.report.entity.SpecialReportGroup;
 import com.trs.netInsight.widget.report.service.IReportServiceNew;
 import com.trs.netInsight.widget.report.service.ISpecialReportService;
 
@@ -39,6 +40,10 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+
+import static com.trs.netInsight.widget.report.constant.ReportConst.*;
+import static com.trs.netInsight.widget.report.constant.ReportConst.ACTIVEACCOUNTkey;
+import static com.trs.netInsight.widget.report.constant.ReportConst.WEIBOHOTTOPICSkey;
 
 /**
  * Created by shao.guangze on 2018年5月24日 下午5:46:05
@@ -188,7 +193,8 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "reportType", value = "报告类型", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "chapterPosition", value = "章节位置", dataType = "Integer", paramType = "query", required = true),
-			@ApiImplicitParam(name = "reportId", value = "报告id(此时为已生成的报告)", dataType = "reportId", paramType = "query", required = false)})
+			@ApiImplicitParam(name = "reportId", value = "报告id(此时为已生成的报告)", dataType = "reportId", paramType = "query", required = false),
+			@ApiImplicitParam(name = "mapto", value = "下钻地图地域", dataType = "mapto", paramType = "query", required = false)})
 	@Log(systemLogOperation = SystemLogOperation.REPORT_ADD_REPORT_RESOURCE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@RequestMapping(value = "/addReportResource", method = RequestMethod.POST)
 	public Object addReportResource(
@@ -202,7 +208,8 @@ public class ReportControllerNew {
 			@RequestParam(value = "reportType") String reportType,
 			@RequestParam(value = "templateId") String templateId,
 			@RequestParam(value = "chapterPosition") Integer chapterPosition,
-			@RequestParam(value = "reportId",required = false) String reportId) throws Exception {
+			@RequestParam(value = "reportId",required = false) String reportId,
+			@RequestParam(value = "mapto",required = false) String mapto) throws Exception {
 		try {
 			//页面栏目数据未加载出来就点“加入简报”操作，造成传空入库后，模板内前端页面无法显示
 			if (StringUtil.isNotEmpty(img_type) && StringUtil.isEmpty(img_data)){
@@ -218,7 +225,7 @@ public class ReportControllerNew {
 			String userId = UserUtils.getUser().getId();
 			Object result = reportServiceNew.saveReportResource(sids,trslk, userId,
 					groupName, chapter, img_data, reportType,
-					templateId, img_type, chapterPosition, reportId);
+					templateId, img_type, chapterPosition, reportId,mapto);
 			if ("fail".equals(result)) {
 				throw new OperationException("请检查sid和md5tag及groupName的数量是否一致");
 			} else if ("AllSimilar".equals(result)) {
@@ -304,7 +311,9 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "statisticsTime", value = "统计时间", dataType = "String", paramType = "query" ) ,
 			@ApiImplicitParam(name = "jsonImgElements", value = "json格式的图片数据", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "resourceDeleted", value = "是否删除资源，默认删除资源", dataType = "Integer", paramType = "query")})
+			@ApiImplicitParam(name = "resourceDeleted", value = "是否删除资源，默认删除资源", dataType = "Integer", paramType = "query"),
+			@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "isUpdateTemplate", value = "是否更新对应模块", dataType = "Integer", paramType = "query", required = false)})
 	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@RequestMapping(value = "/create", method = RequestMethod.POST)
 	@FormatResult
@@ -319,7 +328,9 @@ public class ReportControllerNew {
 			@RequestParam(value = "statisticsTime",required = false)String statisticsTime,
 			@RequestParam(value = "jsonImgElements",required = false)String jsonImgElements, 
 			@RequestParam(value = "reportId", required = false)String reportId,
-			@RequestParam(value = "resourceDeleted", required = false, defaultValue = "0")Integer resourceDeleted) throws Exception {
+			@RequestParam(value = "resourceDeleted", required = false, defaultValue = "0")Integer resourceDeleted,
+			@RequestParam(value = "templateList", required = false)String templateList,
+			@RequestParam(value = "isUpdateTemplate", required = false)Integer isUpdateTemplate) throws Exception {
 		//如果reportId为空的话说明没走预览，这个时候需要把预览做的事情再做一遍————保存表头到report表中。
 		//无论该请求是从预览过来还是直接从报告资源池过来，都需要reportIntro,因为reportIntro是存在report_data表中
 		if(StringUtil.isEmpty(reportId)){
@@ -330,8 +341,9 @@ public class ReportControllerNew {
 					.withPreparationAuthors(preparationAuthors)
 					.withTemplateId(templateId)
 					.withStatisticsTime(statisticsTime)
-					.withResourceDeleted(resourceDeleted).build();
-			return reportServiceNew.create(reportIntro, jsonImgElements, report);
+					.withResourceDeleted(resourceDeleted)
+					.withTemplateList(templateList).build();
+			return reportServiceNew.create(reportIntro, jsonImgElements, report, isUpdateTemplate);
 		}else{
 			return reportServiceNew.create(reportIntro, jsonImgElements, reportId);
 		}
@@ -356,7 +368,9 @@ public class ReportControllerNew {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "reportIntro", value = "报告简介文本内容", dataType = "String", paramType = "query", required = true),
+			@ApiImplicitParam(name = "dataSummary", value = "数据统计概述", dataType = "String", paramType = "query", required = false),
 			@ApiImplicitParam(name = "jsonImgElements", value = "json格式的图片数据", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "statisticsTime", value = "统计时间", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "reportName", value = "报告名称", dataType = "String", paramType = "query", required = true),
@@ -369,7 +383,9 @@ public class ReportControllerNew {
 	public Object createReport(
 			@RequestParam(value = "reportId", required = false) String reportId,
 			@RequestParam(value = "templateId", required = false) String templateId,
+			@RequestParam(value = "templateList", required = false) String templateList,
 			@RequestParam(value = "reportIntro", required = false) String reportIntro,
+			@RequestParam(value = "dataSummary", required = false) String dataSummary,
 			@RequestParam(value = "jsonImgElements", required = false) String jsonImgElements,
 			@RequestParam(value = "statisticsTime", required = false) String statisticsTime,
 			@RequestParam(value = "reportName", required = false) String reportName,
@@ -377,7 +393,7 @@ public class ReportControllerNew {
 			@RequestParam(value = "totalIssue", required = false) String totalIssue,
 			@RequestParam(value = "preparationUnits", required = false) String preparationUnits,
 			@RequestParam(value = "preparationAuthors", required = false) String preparationAuthors, javax.servlet.http.HttpServletRequest request) throws Exception {
-		return sepcialReportService.createSepcial(reportId, templateId, jsonImgElements, reportIntro, statisticsTime, reportName, thisIssue, totalIssue, preparationUnits, preparationAuthors);
+		return sepcialReportService.createSepcial(reportId, templateId,templateList, jsonImgElements, reportIntro, statisticsTime, reportName, thisIssue, totalIssue, preparationUnits, preparationAuthors,dataSummary);
 	}
 	
 	/**
@@ -437,7 +453,81 @@ public class ReportControllerNew {
 	@RequestMapping(value = "/listAllReport", method = RequestMethod.POST)
 	@FormatResult
 	public Object listAllReport(String reportType, String searchText, String groupName, Integer pageNum, Integer pageSize,String time){
-		return reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize,time);
+		Page<ReportNew> reportNewPage = reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize,time);
+		List<ReportNew> reportNewList = reportNewPage.getContent();
+		for (ReportNew reportNew : reportNewList){
+			String templateList = reportNew.getTemplateList();
+				List<TElementNew> parseArray = JSONArray.parseArray(templateList, TElementNew.class);
+				for (TElementNew tElementNew : parseArray) {
+					switch (tElementNew.getChapterDetail()) {
+						case OVERVIEWOFDATANew:
+							tElementNew.setChapterTabName(OVERVIEWOFDATANew);
+							break;
+						case NEWSHOTTOP10key:
+							tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+							break;
+						case WEIBOHOTTOP10key:
+							tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+							break;
+						case WECHATHOTTOP10key:
+							tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+							break;
+						case WEMEDIAkey:
+							tElementNew.setChapterTabName(NEWSHOTTOPICSkey);
+							break;
+						case WECHATEVENTCONTEXTkey:
+							tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+							break;
+						case WEIBOEVENTCONTEXTkey:
+							tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+							break;
+						case NEWSEVENTCONTEXTkey:
+							tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+							break;
+						case WEMEDIAEVENTCONTEXTkey:
+							tElementNew.setChapterTabName(NEWSEVENTCONTEXTkey);
+							break;
+						case NEWSPROPAFATIONANALYSISTIMELISTkey:
+							tElementNew.setChapterTabName(PROPAFATIONANALYSISkey);
+							break;
+						case WEMEDIAPROPAFATIONANALYSISTIMELISTkey:
+							tElementNew.setChapterTabName(PROPAFATIONANALYSISkey);
+							break;
+						case SITUATIONACCESSMENTkey:
+							tElementNew.setChapterTabName(SITUATIONACCESSMENTkey);
+							break;
+						case DATATRENDANALYSISkey:
+							tElementNew.setChapterTabName(DATATRENDANALYSISkey);
+							break;
+						case DATASOURCEANALYSISkey:
+							tElementNew.setChapterTabName(DATASOURCEANALYSISkey);
+							break;
+						case OPINIONANALYSISkey:
+							tElementNew.setChapterTabName(OPINIONANALYSISkey);
+							break;
+						case EMOTIONANALYSISkey:
+							tElementNew.setChapterTabName(EMOTIONANALYSISkey);
+							break;
+						case MOODSTATISTICSkey:
+							tElementNew.setChapterTabName(MOODSTATISTICSkey);
+							break;
+						case WORDCLOUDSTATISTICSkey:
+							tElementNew.setChapterTabName(WORDCLOUDSTATISTICSkey);
+							break;
+						case AREAkey:
+							tElementNew.setChapterTabName(AREAkey);
+							break;
+						case ACTIVEACCOUNTkey:
+							tElementNew.setChapterTabName(ACTIVEACCOUNTkey);
+							break;
+						case WEIBOHOTTOPICSkey:
+							tElementNew.setChapterTabName(WEIBOHOTTOPICSkey);
+							break;
+					}
+				}
+		}
+return reportNewPage;
+//		return reportServiceNew.listAllReport(reportType, searchText, groupName, pageNum, pageSize,time);
 	}
 	
 	/**
@@ -737,15 +827,16 @@ public class ReportControllerNew {
 		@ApiParam("模块类型")@RequestParam(value = "chapter", required = false)String chapter,
 		@ApiParam("模板id")@RequestParam(value = "templateId", required = false)String templateId,
 		@ApiParam("制作/完成（预览）")@RequestParam(value = "resourceStatus", required = false)int resourceStatus,
-		@ApiParam("专报中拖拽才传这个参数")@RequestParam(value = "reportId", required = false)String reportDataId,
-		@ApiParam("该记录在数据库中的id")@RequestParam(value = "id", required = false)String id
+		@ApiParam("专报中拖拽才传这个参数")@RequestParam(value = "reportDataId", required = false)String reportDataId,
+		@ApiParam("该记录在数据库中的id")@RequestParam(value = "id", required = false)String id,
+		@ApiParam("报告id")@RequestParam(value = "reportId", required = false)String reportId
 			){
 		//位置信息未别改变
 		if(docPosition == newPosition){
 			return null;
 		}
 		//处理位置信息
-		return reportServiceNew.changePosition(docPosition, newPosition, chapter, templateId, resourceStatus, id, reportDataId);
+		return reportServiceNew.changePosition(docPosition, newPosition, chapter, templateId, resourceStatus, id, reportDataId,reportId);
 	}
 
 	/**

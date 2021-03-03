@@ -31,6 +31,9 @@ import com.trs.netInsight.support.hybaseShard.service.IHybaseShardService;
 import com.trs.netInsight.support.knowledgeBase.entity.KnowledgeBase;
 import com.trs.netInsight.support.knowledgeBase.entity.KnowledgeClassify;
 import com.trs.netInsight.support.knowledgeBase.service.IKnowledgeBaseService;
+import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
+import com.trs.netInsight.support.log.entity.enums.SystemLogType;
+import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.support.redis.RedisOperator;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
@@ -154,6 +157,7 @@ public class ApiController {
      */
     @Api(value = "indexPage list", method = ApiMethod.IndexPage)
     @GetMapping("/indexPage")
+    @Log(systemLogOperation = SystemLogOperation.INDEX_PAGE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getIndexPage(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request) {
         ApiAccessToken token = getToken(request);
         String grantSourceOwnerId = token.getGrantSourceOwnerId();
@@ -181,6 +185,7 @@ public class ApiController {
      */
     @Api(value = "indexPage list with navigation", method = ApiMethod.IndexPageNavigation)
     @GetMapping("/getIndexPage")
+    @Log(systemLogOperation = SystemLogOperation.GET_INDEX_PAGE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object queryIndexPage(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request) throws TRSException {
         ApiAccessToken token = getToken(request);
         String grantSourceOwnerId = token.getGrantSourceOwnerId();
@@ -203,6 +208,7 @@ public class ApiController {
      */
     @Api(value = "indexPage info", method = ApiMethod.IndexPageInfo)
     @GetMapping("/indexPageInfo")
+    @Log(systemLogOperation = SystemLogOperation.INDEX_PAGE_INFO, systemLogType = SystemLogType.API, systemLogOperationPosition = "栏目id：@{indexPageId}")
     public Object getIndexPageInfo(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                    @RequestParam(value = "indexPageId") String indexPageId) {
         ApiAccessToken token = getToken(request);
@@ -222,6 +228,7 @@ public class ApiController {
      */
     @Api(value = "indexTab list", method = ApiMethod.IndexTable)
     @GetMapping("/indexTab")
+    @Log(systemLogOperation = SystemLogOperation.INDEX_TABLE, systemLogType = SystemLogType.API, systemLogOperationPosition = "栏目id：@{indexPageId}")
     public Object getIndexTabList(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "indexPageId") String indexPageId) {
         ApiAccessToken token = getToken(request);
@@ -242,6 +249,7 @@ public class ApiController {
      */
     @Api(value = "indexTab list with pageName", method = ApiMethod.IndexTableWithPageName)
     @GetMapping("/getIndextabs")
+    @Log(systemLogOperation = SystemLogOperation.INDEX_TABLES, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getIndextabs(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request) {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
@@ -269,6 +277,7 @@ public class ApiController {
     @ApiImplicitParam(name = "indexTabId", value = "三级栏目id", dataType = "String", paramType = "query")
     @Api(value = "indexTab data", method = ApiMethod.IndexTabData)
     @PostMapping("/indexTabData")
+    @Log(systemLogOperation = SystemLogOperation.INDEX_TAB_DATA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getIndexTabInfo(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "indexTabId") String indexTabId,
                                   @RequestParam(value = "entityType", defaultValue = "keywords") String entityType)
@@ -313,6 +322,7 @@ public class ApiController {
     @ApiImplicitParam(name = "indexTabId", value = "三级栏目id", dataType = "String", paramType = "query")
     @Api(value = "indexTab list data", method = ApiMethod.IndexTabListData)
     @PostMapping("/indexTabListData")
+    @Log(systemLogOperation = SystemLogOperation.INDEX_TAB_LIST_DATA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getIndexTabList(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @ApiParam("栏目id") @RequestParam(value = "indexTabId") String indexTabId,
                                   @ApiParam("来源") @RequestParam(value = "source", defaultValue = "ALL") String source,
@@ -369,12 +379,13 @@ public class ApiController {
      */
     @Api(value = "get all special", method = ApiMethod.SpecialAll)
     @GetMapping("/getAllSpecial")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_ALL, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getAllSpecial(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request)
             throws OperationException {
         ApiAccessToken token = getToken(request);
         String userId = token.getGrantSourceOwnerId();
         User user = userRepository.findOne(userId);
-        return specialService.selectSpecial(user);
+        return specialService.selectSpecialReNew(user);
     }
 
     /**
@@ -388,6 +399,7 @@ public class ApiController {
      */
     @Api(value = "specialProject statTotal", method = ApiMethod.SpecialStatTotal)
     @GetMapping("/getStatTotal")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_STAT_TOTAL, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getStatTotal(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId) throws TRSException {
         return chartAnalyzeController.getStatTotal(specialId, "", "ALL", "", "");
@@ -410,6 +422,7 @@ public class ApiController {
      */
     @Api(value = "specialProject list info", method = ApiMethod.SpecialListInfo)
     @GetMapping("/getListInfo")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_LIST_INFO, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getListInfo(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                               @ApiParam("专题id") @RequestParam(value = "specialId") String specialId,
                               @ApiParam("来源") @RequestParam(value = "source", defaultValue = "ALL") String source,
@@ -425,7 +438,7 @@ public class ApiController {
             pageSize = maxPageSize;
         }
         return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"",
-                "","","","",false,0,false,"","",
+                "","","","",false,0,false,"","ALL",
                 "","","","","","","","");
     }
 
@@ -440,11 +453,133 @@ public class ApiController {
      */
     @Api(value = "specialProject webCount", method = ApiMethod.SpecialWebCount)
     @GetMapping("/getWebCount")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_WEB_COUNT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getWebCount(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                               @RequestParam(value = "specialId") String specialId) throws Exception {
         return specialChartAnalyzeController.webCountnew(null, specialId, "ALL", "ALL");
     }
 
+    /**
+     * 获取态势评估数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject situationAssessment", method = ApiMethod.SituationAssessment)
+    @GetMapping("/getSituationAssessment")
+    @Log(systemLogOperation = SystemLogOperation.SITUATION_ASSESSMENT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getSituationAssessment(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                               @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.situationAssessment(null, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * 获取各舆论场趋势分析数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject webCountLine", method = ApiMethod.WebCountLine)
+    @GetMapping("/getWebCountLine")
+    @Log(systemLogOperation = SystemLogOperation.WEB_COUNT_LINE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getWebCountLine(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                         @RequestParam(value = "specialId",required = true) String specialId,
+                                  @ApiParam("hour/day") @RequestParam(value = "showType",required = true) String showType) throws Exception {
+        return specialChartAnalyzeController.webCountLine(null,specialId, showType, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * 获取各舆论场发布统计数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject webCommitCount", method = ApiMethod.WebCommitCount)
+    @GetMapping("/getWebCommitCount")
+    @Log(systemLogOperation = SystemLogOperation.WEB_COMMIT_COUNT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getWebCommitCount(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                  @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.webCommitCount(null,specialId,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * 获取观点分析数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject sentimentAnalysis", method = ApiMethod.SentimentAnalysis)
+    @GetMapping("/getSentimentAnalysis")
+    @Log(systemLogOperation = SystemLogOperation.SENTIMENT_ANALYSIS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getSentimentAnalysis(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                       @ApiParam("观点分析范围") @RequestParam(value = "viewType", required = false, defaultValue = "OFFICIAL_VIEW") String viewType,
+                                    @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.sentimentAnalysis(null,specialId,viewType,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null);
+    }
+
+    /**
+     * 获取情绪统计数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject moodStatistics", method = ApiMethod.MoodStatistics)
+    @GetMapping("/getMoodStatistics")
+    @Log(systemLogOperation = SystemLogOperation.MOOD_STATISTICS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getMoodStatistics(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                       @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.moodStatistics(specialId,null,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null);
+    }
+
+    /**
+     * 获取热点信息数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject hotMessage", method = ApiMethod.HotMessage)
+    @GetMapping("/getHotMessage")
+    @Log(systemLogOperation = SystemLogOperation.HOT_MESSAGE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getHotMessage(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                @ApiParam("类型：新闻网站/微博/微信/自媒体号") @RequestParam(value = "groupName", required = false ,defaultValue = "新闻网站") String groupName,
+                                @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.hotMessage(null, specialId, 8, groupName, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * 获取传播分析站点数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject spreadAnalysisSiteName", method = ApiMethod.SpreadAnalysisSiteName)
+    @GetMapping("/getSpreadAnalysisSiteName")
+    @Log(systemLogOperation = SystemLogOperation.SPREAD_ANALYSIS_SITE_NAME, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getSpreadAnalysisSiteName(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                @RequestParam(value = "specialId") String specialId) throws Exception {
+        return specialChartAnalyzeController.spreadAnalysisSiteName(specialId,null, false, null,null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
 
 
     /**
@@ -458,6 +593,7 @@ public class ApiController {
      */
     @Api(value = "specialProject statusTop5", method = ApiMethod.SpecialStatusTop5)
     @GetMapping("/getTop5")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_STATUS_TOP5, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getTop5(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                           @RequestParam(value = "specialId") String specialId,
                           @RequestParam(value = "sortType", defaultValue = "NEWEST") String sortType) throws Exception {
@@ -475,9 +611,11 @@ public class ApiController {
      */
     @Api(value = "specialProject area", method = ApiMethod.SpecialArea)
     @GetMapping("/getArea")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_AREA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getArea(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                           @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.area(specialId, "ALL", null, "ALL");
+        //return specialChartAnalyzeController.area(specialId, "ALL", null, "ALL");
+        return specialChartAnalyzeController.area(specialId, null, "", true, "", "", "", "", "", "", "", "", false, null, false, "", "ALL", "", "", "", "", "", "", "", "", "");
     }
 
     /**
@@ -491,6 +629,7 @@ public class ApiController {
      */
     @Api(value = "specialProject activeLevel", method = ApiMethod.SpecialActiveLevel)
     @GetMapping("/getActiveLevel")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_ACTIVE_LEVEL, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getActiveLevel(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                  @RequestParam(value = "specialId") String specialId,
                                  @RequestParam(value = "source", required = true) String source) throws Exception {
@@ -508,6 +647,7 @@ public class ApiController {
      */
     @Api(value = "specialProject statusOption", method = ApiMethod.SpecialStatusOption)
     @GetMapping("/getStatusOption")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_STATUS_OPTION, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getStatusOption(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
         return specialChartAnalyzeController.weiboOption(specialId, "", false,null,null,null,null,
@@ -528,13 +668,14 @@ public class ApiController {
      */
     @Api(value = "specialProject trendTime", method = ApiMethod.SpecialTrendTime)
     @GetMapping("/getTrend")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_TREND_TIME, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getTrend(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                            @RequestParam(value = "specialId") String specialId,
-                           @RequestParam(value = "type", defaultValue = "tradition") String type) throws Exception {
-        Object first = specialChartAnalyzeController.trendTime(specialId, 1, type, "", "ALL", "ALL");
-        Object other = specialChartAnalyzeController.trendMd5(specialId, 9, type, "","", "ALL", "ALL");
+                           @ApiParam("类型：新闻网站/微博/微信/自媒体号") @RequestParam(value = "type", required = false ,defaultValue = "新闻网站") String type) throws Exception {
+//        Object first = specialChartAnalyzeController.trendTime(specialId, 1, type, "", "ALL", "ALL");
+//        Object other = specialChartAnalyzeController.trendMd5(specialId, 9, type, "","", "ALL", "ALL");
+        Object other = specialChartAnalyzeController.affairVenation(specialId, 10, type, "", "0d", true, "", "", "", "", "", "", "", "", false, null, null, "", "", "", "", "", "", "", "", "", "");
         Map<String, Object> data = new HashMap<>();
-        data.put("first", first);
         data.put("other", other);
         return data;
     }
@@ -552,6 +693,7 @@ public class ApiController {
      */
     @Api(value = "specialProject trendMessage", method = ApiMethod.SpecialTrendMessage)
     @GetMapping("/getTrendMessage")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_TREND_MESSAGE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getTrendMessage(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "specialId") String specialId,
                                   @RequestParam(value = "type", defaultValue = "message") String type,
@@ -577,6 +719,7 @@ public class ApiController {
      */
     @Api(value = "specialProject tippingPoint", method = ApiMethod.SpecialTippingPoint)
     @GetMapping("/getTippingPoint")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_TIPPING_POINT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getTippingPoint(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
         return specialChartAnalyzeController.getTippingPoint(specialId, "", "ALL", "ALL");
@@ -593,6 +736,7 @@ public class ApiController {
      */
     @Api(value = "specialProject volume", method = ApiMethod.SpecialVolume)
     @GetMapping("/getVolume")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_VOLUME, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getVolume(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                             @RequestParam(value = "specialId") String specialId,
                             @RequestParam(value = "showType", defaultValue = "day") String showType) throws Exception {
@@ -610,9 +754,31 @@ public class ApiController {
      */
     @Api(value = "specialProject NewsSiteAnalysis", method = ApiMethod.SpecialNewsSiteAnalysis)
     @GetMapping("/getNewsSiteAnalysis")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_NEWS_SITE_ANALYSIS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getNewsSiteAnalysis(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                       @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
+        //return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
+        return specialChartAnalyzeController.spreadAnalysis(specialId, "0d", "ALL", true, "", "", "", "", "", "", "", "", false, null, false, "", "", "", "", "", "", "", "", "");
+    }
+
+    /**
+     * 获取活跃账号数据
+     *
+     * @param accessToken
+     * @param request
+     * @param specialId
+     * @return
+     * @throws Exception
+     */
+    @Api(value = "specialProject ActiveAccount", method = ApiMethod.ActiveAccount)
+    @GetMapping("/getActiveAccount")
+    @Log(systemLogOperation = SystemLogOperation.ACTIVE_ACCOUNT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getActiveAccount(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                      @RequestParam(value = "specialId") String specialId) throws Exception {
+        //return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
+        return specialChartAnalyzeController.getActiveAccount(specialId, null, false,null,null,null,null,
+                null,null,null,null,null,null,
+                null,null,null,null,null,null,null,null,null,null,null);
     }
 
     /**
@@ -626,6 +792,7 @@ public class ApiController {
      */
     @Api(value = "specialProject UserViews", method = ApiMethod.SpecialUserViews)
     @GetMapping("/getUserViews")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_USER_VIEWS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getUserViews(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId) throws Exception {
         return specialChartAnalyzeController.userViews(specialId, "", "ALL", "ALL");
@@ -643,6 +810,7 @@ public class ApiController {
      */
     @Api(value = "specialProject WordCloud", method = ApiMethod.SpecialWordCloud)
     @GetMapping("/getWordCloud")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_WORD_CLOUD, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getWordCloud(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId,
                                @RequestParam(value = "entityType") String entityType) throws Exception {
@@ -662,6 +830,7 @@ public class ApiController {
      */
     @Api(value = "specialProject TopicEvoExplor", method = ApiMethod.SpecialTopicEvoExplor)
     @GetMapping("/getTopicEvoExplor")
+    @Log(systemLogOperation = SystemLogOperation.SPECIAL_TOPIC_EVO_EXPLOR, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getTopicEvoExplor(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                     @RequestParam(value = "specialId") String specialId) throws Exception {
         return specialChartAnalyzeController.topicEvoExplor(specialId, "", "ALL", "ALL", "all");
@@ -696,6 +865,7 @@ public class ApiController {
      */
     @Api(value = "select data by keyWords",method = ApiMethod.SelectData)
     @GetMapping("/selectData")
+    @Log(systemLogOperation = SystemLogOperation.SELECT_DATA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object selectData( @RequestParam(value = "accessToken") String accessToken,HttpServletRequest request, @RequestParam(value = "keyWords") String keyWords,
                               @RequestParam(value = "time",defaultValue = "7d",required = false) String time, @RequestParam(value = "groupName",required = false) String groupName,
                               @RequestParam(value = "pageNo",defaultValue = "0") int pageNo, @RequestParam(value = "pageSize",defaultValue = "10") int pageSize)throws OperationException,TRSException{
@@ -755,6 +925,7 @@ public class ApiController {
      */
     @Api(value = "advanced search",method = ApiMethod.AdvancedSearch)
     @GetMapping("/advancedSearch")
+    @Log(systemLogOperation = SystemLogOperation.ADVANCED_SEARCH, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object advancedSearch(@RequestParam(value = "accessToken") String accessToken,HttpServletRequest request,
                                  @RequestParam(value = "keywords", required = false) String keywords,
                                  @RequestParam(value = "groupName",defaultValue = "ALL",required = false) String groupName,
@@ -782,7 +953,7 @@ public class ApiController {
         keywords = jsonArray.toJSONString();
         return infoListController.searchList(pageNo,pageSize,sort,keywords,"precise",time,simflag,"1",false,"","",emotion,
                 0,false,"","","1","ALL","","","",
-                "","","","","",invitationCard,forwarPrimary,"","",groupName);
+                "","","","","",invitationCard,forwarPrimary,"","",groupName,"");
     }
 
     /**
@@ -799,6 +970,7 @@ public class ApiController {
      */
     @Api(value = "select data by trsl表达式",method = ApiMethod.ExpertSearch)
     @PostMapping("/expertSearch")
+    @Log(systemLogOperation = SystemLogOperation.EXPERT_SEARCH, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object expertSearch( @RequestParam(value = "accessToken") String accessToken,HttpServletRequest request, @RequestParam(value = "trsl",required = false) String trsl,
                               @RequestParam(value = "groupName",defaultValue = "ALL",required = false) String groupName,@RequestParam(value = "sort", defaultValue = "default", required = false) String sort,
                                 @RequestParam(value = "time",defaultValue = "7d",required = false) String time, @RequestParam(value = "pageNo",defaultValue = "0") int pageNo, @RequestParam(value = "pageSize",defaultValue = "10") int pageSize,
@@ -828,6 +1000,7 @@ public class ApiController {
      */
     @Api(value = "select document detail",method = ApiMethod.DocumentDetail)
     @GetMapping("/documentDetail")
+    @Log(systemLogOperation = SystemLogOperation.DOCUMENT_DETAIL, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object documentDetail( @RequestParam(value = "accessToken") String accessToken,HttpServletRequest request,
                                   //@ApiParam("表达式存入redis时的key值，用于关键字描红") @RequestParam(value = "trslk",required = false) String trslk,
                                   @ApiParam("当前需查看详情的文章的groupName值,必填参数") @RequestParam(value = "groupName",required = true) String groupName,
@@ -868,6 +1041,7 @@ public class ApiController {
      */
     @Api(value = "get original data",method = ApiMethod.getOriginalData)
     @RequestMapping(value="/getOriginalData" ,method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+   // @Log(systemLogOperation = SystemLogOperation.GET_INDEX_PAGE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getOriginalData(
             @RequestParam(value = "accessToken") String accessToken,HttpServletRequest request,
             @ApiParam("参数") @RequestBody JSONObject jsonObject)throws OperationException,TRSException {
@@ -916,6 +1090,7 @@ public class ApiController {
      */
     @Api(value = "get all single microblog list", method = ApiMethod.MicroblogList)
     @GetMapping("/getMicroblogList")
+    @Log(systemLogOperation = SystemLogOperation.MICRO_BLOG_LIST, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getMicroblogList(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request)
             throws TRSException {
         ApiAccessToken token = getToken(request);
@@ -935,6 +1110,7 @@ public class ApiController {
      */
     @Api(value = "get blogger information", method = ApiMethod.BloggerInfo)
     @GetMapping("/getBloggerInfo")
+    @Log(systemLogOperation = SystemLogOperation.BLOGGER_INFO, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getBloggerInfo(@RequestParam(value = "accessToken") String accessToken,
                                  @RequestParam(value = "originalUrl", required = true) String originalUrl, HttpServletRequest request)
             throws TRSException {
@@ -984,6 +1160,7 @@ public class ApiController {
      */
     @Api(value = "get blog detail", method = ApiMethod.MicroBlogDetail)
     @GetMapping("/getMicroBlogDetail")
+    @Log(systemLogOperation = SystemLogOperation.MICRO_BLOG_DETAIL, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getMicroBlogDetail(@RequestParam(value = "accessToken") String accessToken,
                                  @RequestParam(value = "currentUrl", required = true) String currentUrl, HttpServletRequest request)
             throws TRSException {
@@ -1009,6 +1186,7 @@ public class ApiController {
      */
     @Api(value = "get hot reviews TOP5", method = ApiMethod.HotReviews)
     @GetMapping("/getHotReviewsTop5")
+    @Log(systemLogOperation = SystemLogOperation.HOT_REVIEWS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getHotReviewsTop5(@RequestParam(value = "accessToken") String accessToken,
                                  @RequestParam(value = "currentUrl", required = true) String currentUrl, HttpServletRequest request)
             throws TRSException {
@@ -1033,6 +1211,7 @@ public class ApiController {
      */
     @Api(value = "get spread analysis", method = ApiMethod.SpreadAnalysis)
     @GetMapping("/getSpreadAnalysis")
+    @Log(systemLogOperation = SystemLogOperation.SPREAD_ANALYSIS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getSpreadAnalysis(@RequestParam(value = "accessToken") String accessToken,
                                  @RequestParam(value = "currentUrl", required = true) String currentUrl, HttpServletRequest request)
             throws TRSException {
@@ -1058,6 +1237,7 @@ public class ApiController {
      */
     @Api(value = "get forwardedTrend data", method = ApiMethod.ForwardedTrend)
     @GetMapping("/getForwardedTrend")
+    @Log(systemLogOperation = SystemLogOperation.FORWARDED_TREND, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getForwardedTrend(@RequestParam(value = "accessToken") String accessToken,
                                     @RequestParam(value = "currentUrl", required = true) String currentUrl,
                                     @ApiParam("微博发布时间,时间格式yyyy-MM-dd HH:mm:ss") @RequestParam(value = "urlTime",required = false)String urlTime,HttpServletRequest request)
@@ -1116,6 +1296,7 @@ public class ApiController {
      */
     @Api(value = "get spreadPath data", method = ApiMethod.SpreadPath)
     @GetMapping("/getSpreadPath")
+    @Log(systemLogOperation = SystemLogOperation.SPREAD_PATH, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getSpreadPath(@RequestParam(value = "accessToken") String accessToken,
                                     @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1140,6 +1321,7 @@ public class ApiController {
      */
     @Api(value = "get coreForward data", method = ApiMethod.CoreForward)
     @GetMapping("/getCoreForward")
+    @Log(systemLogOperation = SystemLogOperation.CORE_FORWARD, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getCoreForward(@RequestParam(value = "accessToken") String accessToken,
                                 @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1164,6 +1346,7 @@ public class ApiController {
      */
     @Api(value = "get opinionLeaders data", method = ApiMethod.OpinionLeaders)
     @GetMapping("/getOpinionLeaders")
+    @Log(systemLogOperation = SystemLogOperation.OPINION_LEADERS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getOpinionLeaders(@RequestParam(value = "accessToken") String accessToken,
                                  @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1188,6 +1371,7 @@ public class ApiController {
      */
     @Api(value = "get areaAnalysisOfForWarders data", method = ApiMethod.AreaAnalysisOfForWarders)
     @GetMapping("/getAreaAnalysisOfForWarders")
+    @Log(systemLogOperation = SystemLogOperation.AREAANALYSIS_OF_FORWARDERS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getAreaAnalysisOfForWarders(@RequestParam(value = "accessToken") String accessToken,
                                     @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1212,6 +1396,7 @@ public class ApiController {
      */
     @Api(value = "get emojiAnalysisOfForward data", method = ApiMethod.EmojiAnalysisOfForward)
     @GetMapping("/getEmojiAnalysisOfForward")
+    @Log(systemLogOperation = SystemLogOperation.EMOJI_ANALYSIS_OF_FORWARD, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getEmojiAnalysisOfForward(@RequestParam(value = "accessToken") String accessToken,
                                               @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1242,6 +1427,7 @@ public class ApiController {
      */
     @Api(value = "get genderOfRatio data", method = ApiMethod.GenderOfRatio)
     @GetMapping("/getGenderOfRatio")
+    @Log(systemLogOperation = SystemLogOperation.GENDER_OF_RATIO, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getGenderOfRatio(@RequestParam(value = "accessToken") String accessToken,
                                             @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1266,6 +1452,7 @@ public class ApiController {
      */
     @Api(value = "get certifiedOfRatio data", method = ApiMethod.CertifiedOfRatio)
     @GetMapping("/getCertifiedOfRatio")
+    @Log(systemLogOperation = SystemLogOperation.CERTIFIED_OF_RATIO, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getCertifiedOfRatio(@RequestParam(value = "accessToken") String accessToken,
                                    @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1290,6 +1477,7 @@ public class ApiController {
      */
     @Api(value = "get dispatchFrequency data", method = ApiMethod.DispatchFrequency)
     @GetMapping("/getDispatchFrequency")
+    @Log(systemLogOperation = SystemLogOperation.DISPATCH_FREQUENCY, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getDispatchFrequency(@RequestParam(value = "accessToken") String accessToken,
                                       @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1314,6 +1502,7 @@ public class ApiController {
      */
     @Api(value = "get takeSuperLanguage data", method = ApiMethod.TakeSuperLanguage)
     @GetMapping("/getTakeSuperLanguage")
+    @Log(systemLogOperation = SystemLogOperation.TAKE_SUPER_LANGUAGE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getTakeSuperLanguage(@RequestParam(value = "accessToken") String accessToken,
                                        @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1338,6 +1527,7 @@ public class ApiController {
      */
     @Api(value = "get emotionStatistics data", method = ApiMethod.EmotionStatistics)
     @GetMapping("/getEmotionStatistics")
+    @Log(systemLogOperation = SystemLogOperation.EMOTION_STATISTICS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getEmotionStatistics(@RequestParam(value = "accessToken") String accessToken,
                                        @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1362,6 +1552,7 @@ public class ApiController {
      */
     @Api(value = "get primaryForwardRatio data", method = ApiMethod.PrimaryForwardRatio)
     @GetMapping("/getPrimaryForwardRatio")
+    @Log(systemLogOperation = SystemLogOperation.PRIMARY_FORWARD_RATIO, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getPrimaryForwardRatio(@RequestParam(value = "accessToken") String accessToken,
                                        @RequestParam(value = "currentUrl", required = true) String currentUrl,HttpServletRequest request)
             throws TRSException {
@@ -1448,6 +1639,7 @@ public class ApiController {
     //数据中心 --- 微博主贴热点
     @Api(value = "Micro-blog hotspots for data center", method = ApiMethod.NetizensFeelingsCount)
     @GetMapping("/hotSpotsOfWeiBo")
+    @Log(systemLogOperation = SystemLogOperation.GET_INDEX_PAGE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object hotSpotsOfWeiBo(@RequestParam(value = "accessToken") String accessToken,HttpServletRequest request)
             throws TRSException {
         String yesToday = DateUtil.getYesToday();

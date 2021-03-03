@@ -29,7 +29,214 @@ import lombok.Getter;
 public enum SystemLogOperation {
 
 	// ------------api--------------
-
+	/**
+	 * 获取栏目组数据
+	 */
+    INDEX_PAGE("获取栏目组数据"),
+	/**
+	 * 获取栏目组数据（包含导航栏）
+	 */
+	GET_INDEX_PAGE("获取栏目组数据（包含导航栏）"),
+	/**
+	 * 获取栏目组数据（包含导航栏）
+	 */
+	INDEX_PAGE_INFO("获取栏目详情"),
+	/**
+	 * 获取栏目组下栏目列表数据
+	 */
+	INDEX_TABLE("获取栏目详情"),
+	/**
+	 * 获取栏目组下栏目列表数据（包含父级）
+	 */
+	INDEX_TABLES("获取栏目详情（包含父级）"),
+	/**
+	 * 获取栏目数据
+	 */
+	INDEX_TAB_DATA("获取栏目数据"),
+	/**
+	 * 获取栏目列表数据
+	 */
+	INDEX_TAB_LIST_DATA("获取栏目列表数据"),
+	/**
+	 * 获取专题分析数据
+	 */
+	SPECIAL_ALL("获取专题分析数据"),
+	/**
+	 * 获取专题监测统计表格数据
+	 */
+	SPECIAL_STAT_TOTAL("获取专题监测统计表格数据"),
+	/**
+	 * 获取专题信息列表
+	 */
+	SPECIAL_LIST_INFO("获取专题信息列表"),
+	/**
+	 * 获取来源类型统计数据
+	 */
+	SPECIAL_WEB_COUNT("获取来源类型统计数据"),
+	/**
+	 * 获取态势评估数据
+	 */
+	SITUATION_ASSESSMENT("获取态势评估数据"),
+	/**
+	 * 获取各舆论场趋势分析数据
+	 */
+	WEB_COUNT_LINE("获取各舆论场趋势分析数据"),
+	/**
+	 * 获取各舆论场发布统计数据
+	 */
+	WEB_COMMIT_COUNT("获取各舆论场发布统计数据"),
+	/**
+	 * 获取观点分析数据
+	 */
+	SENTIMENT_ANALYSIS("获取观点分析数据"),
+	/**
+	 * 获取情绪统计数据
+	 */
+	MOOD_STATISTICS("获取情绪统计数据"),
+	/**
+	 * 获取热点信息数据
+	 */
+	HOT_MESSAGE("获取热点信息数据"),
+	/**
+	 * 获取传播分析站点数据
+	 */
+	SPREAD_ANALYSIS_SITE_NAME("获取传播分析站点数据"),
+	/**
+	 * 获取专题微博top5数据
+	 */
+	SPECIAL_STATUS_TOP5("获取专题微博top5数据"),
+	/**
+	 * 获取专题地域分布数据
+	 */
+	SPECIAL_AREA("获取专题地域分布数据"),
+	/**
+	 * 获取专题媒体活跃等级数据
+	 */
+	SPECIAL_ACTIVE_LEVEL("获取专题媒体活跃等级数据"),
+	/**
+	 * 获取情感分析数据
+	 */
+	SPECIAL_STATUS_OPTION("获取情感分析数据"),
+	/**
+	 * 获取事件溯源
+	 */
+	SPECIAL_TREND_TIME("获取事件溯源"),
+	/**
+	 * 获取信息走势图数据
+	 */
+	SPECIAL_TREND_MESSAGE("获取信息走势图数据"),
+	/**
+	 * 获取专题引爆点数据
+	 */
+	SPECIAL_TIPPING_POINT("获取专题引爆点数据"),
+	/**
+	 * 获取情感走势数据
+	 */
+	SPECIAL_VOLUME("获取情感走势数据"),
+	/**
+	 * 获取专题新闻传播分析数据
+	 */
+	SPECIAL_NEWS_SITE_ANALYSIS("获取专题新闻传播分析数据"),
+	/**
+	 * 获取活跃账号数据
+	 */
+	ACTIVE_ACCOUNT("获取活跃账号数据"),
+	/**
+	 * 获取网友情绪数据
+	 */
+	SPECIAL_USER_VIEWS("获取网友情绪数据"),
+	/**
+	 * 获取专题词云数据
+	 */
+	SPECIAL_WORD_CLOUD("获取专题词云数据"),
+	/**
+	 * 获取专题热词探索数据
+	 */
+	SPECIAL_TOPIC_EVO_EXPLOR("获取专题热词探索数据"),
+	/**
+	 * 列表搜索
+	 */
+	SELECT_DATA("列表搜索"),
+	/**
+	 * 高级搜索
+	 */
+	ADVANCED_SEARCH("高级搜索"),
+	/**
+	 * 表达式检索列表
+	 */
+	EXPERT_SEARCH("表达式检索列表"),
+	/**
+	 * 数据详情api
+	 */
+	DOCUMENT_DETAIL("数据详情api"),
+	/**
+	 * 获取单条微博分析列表
+	 */
+	MICRO_BLOG_LIST("获取单条微博分析列表"),
+	/**
+	 * 获取当前微博的博主信息
+	 */
+	BLOGGER_INFO("获取当前微博的博主信息"),
+	/**
+	 * 获取当前微博信息
+	 */
+	MICRO_BLOG_DETAIL("获取当前微博信息"),
+	/**
+	 * 热门评论TOP5
+	 */
+	HOT_REVIEWS("热门评论TOP5"),
+	/**
+	 * 传播分析
+	 */
+	SPREAD_ANALYSIS("传播分析"),
+	/**
+	 * 被转发趋势
+	 */
+	FORWARDED_TREND("被转发趋势"),
+	/**
+	 * 传播路径
+	 */
+	SPREAD_PATH("传播路径"),
+	/**
+	 * 核心转发
+	 */
+	CORE_FORWARD("核心转发"),
+	/**
+	 * 意见领袖
+	 */
+	OPINION_LEADERS("意见领袖"),
+	/**
+	 * 转发博主地域分析
+	 */
+	AREAANALYSIS_OF_FORWARDERS("转发博主地域分析"),
+	/**
+	 * 转发微博表情分析
+	 */
+	EMOJI_ANALYSIS_OF_FORWARD("转发微博表情分析"),
+	/**
+	 * 男女占比
+	 */
+	GENDER_OF_RATIO("男女占比"),
+	/**
+	 * 认证比例
+	 */
+	CERTIFIED_OF_RATIO("认证比例"),
+	/**
+	 * 博主发文频率
+	 */
+	DISPATCH_FREQUENCY("博主发文频率"),
+	/**
+	 * 参与话题统计
+	 */
+	TAKE_SUPER_LANGUAGE("参与话题统计"),
+	/**
+	 * 发文情感统计
+	 */
+	EMOTION_STATISTICS("发文情感统计"),
+	/**
+	 * 原发转发占比
+	 */
+	PRIMARY_FORWARD_RATIO("原发转发占比"),
 	// -------------搜索--------------
 	/**
 	 * 普通搜索

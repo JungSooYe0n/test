@@ -151,4 +151,8 @@ public interface ReportDataNewRepository extends PagingAndSortingRepository<Repo
 	@Transactional
 	@Modifying
 	public void saveDoneFlag(Integer doneFlag, String id);
+	@Query(value = "update report_data_new set deleted_tab=?1 where id=?2 ", nativeQuery = true)
+	@Transactional
+	@Modifying
+	public void saveDeleteTab(String deleteTab, String id);
 }

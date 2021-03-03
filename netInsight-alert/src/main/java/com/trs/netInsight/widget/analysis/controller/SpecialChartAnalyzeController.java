@@ -1892,9 +1892,9 @@ public class SpecialChartAnalyzeController {
                     specialProject.setEnd(timeArray[1]);
                 }
             }
-			QueryBuilder statBuilder = null;
-            statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
-			statBuilder.page(0, pageSize);
+//			QueryBuilder statBuilder = null;
+//            statBuilder = specialProject.toNoTimeBuilder(0, pageSize);
+//			statBuilder.page(0, pageSize);
 			type = CommonListChartUtil.formatPageShowGroupName(type);
 			QueryBuilder builder = specialProject.toNoPagedBuilder();
 			builder.setPageSize(pageSize);
@@ -3732,11 +3732,12 @@ Date startDate = new Date();
 	@PostMapping("/exportChartData")
 	public void exportChartData(HttpServletResponse response,
 						   @ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType",required = true) String chartType,
-						   @ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data) {
+						   @ApiParam("前端给回需要导出的内容") @RequestParam(value = "data", required = true) String data,
+						   @ApiParam("前端传sheet页名称") @RequestParam(value = "sheet", required = false) String sheet) {
 		try {
 			SpecialChartType specialChartType = chooseType(chartType);
 			ServletOutputStream outputStream = response.getOutputStream();
-			specialChartAnalyzeService.exportChartData(data,specialChartType).writeTo(outputStream);
+			specialChartAnalyzeService.exportChartData(data,specialChartType,sheet).writeTo(outputStream);
 
 		} catch (Exception e) {
 			log.error("导出excel出错！", e);

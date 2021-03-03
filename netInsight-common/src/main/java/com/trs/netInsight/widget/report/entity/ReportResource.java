@@ -85,7 +85,8 @@ public class ReportResource extends BaseEntity {
 	
 	@Column(name = "img_type")
 	private String imgType;
-
+	@Column(name = "mapto")
+	private String mapto;
 	/**
 	 * 针对新闻类 报告下载 标题+摘要类
 	 */

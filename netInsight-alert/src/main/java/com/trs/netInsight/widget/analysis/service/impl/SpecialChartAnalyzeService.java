@@ -39,7 +39,6 @@ import com.trs.netInsight.widget.base.enums.ESGroupName;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
-import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.special.entity.HotRating;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.special.entity.SpecialProject;
@@ -56,10 +55,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -70,7 +68,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.trs.netInsight.config.constant.ChartConst.*;
-import static com.trs.netInsight.config.constant.Const.MEDIA_LEVEL;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -2430,9 +2427,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 					//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
 					if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
-						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+						|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
 						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
-						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
+						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")
 					)) {
 
 						if (buffer.length() > 0) {
@@ -2447,22 +2444,55 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 							buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
-
+							buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
-
+							buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
-
+							buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
 						}
-						if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+						if (StringUtil.isNotEmpty(specialProject.getAnyKeywords())) {
+							net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(specialProject.getAnyKeywords().trim());
+							StringBuilder childTrsl = new StringBuilder();
+							StringBuilder childTrsl2 = new StringBuilder();
+							StringBuilder childTrsl3 = new StringBuilder();
+							for (Object keyWord : jsonArray) {
 
-						}
-						if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-
-						}
-						if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-
+								net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
+								String keyWordsSingle = parseObject.getString("keyWords");
+								if (StringUtil.isNotEmpty(keyWordsSingle)) {
+									//防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+									String[] split = keyWordsSingle.split(",");
+									String splitNode = "";
+									for (int i = 0; i < split.length; i++) {
+										if (StringUtil.isNotEmpty(split[i])) {
+											if (split[i].endsWith(";") || split[i].endsWith("；")) {
+												split[i] = split[i].substring(0, split[i].length() - 1);
+											}
+											splitNode += split[i] + ",";
+										}
+									}
+									keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
+									childTrsl.append("((\"")
+											.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
+											.append("*\"))");
+									childTrsl2.append("((")
+											.append(keyWordsSingle.replaceAll("[,|，]", ") AND (").replaceAll("[;|；]+", " OR "))
+											.append("))");
+									childTrsl3.append("(").append(keyWordsSingle.replaceAll("[;|；|，|,]"," OR ")).append(")");
+								}
+							}
+							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+							}
+							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+							}
+							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append(") OR ").append(FtsFieldConst.FIELD_TAG_LIKE).append(":(").append(childTrsl2.toString()).append("))");
+							}
 						}
 						buffer.append(")");
 						sourceList.remove(Const.GROUPNAME_WEIBO);
@@ -4892,6 +4922,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 							"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
 				}
 				List<HashMap<String, String>> mapList = new ArrayList<>();
+				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
 				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, true, name, "special", UserUtils.getUser(), false);
 				if (ObjectUtil.isNotEmpty(infoListResult)) {
 					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
@@ -4900,23 +4931,55 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					if(list != null && list.size() >0){
 						resultFlag = false;
 					}
-					for (int i = 0; i < list.size(); i++) {
-						//取出两个不重复的sitename
-						if(i == 0) {
-							HashMap<String, String> hashMap = new HashMap<>();
-							siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-							hashMap.put("name", siteName + "-" + name+"-"+mediaLevel);
-							mapList.add(hashMap);
-						}else {
-							String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : list.get(i).getSiteName();
-							if (!newSiteName.equals(siteName)){
-								HashMap<String, String> hashMap = new HashMap<>();
-								hashMap.put("name", newSiteName + "-" + name+"-"+mediaLevel);
-								mapList.add(hashMap);
-								break;
-							}
+					if (Const.GROUPNAME_ZIMEITI.equals(name)){
+						int m = 0;
+						for (int i = 0; i < list.size(); i++) {
+							//取出两个不重复的sitename
+							if (i == m) {
+								if (StringUtil.isNotEmpty(list.get(i).getAuthors())) {
+									HashMap<String, String> hashMap = new HashMap<>();
+									siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getAuthors() : list.get(i).getSiteName();
+									hashMap.put("name", siteName + "-" + name + "-" + mediaLevel);
+									mapList.add(hashMap);
+									m = i;
+								} else {
+									m++;
+								}
 
+							} else {
+								if (StringUtil.isNotEmpty(list.get(i).getAuthors())) {
+									String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getAuthors() : list.get(i).getSiteName();
+									if (!newSiteName.equals(siteName)) {
+										HashMap<String, String> hashMap = new HashMap<>();
+										hashMap.put("name", newSiteName + "-" + name + "-" + mediaLevel);
+										mapList.add(hashMap);
+										break;
+									}
+								}
+
+							}
 						}
+					}else {
+						for (int i = 0; i < list.size(); i++) {
+							//取出两个不重复的sitename
+							if(i == 0) {
+
+									HashMap<String, String> hashMap = new HashMap<>();
+									siteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getAuthors() : list.get(i).getSiteName();
+									hashMap.put("name", siteName + "-" + name + "-" + mediaLevel);
+									mapList.add(hashMap);
+							}else {
+								String newSiteName = Const.GROUPNAME_WEIBO.equals(name) ? list.get(i).getScreenName() : Const.GROUPNAME_ZIMEITI.equals(name) ? list.get(i).getAuthors()+list.get(i).getSiteName() : list.get(i).getSiteName();
+								if (!newSiteName.equals(siteName)){
+									HashMap<String, String> hashMap = new HashMap<>();
+									hashMap.put("name", newSiteName + "-" + name+"-"+mediaLevel);
+									mapList.add(hashMap);
+									break;
+								}
+
+							}
+					}
+
 					}
 					Map<String, Object> oneInfo = new HashMap<>();
 					oneInfo.put("name", mediaLevel + "-" + name);
@@ -4967,7 +5030,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		String contrastField = FtsFieldConst.FIELD_SITENAME;
 		if(Const.GROUPNAME_WEIBO.equals(groupName)){
 			contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
-		}else if(Const.MEDIA_TYPE_TF.contains(groupName)){
+		}else if(Const.MEDIA_TYPE_TF.contains(groupName) || Const.GROUPNAME_ZIMEITI.contains(groupName)){
 			contrastField = FtsFieldConst.FIELD_AUTHORS;
 		}
 		Boolean resultFlag = true;
@@ -5237,7 +5300,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType) throws IOException {
+	public ByteArrayOutputStream exportChartData(String data, SpecialChartType specialChartType, String sheet) throws IOException {
 		ExcelData content = new ExcelData();
 		if (specialChartType != null) {
 			if (StringUtil.isNotEmpty(data)) {
@@ -5261,7 +5324,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				}
 			}
 		}
-		return ExcelFactory.getInstance().export(content);
+		return ExcelFactory.getInstance().export1(content,sheet);
 	}
 	/**
 	 * 专题分析饼图和柱状图数据的导出
@@ -5808,72 +5871,41 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		boolean irSimflag = specialProject.isIrSimflag();
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
 //		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
-		 int weiboLow = 10000;
-		 int weiboMiddle = 15000;
 		 int weiboHigh = 20000;
-		 int weixinLow = 200;
-		 int weixinMiddle = 300;
 		 int weixinHigh = 500;
-		 int newsLow = 300;
-		 int newsMiddle = 500;
 		 int newsHigh = 800;
-		 int appLow = 300;
-		 int appMiddle = 500;
 		 int appHigh = 800;
-		 int zimeitiLow = 200;
-		 int zimeitiMiddle = 300;
 		 int zimeitiHigh = 500;
-		 int luntanLow = 100;
-		 int luntanMiddle = 150;
 		 int luntanHigh = 200;
 		User user = UserUtils.getUser();
 		if (StringUtil.isNotEmpty(user.getOrganizationId())) {
 			List<HotRating> hotRatingList = hotRatingRepository.findByOrganizationId(user.getOrganizationId());
 			if (ObjectUtil.isNotEmpty(hotRatingList)) {
-				weiboLow = hotRatingList.get(0).getWeiboLow();
-				weiboMiddle = hotRatingList.get(0).getWeiboMiddle();
 				weiboHigh = hotRatingList.get(0).getWeiboHigh();
-				weixinLow = hotRatingList.get(0).getWeixinLow();
-				weixinMiddle = hotRatingList.get(0).getWeixinMiddle();
 				weixinHigh = hotRatingList.get(0).getWeixinHigh();
-				newsLow = hotRatingList.get(0).getNewsLow();
-				newsMiddle = hotRatingList.get(0).getNewsMiddle();
 				newsHigh = hotRatingList.get(0).getNewsHigh();
-				appLow = hotRatingList.get(0).getAppLow();
-				appMiddle = hotRatingList.get(0).getAppMiddle();
 				appHigh = hotRatingList.get(0).getAppHigh();
-				zimeitiLow = hotRatingList.get(0).getZimeitiLow();
-				zimeitiMiddle = hotRatingList.get(0).getZimeitiMiddle();
 				zimeitiHigh = hotRatingList.get(0).getZimeitiHigh();
-				luntanLow = hotRatingList.get(0).getLuntanLow();
-				luntanMiddle = hotRatingList.get(0).getLuntanMiddle();
 				luntanHigh = hotRatingList.get(0).getLuntanHigh();
 			}
 		}
 		ChartResultField chartResultField = new ChartResultField("name","num");
 		list = (List<Map<String, Object>>) commonChartService.getPieColumnData(searchBuilder,sim,irSimflag,irSimflagAll,Const.ALL_GROUP_COLLECT,"",FtsFieldConst.FIELD_GROUPNAME,"special",chartResultField);
 
-		double total = 0;
-		for (Map<String, Object> mapList : list){
-		    if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("新闻"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),newsLow,newsMiddle,newsHigh) * 0.1;
-            }
-            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("微博"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),weiboLow,weiboMiddle,weiboHigh) * 0.4;
-            }
-            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("微信"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),weixinLow,weixinMiddle,weixinHigh) * 0.3;
-            }
-            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("客户端"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),appLow,appMiddle,appHigh) * 0.1;
-            }
-            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("自媒体"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),zimeitiLow,zimeitiMiddle,zimeitiHigh) * 0.05;
-            }
-            if (mapList.get("name").equals(CommonListChartUtil.formatPageShowGroupName("论坛"))){
-                total += getScore(Long.valueOf(mapList.get("num").toString()),luntanLow,luntanMiddle,luntanHigh) * 0.05;
-            }
-        }
+		//把数据进行格式转换
+		Map<String, Long> newMap = new HashMap<>();
+		for (Map<String, Object> mapList : list) {
+			newMap.put(mapList.get("name").toString(), Long.parseLong(mapList.get("num").toString()));
+		}
+
+		//把 13 种舆论场归为 6 类
+		newMap.put("新闻网站", newMap.get("新闻网站") + newMap.get("境外") + newMap.get("电子报"));
+		newMap.put("自媒体号", newMap.get("自媒体号") + newMap.get("短视频") + newMap.get("视频") + newMap.get("博客") + newMap.get("Facebook") + newMap.get("Twitter"));
+
+		double total = getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("新闻")), newsHigh) * 0.1 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微博")), weiboHigh) * 0.4 +
+				getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微信")), weixinHigh) * 0.3 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("客户端")), appHigh) * 0.1 +
+				getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("自媒体号")), zimeitiHigh) * 0.05 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("论坛")), luntanHigh) * 0.05;
+
 //        searchBuilder.setPageSize(200);
 //		InfoListResult infoListResult = commonListService.queryPageList(searchBuilder,false,false,false,Const.GROUPNAME_WEIBO,"special",UserUtils.getUser(),false);
 //		PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
@@ -5888,20 +5920,25 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //			}
 //		}
 //		total += getScore(Long.valueOf(weiboVipNum),100,150,200) * 0.1;
-		return Integer.parseInt(new DecimalFormat("0").format(total));
+		int result = BigDecimal.valueOf(total).setScale(1, BigDecimal.ROUND_HALF_UP).intValue();
+		return result == 0 ? 1 : result;
 	}
-private int getScore(Long score,int lev1,int lev2,int lev3){
-		if (score < lev1){
-	        return 60;
-	    }
-    if (score < lev2){
-        return 80;
-    }
-    if (score < lev3){
-        return 100;
-    }
-    return 100;
-}
+
+	/**
+	 * 先算每一条的分数，再乘以实际条数
+	 * @param num 实际条数
+	 * @param high 满分为100分时的条数
+	 * @return
+	 */
+	private double getScore(Long num, int high){
+
+		if (num >= high) {
+			return 100D;
+		}
+
+		return BigDecimal.valueOf(100).divide(BigDecimal.valueOf(high)).multiply(BigDecimal.valueOf(num)).doubleValue();
+	}
+
 	/**
 	 * 当前文章对应的用户信息
 	 * @param screenName,uid
@@ -6208,7 +6245,8 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 				dateTime = dateTime.replaceAll("/","-");
 				dateTime = dateTime+" 00:00:00";
 				dateEndTime = dateTime.substring(0,dateTime.length()-9)+" 23:59:59";
-			}else if(dateTime.length() ==16 && DateUtil.isTimeFormatterYMDH(dateTime)){
+			}else if(dateTime.length() ==16){
+//				&& DateUtil.isTimeFormatterYMDH(dateTime)
 				dateTime = dateTime.replaceAll("/","-");
 				dateTime = dateTime+":00";
 				dateEndTime = dateTime.substring(0,dateTime.length()-6)+":59:59";
@@ -6252,7 +6290,14 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 			}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
 				areaMap = Const.CONTTENT_PROVINCE_NAME;
 			}
-			queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) +")");
+			if (StringUtil.isEmpty(areaMap.get(key))){
+				String[] cityAreas = key.split(";");
+				String cityArea = cityAreas.length>1 ? areaMap.get(cityAreas[0])+"\\\\"+cityAreas[1] : key;
+				queryBuilder.filterByTRSL(contrastField + ":(" +cityArea +")");
+			}else {
+				queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) + ")");
+			}
+//			queryBuilder.filterByTRSL(contrastField + ":(" + areaMap.get(key) +")");
 		}else if(SpecialChartType.CHART_BAR_CROSS.equals(specialChartType)){ //活跃账号
 			String contrastField = FtsFieldConst.FIELD_SITENAME;
 			if(Const.GROUPNAME_WEIBO.equals(source)){
@@ -6277,6 +6322,9 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 					contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
 				} else if (Const.MEDIA_TYPE_TF.contains(source)) {
 					contrastField = FtsFieldConst.FIELD_AUTHORS;
+				}else if (Const.GROUPNAME_ZIMEITI.contains(source)){
+					contrastField = FtsFieldConst.FIELD_AUTHORS;
+//					key = key.substring(0,key.indexOf("("));
 				}
 				queryBuilder.filterField(contrastField, "\"" + key + "\"", Operator.Equal);
 			}
@@ -6331,7 +6379,8 @@ private int getScore(Long score,int lev1,int lev2,int lev3){
 
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
-			String[] split = fuzzyValue.split(",");
+//			String[] split = fuzzyValue.split(",");
+            String[] split = fuzzyValue.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {

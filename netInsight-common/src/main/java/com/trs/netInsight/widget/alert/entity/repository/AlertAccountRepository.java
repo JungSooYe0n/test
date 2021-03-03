@@ -189,5 +189,13 @@ public interface AlertAccountRepository
 	 */
 	public List<AlertAccount> findByAccountAndType(String account, SendWay send);
 
+	/**
+	 * 根据账号和账号昵称查
+	 * @param account
+	 * @param name
+	 * @return
+	 */
+	public List<AlertAccount> findByUserIdAndName(String account, String name);
+
 
 }

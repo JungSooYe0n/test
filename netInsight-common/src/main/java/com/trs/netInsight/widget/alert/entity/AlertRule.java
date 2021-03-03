@@ -332,10 +332,16 @@ public class AlertRule extends BaseEntity {
 			}*/
 
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+				if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+					this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
 			//监测网站
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+					this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			break;
@@ -409,10 +415,16 @@ public class AlertRule extends BaseEntity {
 			}*/
 			//excludeSiteName 这个字段是排除网站   不应该和 excludeWords一样都拼在 URLTITLE里 或者URLTITLE + CONTENT 里  应该拼在 IR_SITENAME字段里
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+				if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+					this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
 			//监测网站
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+					this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			
@@ -492,10 +504,16 @@ public class AlertRule extends BaseEntity {
 				}
 			}*/
 			if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+				if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+					this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 			}
 			//监测网站
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
+				if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+					this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+				}
 				searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 			}
 			break;
@@ -573,10 +591,16 @@ public class AlertRule extends BaseEntity {
 				}*/
 
 				if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+					if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+						this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+					}
 					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 				}
 				//监测网站
 				if (StringUtil.isNotEmpty(this.monitorSite)) {
+					if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+						this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+					}
 					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 				}
 				break;
@@ -590,12 +614,12 @@ public class AlertRule extends BaseEntity {
 					database.add(Const.HYBASE_OVERSEAS);
 				}
 				if(this.statusTrsl != null && !"".equals(this.statusTrsl)){
-					String trsl_1  = FtsFieldConst.FIELD_GROUPNAME +  ":(\"微博\") AND (" + this.statusTrsl +")";
+					String trsl_1  = FtsFieldConst.FIELD_GROUPNAME +  ":(微博) AND (" + this.statusTrsl +")";
 					trsl = "".equals(trsl) ? "("+trsl_1 + ")" : trsl +" OR (" + trsl_1  + ")";
 					database.add(Const.WEIBO);
 				}
 				if(this.weChatTrsl != null && !"".equals(this.weChatTrsl)){
-					String trsl_1 = FtsFieldConst.FIELD_GROUPNAME +  ":(\"国内微信\" OR \"微信\" ) AND (" + this.weChatTrsl +")";
+					String trsl_1 = FtsFieldConst.FIELD_GROUPNAME +  ":(国内微信 OR 微信 ) AND (" + this.weChatTrsl +")";
 					trsl = "".equals(trsl) ? "("+trsl_1+ ")" : trsl +" OR (" + trsl_1 + ")";
 					database.add(Const.WECHAT_COMMON);
 				}
@@ -622,10 +646,12 @@ public class AlertRule extends BaseEntity {
 	public String getAlertRuleTrsl() throws OperationException {
 		QueryCommonBuilder queryCommonBuilder = this.toSearchBuilderCommon("noTime");
 		String queryTrsl = queryCommonBuilder.asTRSL();
-		if (StringUtil.isNotEmpty(this.getGroupName())) {
-			List<String> groupList = CommonListChartUtil.formatGroupName(this.getGroupName());
-			String groupTrsl = StringUtils.join(groupList, " OR ");
-			queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
+		if(this.specialType.equals(SpecialType.COMMON)) {
+			if (StringUtil.isNotEmpty(this.getGroupName())) {
+				List<String> groupList = CommonListChartUtil.formatGroupName(this.getGroupName());
+				String groupTrsl = StringUtils.join(groupList, " OR ");
+				queryTrsl = "((" + queryTrsl + ") AND (IR_GROUPNAME:(" + groupTrsl + ")))";
+			}
 		}
 		// simflag排重 1000为不重复
 		if (repetition) {

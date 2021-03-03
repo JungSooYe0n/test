@@ -37,6 +37,7 @@ import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
+import org.docx4j.wml.Tr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Lazy;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 /**
  * 公共信息查询 - 调用hybase的方法
@@ -188,6 +190,55 @@ public class CommonListServiceImpl implements ICommonListService {
             String trslkHot = pageId + "hot";
             RedisUtil.setString(trslkHot, builder.asTRSL());
             PagedList<FtsDocumentCommonVO> pagedList = queryPageListBase(builder, sim, irSimflag, irSimflagAll, type);
+//            StringBuffer midBuffer = new StringBuffer();
+//            StringBuffer hkeyBuffer = new StringBuffer();
+//            StringBuffer sidBuffer = new StringBuffer();
+//            for (int i = 0; i < pagedList.size(); i++) {
+//                FtsDocumentCommonVO ftsDocumentCommonVO = pagedList.get(i);
+//                String id = ftsDocumentCommonVO.getSid();
+//                if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getMid())) {
+//                    if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
+//                        midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(ftsDocumentCommonVO.getMid());
+//                    } else {
+//                        midBuffer.append(" OR ").append(ftsDocumentCommonVO.getMid());
+//                    }
+//                } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getHkey())) {
+//                    if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
+//                        hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(ftsDocumentCommonVO.getHkey());
+//                    } else {
+//                        hkeyBuffer.append(" OR ").append(ftsDocumentCommonVO.getHkey());
+//                    }
+//                } else {
+//                    if(StringUtil.isNotEmpty(id)) {
+//                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)) {
+//                            sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
+//                        } else {
+//                            sidBuffer.append(" OR ").append(id);
+//                        }
+//                    }
+//                }
+//            }
+//
+////                排除所属ID
+//                if (ObjectUtil.isNotEmpty(midBuffer.toString())){
+//                    midBuffer.append(")");
+//                    builder.filterByTRSL_NOT(midBuffer.toString());
+//                }
+//                if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
+//                    hkeyBuffer.append(")");
+//                    builder.filterByTRSL_NOT(hkeyBuffer.toString());
+//                }
+//                if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
+//                    sidBuffer.append(")");
+//                    builder.filterByTRSL_NOT(sidBuffer.toString());
+//                }
+            String trslk_sim = pageId + "trslksim";
+            RedisUtil.setString(trslk_sim, builder.asTRSL());
+            builder.setKeyRedis(trslk);
+            log.info("正式列表查询表达式：" + builder.asTRSL());
+            String trslkHot_sim = pageId + "hotsim";
+            RedisUtil.setString(trslkHot_sim, builder.asTRSL());
+
             if (pagedList != null && pagedList.getPageItems() != null && pagedList.getPageItems().size() >0) {
                 //统一处理返回数据的格式
                 return formatPageListResult(user, pageId, nextPageId, pagedList, StringUtil.join(builder.getDatabase(), ";"), type, isCalculateSimNum);
@@ -378,11 +429,15 @@ public class CommonListServiceImpl implements ICommonListService {
             builder.setPageNo(builder.getPageNo() >= 0 ? builder.getPageNo() : 0);
 
             String trslk = pageId + "trslk";
+            String trslk_sim = pageId + "trslksim";
             RedisUtil.setString(trslk, builder.asTRSL());
+            RedisUtil.setString(trslk_sim, builder.asTRSL());
             builder.setKeyRedis(trslk);
             log.info("正式列表查询表达式：" + builder.asTRSL());
             String trslkHot = pageId + "hot";
+            String trslkHot_sim = pageId + "hotsim";
             RedisUtil.setString(trslkHot, builder.asTRSL());
+            RedisUtil.setString(trslkHot_sim, builder.asTRSL());
             //在方法开始时拼接过数据源，则这个不再拼接
             PagedList<FtsDocumentCommonVO> pagedList = queryPageListForHotBase(builder, type);
             if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {
@@ -491,17 +546,45 @@ public class CommonListServiceImpl implements ICommonListService {
                 GroupInfo info = groupList.get(i);
                 QueryCommonBuilder builder1 = new QueryCommonBuilder();
                 builder1.filterByTRSL(builder.asTRSL());
-                builder1.page(0, 1);
+                builder1.page(0, 200);
                 builder1.filterField(FtsFieldConst.FIELD_MD5TAG, info.getFieldValue(), Operator.Equal);
-                builder1.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+                builder1.orderBy(FtsFieldConst.FIELD_URLTIME, false);
                 builder1.setDatabase(builder.getDatabase().split(";"));
                 PagedList<FtsDocumentCommonVO> pagedList = hybase8SearchServiceNew.pageListCommon(builder1, sim, irSimflag, irSimflagAll, type);
 
-                if (ObjectUtil.isNotEmpty(pagedList) && pagedList.getPageItems() != null && pagedList.size() > 0) {
-                    FtsDocumentCommonVO vo = pagedList.getPageItems().get(0);
-                    vo.setSimCount(info.getCount());
-                    ftsDocumentCommonVOS.add(vo);
+                int m = 0;
+                FtsDocumentCommonVO vo = null;
+                while (m < 5) {
+                    if (ObjectUtil.isNotEmpty(pagedList) && pagedList.getPageItems() != null && pagedList.size() > 0) {
+                        List<FtsDocumentCommonVO> pageItems = pagedList.getPageItems();
+
+                        //先取前200位，首先判断最后一位的urlTime是否包含"00:00:00"，并且取得个数等于200
+                        if (pageItems.size() == 200 && Pattern.matches(".*00:00:00.*", pageItems.get(pageItems.size() - 1).getUrlTime().toString())) {
+                            //若200名的最后一位的urlTime包含"00:00:00"，重新再取一次，取5次
+                            builder1.page(m + 1, 200);
+                            pagedList = hybase8SearchServiceNew.pageListCommon(builder1, sim, irSimflag, irSimflagAll, type);
+                            m += 1;
+                            //总数只有200个
+                            vo = pageItems.get(0);
+                            vo.setSimCount(info.getCount());
+                            continue;
+                        } else {
+                            int temp = 0;
+                            for (int j = 0; j < pageItems.size(); j++) {
+                                if (!Pattern.matches(".*00:00:00.*", pageItems.get(j).getUrlTime().toString())) {
+                                    temp = j;
+                                    break;
+                                }
+                            }
+                            vo = pageItems.get(temp);
+                            vo.setSimCount(info.getCount());
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
                 }
+                ftsDocumentCommonVOS.add(vo);
             }
             long endTime = System.currentTimeMillis();
             log.error("间隔HY时间：" + (endTime - startTime));
@@ -655,28 +738,28 @@ public class CommonListServiceImpl implements ICommonListService {
                 String id = ftsDocumentCommonVO.getSid();
                 String groupName = ftsDocumentCommonVO.getGroupName();
                 groupNames.add(groupName);
-                if (StringUtil.isNotEmpty(id)) {
                     //id不为空，则去掉当前文章
-                    if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())) {
+                    if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getMid())) {
                         if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
-                            midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(id);
+                            midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(ftsDocumentCommonVO.getMid());
                         } else {
-                            midBuffer.append(" OR ").append(id);
+                            midBuffer.append(" OR ").append(ftsDocumentCommonVO.getMid());
                         }
-                    } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())) {
+                    } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getHkey())) {
                         if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
-                            hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(id);
+                            hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(ftsDocumentCommonVO.getHkey());
                         } else {
-                            hkeyBuffer.append(" OR ").append(id);
+                            hkeyBuffer.append(" OR ").append(ftsDocumentCommonVO.getHkey());
                         }
                     } else {
-                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)){
-                            sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
-                        } else {
-                            sidBuffer.append(" OR ").append(id);
+                        if(StringUtil.isNotEmpty(id)) {
+                            if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)) {
+                                sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
+                            } else {
+                                sidBuffer.append(" OR ").append(id);
+                            }
                         }
                     }
-                }
             }
             if (ObjectUtil.isNotEmpty(md5List)){
                 QueryBuilder searchBuilder = new QueryBuilder();
@@ -696,18 +779,18 @@ public class CommonListServiceImpl implements ICommonListService {
                     searchBuilder.setDatabase(database);
                 }
 //                排除所属ID
-                if (ObjectUtil.isNotEmpty(midBuffer.toString())){
-                    midBuffer.append(")");
-                    searchBuilder.filterByTRSL_NOT(midBuffer.toString());
-                }
-                if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
-                    hkeyBuffer.append(")");
-                    searchBuilder.filterByTRSL_NOT(hkeyBuffer.toString());
-                }
-                if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
-                    sidBuffer.append(")");
-                    searchBuilder.filterByTRSL_NOT(sidBuffer.toString());
-                }
+//                if (ObjectUtil.isNotEmpty(midBuffer.toString())){
+//                    midBuffer.append(")");
+//                    searchBuilder.filterByTRSL_NOT(midBuffer.toString());
+//                }
+//                if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
+//                    hkeyBuffer.append(")");
+//                    searchBuilder.filterByTRSL_NOT(hkeyBuffer.toString());
+//                }
+//                if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
+//                    sidBuffer.append(")");
+//                    searchBuilder.filterByTRSL_NOT(sidBuffer.toString());
+//                }
                 searchBuilder.setPageSize(50);
                 GroupResult groupInfos = commonListService.categoryQuery(searchBuilder, sim, irSimflag, irSimflagAll,FtsFieldConst.FIELD_MD5TAG, type);
                 if (ObjectUtil.isNotEmpty(groupInfos)){
@@ -721,7 +804,7 @@ public class CommonListServiceImpl implements ICommonListService {
                             //现在计算相似文章数，默认按照减去自身
                             for (GroupInfo groupInfo : groupList) {
                                 if (StringUtil.isNotEmpty(document.getMd5Tag()) && document.getMd5Tag().equals(groupInfo.getFieldValue())){
-                                    asyncDocument.setSimNum(groupInfo.getCount());
+                                    asyncDocument.setSimNum(groupInfo.getCount()-1);
                                     break;
                                 }
                             }
@@ -736,6 +819,40 @@ public class CommonListServiceImpl implements ICommonListService {
                             asyncInfoList.add(asyncInfo);
                         }
                     }
+                }else{
+                    for (FtsDocumentCommonVO document : documentList) {
+                        AsyncDocument asyncDocument = new AsyncDocument();
+                        AsyncInfo asyncInfo = new AsyncInfo();
+
+                        asyncDocument.setId(document.getSid());
+
+                        if (ObjectUtil.isEmpty(asyncDocument.getSimNum())){
+                            asyncDocument.setSimNum(0L);
+                        }
+                        asyncList.add(asyncDocument);
+                        asyncInfo.setAsyncDocument(asyncDocument);
+                        asyncInfo.setMd5(document.getMd5Tag());
+                        asyncInfo.setDatabase(database);
+                        asyncInfo.setGroupName(document.getGroupName());
+                        asyncInfoList.add(asyncInfo);
+                    }
+                }
+            }else{
+                for (FtsDocumentCommonVO document : documentList) {
+                    AsyncDocument asyncDocument = new AsyncDocument();
+                    AsyncInfo asyncInfo = new AsyncInfo();
+
+                    asyncDocument.setId(document.getSid());
+
+                    if (ObjectUtil.isEmpty(asyncDocument.getSimNum())){
+                        asyncDocument.setSimNum(0L);
+                    }
+                    asyncList.add(asyncDocument);
+                    asyncInfo.setAsyncDocument(asyncDocument);
+                    asyncInfo.setMd5(document.getMd5Tag());
+                    asyncInfo.setDatabase(database);
+                    asyncInfo.setGroupName(document.getGroupName());
+                    asyncInfoList.add(asyncInfo);
                 }
             }
 

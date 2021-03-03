@@ -28,6 +28,7 @@ import com.trs.netInsight.widget.analysis.entity.CategoryBean;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
 import com.trs.netInsight.widget.column.entity.*;
+import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.column.entity.emuns.ColumnFlag;
 import com.trs.netInsight.widget.column.entity.emuns.IndexFlag;
 import com.trs.netInsight.widget.column.entity.emuns.StatisticalChartInfo;
@@ -1226,7 +1227,14 @@ sequenceRepository.flush();
 //				//对原来的同层级的数据排序
 //				this.moveSequenceForColumn(moveId,moveFlag, user);
 //			}
-List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBySequence(parentId);
+//List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBySequence(parentId);
+			User loginUser = UserUtils.getUser();
+			List<IndexSequence> indexSequenceList = null;
+			if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+				indexSequenceList = sequenceRepository.findByUserIdAndParentIdOrderBySequence(loginUser.getId(),parentId);
+			}else {
+				indexSequenceList = sequenceRepository.findBySubGroupIdAndParentIdOrderBySequence(loginUser.getSubGroupId(),parentId);
+			}
 
 
 			JSONArray array = JSONArray.parseArray(data);
@@ -2333,7 +2341,7 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 	public Object selectList(IndexTab indexTab, int pageNo, int pageSize, String source, String emotion, String entityType,
 							 String dateTime, String key, String sort,  String invitationCard,
 							 String forwarPrimary, String keywords, String fuzzyValueScope,String read,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-							 String contentArea,String mediaArea,String preciseFilter,String imgOcr) {
+							 String contentArea,String mediaArea,String preciseFilter,String imgOcr,ChartPageInfo chartPageInfo) {
 		String userName = UserUtils.getUser().getUserName();
 		long start = new Date().getTime();
 		if (indexTab != null) {
@@ -2347,6 +2355,7 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort,  invitationCard,
 						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
+						config.setChartPage(chartPageInfo);
 				column.setCommonListService(commonListService);
 				column.setCommonChartService(commonChartService);
 				column.setCommonListService(commonListService);
@@ -2384,7 +2393,7 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 	 * 日常监测图表数据导出
 	 */
 	@Override
-	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType) throws IOException {
+	public ByteArrayOutputStream exportChartData(String data, IndexTabType indexTabType, String sheet) throws IOException {
 		ExcelData content = new ExcelData();
 		if (indexTabType != null) {
 			if (StringUtil.isNotEmpty(data)) {
@@ -2410,7 +2419,7 @@ List<IndexSequence> indexSequenceList = sequenceRepository.findByParentIdOrderBy
 				}
 			}
 		}
-		return ExcelFactory.getInstance().export(content);
+		return ExcelFactory.getInstance().export1(content,sheet);
 	}
 
 	/**

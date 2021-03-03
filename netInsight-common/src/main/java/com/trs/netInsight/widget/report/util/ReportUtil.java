@@ -61,6 +61,8 @@ public class ReportUtil {
 			return String.format(getEmotion(img_data), chapter);
 		} else if ("gaugeChart".equals(imgType)) {
 			return getMapComment(img_data);
+		} else if ("wordCloudChart".equals(imgType)) {
+			return String.format(getbarComment(img_data), chapter);
 		} else{
 			log.info("没有匹配到对应的图片类型 - "+imgType);
 		}
@@ -765,10 +767,10 @@ public class ReportUtil {
 		ReportResourceRepository reportResourceRepository = SpringUtil.getBean(ReportResourceRepository.class);
 		// 位置字段新加的，为了不删除原报告数据，先对原数据位置字段进行赋值
 		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).getDocPosition() == 0) {
-				list.get(i).setDocPosition(i + 1);
-				reportResourceRepository.save(list.get(i));
-			}
+//			if (list.get(i).getDocPosition() == 0) {
+//				list.get(i).setDocPosition(i + 1);
+//				reportResourceRepository.save(list.get(i));
+//			}
 			if(StringUtil.isNotEmpty(list.get(i).getGroupName())){
 				list.get(i).setGroupName(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(list.get(i).getGroupName()));
 			}
@@ -1086,7 +1088,7 @@ public class ReportUtil {
 
 			List<String> hitWords = new ArrayList<>();
 			//所有命中关键词
-			while (m.find()) {
+			while (m.find() && hitWords.size() < 6) {
 				String trim = m.group(1).trim();
 				if (!hitWords.contains(trim)) {
 					hitWords.add(trim);

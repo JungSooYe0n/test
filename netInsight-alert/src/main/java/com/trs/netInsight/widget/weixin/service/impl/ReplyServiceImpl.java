@@ -298,6 +298,7 @@ public class ReplyServiceImpl implements IReplyService {
 							//登录成功后存入redis的是username
 							String userName = RedisUtil.getString(ticket+"userName");
 							String subGroupId = RedisUtil.getString(ticket + "subGroupId");
+							String userId = RedisUtil.getString(ticket+"userId");
 							Weixinlogin weixinLogin = new Weixinlogin(fromUserName, RedisUtil.getString(ticket+"userId"),userName);
 							if (StringUtil.isNotEmpty(subGroupId)){
 								weixinLogin.setSubGroupId(subGroupId);
@@ -308,8 +309,15 @@ public class ReplyServiceImpl implements IReplyService {
 //							//登录成功后存入redis的是username
 //							String userName = RedisUtil.getString(ticket+"userName");
 //							weixinLogin.setUserAccount(userName);
-							weixinLoginRepository.save(weixinLogin);
-							respContent = "绑定成功";
+							User user= userService.findById(userId);
+							if(user!=null){
+								weixinLoginRepository.save(weixinLogin);
+								respContent = "绑定成功";
+							}else {
+								respContent = "绑定失败";
+							}
+							//weixinLoginRepository.save(weixinLogin);
+							//respContent = "绑定成功";
 						} else {//已绑定过  不能再次绑定
 							respContent = "已绑定过";
 						}
@@ -480,7 +488,11 @@ public class ReplyServiceImpl implements IReplyService {
 						if (list != null && list.size() > 0) {
 
 							for (AlertAccount alertAccount : list) {
+								//解除绑定
 								User user = userService.findById(alertAccount.getUserId());
+								AlertAccount account = alertAccountService.findByAccountAndUserIdAndType(alertAccount.getAccount(), user.getId(),
+										SendWay.WE_CHAT);
+								alertAccountService.delete(account);
 								if(null!=user){//有可能账号被删了
 									buffer.append(WeixinMessageUtil.BIND_LIST_INFO
 											.replace("DISPLAYNAME", chooseString(user.getDisplayName()))

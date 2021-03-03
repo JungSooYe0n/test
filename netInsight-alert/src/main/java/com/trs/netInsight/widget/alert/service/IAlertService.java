@@ -219,6 +219,21 @@ public interface IAlertService {
 	public PageAlert alertListHybase(int pageNo, int pageSize, String way, String source, String time, String receivers, String invitationCard,
 									 String forwarPrimary, String keywords, String fuzzyValueScope) throws TRSException;
 
+	/**
+	 * 已发和站内预警列表
+	 * @param pageNo 第几页  从0开始
+	 * @param pageSize 一页几条
+	 * @param way 站内SMS  否则已发
+	 * @param source 来源
+	 * @param time 时间
+	 * @param receivers 接收人
+	 * @param invitationCard 对应国内论坛的nreserved1
+	 * @param forwarPrimary 微博的原发 primary 转发 forward
+	 * @param keywords 关键字
+	 * @return
+	 */
+	public PageAlert alertListHybaseNew(int pageNo, int pageSize, String way, String source, String time, String receivers, String invitationCard,
+									 String forwarPrimary, String keywords,String sort, String fuzzyValueScope) throws TRSException;
 
 	/**
 	 * 原预警删除  本地不用启动alert_netinsight

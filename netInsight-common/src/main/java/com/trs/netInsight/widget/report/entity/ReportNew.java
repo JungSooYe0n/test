@@ -101,6 +101,7 @@ public class ReportNew extends BaseEntity{
 		}
 	}
 
+
 	
 	public ReportNew(Builder builder){
 		this.reportName = builder.reportName;

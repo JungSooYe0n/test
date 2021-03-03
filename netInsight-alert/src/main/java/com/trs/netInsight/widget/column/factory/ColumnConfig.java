@@ -21,6 +21,8 @@ import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import edu.stanford.nlp.parser.dvparser.DVModelReranker;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -218,7 +220,8 @@ public class ColumnConfig {
 		createFilter(keyWords, keyWordindex, excludeWords, excludeWordsIndex,weight);
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(fuzzyValue) && StringUtil.isNotEmpty(fuzzyValueScope)) {//在结果中搜索,范围为全文的时候
-			String[] split = fuzzyValue.split(",");
+//			String[] split = fuzzyValue.split(",");
+			String[] split = fuzzyValue.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
@@ -238,15 +241,15 @@ public class ColumnConfig {
 					hybaseField = FtsFieldConst.FIELD_URLTITLE;
 					break;
 				case "source":
-					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
 					break;
 			}
 			if("fullText".equals(hybaseField)){
 				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
-						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND \"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
 						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 			}else {
 				fuzzyBuilder.append(hybaseField).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
@@ -343,7 +346,7 @@ public class ColumnConfig {
 		if (this.indexTab.getMonitorSite() != null && this.indexTab.getMonitorSite().split("[;|；]").length > 0) {
 			String addMonitorSite = addMonitorSite(this.indexTab.getMonitorSite());
 			if(StringUtil.isNotEmpty(addMonitorSite)){
-				this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
+				this.queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE,addMonitorSite, Operator.Equal);
 			}
 		}
 		//	阅读标记	已读/未读
@@ -497,9 +500,9 @@ public class ColumnConfig {
 
 					//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
 					if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
-						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+						|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
 						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
-						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
+						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")
 					)) {
 						if (buffer.length() > 0) {
 							buffer.append(" OR ");
@@ -513,23 +516,61 @@ public class ColumnConfig {
 							buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
-
+							buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
-
+							buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
 						}
 						if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
-
+							buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
 						}
-						if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+						if (StringUtil.isNotEmpty(keyWordindex) && (StringUtil.isNotEmpty(keyWords) || StringUtil.isNotEmpty(excludeWords))) {
+							keyWords = keyWords.trim();
+							JSONArray jsonArray = JSONArray.fromObject(keyWords);
+							StringBuilder childTrsl = new StringBuilder();
+							StringBuilder childTrsl2 = new StringBuilder();
+							StringBuilder childTrsl3 = new StringBuilder();
+							for (Object keyWord : jsonArray) {
 
+								JSONObject parseObject = JSONObject.fromObject(String.valueOf(keyWord));
+								String keyWordsSingle = parseObject.getString("keyWords");
+								if (StringUtil.isNotEmpty(keyWordsSingle)) {
+									//防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+									String[] split = keyWordsSingle.split(",");
+									String splitNode = "";
+									for (int i = 0; i < split.length; i++) {
+										if (StringUtil.isNotEmpty(split[i])) {
+											if (split[i].endsWith(";") || split[i].endsWith("；")) {
+												split[i] = split[i].substring(0, split[i].length() - 1);
+											}
+											splitNode += split[i] + ",";
+										}
+									}
+									keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
+									childTrsl.append("((\"")
+											.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
+											.append("*\"))");
+									childTrsl2.append("((")
+											.append(keyWordsSingle.replaceAll("[,|，]", ") AND (").replaceAll("[;|；]+", " OR "))
+											.append("))");
+									childTrsl3.append("(").append(keyWordsSingle.replaceAll("[;|；|，|,]"," OR ")).append(")");
+//									childTrsl2.append("((")
+//											.append(keyWordsSingle.replaceAll("[,|，]", "*) AND (").replaceAll("[;|；]+", "* OR "))
+//											.append("*))");
+								}
+							}
+							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+							}
+							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+							}
+							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append(") OR ").append(FtsFieldConst.FIELD_TAG_LIKE).append(":(").append(childTrsl2.toString()).append("))");
+							}
 						}
-						if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
 
-						}
-						if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-
-						}
 						buffer.append(")");
 						searchSourceList.remove(Const.GROUPNAME_WEIBO);
 					}
@@ -540,10 +581,17 @@ public class ColumnConfig {
 							}
 							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
 						}
+
 						queryBuilder.filterByTRSL(buffer.toString());
 					}
 				}
 			}
+		} else {
+			//不是精准筛选，trslk表达式也要加上group_name的内容
+			List<String> searchSourceList = CommonListChartUtil.formatGroupName(StringUtil.isEmpty(groupName) ? source : groupName);
+			StringBuffer sb = new StringBuffer();
+			sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
+			queryBuilder.filterByTRSL(sb.toString());
 		}
 		String sidsTrsl = queryBuilder.asTRSL();
 		StringBuilder sidsTrslNew = new StringBuilder(sidsTrsl);
@@ -627,7 +675,13 @@ public class ColumnConfig {
 			}
 			//如果list中有其他，则其他为 其他+“”。依然是算两个
 			if(areaList.size() >0  &&  areaList.size() < areaMap.size() +1){
-				this.queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+				if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field) && this.indexTab.getGroupName().contains(Const.TYPE_WEIXIN)){
+					StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append(FtsFieldConst.FIELD_CATALOG_AREA).append(":(").append(StringUtils.join(areaList," OR ")).append(")").append(" OR ").append(FtsFieldConst.FIELD_CATALOG_AREA_MULTIPLE).append(":(").append(StringUtils.join(areaList," OR ")).append(")");
+					this.queryBuilder.filterByTRSL(stringBuilder.toString());
+				}else {
+					this.queryBuilder.filterField(field, StringUtils.join(areaList, " OR "), Operator.Equal);
+				}
 			}
 		}
 	}
@@ -806,7 +860,7 @@ public class ColumnConfig {
 			if (notSite.endsWith(" OR ")) {
 				notSite = notSite.substring(0, notSite.length() - 4);
 			}
-			asTRSL += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME).append(":(").append(notSite)
+			asTRSL += new StringBuffer().append(" NOT ").append(FtsFieldConst.FIELD_SITENAME_LIKE).append(":(").append(notSite)
 					.append(")").toString();
 		}
 
@@ -846,11 +900,11 @@ public class ColumnConfig {
 		//SpecialType specialType = this.indexTab.getSpecialType();
 
 		String xyTrsl = this.indexTab.getXyTrsl();
-		if (StringUtil.isNotEmpty(xyTrsl)) {
+		if (StringUtil.isNotEmpty(xyTrsl) && SpecialType.SPECIAL.equals(this.indexTab.getSpecialType())) {
 			// 专家模式，xytrsl不为空是饼、柱、折三种图
 			//查信息列表（不是点击图跳转到的列表）时需要用xyTrsl去限制
 			//如果是统计分析中的图表，也需要用xyTrsl去限制
-			if (ColumnConst.LIST_NO_SIM.equals(this.indexTab.getType()) || (this.chartPage != null && this.chartPage.equals(ChartPageInfo.StatisticalChart))) {
+//			if (ColumnConst.LIST_NO_SIM.equals(this.indexTab.getType()) || (this.chartPage != null && this.chartPage.equals(ChartPageInfo.StatisticalChart))) {
 				isFilterXyTrsl = false;
 				//(IR_URLTIME:[20200709000000 TO 20200709015959]) AND
 				//(
@@ -879,7 +933,7 @@ public class ColumnConfig {
 					this.commonBuilder.filterByTRSL("(" + sb.toString() + ")");
 				}
 			}
-		}
+//		}
 	}
 
 }

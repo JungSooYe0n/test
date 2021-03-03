@@ -265,13 +265,13 @@ public class SpecialProject extends BaseEntity {
      */
     @Column(name = "ir_simflag")
     private boolean irSimflag = false;
-	public boolean isIrSimflag(){
-		if(similar == false && irSimflagAll == false){
-			return true;
-		}else{
-			return irSimflag;
-		}
-	}
+//	public boolean isIrSimflag(){
+//		if(similar == false && irSimflagAll == false){
+//			return true;
+//		}else{
+//			return irSimflag;
+//		}
+//	}
     
     /**
      * 专家模式情况下  是否转换为server表达式
@@ -337,6 +337,10 @@ public class SpecialProject extends BaseEntity {
 		if(StringUtil.isNotEmpty(this.filterInfo)){
 			return this.filterInfo;
 		}else{
+			if (SpecialType.SPECIAL.equals(this.getSpecialType())){
+				//处理历史专家模式的信息过滤
+				return Const.NOT_FILTER_INFO;
+			}
 			return StringUtils.join(Const.FILTER_INFO,";");
 		}
 	}
@@ -364,7 +368,8 @@ public class SpecialProject extends BaseEntity {
 			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
 		}
 	}
-
+	@Column(name = "precise_filter")
+	private String preciseFilter;
 	/**
 	 * 是否有条件筛选  -  例如现在列表页中的条件筛选页面
 	 * 因为在没有条件筛选的情况下，专家模式只拼接trsl，不拼接跟普通模式相同的参数
@@ -655,7 +660,7 @@ public class SpecialProject extends BaseEntity {
 			if (StringUtil.isNotEmpty(this.monitorSite)) {
 				String addMonitorSite = addMonitorSite(this.monitorSite);
 				if(StringUtil.isNotEmpty(addMonitorSite)){
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,addMonitorSite, Operator.Equal);
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE,addMonitorSite, Operator.Equal);
 				}
 			}
 			String excludeIndex = this.getExcludeWordIndex();
@@ -668,7 +673,7 @@ public class SpecialProject extends BaseEntity {
 			if (StringUtil.isNotEmpty(this.excludeWeb)) {
 				String Site = addMonitorSite(this.excludeWeb);
 				if(StringUtil.isNotEmpty(Site)){
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Site, Operator.NotEqual);
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE,Site, Operator.NotEqual);
 				}
 			}
 			//媒体等级
@@ -769,9 +774,9 @@ public class SpecialProject extends BaseEntity {
 
 						//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
 						if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
-						/*|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+						|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
 						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
-						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")*/
+						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")
 						)) {
 
 							if (buffer.length() > 0) {
@@ -786,22 +791,58 @@ public class SpecialProject extends BaseEntity {
 								buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
-
+								buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
-
+								buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
 							}
 							if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
-
+								buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
 							}
-							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+							if (StringUtil.isNotEmpty(anyKeywords)) {
+								net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(anyKeywords.trim());
+								StringBuilder childTrsl = new StringBuilder();
+								StringBuilder childTrsl2 = new StringBuilder();
+								StringBuilder childTrsl3 = new StringBuilder();
+								for (Object keyWord : jsonArray) {
 
-							}
-							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
-
-							}
-							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
-
+									net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
+									String keyWordsSingle = parseObject.getString("keyWords");
+									if (StringUtil.isNotEmpty(keyWordsSingle)) {
+										//防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+										String[] split = keyWordsSingle.split(",");
+										String splitNode = "";
+										for (int i = 0; i < split.length; i++) {
+											if (StringUtil.isNotEmpty(split[i])) {
+												if (split[i].endsWith(";")) {
+													split[i] = split[i].substring(0, split[i].length() - 1);
+												}
+												splitNode += split[i] + ",";
+											}
+										}
+										keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
+										childTrsl.append("((\"")
+												.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
+												.append("*\"))");
+//										childTrsl2.append("((")
+//												.append(keyWordsSingle.replaceAll("[,|，]", "*) AND (").replaceAll("[;|；]+", "* OR "))
+//												.append("*))");
+										childTrsl2.append("((")
+												.append(keyWordsSingle.replaceAll("[,|，]", ") AND (").replaceAll("[;|；]+", " OR "))
+												.append("))");
+										childTrsl3.append("(").append(keyWordsSingle.replaceAll("[;|；|，|,]"," OR ")).append(")");
+									}
+								}
+								if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+								}
+								if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+								}
+								if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+									buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append(") OR ").append(FtsFieldConst.FIELD_TAG_LIKE).append(":(").append(childTrsl2.toString()).append("))");
+								}
 							}
 							buffer.append(")");
 
@@ -1225,7 +1266,13 @@ public class SpecialProject extends BaseEntity {
 			}
 			//如果list中有其他，则其他为 其他+“”。依然是算两个
 			if(areaList.size() >0  &&  areaList.size() < areaMap.size() +1){
-				queryBuilder.filterField(field,StringUtils.join(areaList," OR ") , Operator.Equal);
+				if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field) && this.source.contains(Const.TYPE_WEIXIN)){
+					StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append(FtsFieldConst.FIELD_CATALOG_AREA).append(":(").append(StringUtils.join(areaList," OR ")).append(")").append(" OR ").append(FtsFieldConst.FIELD_CATALOG_AREA_MULTIPLE).append(":(").append(StringUtils.join(areaList," OR ")).append(")");
+					queryBuilder.filterByTRSL(stringBuilder.toString());
+				}else {
+					queryBuilder.filterField(field, StringUtils.join(areaList, " OR "), Operator.Equal);
+				}
 			}
 		}
 	}
@@ -1300,8 +1347,8 @@ public class SpecialProject extends BaseEntity {
 
 	@Transient
 	private String read;//  阅读标记
-	@Transient
-	private String preciseFilter;//精准筛选
+//	@Transient
+//	private String preciseFilter;//精准筛选
 	@Transient
 	private String emotion;//  阅读标记
 	@Transient
@@ -1328,7 +1375,7 @@ public class SpecialProject extends BaseEntity {
 		this.conditionScreen =true;
 
 		this.similar = false;
-		this.irSimflag = true;
+		this.irSimflag = false;
 		this.irSimflagAll = false;
 		//排重
 		if ("netRemove".equals(simflag)) { //单一媒体排重

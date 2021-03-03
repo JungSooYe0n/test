@@ -380,7 +380,10 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     @Override
     public void delReportResource(String reportId, String chapterDetail) throws Exception {
         ReportNew report = reportNewRepository.findOne(reportId);
+        StringBuilder stringBuilder = new StringBuilder();
+        reportNewRepository.save(report);
         ReportDataNew reportData = reportDataNewRepository.findOne(report.getReportDataId());
+        reportDataNewRepository.saveDeleteTab(StringUtil.isEmpty(reportData.getDeletedTab()) ? stringBuilder.append(chapterDetail).toString() : stringBuilder.append(reportData.getDeletedTab()).append(";").append(chapterDetail).toString(),reportData.getId());
 
         switch (chapterDetail) {
             case OVERVIEWOFDATANew:
@@ -470,17 +473,22 @@ public class SpecialReportServiceImpl implements ISpecialReportService {
     }
 
     @Override
-    public ReportNew createSepcial(String reportId, String templateId, String jsonImgElements, String reportIntro, String statisticsTime, String reportName, String thisIssue, String totalIssue, String preparationUnits, String preparationAuthors) throws Exception {
+    public ReportNew createSepcial(String reportId, String templateId,String templateList, String jsonImgElements, String reportIntro, String statisticsTime, String reportName, String thisIssue, String totalIssue, String preparationUnits, String preparationAuthors,String dataSummary) throws Exception {
         ReportNew report = reportNewRepository.findOne(reportId);
         userInputFiledHandle(statisticsTime, reportName, thisIssue, totalIssue, preparationUnits, preparationAuthors, report);
         ReportDataNew reportData = reportDataNewRepository.findOne(report.getReportDataId());
-        TemplateNew templateNew = templateNewRepository.findOne(templateId);
+        if (StringUtil.isEmpty(templateList)) {
+            TemplateNew templateNew = templateNewRepository.findOne(templateId);
+            templateList = templateNew.getTemplateList();
+        }
+
         Map<String, List<Map<String, String>>> base64data = ReportUtil.getBase64data(jsonImgElements);
         reportData.setReportIntro(reportIntro);
-        String reportPath = generateReportImpl.generateReport(report, reportData, templateNew, base64data);
+        String reportPath = generateReportImpl.generateReport(report, reportData, templateList, base64data,dataSummary);
         report.setTemplateId(templateId);
         report.setDocPath(reportPath);
-        report.setTemplateList(templateNew.getTemplateList());
+//        report.setTemplateList(templateNew.getTemplateList());
+        report.setTemplateList(templateList);
         reportNewRepository.save(report);
         reportDataNewRepository.save((reportData));
 

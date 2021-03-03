@@ -170,7 +170,7 @@ public class SpecialServiceImpl implements ISpecialService {
 			String anyKeywords, String excludeWords,String excludeWordsIndex, String trsl,
 			SearchScope scope, Date startTime, Date endTime, String source, String timerange, boolean similar,
 			boolean weight,String sort, boolean irSimflag, boolean server,boolean irSimflagAll,String excludeWeb,String monitorSite,String mediaLevel,
-										String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea) throws Exception {
+										String mediaIndustry,String contentIndustry,String filterInfo,String contentArea,String mediaArea,String preciseFilter) throws Exception {
 		SpecialProject specialProject = specialProjectRepository.findOne(specialId);
 		// 修改专项
 		specialProject.setSpecialType(type);
@@ -201,6 +201,7 @@ public class SpecialServiceImpl implements ISpecialService {
 		specialProject.setFilterInfo(filterInfo);
 		specialProject.setMediaArea(mediaArea);
 		specialProject.setContentArea(contentArea);
+		specialProject.setPreciseFilter(preciseFilter);
 		specialProjectRepository.save(specialProject);
 		reportService.saveMaterialLibrary(specialProject);
 		PerpetualPool.put(specialId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
@@ -628,6 +629,7 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("filterInfo", tab.getFilterInfo());
 					map.put("contentArea", tab.getContentArea());
 					map.put("mediaArea", tab.getMediaArea());
+					map.put("preciseFilter",tab.getPreciseFilter());
 
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏

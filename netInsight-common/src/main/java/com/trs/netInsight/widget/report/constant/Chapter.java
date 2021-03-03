@@ -18,26 +18,34 @@ public enum Chapter {
     数据统计概述
      */
     Statistics_Summarize(ReportConst.Hand_Made_Statistics_Summarize, ReportConst.SINGLERESOURCE,2) ,
+    /**
+     * 信息列表
+     */
+    Hot_News_List(ReportConst.Hand_Made_Hot_News_List, ReportConst.LISTRESOURCES,3),
     /*
     数据来源对比
      */
-    Source_contrast(ReportConst.Hand_Made_Source_contrast, ReportConst.CHART,3),
+    Source_contrast(ReportConst.Hand_Made_Source_contrast, ReportConst.CHART,4),
     /*
     数据统计
      */
-    Data_Statistics(ReportConst.Hand_Made_Data_Statistics, ReportConst.CHART,4),
+    Data_Statistics(ReportConst.Hand_Made_Data_Statistics, ReportConst.CHART,5),
     /*
     全国地域分布
      */
-    Area(ReportConst.Hand_Made_Area, ReportConst.CHART,5),
+    Area(ReportConst.Hand_Made_Area, ReportConst.CHART,6),
+    /**
+     * 词云统计
+     */
+    Word_Cloud(ReportConst.Hand_Made_Word_Cloud, ReportConst.CHART,7),
     /*
     情感分布
      */
-    Emotion_Analyze(ReportConst.Hand_Made_Emotion_Analyze, ReportConst.CHART,6),
+    Emotion_Analyze(ReportConst.Hand_Made_Emotion_Analyze, ReportConst.CHART,8),
     /*
     热点新闻
      */
-    Hot_News(ReportConst.Hand_Made_Hot_News, ReportConst.LISTRESOURCES,7),
+    Hot_News(ReportConst.Hand_Made_Hot_News, ReportConst.LISTRESOURCES,9),
     /*
     网站来源TOP10
      */
@@ -45,7 +53,7 @@ public enum Chapter {
     /*
     热点微博
      */
-    Hot_Weibo(ReportConst.Hand_Made_Hot_Weibo, ReportConst.LISTRESOURCES,8),
+    Hot_Weibo(ReportConst.Hand_Made_Hot_Weibo, ReportConst.LISTRESOURCES,10),
     /*
     微博活跃账号TOP10
      */
@@ -57,7 +65,7 @@ public enum Chapter {
     /**
      * 活跃用户TOP10 ---------  因为 网站来源微信微博TOP10 融合为1个了，但是前端暂时不想改名字，所以 叫TOP10_New。，但是中文名字改了
      */
-    TOP10_News(ReportConst.Hand_Made_TOP10_User, ReportConst.CHART,9);
+    TOP10_News(ReportConst.Hand_Made_TOP10_User, ReportConst.CHART,11);
 
     String value;
     String valueType;

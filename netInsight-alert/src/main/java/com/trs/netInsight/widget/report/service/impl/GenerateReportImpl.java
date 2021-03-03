@@ -7,9 +7,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import com.trs.netInsight.util.DateUtil;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.report.constant.Chapter;
 import com.trs.netInsight.widget.report.constant.ReportConst;
 import com.trs.netInsight.widget.report.constant.SimplerReportConst;
@@ -27,7 +25,6 @@ import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.report.entity.ReportDataNew;
 import com.trs.netInsight.widget.report.entity.ReportNew;
 import com.trs.netInsight.widget.report.entity.ReportResource;
@@ -72,10 +69,10 @@ public class GenerateReportImpl implements IGenerateReport {
 	
 	@Override
 	public String generateReport(ReportNew report, ReportDataNew reportData,
-			TemplateNew template, Map<String, List<Map<String, String>>> base64data) throws Exception{
+			String templateList, Map<String, List<Map<String, String>>> base64data,String dataSummary) throws Exception{
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
-		List<TElementNew> elementList = JSONArray.parseArray(template.getTemplateList(), TElementNew.class);
+		List<TElementNew> elementList = JSONArray.parseArray(templateList, TElementNew.class);
 		elementList = elementList.stream().filter(e -> e.getSelected() == 1).sorted(Comparator.comparing(TElementNew::getChapterPosition)).collect(Collectors.toList());
 		int i = 0;
 		for(TElementNew element : elementList){
@@ -88,9 +85,12 @@ public class GenerateReportImpl implements IGenerateReport {
 				break;
 			case OVERVIEWOFDATANew:
 				i++;
-				JSONObject object = (JSONObject)(JSONObject.parseArray(reportData.getOverviewOfdata()).get(0));
-
-				singleParagraph(xwpfDocument, OVERVIEWOFDATA, object.getString("imgComment"), i);
+//				singleParagraph(xwpfDocument, OVERVIEWOFDATA, object.getString("imgComment"), i);
+				if (StringUtil.isEmpty(dataSummary)) {
+					JSONObject object = (JSONObject)(JSONObject.parseArray(reportData.getOverviewOfdata()).get(0));
+					dataSummary =  object.getString("imgComment");
+				}
+				singleParagraph(xwpfDocument, OVERVIEWOFDATA, dataSummary, i);
 				log.info(String.format(GENERATEREPORTLOG,OVERVIEWOFDATA + DONE));
 				break;
 			case NEWSHOTTOP10New:
@@ -348,6 +348,10 @@ public class GenerateReportImpl implements IGenerateReport {
 	public String generateReport(ReportNew report, Map<Integer, List<ReportResource>> collect, TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data, String reportIntro) throws Exception {
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
+		//因为是生成报告，所以使用报告里的 templateList
+		if (!"".equals(report.getTemplateList()) && report.getTemplateList() != null) {
+			templateNew.setTemplateList(report.getTemplateList());
+		}
 		List<TElementNew> elementList = ReportUtil.setResoucesIntoElements(templateNew, collect);
 //		elementList = ReportUtil.tElementListHandle(elementList);
 		AtomicInteger i = new AtomicInteger(0);
@@ -586,7 +590,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		titleParagraph.setAlignment(ParagraphAlignment.LEFT);
 		XWPFRun titleLine = titleParagraph.createRun();
 		titleLine.setFontSize(TITLEFONTSIZE); //
-		titleLine.setText(ROMAN2CHINESE.get(i)+"、"+title);
+		titleLine.setText(IntUtil.toChinese(i) +"、"+title);
 		titleLine.setFontFamily(TITLEFONTFAMILY);
 		titleLine.setBold(true); // 加粗
 		// 正文统一字体12号、仿宋、首行缩进
@@ -608,7 +612,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		titleParagraph.setAlignment(ParagraphAlignment.LEFT);
 		XWPFRun titleLine = titleParagraph.createRun();
 		titleLine.setFontSize(TITLEFONTSIZE); //
-		titleLine.setText(ROMAN2CHINESE.get(i)+"、"+title);
+		titleLine.setText(IntUtil.toChinese(i)+"、"+title);
 		titleLine.setFontFamily(TITLEFONTFAMILY);
 		titleLine.setBold(true); // 加粗
 		
@@ -626,7 +630,7 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 				//动态设置
 				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decode);
-				int width = 5600000;
+				int width = 5270000;
 				int height = 3000000;
 				switch (title){
 					case DATATRENDANALYSIS:
@@ -692,9 +696,9 @@ public class GenerateReportImpl implements IGenerateReport {
 
 	private void dataListParagraph(XWPFDocument xdoc, String title,String chapterDetail, List<ReportResource> chapterContent, int i,String eleType) throws Exception {
         XWPFParagraph titleParagraph = xdoc.createParagraph();    
-        titleParagraph.setAlignment(ParagraphAlignment.LEFT);  
+        titleParagraph.setAlignment(ParagraphAlignment.LEFT);
         XWPFRun titleLine = titleParagraph.createRun();  
-        titleLine.setText(ROMAN2CHINESE.get(i)+"、"+title);  
+        titleLine.setText(IntUtil.toChinese(i)+"、"+title);
         titleLine.setFontSize(TITLEFONTSIZE);  
         titleLine.setFontFamily(TITLEFONTFAMILY);  
         titleLine.setBold(true);
@@ -714,18 +718,24 @@ public class GenerateReportImpl implements IGenerateReport {
 			if (null == eleType){//专报
         		if(chapterDetail.indexOf("EVENTCONTEXT")!=-1){
         			//事件脉络
-					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 5);
+					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 6);
 					createTable4Context(dTable, xdoc, chapterContent, chapterDetail,true);
 				}else {
 					//专题报 改造 20191121 （热点模块要加一列 热度）
 					//列数应该按照章节类型进行判断，暂时写4
-					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 5);
+					XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 6);
 					createTable(dTable, xdoc, chapterContent, chapterDetail,true);
 				}
 			}else if ("表格".equals(eleType)){//日报、周报、月报
 				//列数应该按照章节类型进行判断，暂时写4
-				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 4);
-				createTable(dTable, xdoc, chapterContent, chapterDetail,false);
+				Integer w = 6;
+				if("Hot_News_List".equals(chapterDetail)){
+					w = 5;
+				}
+				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, w);
+				createTable(dTable, xdoc, chapterContent, chapterDetail,true);
+//				XWPFTable dTable = xdoc.createTable(chapterContent.size()+1, 4);
+//				createTable(dTable, xdoc, chapterContent, chapterDetail,false);
 			}else {
 				//列表
 				createWordList(xdoc,chapterContent,chapterDetail,eleType);
@@ -740,12 +750,14 @@ public class GenerateReportImpl implements IGenerateReport {
 		String bgColor = "111111";
 		CTTbl ttbl = xTable.getCTTbl();
 		CTTblPr tblPr = ttbl.getTblPr() == null ? ttbl.addNewTblPr() : ttbl.getTblPr();
-
+		CTTblLayoutType t = tblPr.isSetTblLayout()?tblPr.getTblLayout():tblPr.addNewTblLayout();
+		tblPr.addNewJc().setVal(STJc.CENTER);
+		t.setType(STTblLayoutType.FIXED);//使布局固定，不随内容改变宽度
 		CTTblWidth tblWidth = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
-		tblWidth.setW(new BigInteger("8600"));
+		tblWidth.setW(new BigInteger("8700"));
 		tblWidth.setType(STTblWidth.DXA);
 		setCellTitle(xdoc, getCellHight(xTable, 0, 0), "序号", bgColor, 700);	//1000
-		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 4300);
+		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 3600);
 		int indexHead = 2;
 		if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail)
 				|| WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail)
@@ -755,19 +767,21 @@ public class GenerateReportImpl implements IGenerateReport {
 				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "转发", bgColor, 1200);	//2000
 				indexHead += 1;
 			}else {*/
-				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "热度", bgColor, 1200);	//2000
+				setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "热度", bgColor, 700);	//2000
 				indexHead += 1;
 			//}
 		}
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 1200);	//2000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 800);	//2000
 		indexHead += 1;
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 2150);	//3000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 1300);	//3000
 
+		indexHead += 1;
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "链接", bgColor, 1600);	//3000
 			for(int i = 0; i < chapaterContent.size(); i++){
 				//序号
 				setCellText(xdoc, getCellHight(xTable, i + 1, 0), i + 1 + "",bgColor, 700);
 				//标题
-				setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 4300);
+				setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 3600);
 				int index = 2;
 				if (hotCountFlag && (NEWSHOTTOP10key.equals(chapterDetail) || WEIBOHOTTOP10key.equals(chapterDetail) || WECHATHOTTOP10key.equals(chapterDetail)
 						|| WEMEDIAkey.equals(chapterDetail) || NEWSHOTTOPICSkey.equals(chapterDetail) || WEIBOHOTTOPICSkey.equals(chapterDetail)
@@ -776,20 +790,26 @@ public class GenerateReportImpl implements IGenerateReport {
 					/*if (WEIBOHOTTOP10key.equals(chapterDetail)){
 						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getRttCount()==null?"0":chapaterContent.get(i).getRttCount().toString(),bgColor, 1200);
 					}else {*/
-						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1200);
+						setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 700);
 					//}
 					index += 1;
 				}
 				//来源
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 1200);
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 800);
 				index += 1;
 					//时间
 				Date urlDate = chapaterContent.get(i).getUrlDate();
 				if(urlDate != null){
-					setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 2150);
+					setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 1300);
 				}else{
-					setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 2150);
+					setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 1300);
 				}
+				index += 1;
+				String urlName = chapaterContent.get(i).getUrlName();
+				if (StringUtil.isNotEmpty(urlName)){
+					urlName = urlName.replaceAll(": ","://");
+				}
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), urlName,bgColor, 1600);
 			}
 	}
 
@@ -800,38 +820,48 @@ public class GenerateReportImpl implements IGenerateReport {
 		String bgColor = "111111";
 		CTTbl ttbl = xTable.getCTTbl();
 		CTTblPr tblPr = ttbl.getTblPr() == null ? ttbl.addNewTblPr() : ttbl.getTblPr();
-
+		CTTblLayoutType t = tblPr.isSetTblLayout()?tblPr.getTblLayout():tblPr.addNewTblLayout();
+		tblPr.addNewJc().setVal(STJc.CENTER);
+		t.setType(STTblLayoutType.FIXED);//使布局固定，不随内容改变宽度
 		CTTblWidth tblWidth = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
-		tblWidth.setW(new BigInteger("8600"));
+//		tblWidth.setW(new BigInteger("8700"));
 		tblWidth.setType(STTblWidth.DXA);
 		setCellTitle(xdoc, getCellHight(xTable, 0, 0), "序号", bgColor, 700);	//1000
-		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 4300);
+		setCellTitle(xdoc, getCellHight(xTable, 0, 1), "标题", bgColor, 3300);
 		int indexHead = 2;
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 1200);	//2000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "来源", bgColor, 800);	//2000
 		indexHead += 1;
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "相似文章", bgColor, 1200);	//2000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "相似文章", bgColor, 1300);	//2000
 		indexHead += 1;
-		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 2150);	//3000
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "时间", bgColor, 1300);	//3000
+		indexHead += 1;
+		setCellTitle(xdoc, getCellHight(xTable, 0, indexHead), "链接", bgColor, 1300);	//3000
 
 		for(int i = 0; i < chapaterContent.size(); i++){
 			//序号
 			setCellText(xdoc, getCellHight(xTable, i + 1, 0), i + 1 + "",bgColor, 700);
 			//标题
-			setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 4300);
+			setCellText(xdoc, getCellHight(xTable, i + 1, 1),ReportUtil.replaceHtml(chapaterContent.get(i).getTitle()), bgColor, 3300);
 			int index = 2;
 			//来源
-			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 1200);
+			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 800);
 			index += 1;
 
-			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1200);
+			setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSimCount(),bgColor, 1300);
 			index += 1;
 			//时间
 			Date urlDate = chapaterContent.get(i).getUrlDate();
 			if(urlDate != null){
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 2150);
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), dateFormat.format(urlDate), bgColor, 1300);
 			}else{
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 2150);
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), "", bgColor, 1300);
 			}
+			index += 1;
+			String urlName = chapaterContent.get(i).getUrlName();
+			if (StringUtil.isNotEmpty(urlName)){
+				urlName = urlName.replaceAll(": ","://");
+			}
+			setCellText(xdoc, getCellHight(xTable, i + 1, index), urlName,bgColor, 1300);
 		}
 	}
 	private void dataSimplerListParagraph(XWPFDocument xdoc, String title, List<ReportResource> chapterContent, int i,String eleType,String chapterDetail) throws Exception {
@@ -974,17 +1004,17 @@ public class GenerateReportImpl implements IGenerateReport {
 		createRun.setColor("ff0000");//176 B0 240 f0
 		createRun.setFontFamily("楷体GB2312");
 		createRun.setBold(true);
-		if(reportName.length() > 8){
-			createRun.setText(reportName.substring(0, 8));
-			createRun.addBreak();
-			createRun.setText(reportName.substring(8));
-			 xdoc.createParagraph().createRun().setText("");//加1个空行
-			return 0;
-		}else{
+//		if(reportName.length() > 8){
+//			createRun.setText(reportName.substring(0, 8));
+//			createRun.addBreak();
+//			createRun.setText(reportName.substring(8));
+//			 xdoc.createParagraph().createRun().setText("");//加1个空行
+//			return 0;
+//		}else{
 			createRun.setText(reportName);
 			 xdoc.createParagraph().createRun().setText("");
 			return 1;
-		}
+//		}
 	}
 	private void createP2(XWPFDocument xdoc, String thisIssue,String totalIssue){
 		XWPFParagraph createParagraph2 = xdoc.createParagraph();
@@ -1019,7 +1049,7 @@ public class GenerateReportImpl implements IGenerateReport {
 			createParagraph3.setAlignment(ParagraphAlignment.CENTER);
 			XWPFRun createRun3 = createParagraph3.createRun();
 			createRun3.addPicture(getRedLine(),
-					Document.PICTURE_TYPE_PNG, "1.png", 5500000, 50000);
+					Document.PICTURE_TYPE_PNG, "1.png", 5270000, 50000);
 			//第五段
 			XWPFParagraph createParagraph5 = xwpfDocument.createParagraph();
 			createParagraph5.setAlignment(ParagraphAlignment.CENTER);
@@ -1032,45 +1062,67 @@ public class GenerateReportImpl implements IGenerateReport {
 			xwpfDocument.createParagraph().createRun().setText("");
 			
 		}else if(("月报".equals(report.getReportType()) || ("周报".equals(report.getReportType())))){
+//			//第一段：红色，33号字体，居中，楷体GB2312
+//			Integer count = createP1(xwpfDocument, report.getReportName());
+//			//第二段：处理首页空白
+//			XWPFParagraph createParagraph3 = xwpfDocument.createParagraph();
+//			createParagraph3.setAlignment(ParagraphAlignment.CENTER);
+//			XWPFRun createRun3 = createParagraph3.createRun();
+//			createRun3.setFontSize(PAGEHEADFONTSIZE);
+//			createRun3.setText("（" +new SimpleDateFormat("yyyy").format(new Date()) + "年第" + report.getThisIssue() + "期  总第" + report.getTotalIssue()+"期）");
+//			createRun3.setFontFamily(PAGEHEADFONTFAMILY);
+//
+//			for(int i=0; i<(8 + count); i++){
+//				XWPFParagraph createParagraph22 = xwpfDocument.createParagraph();
+//				createParagraph22.setAlignment(ParagraphAlignment.CENTER);
+//				XWPFRun createRun22 = createParagraph22.createRun();
+//				createRun22.setText(" ");
+//				createRun22.setFontSize(20);
+//				createRun22.setTextPosition(120);
+//				createRun22.addPicture(getRedLine(), Document.PICTURE_TYPE_PNG, "1.png", 50, 50);
+//			}
+//
+//			//第四段：
+//			XWPFParagraph createParagraph4 = xwpfDocument.createParagraph();
+//			createParagraph4.setAlignment(ParagraphAlignment.CENTER);
+//			XWPFRun createRun4 = createParagraph4.createRun();
+//			createRun4.setFontSize(PAGEHEADFONTSIZE);
+//			createRun4.setText(report.getPreparationUnits());
+//			createRun4.setFontFamily(PAGEHEADFONTFAMILY);
+//			createRun4.setBold(true);
+//
+//			//第五段
+//			XWPFParagraph createParagraph5 = xwpfDocument.createParagraph();
+//			createParagraph5.setAlignment(ParagraphAlignment.CENTER);
+//			XWPFRun createRun5 = createParagraph5.createRun();
+//			createRun5.setFontSize(PAGEHEADFONTSIZE);
+//			createRun5.setText(new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
+//			createRun5.setFontFamily(PAGEHEADFONTFAMILY);
+//			createRun5.setBold(true);
+//
+//			xwpfDocument.createParagraph().createRun().setText("");
+//			xwpfDocument.createParagraph().createRun().setText("");
 			//第一段：红色，33号字体，居中，楷体GB2312
-			Integer count = createP1(xwpfDocument, report.getReportName());
-			//第二段：处理首页空白
+			createP1(xwpfDocument, report.getReportName());
+			//第二段：黑色 12号字 居中 楷体
+			createP2(xwpfDocument,report.getThisIssue(), report.getTotalIssue());
+			//第三段：黑色 12号字 居中 楷体
+			createP3(xwpfDocument, report.getPreparationUnits());
+			//第四段：
 			XWPFParagraph createParagraph3 = xwpfDocument.createParagraph();
 			createParagraph3.setAlignment(ParagraphAlignment.CENTER);
 			XWPFRun createRun3 = createParagraph3.createRun();
-			createRun3.setFontSize(PAGEHEADFONTSIZE);
-			createRun3.setText("（" +new SimpleDateFormat("yyyy").format(new Date()) + "年第" + report.getThisIssue() + "期  总第" + report.getTotalIssue()+"期）");
-			createRun3.setFontFamily(PAGEHEADFONTFAMILY);
-			
-			for(int i=0; i<(8 + count); i++){
-				XWPFParagraph createParagraph22 = xwpfDocument.createParagraph();
-				createParagraph22.setAlignment(ParagraphAlignment.CENTER);
-				XWPFRun createRun22 = createParagraph22.createRun();
-				createRun22.setText(" ");
-				createRun22.setFontSize(20);
-				createRun22.setTextPosition(120);
-				createRun22.addPicture(getRedLine(), Document.PICTURE_TYPE_PNG, "1.png", 50, 50);
-			}
-			
-			//第四段：
-			XWPFParagraph createParagraph4 = xwpfDocument.createParagraph();
-			createParagraph4.setAlignment(ParagraphAlignment.CENTER);
-			XWPFRun createRun4 = createParagraph4.createRun();
-			createRun4.setFontSize(PAGEHEADFONTSIZE);
-			createRun4.setText(report.getPreparationUnits());
-			createRun4.setFontFamily(PAGEHEADFONTFAMILY);
-			createRun4.setBold(true);
-			
+			createRun3.addPicture(getRedLine(),
+					Document.PICTURE_TYPE_PNG, "1.png", 5500000, 50000);
 			//第五段
 			XWPFParagraph createParagraph5 = xwpfDocument.createParagraph();
 			createParagraph5.setAlignment(ParagraphAlignment.CENTER);
 			XWPFRun createRun5 = createParagraph5.createRun();
 			createRun5.setFontSize(PAGEHEADFONTSIZE);
-			createRun5.setText(new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
 			createRun5.setFontFamily(PAGEHEADFONTFAMILY);
-			createRun5.setBold(true);
-			
-			xwpfDocument.createParagraph().createRun().setText("");
+			createRun5.setText("统计时间段:"+ report.getStatisticsTime());
+
+			//加个回车
 			xwpfDocument.createParagraph().createRun().setText("");
 		}
 		log.info(String.format(GENERATEREPORTLOG,"报告头" + DONE));
@@ -1143,7 +1195,7 @@ public class GenerateReportImpl implements IGenerateReport {
 					//时间
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					XWPFParagraph turnTime = xdoc.createParagraph();
-					turnTime.setAlignment(ParagraphAlignment.RIGHT);
+					turnTime.setAlignment(ParagraphAlignment.LEFT);
 					//1.5倍行间距
 					//turnTime.setSpacingBetween(1.5);
 					XWPFRun turnTimeRun = turnTime.createRun();
@@ -1181,7 +1233,7 @@ public class GenerateReportImpl implements IGenerateReport {
 					//siteName + 时间
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					XWPFParagraph turnTime = xdoc.createParagraph();
-					turnTime.setAlignment(ParagraphAlignment.RIGHT);
+					turnTime.setAlignment(ParagraphAlignment.LEFT);
 					//1.5倍行间距
 					//turnTime.setSpacingBetween(1.5);
 					XWPFRun turnTimeRun = turnTime.createRun();

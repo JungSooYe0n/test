@@ -112,7 +112,7 @@ public class IndexTabReportTask implements Runnable {
                                 config.setShowType(showTypes);
                                 config.initSection(tabForOverView, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, tabForOverView.getMediaLevel(), tabForOverView.getMediaIndustry(), tabForOverView.getContentIndustry(), tabForOverView.getFilterInfo(),
-                                        tabForOverView.getContentArea(), tabForOverView.getMediaArea(), null,"");
+                                        tabForOverView.getContentArea(), tabForOverView.getMediaArea(), tabForOverView.getPreciseFilter(),"");
                                 column.setConfig(config);
                                 Object overViewRtn = column.getColumnData(timerange);
                                 dataTrendRR.setImgComment(ReportUtil.getOverviewOfData(JSON.toJSONString(overViewRtn)));
@@ -138,7 +138,7 @@ public class IndexTabReportTask implements Runnable {
                                         config.setShowType(type);
                                         config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                                 "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                                indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
+                                                indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),"");
                                         column.setConfig(config);
                                         Object object = column.getColumnData(timerange);
                                         if(ObjectUtil.isNotEmpty(object)){
@@ -162,7 +162,7 @@ public class IndexTabReportTask implements Runnable {
                                 config.setShowType(showTypes);
                                 config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                        indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
+                                        indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),"");
                                 column.setConfig(config);
                                 Object object = column.getColumnData(timerange);
                                 if(ObjectUtil.isNotEmpty(object)){
@@ -179,7 +179,7 @@ public class IndexTabReportTask implements Runnable {
                                 config.setShowType(showTypes);
                                 config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                        indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
+                                        indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),"");
                                 column.setConfig(config);
                                 Object objectActiveAccount = column.getColumnData(timerange);
                                 if(ObjectUtil.isNotEmpty(objectActiveAccount)) {
@@ -195,7 +195,7 @@ public class IndexTabReportTask implements Runnable {
                                 config.setShowType(showTypes);
                                 config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                        indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
+                                        indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),"");
                                 column.setConfig(config);
                                 Object emotionObj = column.getColumnData(timerange);
                                 if(ObjectUtil.isNotEmpty(emotionObj)) {
@@ -211,7 +211,7 @@ public class IndexTabReportTask implements Runnable {
                                 config.setShowType(showTypes);
                                 config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                         "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                        indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
+                                        indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),"");
                                 column.setConfig(config);
                                 Object weiboTopicObj = column.getColumnData(timerange);
                                 if(ObjectUtil.isNotEmpty(weiboTopicObj)){
@@ -228,7 +228,7 @@ public class IndexTabReportTask implements Runnable {
                                 for (String type : typeArr) {
                                     config.initSection(indexTab, timerange, 0, 10, null, null, type, "", "", "default", "", "",
                                             "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                            indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
+                                            indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),"");
                                     column.setConfig(config);
                                     Object itemObj = column.getColumnData(timerange);
                                     if(ObjectUtil.isNotEmpty(itemObj)){
@@ -257,7 +257,7 @@ public class IndexTabReportTask implements Runnable {
                                     indexTab.setContrast(mapContrast);
                                     config.initSection(indexTab, timerange, 0, 10, null, null, item.get("entityType"), "", "", "default", "", "",
                                             "", "", null, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                                            indexTab.getContentArea(), indexTab.getMediaArea(), null,"");
+                                            indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),"");
                                     column.setConfig(config);
                                     Object areaRtn = column.getColumnData(timerange);
                                     if(i !=0){

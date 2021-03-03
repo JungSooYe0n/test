@@ -139,6 +139,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 				return Message.getMessage(CodeUtils.FAIL, "没有账号！", null);
 			case SMS:// 站内
+				if(user_==null){
+					return Message.getMessage(CodeUtils.FAIL, "非相同站点！", null);
+				}
 				String[] split = receivers.split(";");
 				for (String receiver : split) {
 					String ids = this.addAlertOrAlertBackups( list, receiver, SendWay.SMS, userId,"send");
@@ -186,7 +189,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					String alertDetailUrl = WeixinMessageUtil.ALERT_DETAILS_URL.replaceAll("ID","")
 							.replace("NETINSIGHT_URL", netinsightUrl)+id;
 
-					if(subject==null){
+					if(subject==null||StringUtils.isBlank(subject)){
 						subject="";
 					}
 					if(userName==null){
@@ -195,7 +198,10 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
 								.replace("SIZE", String.valueOf(size)).replace("USERNAME",
 										userName);
-
+                    if("".equals(subject)){
+                        alertTitle = WeixinMessageUtil.ALERT_TITLE_TWO.replace("SIZE", String.valueOf(size)).replace("USERNAME",
+                                userName);
+                    }
 					List<AlertAccount> accountList = new ArrayList<>();
 					if (findByUserName != null) {
 						accountList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
@@ -509,7 +515,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							accountList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
 						} else {//直接传的微信号   这个人没停止预警  就发  停止预警就不发
 							//通过微信号查alertaccount中的active  true发  false不发
-							List<AlertAccount> byAccountAndUserIdAndType = alertAccountRepository.findByAccountAndUserIdAndType(webReceiver, userId, SendWay.WE_CHAT);
+							List<AlertAccount> byAccountAndUserIdAndType = alertAccountRepository.findByAccountAndType(webReceiver, SendWay.WE_CHAT);
 							AlertAccount alertaccount = null;
 							if (byAccountAndUserIdAndType.size() > 0) {
 								alertaccount = byAccountAndUserIdAndType.get(0);
@@ -662,9 +668,16 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						if (user_.getUserName() == null) {
 							user_.setUserName("");
 						}
+						if(subject==null||StringUtils.isBlank(subject)){
+							subject="";
+						}
 						String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
 								.replace("SIZE", String.valueOf(size)).replace("USERNAME",
 										user_.getUserName());
+						if("".equals(subject)){
+							alertTitle = WeixinMessageUtil.ALERT_TITLE_TWO.replace("SIZE", String.valueOf(size)).replace("USERNAME",
+									user_.getUserName());
+						}
 						for (String openId : receivers) {
 							if (StringUtil.isNotEmpty(openId)) {
 								log.error("netinsightUrl:" + wechatNetinsightUrl);
@@ -824,9 +837,8 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				}
 				if (ObjectUtil.isNotEmpty(user)) {
 					record.addColumn(FtsFieldConst.FIELD_SubGroup_ID, user.getSubGroupId());
-					record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
 				}
-				//record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
+				record.addColumn(FtsFieldConst.FIELD_USER_ID, user.getId());
 				record.addColumn(FtsFieldConst.FIELD_ORGANIZATION_ID, each.get("organizationId"));
 				String alertId = UUID.randomUUID().toString();
 				record.addColumn(FtsFieldConst.FIELD_ALERT_ID, alertId);

@@ -50,7 +50,7 @@ public class IndexTabDTO implements Serializable {
     private String filterInfo;
     private String contentArea;
     private String mediaArea;
-
+    private String preciseFilter;
     private Boolean updateWordForm;
     private Integer wordFromNum;
     private Boolean wordFromSort;
@@ -135,6 +135,8 @@ public class IndexTabDTO implements Serializable {
             this.simflag="urlRemove";
         } else if (tab.isIrSimflagAll()) {
             this.simflag= "sourceRemove";
+        }else{
+            this.simflag= "no";
         }
         this.tabWidth= mapper.getTabWidth();
         this.trsl= tab.getTrsl();
@@ -144,6 +146,7 @@ public class IndexTabDTO implements Serializable {
         this.mediaIndustry= tab.getMediaIndustry();
         this.contentIndustry= tab.getContentIndustry();
         this.filterInfo=tab.getFilterInfo();
+        this.preciseFilter = tab.getPreciseFilter();
         this.contentArea=tab.getContentArea();
         this.mediaArea=tab.getMediaArea();
 

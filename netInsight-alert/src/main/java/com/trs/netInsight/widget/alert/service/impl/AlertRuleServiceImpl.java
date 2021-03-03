@@ -741,7 +741,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)) {
-			String[] split = keywords.split(",");
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
@@ -761,10 +762,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					hybaseField = FtsFieldConst.FIELD_URLTITLE;
 					break;
 				case "source":
-					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
 					break;
 			}
 			if("fullText".equals(hybaseField)){
@@ -898,7 +899,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)) {
-			String[] split = keywords.split(",");
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
@@ -918,10 +920,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					hybaseField = FtsFieldConst.FIELD_URLTITLE;
 					break;
 				case "source":
-					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
 					break;
 			}
 			if("fullText".equals(hybaseField)){
@@ -1047,7 +1049,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)) {
-			String[] split = keywords.split(",");
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
@@ -1067,10 +1070,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					hybaseField = FtsFieldConst.FIELD_URLTITLE;
 					break;
 				case "source":
-					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
 					break;
 			}
 			if("fullText".equals(hybaseField)){
@@ -1161,7 +1164,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)) {
-			String[] split = keywords.split(",");
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
@@ -1181,10 +1185,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					hybaseField = FtsFieldConst.FIELD_URLTITLE;
 					break;
 				case "source":
-					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
 					break;
 			}
 			if("fullText".equals(hybaseField)){
@@ -1223,7 +1227,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 				}
 				break;
 		}
-		InfoListResult docList = commonListService.queryPageList(builder,simflag,irsimflag,irSimflagAll,Const.GROUPNAME_TWITTER,"alert",loginUser,false);
+		InfoListResult docList = commonListService.queryPageList(builder,simflag,irsimflag,irSimflagAll,source,"alert",loginUser,false);
 		return setInfoData(docList,wordIndex);
 	}
 	@Override
@@ -1265,7 +1269,7 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		if("ALL".equals(source)){
 			String groupName = alertRule.getGroupName();
 			if(StringUtil.isEmpty(groupName) || "ALL".equals(groupName) || SpecialType.SPECIAL.equals(alertRule.getSpecialType())){
-				source = Const.STATTOTAL_GROUP;
+				source = Const.STATTOTAL_GROUP+";自媒体号;短视频;视频";
 			}else{
 				String[] groupArr = groupName.split(";");
 				List<String> groupList = new ArrayList<>();
@@ -1358,7 +1362,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 		}
 		// 结果中搜索
 		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)) {
-			String[] split = keywords.split(",");
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
@@ -1378,10 +1383,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 					hybaseField = FtsFieldConst.FIELD_URLTITLE;
 					break;
 				case "source":
-					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_AUTHORS;
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
 					break;
 			}
 			if("fullText".equals(hybaseField)){
@@ -1402,6 +1407,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			case "desc":
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
 				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "loadtime":
+				builder.orderBy(FtsFieldConst.FIELD_HYLOAD_TIME, true);
+				countBuilder.orderBy(FtsFieldConst.FIELD_HYLOAD_TIME, true);
 				break;
 			case "asc":
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
@@ -1576,7 +1585,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 				String documentContent = StringUtil.removeFourChar(alertEntity.getContent());
 				documentContent = StringUtil.replaceEmoji(documentContent);
 				documentContent = StringUtil.replaceImg(documentContent);
-				documentContent = StringUtil.cutContentPro(documentContent, 150);
+				documentContent = StringUtil.cutContentMd5(documentContent, 150);
 				if(Const.GROUPNAME_WEIBO.equals(alertEntity.getGroupName())){
 					map.put("title", documentContent);
 				}
@@ -1592,7 +1601,10 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			Map<String, Object> map = new HashMap<>();
 			map.put("listMap", ListMap);
 			map.put("size", list.size());
-			// 自动预警标题
+			// 手动预警标题
+//			if(content==null||"".equals(content)){
+//				content = "手动预警";
+//			}
 			map.put("title", content);
 
 			if (StringUtils.isNotBlank(sendWay)) {

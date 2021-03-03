@@ -166,13 +166,13 @@ public class IndexTab extends BaseEntity implements Cloneable{
      */
     @Column(name = "ir_simflag")
     private boolean irSimflag = false;
-    public boolean isIrSimflag(){
-    	if(similar == false && irSimflagAll == false){
-			return true;
-		}else{
-			return irSimflag;
-		}
-	}
+//    public boolean isIrSimflag(){
+//    	if(similar == false && irSimflagAll == false){
+//			return true;
+//		}else{
+//			return irSimflag;
+//		}
+//	}
 
 	/**
 	 * 跨数据源排重
@@ -259,9 +259,16 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		if(StringUtil.isNotEmpty(this.filterInfo)){
 			return this.filterInfo;
 		}else{
+			if (SpecialType.SPECIAL.equals(this.getSpecialType())){
+				//处理历史专家模式的信息过滤
+				return Const.NOT_FILTER_INFO;
+			}
 			return StringUtils.join(Const.FILTER_INFO,";");
 		}
 	}
+	@Column(name = "precise_filter")
+	private String preciseFilter;
+
 	/**
 	 * 内容所属地域
 	 */
@@ -410,7 +417,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb,monitorSite, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
 				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,sort,tabWidth,oneName,notSids,
-				mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea);
+				mediaLevel, mediaIndustry, contentIndustry, filterInfo, preciseFilter, contentArea, mediaArea);
 		return indexTab;
 	}
 	

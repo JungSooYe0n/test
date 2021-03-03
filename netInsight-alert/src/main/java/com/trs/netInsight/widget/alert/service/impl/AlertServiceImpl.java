@@ -2,12 +2,7 @@ package com.trs.netInsight.widget.alert.service.impl;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
@@ -18,7 +13,9 @@ import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
+import com.trs.netInsight.widget.alert.entity.AlertAccount;
 import com.trs.netInsight.widget.alert.entity.PageAlert;
+import com.trs.netInsight.widget.alert.entity.repository.AlertAccountRepository;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.service.IFavouritesService;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +72,8 @@ public class AlertServiceImpl implements IAlertService {
 	private FullTextSearch hybase8SearchServiceNew;
 	@Autowired
 	private IFavouritesService favouritesService;
+	@Autowired
+	private AlertAccountRepository alertAccountRepository;
 
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
@@ -381,6 +380,10 @@ public class AlertServiceImpl implements IAlertService {
 			queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,userName,Operator.Equal);
 		}else {
 			if (!"ALL".equals(receivers)) {
+				List<AlertAccount> alertAccounts = alertAccountRepository.findByUserIdAndName(userId,receivers);
+				if(alertAccounts.size()>0){
+					receivers = alertAccounts.get(0).getAccount();
+				}
 				queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,receivers,Operator.Equal);
 			}
 			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
@@ -412,7 +415,8 @@ public class AlertServiceImpl implements IAlertService {
 			}
 		}
 		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)){
-			String[] split = keywords.split(",");
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
 			String splitNode = "";
 			for (int i = 0; i < split.length; i++) {
 				if (StringUtil.isNotEmpty(split[i])) {
@@ -432,10 +436,10 @@ public class AlertServiceImpl implements IAlertService {
 					hybaseField = FtsFieldConst.FIELD_URLTITLE;
 					break;
 				case "source":
-					hybaseField = FtsFieldConst.FIELD_SITENAME;
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
 					break;
 				case "author":
-					hybaseField = FtsFieldConst.FIELD_SCREEN_NAME;
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
 					break;
 			}
 			if("fullText".equals(hybaseField)){
@@ -460,9 +464,13 @@ public class AlertServiceImpl implements IAlertService {
 				if (ObjectUtil.isNotEmpty(pageItem.getContent())) {
 					pageItem.setContent(pageItem.getContent().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
 				}
+				if (ObjectUtil.isNotEmpty(pageItem.getAppraise())) {
+					pageItem.setAppraise(pageItem.getAppraise().replace("[","").replace("]", "").replace("\"",""));
+				}
 				// 检验收藏
 				pageItem.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(pageItem.getSid())));
 				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+				//pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">").replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
 				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
 				pageItem.setGroupName(CommonListChartUtil.formatPageShowGroupName(pageItem.getGroupName()));
 				String copyTitle = pageItem.getTitleWhole();
@@ -470,6 +478,164 @@ public class AlertServiceImpl implements IAlertService {
 					copyTitle = copyTitle.replaceAll("<font color=red>", "").replaceAll("</font>", "");
 					pageItem.setCopyTitle(copyTitle);
 				}
+				List<String> sendWays = Arrays.asList(pageItem.getSendWay().split(";"));
+				List<String> receiver = Arrays.asList(pageItem.getReceiver().split(";"));
+
+				for(int i=0;i<sendWays.size();i++){
+					if("WE_CHAT".equals(sendWays.get(i))){
+						String account = receiver.get(i);
+						List<AlertAccount> alertAccount =  alertAccountRepository.findByAccount(account);
+						if(alertAccount.size()>0){
+							receiver.set(i,alertAccount.get(0).getName());
+						}
+					}
+				}
+              pageItem.setReceiver(org.apache.commons.lang.StringUtils.join(receiver.toArray(), ";"));
+			}
+			PageAlert pageAlert = new PageAlert();
+			pageAlert.setContent(ftsDocumentAlertPagedList.getPageItems());
+			pageAlert.setFirst(pageNo == 0 ? true : false);
+			pageAlert.setLast(pageNo == ftsDocumentAlertPagedList.getTotalPageCount() - 1 ? true : false);//pageno从0开始
+			pageAlert.setPageId(UUID.randomUUID().toString());
+			pageAlert.setSize(pageSize);
+			pageAlert.setTotalPages(ftsDocumentAlertPagedList.getTotalPageCount());
+			pageAlert.setTotalElements(ftsDocumentAlertPagedList.getTotalItemCount());
+			pageAlert.setNumber(pageNo);
+			return pageAlert;
+		}
+		return null;
+	}
+
+	@Override
+	public PageAlert alertListHybaseNew(int pageNo, int pageSize, String way, String source, String time, String receivers, String invitationCard, String forwarPrimary, String keywords, String sort, String fuzzyValueScope) throws TRSException {
+		User user = UserUtils.getUser();
+		String userId = user.getId();
+		String userName = user.getUserName();
+		List<Favourites> favouritesList = favouritesService.findAll(user);
+		QueryBuilder queryBuilder = new QueryBuilder();
+		queryBuilder.filterField(FtsFieldConst.FIELD_USER_ID,userId,Operator.Equal);
+
+		if ("SMS".equals(way)){ // 站内预警
+			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_WAY_LIST,SendWay.SMS.toString(), Operator.Equal);
+			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"receive",Operator.Equal);
+			queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,userName,Operator.Equal);
+		}else {
+			if (!"ALL".equals(receivers)) {
+				List<AlertAccount> alertAccounts = alertAccountRepository.findByUserIdAndName(userId,receivers);
+				if(alertAccounts.size()>0){
+					receivers = alertAccounts.get(0).getAccount();
+				}
+				queryBuilder.filterField(FtsFieldConst.FIELD_RECEIVER_LIST,receivers,Operator.Equal);
+			}
+			queryBuilder.filterField(FtsFieldConst.FIELD_SEND_RECEIVE,"send",Operator.Equal);
+		}
+
+		if (!"ALL".equals(source)){
+			queryBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,source.split(";"),Operator.Equal);
+		}
+//		时间  发预警的时间  这里应该是loadTime
+//		queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange(time),Operator.Between);
+		//时间 这里按需求改为urlTime
+		queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME,DateUtil.formatTimeRange(time),Operator.Between);
+		if("urltime".equals(sort)){
+			queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+		}else{
+			queryBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, true);
+		}
+
+		if ("微博".equals(source)){
+			if ("primary".equals(forwarPrimary)){
+				//原发
+				queryBuilder.filterField(FtsFieldConst.FIELD_RETWEETED_MID,"0 OR \"\"",Operator.Equal);//IR_RETWEETED_MID这个字段为空就是原发
+			}else if ("forward".equals(forwarPrimary)){
+				//转发
+				queryBuilder.filterField(FtsFieldConst.FIELD_RETWEETED_MID,"0 OR \"\"",Operator.NotEqual);//IR_RETWEETED_MID这个字段为空就是原发
+			}
+		}else if ("国内论坛".equals(source)){
+			if ("0".equals(invitationCard)){// 主贴
+				//		主贴、回帖
+				queryBuilder.filterField(FtsFieldConst.FIELD_NRESERVED1,"0 OR \"\"",Operator.Equal);
+			}else if ("1".equals(invitationCard)){
+				queryBuilder.filterField(FtsFieldConst.FIELD_NRESERVED1,"1",Operator.Equal);
+			}
+		}
+		if (StringUtil.isNotEmpty(keywords) && StringUtil.isNotEmpty(fuzzyValueScope)){
+//			String[] split = keywords.split(",");
+			String[] split = keywords.split("\\s+|,");
+			String splitNode = "";
+			for (int i = 0; i < split.length; i++) {
+				if (StringUtil.isNotEmpty(split[i])) {
+					splitNode += split[i] + ",";
+				}
+			}
+			keywords = splitNode.substring(0, splitNode.length() - 1);
+			if (keywords.endsWith(";") || keywords.endsWith(",") || keywords.endsWith("；")
+					|| keywords.endsWith("，")) {
+				keywords = keywords.substring(0, keywords.length() - 1);
+
+			}
+			StringBuilder fuzzyBuilder  = new StringBuilder();
+			String hybaseField = "fullText";
+			switch (fuzzyValueScope){
+				case "title":
+					hybaseField = FtsFieldConst.FIELD_URLTITLE;
+					break;
+				case "source":
+					hybaseField = FtsFieldConst.FIELD_SITENAME_LIKE;
+					break;
+				case "author":
+					hybaseField = FtsFieldConst.FIELD_AUTHORS_LIKE;
+					break;
+			}
+			if("fullText".equals(hybaseField)){
+				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
+			}else {
+				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
+			}
+			queryBuilder.filterByTRSL(fuzzyBuilder.toString());
+
+		}
+		queryBuilder.setPageNo(pageNo);
+		queryBuilder.setPageSize(pageSize);
+		queryBuilder.setDatabase(Const.ALERT);
+		PagedList<FtsDocumentAlert> ftsDocumentAlertPagedList = hybase8SearchServiceNew.ftsAlertList(queryBuilder, FtsDocumentAlert.class);
+		if (ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList) && ObjectUtil.isNotEmpty(ftsDocumentAlertPagedList.getPageItems())
+				&& ftsDocumentAlertPagedList.getPageItems().size() > 0) {
+			List<FtsDocumentAlert> pageItems = ftsDocumentAlertPagedList.getPageItems();
+			for (FtsDocumentAlert pageItem : pageItems) {
+				if (ObjectUtil.isNotEmpty(pageItem.getContent())) {
+					pageItem.setContent(pageItem.getContent().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+				}
+				if (ObjectUtil.isNotEmpty(pageItem.getAppraise())) {
+					pageItem.setAppraise(pageItem.getAppraise().replace("[","").replace("]", "").replace("\"",""));
+				}
+				// 检验收藏
+				pageItem.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(pageItem.getSid())));
+				pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+				//pageItem.setTitle(pageItem.getTitle().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">").replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
+				pageItem.setTitleWhole(pageItem.getTitleWhole().replaceAll("&lt;", "<").replaceAll("&nbsp;", " ").replaceAll("&gt;", ">"));
+				pageItem.setGroupName(CommonListChartUtil.formatPageShowGroupName(pageItem.getGroupName()));
+				String copyTitle = pageItem.getTitleWhole();
+				if(StringUtil.isNotEmpty(copyTitle)){
+					copyTitle = copyTitle.replaceAll("<font color=red>", "").replaceAll("</font>", "");
+					pageItem.setCopyTitle(copyTitle);
+				}
+				List<String> sendWays = Arrays.asList(pageItem.getSendWay().split(";"));
+				List<String> receiver = Arrays.asList(pageItem.getReceiver().split(";"));
+
+				for(int i=0;i<sendWays.size();i++){
+					if("WE_CHAT".equals(sendWays.get(i))){
+						String account = receiver.get(i);
+						List<AlertAccount> alertAccount =  alertAccountRepository.findByAccount(account);
+						if(alertAccount.size()>0){
+							receiver.set(i,alertAccount.get(0).getName());
+						}
+					}
+				}
+				pageItem.setReceiver(org.apache.commons.lang.StringUtils.join(receiver.toArray(), ";"));
 			}
 			PageAlert pageAlert = new PageAlert();
 			pageAlert.setContent(ftsDocumentAlertPagedList.getPageItems());

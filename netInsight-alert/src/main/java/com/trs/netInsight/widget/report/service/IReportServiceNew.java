@@ -52,7 +52,7 @@ public interface IReportServiceNew {
 	public Object saveReportResource(String sids, String trslk,String userId, String groupName, String chapter,
 									 String img_data, String reportType,
 									 String templateId, String img_type, Integer chapterPosition,
-									 String reportId) throws Exception;
+									 String reportId,String mapto) throws Exception;
 
 	public Object saveOverView( String userId, String chapter,String imgComment,String reportType, String templateId) throws Exception;
 
@@ -89,9 +89,10 @@ public interface IReportServiceNew {
 	 * @param reportIntro
 	 * @param jsonImgElements
 	 * @param report
+	 * @param isUpdateTemplate 是否更新相应模板
 	 */
 	public ReportNew create(String reportIntro, String jsonImgElements,
-			ReportNew report) throws Exception ;
+			ReportNew report, Integer isUpdateTemplate) throws Exception ;
 	/**
 	 * 已经走过预览
 	 * @author shao.guangze
@@ -153,7 +154,7 @@ public interface IReportServiceNew {
 
 	Object searchResources(String keyWords, String statisticsTime, Integer pageNum, Integer pageSize) throws TRSException;
 
-	Object changePosition(Integer docPosition, Integer newPosition, String chapter, String templateId, int resourceStatus, String id, String reportDataId);
+	Object changePosition(Integer docPosition, Integer newPosition, String chapter, String templateId, int resourceStatus, String id, String reportDataId,String reportId);
 
 	/**
 	 * 只为迁移历史数据

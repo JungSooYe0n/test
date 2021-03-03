@@ -121,6 +121,7 @@ public class FtsFieldConst {
 	 * 站点名称
 	 */
 	public final static String FIELD_SITENAME = "IR_SITENAME";
+	public final static String FIELD_SITENAME_LIKE = "IR_SITENAME_LIKE";
 
 	/**
 	 * 情感值
@@ -204,6 +205,7 @@ public class FtsFieldConst {
 	 * 地域信息
 	 */
 	public final static String FIELD_LOCATION = "IR_LOCATION";
+	public final static String FIELD_LOCATION_LIKE = "IR_LOCATION_LIKE";//模糊检索使用
 	public final static String FIELD_LON = "IR_LON";
 	public final static String FIELD_POIID = "IR_POIID";
 
@@ -235,6 +237,7 @@ public class FtsFieldConst {
 	 * 转发消息的用户名  支持分类统计
 	 */
 	public final static String FIELD_RETWEETED_FROM_ALL = "IR_RETWEETED_FROM_ALL";
+	public final static String FIELD_RETWEETED_FROM_ALL_LIKE = "IR_RETWEETED_FROM_ALL_LIKE";
 	public final static String FIELD_RTATS = "IR_RTATS";
 	public final static String FIELD_RTHASHTAGS = "IR_RTHASHTAGS";
 
@@ -299,6 +302,10 @@ public class FtsFieldConst {
 	 * 内容地域信息 - 信息中出现的地域信息
 	 */
 	public final static String FIELD_CATALOG_AREA = "CATALOG_AREA";
+	/**
+	 * CATALOG_AREA_MULTIPLE字段舍弃 改为 CATALOG_AREA_NEW
+	 */
+	public final static String FIELD_CATALOG_AREA_MULTIPLE = "CATALOG_AREA_NEW";
 
 	/**
 	 * 媒体地域 - 发布信息方对应的地址
@@ -354,6 +361,7 @@ public class FtsFieldConst {
 	 * 4.公众账号名称
 	 */
 	public final static String FIELD_AUTHORS = "IR_AUTHORS";
+    public final static String FIELD_AUTHORS_LIKE = "IR_AUTHORS_LIKE";
 
 	/**
 	 * 5.公众账号微信号；新加
@@ -459,6 +467,7 @@ public class FtsFieldConst {
 	 * 超话
 	 */
 	public final static String FIELD_TAG = "IR_TAG";
+	public final static String FIELD_TAG_LIKE = "IR_TAG_LIKE";
 
 	/**
 	 * 机构

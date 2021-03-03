@@ -90,7 +90,7 @@ public class ReportConst {
     public static final String REPORTINTROkey = "REPORTINTRO"; // 报告简介
     public static final String OVERVIEWOFDATAkey = "OVERVIEWOFDATA"; // 数据统计概述
 
-    public static final String SITUATIONACCESSMENTkey = "SITUATIONACCESSMENT";
+    public static final String SITUATIONACCESSMENTkey = "SITUATIONACCESSMENT";//态势评估
     public static final String DATATRENDANALYSISkey = "DATATRENDANALYSIS"; // 数据趋势分析
     public static final String DATASOURCEANALYSISkey = "DATASOURCEANALYSIS"; // 数据来源对比
     //事件脉络
@@ -121,7 +121,8 @@ public class ReportConst {
     public static final String NEWSHOTTOP10key = "NEWSHOTTOP10"; // 新闻热点TOP10
     public static final String WEIBOHOTTOP10key = "WEIBOHOTTOP10"; // 微博热点TOP10
     public static final String WECHATHOTTOP10key = "WECHATHOTTOP10"; // 微信热点TOP10
-    public static final String WEMEDIAkey = "WEMEDIAHOT"; // 自媒体号热点
+//    public static final String WEMEDIAkey = "WEMEDIAHOT"; // 自媒体号热点
+    public static final String WEMEDIAkey = "WEMEDIA"; // 自媒体号热点
 
     public static final String ACTIVEACCOUNTkey = "ACTIVEACCOUNT";
 
@@ -265,7 +266,7 @@ public class ReportConst {
         ROMAN2CHINESE.put(13, "十三");
         ROMAN2CHINESE.put(14, "十四");
         ROMAN2CHINESE.put(15, "十五");
-
+        ROMAN2CHINESE.put(16, "十六");
         //舆情报告新版
         CHAPTERS = new ArrayList<>();
         CHAPTERS.add("REPORTINTRO");
@@ -449,6 +450,8 @@ public class ReportConst {
     public static final String Hand_Made_TOP10_Weibo = "微博活跃用户TOP10";
     public static final String Hand_Made_TOP10_Wechat = "微信活跃用户TOP10";
     public static final String Hand_Made_TOP10_User = "活跃用户TOP10";
+    public static final String Hand_Made_Hot_News_List = "信息列表";
+    public static final String Hand_Made_Word_Cloud = "词云统计";
 
 
 }

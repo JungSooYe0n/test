@@ -3,6 +3,8 @@ package com.trs.netInsight.widget.thinkTank.controller;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.util.FileUtil;
+import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.widget.thinkTank.entity.emnus.ThinkTankType;
 import com.trs.netInsight.widget.thinkTank.service.IThinkTankDataService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.HashMap;
 
 
 /**
@@ -33,23 +36,44 @@ public class ThinkTankDataController {
     @ApiOperation("上传pdf报告及相关信息")
     @FormatResult
     @PostMapping(value = "/uploadData")
-    public Object uploadData(@ApiParam("pdf报告标题") @RequestParam(value = "reportTitle") String reportTitle,
-                             @ApiParam("报告时间") @RequestParam(value = "reportTime") String reportTime,
+    public Object uploadData(@ApiParam("pdf报告标题") @RequestParam(value = "reportTitle", required = true) String reportTitle,
+                             @ApiParam("报告时间") @RequestParam(value = "reportTime", required = true) String reportTime,
+                             @ApiParam("报告类型") @RequestParam(value = "reportType", required = true) String reportType,
                             // @ApiParam("上传pdf报告对应的图片") @RequestParam(value = "pdfPicture",required = false) MultipartFile pdfPicture,
-                             @ApiParam("上传pdf报告文件") @RequestParam(value = "multipartFiles") MultipartFile[] multipartFiles) throws TRSException {
-        return thinkTankDataService.saveReportPdf(reportTitle,reportTime,multipartFiles);
+                             @ApiParam("上传pdf报告文件") @RequestParam(value = "multipartFiles", required = true) MultipartFile[] multipartFiles) throws TRSException {
+        ThinkTankType thinkTankType = ThinkTankType.valueOf(reportType);
+        return thinkTankDataService.saveReportPdf(reportTitle,reportTime,multipartFiles,thinkTankType);
     }
 
     @ApiOperation("查询舆情智库报告信息")
     @FormatResult
     @GetMapping(value = "/pageList")
     public Object pageList(@ApiParam("页码") @RequestParam(value = "pageNo", required = false, defaultValue = "0") int pageNo,
-                           @ApiParam("页长") @RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+                           @ApiParam("页长") @RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize,
+                           @ApiParam("类型") @RequestParam(value = "reportType", required = false, defaultValue = "ALL") String reportType){
         //为防止前端乱输入
         pageSize = pageSize>=1?pageSize:20;
+
+        if (StringUtil.isNotEmpty(reportType) && !"ALL".equals(reportType)) {
+            ThinkTankType thinkTankType = ThinkTankType.valueOf(reportType);
+            return thinkTankDataService.findByReportType(pageNo,pageSize,thinkTankType);
+        }
         return thinkTankDataService.findByPdfNameNot(pageNo,pageSize,"");
     }
-
+    @ApiOperation("查询舆情智库报告信息条数")
+    @FormatResult
+    @GetMapping(value = "/totalSize")
+    public Object totalSize(){
+        HashMap<String,Integer> hashMap = new HashMap<>();
+        hashMap.put("PoliticalEnergy",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("PoliticalEnergy")));
+        hashMap.put("OpinionObservation",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("OpinionObservation")));
+        hashMap.put("HotEventAnalysis",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("HotEventAnalysis")));
+        hashMap.put("IndustrySpecialReport",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("IndustrySpecialReport")));
+        hashMap.put("EpidemicSpecial",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("EpidemicSpecial")));
+        hashMap.put("TwoSessionsSpecial",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("TwoSessionsSpecial")));
+        hashMap.put("HotOpinionsAnalysis",thinkTankDataService.getCountByReportType(ThinkTankType.valueOf("HotOpinionsAnalysis")));
+        return hashMap;
+    }
     public static void main(String[] args) {
 
        // String pdfBinary = FileUtil.getPDFBinary("D:/netInsightWokeSpace/pdf/7月汽车行业大数据报告(1)_70ff686d-c464-4412-b280-93a60fb844c4.pdf");

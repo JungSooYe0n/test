@@ -16,6 +16,8 @@ public class AlertAutoConst {
     public final static String stop_alertRule = "/vaildQueryManager/stopQuery";
     //添加预警规则信息  - 接口在数据中心那边，如果要改，必须与数据中心新沟通
     public final static String add_alertRule = "/vaildQueryManager/insertQuery";
+    //提交预警规则信息  - 接口在数据中心那边，如果要改，必须与数据中心新沟通
+    public final static String submit_alertRule = "/vaildQueryManager/submitQuery";
     //移除预警规则信息  - 接口在数据中心那边，如果要改，必须与数据中心新沟通
     public final static String delete_alertRule = "/vaildQueryManager/removeQuery";
     //模糊匹配，将符合的预警规则信息移除 ，谨慎使用 - 接口在数据中心那边，如果要改，必须与数据中心新沟通

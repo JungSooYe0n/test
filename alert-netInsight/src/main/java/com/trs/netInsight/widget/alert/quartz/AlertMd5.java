@@ -225,8 +225,7 @@ public class AlertMd5 implements Job {
                 }
             }
             content = StringUtil.replaceImg(content);
-            String cutContent = StringUtil.cutContentPro(content, 150);
-
+            String cutContent = StringUtil.cutContentMd5(content, 150);
             String keywords = vo.getKeywords() == null || vo.getKeywords().size() ==0 ? "" : StringUtils.join(vo.getKeywords(),";");
             String groupName = vo.getGroupName();
             if (Const.GROUPNAME_WEIBO.equals(groupName)) {

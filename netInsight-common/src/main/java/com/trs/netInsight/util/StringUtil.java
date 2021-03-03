@@ -54,11 +54,13 @@ public final class StringUtil {
 	public static final String img23 = "(?=<IMG SRC=).+?(?=\">)";
 	public static final String img24 = "(?=<img src=).+?(?=>)";
 	public static final String img25 = "(?=<img src=).+?(?= \">)";
+	public static final String img26 = "(?=&lt;img&nbsp;src=).+?(?=&nbsp;/&gt;)";
 
 
 	public static final String video1 = "(?=&lt;video&nbsp;src=).+?(?=&quot;&gt;)";
 	public static final String video2 = "(?=&lt;AUDIO&nbsp;SRC=).+?(?=&quot;&gt;)";
 	public static final String video3 = "<video src=";
+	public static final String video4 = "<VIDEO SRC=";
 	public static final String videoSuffix1 = "&lt;/video&gt;";
 	public static final String videoSuffix2 = "</video>";
 	public static final String aHref1 = "(?=&lt;a).+?(?=&quot;&gt;)";
@@ -73,7 +75,7 @@ public final class StringUtil {
 	public static final String font1 = "<font color='red'>";// ;<font
 															// color=red>相思苦</font>
 	public static final String font2 = "</font>";
-
+	public static final String font3 = "<font color=red>";
 	// Emoji表情字符
 	public static final String emoji1 = "[\\ud83c\\udc00-\\ud83c\\udfff]|[\\ud83d\\udc00-\\ud83d\\udfff]|[\\u2600-\\u27ff]";
 	public static final String emoji2 = "[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]";
@@ -292,7 +294,7 @@ public final class StringUtil {
 		content = content.replaceAll(img12,"");
 		content = content.replaceAll(img13,"");
 		content = content.replaceAll(img14,"");
-
+		content = content.replaceAll(img26,"");
 		content = content.replaceAll(video1,"");
 		content = content.replaceAll(video2,"");
 		content = content.replaceAll(videoSuffix1,"");
@@ -305,6 +307,7 @@ public final class StringUtil {
 		content = content.replaceAll(annotation2,"");
 		content = content.replaceAll(annotationSuffix1,"");
 		content = content.replaceAll(annotationSuffix2,"");
+		content = content.replaceAll("---","");
 
 		pat = Pattern.compile(nbsp);
 		mat = pat.matcher(content);
@@ -342,6 +345,7 @@ public final class StringUtil {
 		}
 		Pattern pat = Pattern.compile(img);
 		Matcher mat = pat.matcher(content);
+		content = content.replaceAll(img26,"");
 		content = content.replaceAll(img, "");
 		content = content.replaceAll(img2, "");
 		content = content.replaceAll(img3,"");
@@ -363,6 +367,7 @@ public final class StringUtil {
 		content = content.replaceAll(img23,"");
 		content = content.replaceAll(img24,"");
 		content = content.replaceAll(img25,"");
+
 
 		content = content.replaceAll(video1,"");
 		content = content.replaceAll(video2,"");
@@ -400,9 +405,9 @@ public final class StringUtil {
 		pat = Pattern.compile(gt);
 		mat = pat.matcher(content);
 		content = mat.replaceAll("");
-		pat = Pattern.compile(gt1);
-		mat = pat.matcher(content);
-		content = mat.replaceAll("");
+//		pat = Pattern.compile(gt1);
+//		mat = pat.matcher(content);
+//		content = mat.replaceAll("");
 
 		pat = Pattern.compile(rn);
 		mat = pat.matcher(content);
@@ -440,14 +445,23 @@ public final class StringUtil {
         content = content.replaceAll("<img src=","");
 		content = content.replaceAll("<IMAGE SRC=","");
 		content = content.replaceAll("<img class=","");
+		content = content.replaceAll("<img ","");
+		content = content.replaceAll("<IMAGE ","");
 		//content = content.replaceAll("<font color='...","");
-		content = content.replaceAll(video3,"");
-		content = content.replaceAll(video2,"");
 		content = content.replaceAll(video1,"");
+		content = content.replaceAll(video2,"");
+		content = content.replaceAll(video3,"");
+		content = content.replaceAll(video4,"");
 		content = content.replaceAll(videoSuffix1,"");
 		content = content.replaceAll(videoSuffix2,"");
 		content = content.replaceAll(aHref1,"");
 		content = content.replaceAll(aHref2,"");
+		content = content.replaceAll("<a","");
+		content = content.replaceAll("<=","");
+		content = content.replaceAll("p=","");
+		content = content.replaceAll("a=","");
+
+		content = content.replaceAll("---","");
 
 		//去掉多余的注释标签
 		content = content.replaceAll(annotation1,"");
@@ -732,7 +746,7 @@ public final class StringUtil {
 				title = replaceNRT(replaceFont(replaceImg(title)));
 				title = StringUtil.calcuCutLength(title, Const.ALERT_NUM);
 				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
-				title = title.replaceAll("<font color='red'>", "").replaceAll("</font>", "");
+				title = title.replaceAll("<font color='red'>", "").replaceAll("<font color=red>", "").replaceAll("</font>", "");
 				buffer.append(i + "、").append(title).append("\\n\\n");
 				i++;
 			}
@@ -764,7 +778,8 @@ public final class StringUtil {
 				}
 			}
 			content = new String(conbyte);
-			return content.replaceAll("0000", "");
+			return content;
+//			return content.replaceAll("0000", "");
 		}
 		return null;
 	}
@@ -836,20 +851,20 @@ public final class StringUtil {
 				// 关键词出现在中点之前，长度又大于160的，直接取前面160个字符
 				if (position <= midpoint) {
 					content = content.substring(0, size);
-					return content + "...";
+					return content + "---";
 					// 关键词出现在中点之后，中点之后的长度又大于80的，取中点前后共160字符长度
 				} else if (position > midpoint && remain > size / 2) {
 					content = content.substring(position - size / 2, position + size / 2);
-					return "..." + content + "...";
+					return "---" + content + "---";
 					// 关键词出现在中点之后，中点之后的长度又小于80的，取最后的160字符
 				} else if (position > midpoint && remain < size / 2) {
 					content = content.substring(content.length() - size / 2, content.length());
-					return "..." + content;
+					return "---" + content;
 				}
 				// 有些标题无标红关键字，但是长度需要控制
 			} else {
 				content = content.substring(0, size);
-				return content + "...";
+				return content + "---";
 			}
 		}
 
@@ -864,9 +879,34 @@ public final class StringUtil {
 	* @create time: 2019/9/11 14:45
 	*/
 	public static String cutContentPro(String content, int size) {
-		if(content.length()<=size){
+		if(content==null){
 			return content;
 		}
+		if(content!=null&&content.length()<=size){
+			if (content.contains("<font color='red'>")) {
+				String endsContent = content.substring(content.lastIndexOf("<font color='red'>"),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>";
+					} else {
+						content = content + "</font>";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < "<font color='red'>".length() && !"<font color='red'>".equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f"));
+				}
+			}
+//			if (!content.endsWith("...")) {
+//				content = content + "...";
+//			}
+			return content;
+		}
+
 		if (content.length() > size && content.contains(font1)) {
 			String contentPro = content;
 			// 找到第一个font标签开始位置
@@ -903,13 +943,176 @@ public final class StringUtil {
 					content = content.substring(0,endPosition);
 				}
 
-			return content + "...";
+			if (content.contains("<font color='red'>")) {
+				String endsContent = content.substring(content.lastIndexOf("<font color='red'>"),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < "<font color='red'>".length() && !"<font color='red'>".equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content ;
 		}else {
 			content = content.substring(0, size);
-			return content + "...";
+			if (content.contains("<font color='red'>")) {
+				String endsContent = content.substring(content.lastIndexOf("<font color='red'>"),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < "<font color='red'>".length() && !"<font color='red'>".equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content;
 		}
 	}
 
+	/*
+	 * @Description: 截取内容用于列表展示(只允许带有Font标签)改进版方法
+	 * @param: content
+	 * @param: size
+	 * @return: java.lang.String
+	 * @Author: Likenan
+	 * @create time: 2020/11/19 14:45
+	 */
+	public static String cutContentMd5(String content, int size) {
+		if(content==null){
+			return content;
+		}
+		if(content!=null&&content.length()<=size){
+			if (content.contains(font3)) {
+				String endsContent = content.substring(content.lastIndexOf(font3),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>";
+					} else {
+						content = content + "</font>";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < font3.length() && !font3.equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f"));
+				}
+			}
+//			if (!content.endsWith("...")) {
+//				content = content + "...";
+//			}
+			return content;
+		}
+
+		if (content.length() > size && content.contains(font3)) {
+			String contentPro = content;
+			// 找到第一个font标签开始位置
+			int startPosition = content.indexOf(font3);
+			//找到第一个font标签结束位置
+			int endPosition = content.indexOf(font2)+7;
+			if(endPosition<size){//第一个font标签都在size范围.
+				for (int i =0;i<content.length()/23;i++){
+					//将content重新赋值,第一个font后面的内容
+					contentPro = contentPro.substring(endPosition,contentPro.length());
+					int subInt = content.indexOf(contentPro);//截取点在完整content的位置
+
+					if (contentPro.contains(font3)) {
+						int start = contentPro.indexOf(font3)+subInt;
+						int end = contentPro.indexOf(font2)+7+subInt;
+						endPosition = contentPro.indexOf(font2)+7;
+
+						if(end>size && start >=size){//循环内的标签只要不是卡在size之间.都可以直接截取
+							content = content.substring(0,size);
+							break;
+						}else if(end>size && start<size) {//标签卡在size之间,那就多截取一点点.与size不完全符合,木办法
+							content = content.substring(0, end);
+							break;
+						}
+
+					}else {//后面没有font便签了,那就直接截取
+						content = content.substring(0,size);
+						break;
+					}
+				}
+			}else if(endPosition>size && startPosition >=size){//第一个标签都不在size的范围之内,那无须顾虑,直接截取
+				content = content.substring(0,size);
+			}else if(endPosition>=size && startPosition<size){//标签卡在size之间,那就多截取一点点.与size不完全符合,木办法
+				content = content.substring(0,endPosition);
+			}
+
+			if (content.contains(font3)) {
+				String endsContent = content.substring(content.lastIndexOf(font3),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < font3.length() && !font3.equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content ;
+		}else {
+			content = content.substring(0, size);
+			if (content.contains(font3)) {
+				String endsContent = content.substring(content.lastIndexOf(font3),
+						content.length());
+				if (!endsContent.contains("</font>")) {
+					if (endsContent.contains("</")) {
+						content = content.substring(0, content.lastIndexOf("</"))+"</font>" + "...";
+					} else {
+						content = content + "</font>...";
+					}
+				}
+			}
+			// String end = content.lastIndexOf("<f", content.length()-1);
+			if (-1 != content.lastIndexOf("<f")) {
+				String end = content.substring(content.lastIndexOf("<f"), content.length());
+				if (end.length() < font3.length() && !font3.equals(end)) {
+					content = content.substring(0, content.lastIndexOf("<f")) + "...";
+				}
+			}
+			if (!content.endsWith("...")) {
+				content = content + "...";
+			}
+			return content;
+		}
+	}
 	/*
 	 * @Description: 截取正文 - 在命中第一个font标签的情况下，截取100个字符
 	 */
@@ -1105,7 +1308,7 @@ public final class StringUtil {
 			img = m_image.group();
 			// 匹配<img>中的src数据
 //			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png)").matcher(img);
-			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png).\\s*(.*?)[^>]*?(>|&gt;|&guot;|nbsp;)").matcher(img);
+			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png).\\s*(.*?)[^>]*?(>|&gt;|&quot;|nbsp;)").matcher(img);
 			while (m.find()) {
 				pics.add(m.group().replace("&quot;/&gt;","").replace("&amp;","&").replace("&quot;","").replace("&gt;","").replace("&nbsp;",""));
 			}

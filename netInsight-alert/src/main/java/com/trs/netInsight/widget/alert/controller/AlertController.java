@@ -53,6 +53,7 @@ public class AlertController {
 			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
 			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
 			@ApiParam("结果中搜索 ") @RequestParam(value = "keywords", required = false) String keywords,
+		     @ApiParam("排序方式") @RequestParam(value = "sort", defaultValue = "loadtime") String sort,
 			@ApiParam("结果中搜索的范围")@RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope) throws TRSException {
 		//防止前端乱输入
 		pageSize = pageSize>=1?pageSize:10;
@@ -60,7 +61,7 @@ public class AlertController {
 		if(StringUtil.isEmpty(source)){
 			return null;
 		}
-		PageAlert pageAlert = alertService.alertListHybase(pageNo, pageSize, way, source, time, receivers, invitationCard, forwarPrimary, keywords, fuzzyValueScope);
+		PageAlert pageAlert = alertService.alertListHybaseNew(pageNo, pageSize, way, source, time, receivers, invitationCard, forwarPrimary, keywords, sort, fuzzyValueScope);
 		if(pageAlert!= null){
 			String uuid = UUID.randomUUID().toString();
 			Map<String, Object> putValue = MapUtil.putValue(new String[] { "pageId", "list" }, uuid, pageAlert);

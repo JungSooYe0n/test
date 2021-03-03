@@ -280,8 +280,8 @@ public class CommonChartServiceImpl implements ICommonChartService {
                 }
                 //地图下钻走
                 if(StringUtil.isNotEmpty(maptoArea)){
-                    if(type.equals("special")) return getMaptoDataS(categoryInfos,maptoArea,resultKey,maptoType);
-                    else return getMaptoData(categoryInfos,maptoArea,resultKey);
+                    if(type.equals("special")) return getMaptoDataS(categoryInfos,maptoArea,resultKey,contrastField,maptoType);
+                    else return getMaptoData(categoryInfos,maptoArea,resultKey,contrastField);
                 }
                 Map<String, List<String>> areaMap = districtInfoService.allAreas();
                 if ("special".equals(type)) {
@@ -397,19 +397,31 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * @param areaName
      * @return
      */
-    public List<Map<String,Object>> getMaptoData(GroupResult categoryInfos,String areaName,ChartResultField resultKey){
+    public List<Map<String,Object>> getMaptoData(GroupResult categoryInfos,String areaName,ChartResultField resultKey,String contrastField){
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String,Integer> bjmap = new HashMap<>();
         List<DistrictInfo> citys = districtInfoService.getAreasByCode(areaName);
+        Map<String,String> areaMap = null;
+        if(FtsFieldConst.FIELD_MEDIA_AREA.equals(contrastField)){
+            areaMap = Const.MEDIA_PROVINCE_NAME;
+        }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
+            areaMap = Const.CONTTENT_PROVINCE_NAME;
+        }
         for (GroupInfo classEntry : categoryInfos) {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                String formatArea = d.getAreaName().replace("市","").replace("区","");
-                if(area.indexOf(formatArea) >0){
-                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
-                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName().replace("桃园市","桃园县");
+                String carea = area.replace("\\","\\\\");
+                if (carea.equals(cityArea)){
+                    bjmap.put(d.getAreaName(),num2);
                 }
+//                String formatArea = d.getAreaName().replace("市","").replace("区","");
+//                if(area.indexOf(formatArea) >0){
+//                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
+//                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+////                    else bjmap.put(d.getAreaName(),num2+bjmap.get(d.getAreaName()));
+//                }
             }
         }
 
@@ -431,22 +443,34 @@ public class CommonChartServiceImpl implements ICommonChartService {
      * @param maptoType 是否自定义,返回结果不一样
      * @return
      */
-    public Object getMaptoDataS(GroupResult categoryInfos,String areaName,ChartResultField resultKey,String maptoType){
+    public Object getMaptoDataS(GroupResult categoryInfos,String areaName,ChartResultField resultKey,String contrastField,String maptoType){
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String,Integer> bjmap = new HashMap<>();
         List<DistrictInfo> citys = districtInfoService.getAreasByCode(areaName);
+        Map<String,String> areaMap = null;
+        if(FtsFieldConst.FIELD_MEDIA_AREA.equals(contrastField)){
+            areaMap = Const.MEDIA_PROVINCE_NAME;
+        }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
+            areaMap = Const.CONTTENT_PROVINCE_NAME;
+        }
         for (GroupInfo classEntry : categoryInfos) {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                String formatArea = d.getAreaName().replace("市","").replace("区","");
-                if(area.indexOf(formatArea) >0){
-                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
-                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName().replace("桃园市","桃园县");
+                String carea = area.replace("\\","\\\\");
+                if (carea.equals(cityArea)){
+                    bjmap.put(d.getAreaName(),num2);
                 }
+//                String formatArea = d.getAreaName().replace("市","").replace("区","");
+//                if(area.indexOf(formatArea) >0){
+//                    if(bjmap.get(d.getAreaName())==null) bjmap.put(d.getAreaName(),num2);
+//                    else if(bjmap.get(d.getAreaName())<num2) bjmap.put(d.getAreaName(),num2);
+////                    else bjmap.put(d.getAreaName(),num2+bjmap.get(d.getAreaName()));
+//                }
             }
         }
-
+int num = 0;
         for(DistrictInfo d: citys){
             Map<String,Object> mm = new HashMap<>();
             String mapKey = d.getAreaName();
@@ -454,13 +478,14 @@ public class CommonChartServiceImpl implements ICommonChartService {
             mm.put(resultKey.getContrastField(), mapKey);
             mm.put(resultKey.getCountField(), mapValue);
             list.add(mm);
+            if (mapValue > 0) num++;
         }
         //自定义返回这样的结果
         if(StringUtil.isNotEmpty(maptoType)) return list;
 
         Map<String, Object> returnMap = new HashMap<String, Object>();
         returnMap.put("areaData",list);
-        returnMap.put("city",citys.size());
+        returnMap.put("city",num);
         return returnMap;
 
     }
