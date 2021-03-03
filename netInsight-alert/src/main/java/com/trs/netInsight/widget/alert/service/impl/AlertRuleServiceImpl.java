@@ -1248,8 +1248,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			simflag = alertRule.isRepetition();
 			irSimflag = alertRule.isIrSimflag();
 			irSimflagAll = alertRule.isIrSimflagAll();
-			builder = alertRule.toSearchBuilderCommon(time);
-			countBuilder = alertRule.toSearchBuilderCommon(time);
+			builder = alertRule.toSearchBuilderCommonNew(time,sort);
+			countBuilder = alertRule.toSearchBuilderCommonNew(time,sort);
 			builder.setPageNo(pageNo);
 			builder.setPageSize(pageSize);
 			countBuilder.setPageNo(pageNo);

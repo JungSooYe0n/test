@@ -635,9 +635,127 @@ public class AlertRule extends BaseEntity {
 		}
 		if(!"noTime".equals(time)){
 			if(StringUtils.isNotBlank(time)){
-				searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, DateUtil.formatTimeRange(time), Operator.Between);
+					searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, DateUtil.formatTimeRange(time), Operator.Between);
 			}else{
 				searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, new String[] { before, now }, Operator.Between);
+			}
+		}
+		return searchBuilder;
+	}
+
+	/**
+	 * 拼凑检索表达式  全部数据源
+	 *
+	 * @param time
+	 *            频率id
+	 * @return 返回拼凑后的builder
+	 */
+	public QueryCommonBuilder toSearchBuilderCommonNew(String time,String sort) throws OperationException {
+		QueryCommonBuilder searchBuilder = new QueryCommonBuilder();
+		//searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
+		// 获取当前时间
+		SimpleDateFormat df = new SimpleDateFormat(DateUtil.yyyyMMddHHmmss);// 设置日期格式
+		String now = df.format(new Date());// new Date()为获取当前系统时间
+		String before = null;
+		//是按照热度值预警还是五分钟一次预警
+		if("md5".equals(countBy)){
+			before = DateUtil.getTimeByHour(-md5Range);
+		}else{
+			if(StringUtils.isBlank(lastStartTime)){
+				if(timeInterval == 1){
+					before = DateUtil.getTimeByMinute(-5);
+				}else{
+					before = DateUtil.getTimeByMinute(-this.timeInterval);
+				}
+			}else{
+				before=this.lastStartTime;
+			}
+		}
+
+		switch (specialType) {
+			case COMMON:
+				// 根据关键词位置，任意关键词，排除词，拼凑表达式
+				String keywordIndex = "0";//仅标题
+				if(SearchScope.TITLE_CONTENT.equals(this.scope)){
+					keywordIndex = "1";//标题+正文
+				}
+				if(SearchScope.TITLE_ABSTRACT.equals(this.scope)){
+					keywordIndex = "2";//标题+摘要
+				}
+				//关键词
+				QueryBuilder builder = WordSpacingUtil.handleKeyWords(this.anyKeyword,keywordIndex,this.weight);
+				searchBuilder.filterByTRSL(builder.asTRSL());
+				searchBuilder.setDatabase(Const.MIX_DATABASE.split(";"));
+				//拼凑排除词
+				String excludeIndex = this.getExcludeWordsIndex();
+				String excludeWordTrsl = WordSpacingUtil.appendExcludeWords(excludeWords,excludeIndex);
+				if(StringUtil.isNotEmpty(excludeWordTrsl)){
+					searchBuilder.filterByTRSL(excludeWordTrsl);
+				}
+				/*for (String field : this.scope.getField()) {
+					if (StringUtil.isNotEmpty(this.excludeWords)) {
+						StringBuilder exBuilder = new StringBuilder();
+						exBuilder.append("*:* -").append(field).append(":(\"").append(this.excludeWords.replaceAll("[;|；]+", "\" OR \"")).append("\")");
+						searchBuilder.filterByTRSL(exBuilder.toString());
+					}
+				}*/
+
+				if (StringUtil.isNotEmpty(this.excludeSiteName)) {
+					if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
+						this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
+					}
+					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+				}
+				//监测网站
+				if (StringUtil.isNotEmpty(this.monitorSite)) {
+					if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
+						this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
+					}
+					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
+				}
+				break;
+			case SPECIAL:
+				String trsl = "";
+				List<String> database = new ArrayList<>();
+				if(this.trsl != null && !"".equals(this.trsl)){
+					String trsl_1 = FtsFieldConst.FIELD_GROUPNAME + ":("+Const.TYPE_NEWS_SPECIAL_ALERT.replaceAll(";"," OR ")+") AND (" + this.trsl +")";
+					trsl = "("+trsl_1+ ")";
+					database.add(Const.HYBASE_NI_INDEX);
+					database.add(Const.HYBASE_OVERSEAS);
+				}
+				if(this.statusTrsl != null && !"".equals(this.statusTrsl)){
+					String trsl_1  = FtsFieldConst.FIELD_GROUPNAME +  ":(微博) AND (" + this.statusTrsl +")";
+					trsl = "".equals(trsl) ? "("+trsl_1 + ")" : trsl +" OR (" + trsl_1  + ")";
+					database.add(Const.WEIBO);
+				}
+				if(this.weChatTrsl != null && !"".equals(this.weChatTrsl)){
+					String trsl_1 = FtsFieldConst.FIELD_GROUPNAME +  ":(国内微信 OR 微信 ) AND (" + this.weChatTrsl +")";
+					trsl = "".equals(trsl) ? "("+trsl_1+ ")" : trsl +" OR (" + trsl_1 + ")";
+					database.add(Const.WECHAT_COMMON);
+				}
+				if (StringUtils.isBlank(trsl)) {
+					return  null;
+				}
+				searchBuilder.filterByTRSL(trsl);
+				String[] arrays = new String[database.size()];
+				searchBuilder.setDatabase(database.toArray(arrays));
+				break;
+			default:
+				break;
+		}
+		if(!"noTime".equals(time)){
+			if(StringUtils.isNotBlank(time)){
+				if("loadtime".equals(sort)){
+					searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, DateUtil.formatTimeRange(time), Operator.Between);
+				}else {
+					searchBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time), Operator.Between);
+				}
+			}else{
+				if("loadtime".equals(sort)){
+					searchBuilder.filterField(FtsFieldConst.FIELD_HYLOAD_TIME, new String[] { before, now }, Operator.Between);
+				}else {
+					searchBuilder.filterField(FtsFieldConst.FIELD_URLTIME, new String[] { before, now }, Operator.Between);
+				}
 			}
 		}
 		return searchBuilder;
