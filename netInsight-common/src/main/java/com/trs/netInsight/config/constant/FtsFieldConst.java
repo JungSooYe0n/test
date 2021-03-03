@@ -554,6 +554,7 @@ public class FtsFieldConst {
 	public static final String FIELD_SITE_PROPERTY = "IR_SITE_PROPERTY";
 
 	public static final String FIELD_EMOTION = "IR_EMOTION";
+	//情绪统计
 	public static final String FIELD_EMOTION_2 = "IR_EMOTION2";
 
 //	热门评论点赞数
