@@ -53,7 +53,7 @@ public class ReportUtil {
 			return getLineCommentNew(img_data);
 		} else if ("pieGraphChartMeta".equals(imgType) || ColumnConst.CHART_PIE.equals(imgType) || "opinionStatistics".equals(imgType)) {
 			return String.format(getbarComment(img_data), chapter);
-		} else if ("barGraphChartMeta".equals(imgType) || ColumnConst.CHART_BAR.equals(imgType) || ColumnConst.CHART_BAR_CROSS.equals(imgType)) {
+		} else if ("barGraphChartMeta".equals(imgType) || ColumnConst.CHART_BAR.equals(imgType)) {
 			return String.format(getbarComment(img_data), chapter);
 		} else if ("mapChart".equals(imgType) || ColumnConst.CHART_MAP.equals(imgType)) {
 			return getMapComment(img_data);
@@ -63,6 +63,8 @@ public class ReportUtil {
 			return getMapComment(img_data);
 		} else if ("wordCloudChart".equals(imgType)) {
 			return String.format(getbarComment(img_data), chapter);
+		}else if (ColumnConst.CHART_BAR_CROSS.equals(imgType)) {
+			return String.format(getbarCommentNew(img_data), chapter);
 		} else{
 			log.info("没有匹配到对应的图片类型 - "+imgType);
 		}
@@ -467,6 +469,120 @@ public class ReportUtil {
 		strResult.append("。");
 		return strResult.toString();
 	}
+
+	private static String getbarCommentNew(String imgData) {
+		// 向 数据统计概述 中添加数据
+		if ("\"暂无数据\"".equals(imgData) || "暂无数据".equals(imgData)) {
+			return "";
+		}
+		List<Map<String, Object>> sumList1 = JSONObject.parseObject(imgData,
+				new TypeReference<List<Map<String, Object>>>() {
+				});
+		if (sumList1 == null || sumList1.size() == 0) {
+			return "";
+		}
+		List<String> strResult1 = new ArrayList<>();
+		for(int k=0;k<sumList1.size();k++) {
+			ChartResultField chartResultField = null;
+			Map<String, Object> fieldMap = sumList1.get(k);
+			List<Map<String, Object>> sumList = (List<Map<String, Object>>) fieldMap.get("info");
+			Map<String, Object> infoMap = sumList.get(0);
+			if (infoMap.containsKey("name") && infoMap.containsKey("value")) {
+				chartResultField = new ChartResultField("name", "value");
+				Collections.sort(sumList, new Comparator<Map<String, Object>>() {
+					@Override
+					public int compare(Map<String, Object> m1, Map<String, Object> m2) {
+						Object count1 = m1.get("value");
+						Object count2 = m2.get("value");
+						Integer countLeft = count1 instanceof Integer ? (Integer) count1 : Integer.parseInt(count1.toString());
+						Integer countRight = count2 instanceof Integer ? (Integer) count2 : Integer.parseInt(count2.toString());
+						if (countLeft == countRight) {
+							return 0;
+						} else {
+							return countLeft > countRight ? 1 : -1;
+						}
+					}
+				});
+			} else {
+				chartResultField = new ChartResultField("groupName", "num");
+				Collections.sort(sumList, new Comparator<Map<String, Object>>() {
+					@Override
+					public int compare(Map<String, Object> m1, Map<String, Object> m2) {
+						Object count1 = m1.get("num");
+						Object count2 = m2.get("num");
+						Integer countLeft = count1 instanceof Integer ? (Integer) count1 : Integer.parseInt(count1.toString());
+						Integer countRight = count2 instanceof Integer ? (Integer) count2 : Integer.parseInt(count2.toString());
+						if (countLeft == countRight) {
+							return 0;
+						} else {
+							return countLeft > countRight ? 1 : -1;
+						}
+					}
+				});
+			}
+			List<String> headStr = new ArrayList<String>();
+			List<String> secStr = new ArrayList<String>();
+			List<Object> headCount = new ArrayList<Object>();
+			List<Object> secCount = new ArrayList<Object>();
+			// 最大的数
+			Integer countSum = sumList.get(sumList.size() - 1).get(chartResultField.getCountField()) instanceof Integer
+					? (Integer) (sumList.get(sumList.size() - 1).get(chartResultField.getCountField()))
+					: Integer.parseInt(sumList.get(sumList.size() - 1).get(chartResultField.getCountField()).toString());
+			Object countSec = null;
+			// 获取 "首位"
+			headStr.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get(chartResultField.getContrastField()) + SPANCOLORRIGHT);
+			headCount.add(SPANCOLORLEFT + sumList.get(sumList.size() - 1).get(chartResultField.getCountField()) + SPANCOLORRIGHT);
+			for (int i = sumList.size() - 2; i > -1; i--) {
+				if (sumList.size() < 2) {
+					break;
+				}
+				Integer num1 = sumList.get(i).get(chartResultField.getCountField()) instanceof Integer ? (Integer) (sumList.get(i).get(chartResultField.getCountField()))
+						: Integer.parseInt(sumList.get(i).get(chartResultField.getCountField()).toString());
+
+
+				if (countSum.equals(num1)) {
+					// 此时说明 "首位数据有重复"
+					headStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+					headCount.add(SPANCOLORLEFT + sumList.get(i).get(chartResultField.getCountField()) + SPANCOLORRIGHT);
+				} else if (num1 < countSum) {
+					// 此时说明拥有 "次位" 数
+					if (secStr.size() == 0) {
+						secStr.add(SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+						secCount.add(sumList.get(i).get(chartResultField.getCountField()));
+						// 记录 "次位" count
+						countSec = sumList.get(i).get(chartResultField.getCountField());
+					} else if (secStr.size() < 2) {
+						secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+						secCount.add(sumList.get(i).get(chartResultField.getCountField()));
+					} else if (sumList.get(i).get(chartResultField.getCountField()).equals(countSec)) {
+						// >= 3 的情况
+						secStr.add("和" + SPANCOLORLEFT + sumList.get(i).get(chartResultField.getContrastField()).toString() + SPANCOLORRIGHT);
+						secCount.add(sumList.get(i).get(chartResultField.getCountField()));
+					}
+				}
+			}
+			StringBuffer strResult = new StringBuffer();
+			strResult.append("由图可知，活跃用户TOP10居首位的是");
+			for (String str : headStr) {
+				strResult.append(str);
+			}
+			strResult.append("，为");
+			strResult.append(headCount.get(0));
+			if (secStr.size() > 0) {
+				strResult.append("篇，其次为");
+				if (secStr.size() > 2) {
+					secStr = secStr.subList(0, 2);
+				}
+				for (String str : secStr) {
+					strResult.append(str);
+				}
+			}
+			strResult.append("。");
+			strResult1.add(strResult.toString());
+		}
+		return JSON.toJSONString(strResult1);
+	}
+
 	private static String getEmotion(String imgData) {
 		// 向 数据统计概述 中添加数据
 		if ("\"暂无数据\"".equals(imgData) || "暂无数据".equals(imgData)) {
