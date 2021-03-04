@@ -526,7 +526,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		newAdd.setSecondaryChapter(secondaryChapter);
 		newAdd.setReportType(reportType);
 		newAdd.setTemplateId(templateId);
-		newAdd.setImg_data(img_data);
+		newAdd.setImg_data(img_data.replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", ""));
 		newAdd.setImgComment(imgComment);
 		newAdd.setImgType(imgType);
 		newAdd.setUserId(UserUtils.getUser().getId());
