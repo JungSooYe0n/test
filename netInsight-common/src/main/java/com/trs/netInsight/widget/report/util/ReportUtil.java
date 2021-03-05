@@ -729,7 +729,7 @@ public class ReportUtil {
 			flag = collect.keySet().iterator().next() instanceof Integer ? true : false;
 		}
 		boolean finalFlag = flag;
-		elementList.stream().filter(e -> e.getSelected() == 1).forEach(e -> {
+		elementList.stream().forEach(e -> {
 			if (finalFlag) {
 				if (OVERVIEWOFDATA.equals(e.getChapterName())||Chapter.Statistics_Summarize.toString().equals(e.getChapterDetail())) {
 					// 在数据统计概述有两条及以上时，选第一条(最新的一条).
