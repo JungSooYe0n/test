@@ -811,6 +811,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //		resultMap = (List<Map<String, Object>>) commonChartService.getMapColumnData(searchBuilder,isSimilar,irSimflag,irSimflagAll,groupName, contrastField,"special",chartResultField);
 		Map<String, Object> objectMap = (Map<String, Object>) commonChartService.getMapColumnData(searchBuilder, isSimilar,
 				irSimflag, irSimflagAll, groupName, contrastField, "special", chartResultField,maptoArea,null);
+		if(objectMap == null) return null;
 		List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
 		if(objectMap == null || areaData == null || areaData.size() == 0){
 			return null;
