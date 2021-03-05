@@ -1,13 +1,9 @@
 package com.trs.netInsight.widget.report.service.impl;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.trs.netInsight.config.constant.ColumnConst;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
@@ -16,10 +12,18 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.report.constant.Chapter;
-import com.trs.netInsight.widget.report.constant.ReportConst;
 import com.trs.netInsight.widget.report.entity.*;
+import com.trs.netInsight.widget.report.entity.repository.ReportDataNewRepository;
+import com.trs.netInsight.widget.report.entity.repository.ReportNewRepository;
+import com.trs.netInsight.widget.report.entity.repository.ReportResourceRepository;
+import com.trs.netInsight.widget.report.entity.repository.TemplateNewRepository;
+import com.trs.netInsight.widget.report.service.IGenerateReport;
+import com.trs.netInsight.widget.report.service.IReportServiceNew;
 import com.trs.netInsight.widget.report.service.ISpecialReportService;
+import com.trs.netInsight.widget.report.task.ReportResourceTask;
 import com.trs.netInsight.widget.report.util.ReportUtil;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
@@ -32,19 +36,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
-import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.util.UserUtils;
-import com.trs.netInsight.widget.report.entity.repository.ReportDataNewRepository;
-import com.trs.netInsight.widget.report.entity.repository.ReportNewRepository;
-import com.trs.netInsight.widget.report.entity.repository.ReportResourceRepository;
-import com.trs.netInsight.widget.report.entity.repository.TemplateNewRepository;
-import com.trs.netInsight.widget.report.service.IGenerateReport;
-import com.trs.netInsight.widget.report.service.IReportServiceNew;
-import com.trs.netInsight.widget.report.task.ReportResourceTask;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.EntityManager;
@@ -53,6 +44,13 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static com.trs.netInsight.widget.report.constant.ReportConst.*;
 
@@ -175,34 +173,23 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		if(CollectionUtils.isEmpty(allReportResource)){
 		    return;
         }
-		Map<Integer, List<ReportResource>> collect = allReportResource.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
-		Iterator<Integer> iterator = collect.keySet().iterator();
-		List<TElementNew> originalElements = JSONArray.parseArray(templateNew.getTemplateList(), TElementNew.class);
+//		Map<Integer, List<ReportResource>> collect = allReportResource.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
+//		Iterator<Integer> iterator = collect.keySet().iterator();
+//		List<TElementNew> originalElements = JSONArray.parseArray(templateNew.getTemplateList(), TElementNew.class);
 		List<TElementNew> currentElements = JSONArray.parseArray(templateList, TElementNew.class);
 		ArrayList<ReportResource> resources2DB = new ArrayList<>();
-		while(iterator.hasNext()){
-			Integer originalPosition = iterator.next();
-			//原有模板的，当前数据所在位置的，模块名称
-			List<String> originalChapterDetail = originalElements.stream().filter(e -> originalPosition.equals(e.getChapterPosition())).map(e -> e.getChapterDetail()).collect(Collectors.toList());
-			//现在模板的，模块名称与原来模板模块名称对应的，模块位置。
-			List<Integer> currentChapterPosition = currentElements.stream().filter(e -> e.getChapterDetail().equals(originalChapterDetail.get(0))).map(e -> e.getChapterPosition()).collect(Collectors.toList());
-			if(currentChapterPosition.size()>1){
-				break;
-			}
-			if(CollectionUtils.isEmpty(currentChapterPosition)){
-			    //此时说明用户所删除的章节下，有数据。
-                //所以删除该章节时会连同删除其下的数据
-                reportResourceRepository.deleteByTemplateIdAndResourceStatusAndChapterPosition(templateNew.getId(),0,originalPosition);
-            }else if(!originalPosition.equals(currentChapterPosition.get(0))){
-				//此时说明该部分数据的chapterPosition已经改变。update
-				List<ReportResource> resources = collect.get(originalPosition).stream().map(e -> {
-					Integer integer = currentChapterPosition.get(0);
-					e.setChapterPosition(integer);
-					return e;
-				}).collect(Collectors.toList());
-				resources2DB.addAll(resources);
+		for(TElementNew currentElement:currentElements){
+			List<ReportResource> reportResources = currentElement.getChapaterContent();
+			if(reportResources!=null){
+				for(int i =0;i<reportResources.size();i++){
+					if(!reportResources.get(i).getChapterPosition().equals(currentElement.getChapterPosition())){
+						reportResources.get(i).setChapterPosition(currentElement.getChapterPosition());
+					}
+				}
+				resources2DB.addAll(reportResources);
 			}
 		}
+
 		if(!CollectionUtils.isEmpty(resources2DB)){
 			reportResourceRepository.save(resources2DB);
 		}
@@ -539,7 +526,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		newAdd.setSecondaryChapter(secondaryChapter);
 		newAdd.setReportType(reportType);
 		newAdd.setTemplateId(templateId);
-		newAdd.setImg_data(img_data);
+		newAdd.setImg_data(img_data.replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", ""));
 		newAdd.setImgComment(imgComment);
 		newAdd.setImgType(imgType);
 		newAdd.setUserId(UserUtils.getUser().getId());
@@ -828,7 +815,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 
     @Override
 	public ReportNew create(String reportIntro, String jsonImgElements,
-			ReportNew report) throws Exception {
+			ReportNew report, Integer isUpdateTemplate) throws Exception {
 		//primaryStatisticsTime 供template_header使用
 		String primaryStatisticsTime = report.getStatisticsTime();
 		//修改时间格式 xxxx年xx月xx日
@@ -841,6 +828,10 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		Map<String, List<Map<String, String>>> base64data = ReportUtil.getBase64data(jsonImgElements);
 		List<ReportResource> reportResources = reportResourceRepository.findByTemplateIdAndResourceStatus(report.getTemplateId(), 0);
 		TemplateNew templateNew = templateNewRepository.findOne(report.getTemplateId());
+		//获取一份模板
+		TemplateNew oldTemplateNew = new TemplateNew();
+		copyTemplateNew(templateNew, oldTemplateNew);
+
 		Map<Integer, List<ReportResource>> collect = reportResources.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
 
 		report.setReportType(templateNew.getTemplateType());
@@ -857,15 +848,44 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		ReportResource reportIntroResrouce = createResTypeReportIntro(reportIntro, report);
 		reportResourceRepository.save(reportIntroResrouce);
 
-		//重新保存template，因为template_header有可能被修改
-		setTemplateHeader(templateNew, report.getTotalIssue(),
-				report.getThisIssue(), report.getPreparationUnits(), report.getPreparationAuthors(), primaryStatisticsTime,report.getReportName());
-		//templateNew.setTemplateName(report.getReportName());
+		//如果生成报告时要同时修改改模板的内容
+		if (isUpdateTemplate != null) {
+			if (isUpdateTemplate == 1) {
+				//修改对应模板的 templateList 内容
+				templateNew.setTemplateList(report.getTemplateList());
+				//template_header有可能被修改
+				setTemplateHeader(templateNew, report.getTotalIssue(),
+						report.getThisIssue(), report.getPreparationUnits(), report.getPreparationAuthors(), primaryStatisticsTime,report.getReportName());
+			} else {
+				templateNew = oldTemplateNew;
+			}
+		}
+
+		//重新保存template
 		templateNewRepository.save(templateNew);
 
 		//是否保存报告资源处理
 		resDelHandle(report, reportResources);
 		return report;
+	}
+
+	private void copyTemplateNew(TemplateNew templateNew, TemplateNew copyTemplateNew) {
+		copyTemplateNew.setTemplateList(templateNew.getTemplateList());
+		copyTemplateNew.setId(templateNew.getId());
+		copyTemplateNew.setTemplateName(templateNew.getTemplateName());
+		copyTemplateNew.setTemplateType(templateNew.getTemplateType());
+		copyTemplateNew.setTemplateHeader(templateNew.getTemplateHeader());
+		copyTemplateNew.setTemplatePosition(templateNew.getTemplatePosition());
+		copyTemplateNew.setGroupName(templateNew.getGroupName());
+		copyTemplateNew.setIsDefault(templateNew.getIsDefault());
+		copyTemplateNew.setCreatedTime(templateNew.getCreatedTime());
+		copyTemplateNew.setCreatedUserId(templateNew.getCreatedUserId());
+		copyTemplateNew.setLastModifiedTime(templateNew.getLastModifiedTime());
+		copyTemplateNew.setLastModifiedUserId(templateNew.getLastModifiedUserId());
+		copyTemplateNew.setOrganizationId(templateNew.getOrganizationId());
+		copyTemplateNew.setSubGroupId(templateNew.getSubGroupId());
+		copyTemplateNew.setUserId(templateNew.getUserId());
+		copyTemplateNew.setUserAccount(templateNew.getUserAccount());
 	}
 
 	private void resDelHandle(ReportNew report, List<ReportResource> reportResources) {
@@ -967,15 +987,16 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			String reportId) throws Exception {
 		//生成report_data 保存到数据库，report_data_id 加入到report中，保存到数据库
 		ReportNew report = reportNewRepository.findOne(reportId);
-		return this.create(reportIntro, jsonImgElements, report);
+		return this.create(reportIntro, jsonImgElements, report, 0);
 	}
 
 	@Override
 	public Page<ReportNew> listAllReport(String reportType,  String searchText, String groupName, Integer pageNum, Integer pageSize,String time) {
 		//Page<ReportNew> findByReportType ;
 		User loginUser = UserUtils.getUser();
+		//现在不需要删除历史报告
 		//删除历史报告
-		deleteHistoryReportResource(reportType);
+		//deleteHistoryReportResource(reportType);
 		//往期报告
 		if("HistoryReport".equals(reportType)){
 			return findHistoryReports(searchText ,loginUser, pageNum, pageSize);
@@ -1032,7 +1053,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			}else if(INDEXTABREPORT.equals(reportType)){
 				//日常监测报
 				reportTypeDiffPredicate = cb.equal(root.get("groupName").as(String.class), groupName);
-			}else if(DAILYREPORT.equals(reportType)){
+			}/*else if(DAILYREPORT.equals(reportType)){
 				//日报
 				reportTypeDiffPredicate = cb.greaterThan(root.get("createdTime").as(Date.class), getDeletedNodeTime(DailyReportExpiration, Calendar.DAY_OF_MONTH));
 			}else if(WEEKLYREPORT.equals(reportType)){
@@ -1041,12 +1062,14 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 			}else if(MONTHLYREPORT.equals(reportType)){
 				//月报
 				reportTypeDiffPredicate = cb.greaterThan(root.get("createdTime").as(Date.class), getDeletedNodeTime(MonthlyReportExpiration, Calendar.DAY_OF_MONTH));
-			}
+			}*/
 			if(StringUtil.isNotEmpty(finalSearchText)){
 				Predicate searchTextPredicate = cb.like(root.get("reportName").as(String.class), "%"+finalSearchText+"%");
 				allPredicates.add(searchTextPredicate);
 			}
-			allPredicates.add(reportTypeDiffPredicate);
+			if (reportTypeDiffPredicate != null) {
+				allPredicates.add(reportTypeDiffPredicate);
+			}
 			allPredicates.add(reportTypePredicate);
 			allPredicates.add(userPredicate);
 			allPredicates.add(docPathPredicate);

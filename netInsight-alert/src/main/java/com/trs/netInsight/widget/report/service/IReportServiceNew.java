@@ -89,9 +89,10 @@ public interface IReportServiceNew {
 	 * @param reportIntro
 	 * @param jsonImgElements
 	 * @param report
+	 * @param isUpdateTemplate 是否更新相应模板
 	 */
 	public ReportNew create(String reportIntro, String jsonImgElements,
-			ReportNew report) throws Exception ;
+			ReportNew report, Integer isUpdateTemplate) throws Exception ;
 	/**
 	 * 已经走过预览
 	 * @author shao.guangze

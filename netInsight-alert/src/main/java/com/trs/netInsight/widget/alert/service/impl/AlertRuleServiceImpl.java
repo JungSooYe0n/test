@@ -1248,8 +1248,8 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			simflag = alertRule.isRepetition();
 			irSimflag = alertRule.isIrSimflag();
 			irSimflagAll = alertRule.isIrSimflagAll();
-			builder = alertRule.toSearchBuilderCommon(time);
-			countBuilder = alertRule.toSearchBuilderCommon(time);
+			builder = alertRule.toSearchBuilderCommonNew(time,sort);
+			countBuilder = alertRule.toSearchBuilderCommonNew(time,sort);
 			builder.setPageNo(pageNo);
 			builder.setPageSize(pageSize);
 			countBuilder.setPageNo(pageNo);
@@ -1407,6 +1407,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 			case "desc":
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
 				countBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+				break;
+			case "loadtime":
+				builder.orderBy(FtsFieldConst.FIELD_HYLOAD_TIME, true);
+				countBuilder.orderBy(FtsFieldConst.FIELD_HYLOAD_TIME, true);
 				break;
 			case "asc":
 				builder.orderBy(FtsFieldConst.FIELD_URLTIME, false);

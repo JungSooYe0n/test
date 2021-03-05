@@ -38,10 +38,9 @@ import static com.trs.netInsight.widget.report.constant.ReportConst.*;
 @Slf4j
 public class ReportUtil {
 
-    private static final String startSpan = "<span>";
-    private static final String startFontSpan = "<span class=\"color\">";
-    private static final String endSpan = "</span>";
-
+	private static final String startSpan = "<span>";
+	private static final String startFontSpan = "<span class=\"color\">";
+	private static final String endSpan = "</span>";
 
 
 	// 生成报告后需在页面上二次编辑，样式代码会原样显示在页面上，现决定将其去掉
@@ -53,7 +52,7 @@ public class ReportUtil {
 			return getLineCommentNew(img_data);
 		} else if ("pieGraphChartMeta".equals(imgType) || ColumnConst.CHART_PIE.equals(imgType) || "opinionStatistics".equals(imgType)) {
 			return String.format(getbarComment(img_data), chapter);
-		} else if ("barGraphChartMeta".equals(imgType) || ColumnConst.CHART_BAR.equals(imgType) || ColumnConst.CHART_BAR_CROSS.equals(imgType)) {
+		} else if ("barGraphChartMeta".equals(imgType) || ColumnConst.CHART_BAR.equals(imgType)) {
 			return String.format(getbarComment(img_data), chapter);
 		} else if ("mapChart".equals(imgType) || ColumnConst.CHART_MAP.equals(imgType)) {
 			return getMapComment(img_data);
@@ -63,8 +62,19 @@ public class ReportUtil {
 			return getMapComment(img_data);
 		} else if ("wordCloudChart".equals(imgType)) {
 			return String.format(getbarComment(img_data), chapter);
-		} else{
-			log.info("没有匹配到对应的图片类型 - "+imgType);
+		} else if (ColumnConst.CHART_BAR_CROSS.equals(imgType)) {
+			List<String> strResult1 = new ArrayList<>();
+			List<Map<String, Object>> sumList = JSONObject.parseObject(img_data,
+					new TypeReference<List<Map<String, Object>>>() {
+					});
+			for(int i=0;i<sumList.size();i++){
+				Map<String, Object> fieldMap = sumList.get(i);
+				List<Map<String, Object>> sumListNew = (List<Map<String, Object>>) fieldMap.get("info");
+				strResult1.add(String.format(getbarComment(sumListNew.toString()),chapter));
+			}
+			return JSON.toJSONString(strResult1);
+		} else {
+			log.info("没有匹配到对应的图片类型 - " + imgType);
 		}
 		return null;
 	}
@@ -72,9 +82,9 @@ public class ReportUtil {
 	/**
 	 * 数据统计概述图片处理 将图片的jsonData中的data转变为文字描述 柱状图、饼图、折线图
 	 *
-	 * @author shao.guangze
 	 * @param data
 	 * @return
+	 * @author shao.guangze
 	 */
 	@SuppressWarnings("rawtypes")
 	public static String getOverviewOfData(String data) {
@@ -118,7 +128,7 @@ public class ReportUtil {
 		return strResult.toString();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private static String lineOverviewOfData(String data) {
 		List<Map> parseArray = JSONArray.parseArray(data, Map.class);
 		List<Long> arrayList = new ArrayList<Long>();
@@ -171,14 +181,14 @@ public class ReportUtil {
 
 		JSONArray groupNameArr = single.getJSONArray("legendData");
 		JSONArray countArr = single.getJSONArray("lineYdata");
-		if (groupNameArr == null || groupNameArr.size() ==0) {
+		if (groupNameArr == null || groupNameArr.size() == 0) {
 			return "";
 		}
 		List<Map<String, Object>> sumList = new ArrayList<>();
 
-		for(int  i =1; i<groupNameArr.size();i++){
+		for (int i = 1; i < groupNameArr.size(); i++) {
 			String oneGroupName = groupNameArr.getString(i);
-			List<Integer> countList = (List<Integer>)countArr.get(i);
+			List<Integer> countList = (List<Integer>) countArr.get(i);
 			Integer sum = countList.stream().reduce(Integer::sum).orElse(0);
 			HashMap<String, Object> hashMap = new HashMap<>();
 			hashMap.put("name", oneGroupName);
@@ -243,8 +253,8 @@ public class ReportUtil {
 		strResult.append(headCount.get(0));
 		if (secStr.size() > 0) {
 			strResult.append("篇，其次为");
-			if(secStr.size()>2){
-				secStr = secStr.subList(0,2);
+			if (secStr.size() > 2) {
+				secStr = secStr.subList(0, 2);
 			}
 			for (String str : secStr) {
 				strResult.append(str);
@@ -355,9 +365,9 @@ public class ReportUtil {
 	 * ：由图可知，微博活跃用户TOP10居首位的是竹里绣生和半夏半半琳，为11篇，其次为永远是你的珍珠糖和_廷哥超a_。
 	 * 实现逻辑：记录最大的数和次大的数。前半部分为最大的数的name，不计个数；后半部分为次大的数，
 	 * 只有次大的数超过2时，后半部分才有可能显示2个以上，其他情况后半部分只显示2个。
-	 * 
-	 * @author shao.guangze
+	 *
 	 * @return
+	 * @author shao.guangze
 	 */
 	private static String getbarComment(String imgData) {
 		// 向 数据统计概述 中添加数据
@@ -373,8 +383,8 @@ public class ReportUtil {
 		ChartResultField chartResultField = null;
 		Map<String, Object> fieldMap = sumList.get(0);
 
-		if(fieldMap.containsKey("name") && fieldMap.containsKey("value")){
-			chartResultField = new ChartResultField("name","value");
+		if (fieldMap.containsKey("name") && fieldMap.containsKey("value")) {
+			chartResultField = new ChartResultField("name", "value");
 			Collections.sort(sumList, new Comparator<Map<String, Object>>() {
 				@Override
 				public int compare(Map<String, Object> m1, Map<String, Object> m2) {
@@ -389,8 +399,8 @@ public class ReportUtil {
 					}
 				}
 			});
-		}else{
-			chartResultField = new ChartResultField("groupName","num");
+		} else {
+			chartResultField = new ChartResultField("groupName", "num");
 			Collections.sort(sumList, new Comparator<Map<String, Object>>() {
 				@Override
 				public int compare(Map<String, Object> m1, Map<String, Object> m2) {
@@ -457,8 +467,8 @@ public class ReportUtil {
 		strResult.append(headCount.get(0));
 		if (secStr.size() > 0) {
 			strResult.append("篇，其次为");
-            if(secStr.size()>2){
-            	secStr = secStr.subList(0,2);
+			if (secStr.size() > 2) {
+				secStr = secStr.subList(0, 2);
 			}
 			for (String str : secStr) {
 				strResult.append(str);
@@ -467,6 +477,7 @@ public class ReportUtil {
 		strResult.append("。");
 		return strResult.toString();
 	}
+
 	private static String getEmotion(String imgData) {
 		// 向 数据统计概述 中添加数据
 		if ("\"暂无数据\"".equals(imgData) || "暂无数据".equals(imgData)) {
@@ -718,7 +729,7 @@ public class ReportUtil {
 			flag = collect.keySet().iterator().next() instanceof Integer ? true : false;
 		}
 		boolean finalFlag = flag;
-		elementList.stream().filter(e -> e.getSelected() == 1).forEach(e -> {
+		elementList.stream().forEach(e -> {
 			if (finalFlag) {
 				if (OVERVIEWOFDATA.equals(e.getChapterName())||Chapter.Statistics_Summarize.toString().equals(e.getChapterDetail())) {
 					// 在数据统计概述有两条及以上时，选第一条(最新的一条).
@@ -850,6 +861,7 @@ public class ReportUtil {
 			tElementNew.setChapterDetail(value.toString());
 			tElementNew.setChapterPosition(value.getSequence());
 			tElementNew.setSelected(selected);
+			tElementNew.setElementNewType("表格");
 			allChapters.add(tElementNew);
 		}
 		return allChapters;
