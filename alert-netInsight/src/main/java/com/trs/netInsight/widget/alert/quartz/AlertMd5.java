@@ -202,6 +202,7 @@ public class AlertMd5 implements Job {
                         alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
                         alertRule.setLastExecutionTime(System.currentTimeMillis());
                     }
+                    alertRuleRepository.saveAndFlush(alertRule);
                 } catch (Exception e) {
                     log.error("预警【" + alertRule.getTitle() + "】任务报错：", e);
                 }
