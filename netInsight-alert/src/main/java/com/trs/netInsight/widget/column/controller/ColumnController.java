@@ -1335,6 +1335,7 @@ if (isAddAlert) {
 							  @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws SearchException, TRSException {
 		log.info("【日常监测图表查询】随机数： "+randomNum);
+		if (ObjectUtil.isEmpty(wordFromNum)) wordFromNum = 200000000;
 		Date startDate = new Date();
 		IndexTab indexTab = null;
 		String operation = "日常监测 图表查询 - 栏目";
@@ -1443,7 +1444,7 @@ if (isAddAlert) {
 		}else{
 			config.initSection(indexTab, timerange, 0, pageSize, null, emotion, entityType, "", "", "default",  "", "",
 					"", "",read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-					indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter,imgOcr);
+					indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),imgOcr);
 		}
 		// TODO  舆情报告生成 饼状情感对比、活跃账号、微博热点话题时，需要处理这个地方，用统计分析的StatisticalChart，其他图用tabChart
 		config.setChartPage(chartPageInfo);

@@ -76,8 +76,7 @@ public class BarColumn extends AbstractColumn {
 							queryBuilder.filterByTRSL(builder.asTRSL());
 							if (Const.GROUPNAME_XINWEN.equals(oneGroupName)){
 								//去掉新闻里的这类号
-								queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
-										"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+								queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Const.REMOVEMEDIAS,Operator.NotEqual);
 							}
 							Map<String,Object> oneInfo = new HashMap<>();
 							Object list = commonChartService.getBarColumnData(queryBuilder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"column",resultField);

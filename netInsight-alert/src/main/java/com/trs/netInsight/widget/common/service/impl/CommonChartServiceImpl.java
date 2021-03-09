@@ -413,8 +413,17 @@ public class CommonChartServiceImpl implements ICommonChartService {
             for(DistrictInfo d: citys){
                 String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName().replace("桃园市","桃园县");
                 String carea = area.replace("\\","\\\\");
-                if (carea.equals(cityArea)){
-                    bjmap.put(d.getAreaName(),num2);
+                if (areaName.equals("香港")){
+                    cityArea = areaMap.get(areaName)+"\\\\香港岛"+"\\\\"+d.getAreaName();
+                    String cityArea2 = areaMap.get(areaName)+"\\\\新界"+"\\\\"+d.getAreaName();
+                    String cityArea3 = areaMap.get(areaName)+"\\\\九龙半岛"+"\\\\"+d.getAreaName();
+                    if (carea.equals(cityArea) || carea.equals(cityArea2) || carea.equals(cityArea3)){
+                        bjmap.put(d.getAreaName(),num2);
+                    }
+                }else {
+                    if (carea.equals(cityArea)) {
+                        bjmap.put(d.getAreaName(), num2);
+                    }
                 }
 //                String formatArea = d.getAreaName().replace("市","").replace("区","");
 //                if(area.indexOf(formatArea) >0){
@@ -457,10 +466,20 @@ public class CommonChartServiceImpl implements ICommonChartService {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName().replace("桃园市","桃园县");
+                String cityArea = null;
+                cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName().replace("桃园市","桃园县");
                 String carea = area.replace("\\","\\\\");
-                if (carea.equals(cityArea)){
-                    bjmap.put(d.getAreaName(),num2);
+                if (areaName.equals("香港")){
+                    cityArea = areaMap.get(areaName)+"\\\\香港岛"+"\\\\"+d.getAreaName();
+                    String cityArea2 = areaMap.get(areaName)+"\\\\新界"+"\\\\"+d.getAreaName();
+                    String cityArea3 = areaMap.get(areaName)+"\\\\九龙半岛"+"\\\\"+d.getAreaName();
+                    if (carea.equals(cityArea) || carea.equals(cityArea2) || carea.equals(cityArea3)){
+                        bjmap.put(d.getAreaName(),num2);
+                    }
+                }else {
+                    if (carea.equals(cityArea)) {
+                        bjmap.put(d.getAreaName(), num2);
+                    }
                 }
 //                String formatArea = d.getAreaName().replace("市","").replace("区","");
 //                if(area.indexOf(formatArea) >0){
