@@ -445,7 +445,8 @@ public class SepcialReportTask implements Runnable {
                                         specialProject.setStart(timeArr[0]);
                                         specialProject.setEnd(timeArr[1]);
                                     }
-                                    QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
+//                                    QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
+                                    QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
                                     searchBuilder.setGroupName(groupNames);
 //                                    List<Map<String, Object>> catalogResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
 //                                            irSimflag, irSimflagAll, "catalogArea");

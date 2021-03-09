@@ -220,8 +220,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					contrastField = FtsFieldConst.FIELD_AUTHORS;
 				}
 				if (Const.GROUPNAME_XINWEN.equals(oneGroupName)){
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
-							"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Const.REMOVEMEDIAS,Operator.NotEqual);
 				}
 				Map<String,Object> oneInfo = new HashMap<>();
 				Object list = commonChartService.getBarColumnData(queryBuilder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"special",resultField);
@@ -4919,8 +4918,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					contrastField = FtsFieldConst.FIELD_AUTHORS;
 				}
 				if (Const.GROUPNAME_XINWEN.equals(CommonListChartUtil.changeGroupName(name))){
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
-							"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Const.REMOVEMEDIAS,Operator.NotEqual);
 				}
 				List<HashMap<String, String>> mapList = new ArrayList<>();
 				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
@@ -5051,8 +5049,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				builderWxb.filterField(FtsFieldConst.FIELD_URLDATE, time, Operator.Equal);
 				builderWxb.filterField(FtsFieldConst.FIELD_WXB_LIST, "0", Operator.Equal);
 				if (Const.GROUPNAME_XINWEN.equals(CommonListChartUtil.changeGroupName(groupName))){
-					builderWxb.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
-							"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+					builderWxb.filterField(FtsFieldConst.FIELD_SITENAME,Const.REMOVEMEDIAS,Operator.NotEqual);
 				}
 				GroupResult resultWxb = null;
 				try {
@@ -5070,8 +5067,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				builderNotWxb.filterField(FtsFieldConst.FIELD_URLDATE, time, Operator.Equal);
 				builderNotWxb.filterField(FtsFieldConst.FIELD_WXB_LIST, "0", Operator.NotEqual);
 				if (Const.GROUPNAME_XINWEN.equals(CommonListChartUtil.changeGroupName(groupName))){
-					builderNotWxb.filterField(FtsFieldConst.FIELD_SITENAME,new String[]{"企鹅号", "快传号", "百家号", "大鱼号", "一点号", "搜狐号", "网易号", "头条号",
-							"大风号", "新浪号", "澎湃号", "人民号", "财富号", "新浪看点"},Operator.NotEqual);
+					builderNotWxb.filterField(FtsFieldConst.FIELD_SITENAME,Const.REMOVEMEDIAS,Operator.NotEqual);
 				}
 				GroupResult resultNotWxb = null;
 				try {

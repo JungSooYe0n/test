@@ -1335,6 +1335,7 @@ if (isAddAlert) {
 							  @RequestParam(value = "randomNum", required = false) String randomNum)
 			throws SearchException, TRSException {
 		log.info("【日常监测图表查询】随机数： "+randomNum);
+		if (ObjectUtil.isEmpty(wordFromNum)) wordFromNum = 200000000;
 		Date startDate = new Date();
 		IndexTab indexTab = null;
 		String operation = "日常监测 图表查询 - 栏目";

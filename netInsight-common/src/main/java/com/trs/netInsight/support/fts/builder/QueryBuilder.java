@@ -114,6 +114,7 @@ public class QueryBuilder extends IQueryBuilder implements Cloneable{
 //		String trsl = join(conditions.toArray(), " AND ");
 		StringBuilder sb = new StringBuilder();
 		StringBuilder sb1 = new StringBuilder();
+		String ces = String.join(" OR ",Const.REMOVEMEDIAS);
 		sb1.append("NOT ").append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(")
 				.append("国内新闻)")
 				.append(" AND "+FtsFieldConst.FIELD_SITENAME).append(":(")
