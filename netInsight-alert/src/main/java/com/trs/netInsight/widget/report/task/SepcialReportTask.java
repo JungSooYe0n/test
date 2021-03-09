@@ -229,6 +229,7 @@ public class SepcialReportTask implements Runnable {
                                 startMillis = System.currentTimeMillis();
 
                                 try {
+                                    specialProject.setSource(groName);
                                     Object dayTrendResult = specialChartAnalyzeService.getWebCountLine(specialProject, rangeTime, "day");
                                     Object hourTrendResult = specialChartAnalyzeService.getWebCountLine(specialProject, rangeTime, "hour");
                                     if (ObjectUtil.isNotEmpty(dayTrendResult) || ObjectUtil.isNotEmpty(hourTrendResult)) {
