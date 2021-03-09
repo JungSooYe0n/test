@@ -435,7 +435,7 @@ public class SepcialReportTask implements Runnable {
                                 log.info(String.format(SPECILAREPORTLOG, AREA));
                                 startMillis = System.currentTimeMillis();
                                 try {
-                                    String groupNames = specialProject.getSource();//多个以;隔开
+                                    String groupNames = groName;//多个以;隔开
                                     if (groupNames.contains("微信") && !groupNames.contains("国内微信")) {
                                         groupNames = groupNames.replaceAll("微信", "国内微信");
                                     }
@@ -757,6 +757,7 @@ public class SepcialReportTask implements Runnable {
                                 startMillis = System.currentTimeMillis();
                                 try {
                                     QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
+                                    searchBuilder.setGroupName(groName);
                                     Object spreadAnalysisSiteName = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, PROPAFATIONANALYSIS, (endMillis - startMillis)));
