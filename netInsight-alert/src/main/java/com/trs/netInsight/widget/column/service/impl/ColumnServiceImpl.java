@@ -1138,6 +1138,7 @@ sequenceRepository.flush();
 //					if (parseObject.getBoolean("delete") || parseObject.getBoolean("hide")) sequenceRepository.delete(sequenceRepository.findByIndexId(id));
 
 						StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
+						statisticalChart.setTabWidth(parseObject.getInteger("tabWidth"));
 						if (parseObject.getBoolean("delete")){
 							statisticalChart.setIsTop(false);
 							sequenceRepository.delete(sequenceRepository.findByIndexId(id));

@@ -381,6 +381,7 @@ public class SepcialReportTask implements Runnable {
                                 try {
                                     QueryBuilder searchBuilder = specialProject.toNoPagedAndTimeBuilder();
                                     searchBuilder.setPageSize(50);
+                                    searchBuilder.setGroupName(groName);
                                     String[] timeArr = DateUtil.formatTimeRange(rangeTime);
                                     searchBuilder.filterField(ESFieldConst.IR_URLTIME, timeArr, Operator.Between);
                                     searchBuilder.setDatabase(Const.HYBASE_NI_INDEX);
@@ -397,10 +398,10 @@ public class SepcialReportTask implements Runnable {
                                     //keywords；人名:people；地名:location；机构名:agency
                                     if (!com.trs.netInsight.util.DateUtil.isExpire("2019-10-01 00:00:00", time0)) {
                                         ChartResultField resultField = new ChartResultField("name", "value", "entityType");
-                                        keywordWordCloud = commonChartService.getWordCloudColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, specialProject.getSource(), "keywords", "special", resultField);
-                                        peopleWordCloud = commonChartService.getWordCloudColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, specialProject.getSource(), "people", "special", resultField);
-                                        locationWordCloud = commonChartService.getWordCloudColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, specialProject.getSource(), "location", "special", resultField);
-                                        agencyWordCloud = commonChartService.getWordCloudColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, specialProject.getSource(), "agency", "special", resultField);
+                                        keywordWordCloud = commonChartService.getWordCloudColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groName, "keywords", "special", resultField);
+                                        peopleWordCloud = commonChartService.getWordCloudColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groName, "people", "special", resultField);
+                                        locationWordCloud = commonChartService.getWordCloudColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groName, "location", "special", resultField);
+                                        agencyWordCloud = commonChartService.getWordCloudColumnData(searchBuilder, isSimilar, irSimflag, irSimflagAll, groName, "agency", "special", resultField);
                                     } else {
                                         keywordWordCloud = specialChartAnalyzeService.getWordCloudNew(searchBuilder, isSimilar, irSimflag, irSimflagAll, "keywords", "special");
                                         peopleWordCloud = specialChartAnalyzeService.getWordCloudNew(searchBuilder, isSimilar, irSimflag, irSimflagAll, "people", "special");
@@ -457,7 +458,7 @@ public class SepcialReportTask implements Runnable {
                                     Object mediaResult = specialChartAnalyzeService.getAreaCount(searchBuilder, timeArr, isSimilar,
                                             irSimflag, irSimflagAll, "mediaArea");
 
-                                    if (ObjectUtil.isNotEmpty(catalogResult) ||ObjectUtil.isNotEmpty(catalogResult)) {
+                                    if (ObjectUtil.isNotEmpty(catalogResult) || ObjectUtil.isNotEmpty(catalogResult)) {
 //                                        catalogResult = MapUtil.sortByValue(catalogResult, "value");
 //
 //                                        mediaResult = MapUtil.sortByValue(mediaResult, "value");
@@ -473,11 +474,14 @@ public class SepcialReportTask implements Runnable {
                                         areaRR.setImg_data(JSON.toJSON(result).toString());
                                         areaRR.setImgType("mapChart");
                                         // 数据、图类型、图名字
-                                        Map<String, Object> objectMap = (Map<String, Object>) mediaResult;
-                                        List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
-                                        areaRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(areaData), "mapChart", null));
-                                        areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
-                                        reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
+                                        if(ObjectUtil.isNotEmpty(mediaResult)) {
+                                            Map<String, Object> objectMap = (Map<String, Object>) mediaResult;
+                                            List<Map<String, Object>> areaData = (List<Map<String, Object>>) objectMap.get("areaData");
+                                            areaRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(areaData), "mapChart", null));
+                                        }
+                                            areaRR.setId(UUID.randomUUID().toString().replace("-", ""));
+                                            reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(areaRR))));
+
 //                                        reportData.setArea(ReportUtil.replaceHtml(JSON.toJSON(areaRR).toString()));
                                     }
 

@@ -43,12 +43,13 @@ public class StatisticalChartDTO implements Serializable {
         this.timeRange = timeRange;
         this.topSequence = statisticalChart.getTopSequence();
         this.hide = statisticalChart.getHide();
+        this.tabWidth = statisticalChart.getTabWidth();
 
-        if (StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)
-                || StatisticalChartInfo.MAP.equals(statisticalChartInfo)
-                || StatisticalChartInfo.CHART_LINE.equals(statisticalChartInfo)) {
-            this.tabWidth = 100;
-        }
+//        if (StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)
+//                || StatisticalChartInfo.MAP.equals(statisticalChartInfo)
+//                || StatisticalChartInfo.CHART_LINE.equals(statisticalChartInfo)) {
+//            this.tabWidth = 100;
+//        }
 
         addTypeSeq();
         this.pointToId = statisticalChart.getParentId();

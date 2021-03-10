@@ -67,7 +67,14 @@ public class StatisticalChart extends BaseEntity {
             return false;
         }
     }
-
+    /**
+     * 50为半栏 100为通栏
+     */
+    @Column(name = "tab_width")
+    private int tabWidth = 50;
+//    public String getTabWidth(){
+//        return String.valueOf(this.tabWidth);
+//    }
     public StatisticalChart(String chartType ,Integer sequence ,Boolean isTop ,String  name ,String  parentId  ){
         this.chartType = chartType;
         this.sequence = sequence;
