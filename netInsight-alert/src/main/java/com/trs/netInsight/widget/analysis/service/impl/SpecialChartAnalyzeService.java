@@ -5662,7 +5662,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 					map.put("title", content);
 					map.put("abstracts", content);
 
-					map.put("siteName", vo.getScreenName());
+					map.put("siteName", vo.getSiteName());
+					map.put("author", vo.getAuthors());
 				} else if (Const.PAGE_SHOW_FACEBOOK.equals(groupName) || Const.PAGE_SHOW_TWITTER.equals(groupName)) {
 					map.put("title", content);
 					map.put("abstracts", content);
