@@ -1017,7 +1017,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange,String showType) {
+	public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange, String showType, String...groupName) {
 		long start = new Date().getTime();
 
 		Map<String, Object> result = new HashMap<>();
@@ -1039,7 +1039,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		boolean irSimflag = specialProject.isIrSimflag();
 		//跨数据源排重
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
-		String source = specialProject.getSource();
+		String source = null;
+		if (groupName.length != 0 && groupName != null) {
+			source = groupName[0];
+		} else {
+			source = specialProject.getSource();
+		}
 		String contrastField = FtsFieldConst.FIELD_GROUPNAME;
 		List<String> sourceList = CommonListChartUtil.formatGroupName(source);
 		List<String> allList = Const.ALL_GROUPNAME_SORT;

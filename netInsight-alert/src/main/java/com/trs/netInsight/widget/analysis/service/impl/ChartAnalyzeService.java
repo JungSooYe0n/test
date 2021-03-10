@@ -218,7 +218,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	}
 
     @Override
-    public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange, String showType) throws TRSException {
+    public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange, String showType, String...groupName) throws TRSException {
         return null;
     }
 

@@ -198,7 +198,7 @@ public interface IChartAnalyzeService {
 	 * @return
 	 * @throws TRSException
 	 */
-	public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange,String showType)
+	public Map<String, Object> getWebCountLine(SpecialProject specialProject, String timerange, String showType, String...gropuName)
 			throws TRSException;
 	/**
 	 * 观点分析
