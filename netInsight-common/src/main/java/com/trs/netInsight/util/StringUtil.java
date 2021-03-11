@@ -719,7 +719,7 @@ public final class StringUtil {
 			int i = start;
 			for (Map<String, String> map : list) {
 				//这个地方把字体红色标签去掉了  因为微信推送不识别font标签
-				buffer.append(i + "、").append(replaceNRT(replaceFont(replaceImg(map.get("title"))))).append("\\n\\n");
+				buffer.append(i + "、").append(replaceNRT(replaceFont(replaceImg(map.get("title").replaceAll("\"","“"))))).append("\\n\\n");
 				i++;
 			}
 			// 去除最后的\\n\\n
