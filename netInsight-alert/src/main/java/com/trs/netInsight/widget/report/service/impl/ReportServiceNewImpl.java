@@ -1244,10 +1244,16 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	@Override
 	public String deleteReport(String reportId) {
 		if(StringUtil.isNotEmpty(reportId)){
+			ReportNew reportNew = reportNewRepository.findOne(reportId);
 			reportNewRepository.delete(reportId);
+			//删除手动报告下的资源
 			List<ReportResource> reportResources = reportResourceRepository.findByReportId(reportId);
 			if(ObjectUtil.isNotEmpty(reportResources)) {
 				reportResourceRepository.deleteByReportId(reportId);
+			}
+			//删除专报，日常监测报下的资源
+			if (StringUtil.isNotEmpty(reportNew.getReportDataId())) {
+				reportDataNewRepository.delete(reportNew.getReportDataId());
 			}
 			return Const.SUCCESS;
 		}else{
