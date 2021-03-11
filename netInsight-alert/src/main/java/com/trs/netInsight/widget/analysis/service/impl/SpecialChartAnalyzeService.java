@@ -4909,10 +4909,10 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				queryBuilder.setPageSize(10);
 				queryBuilder.filterByTRSL(searchBuilder.asTRSL());
 				if (mediaLevel.equals("其它媒体")){
-					queryBuilder.filterField("中央党媒", mediaLevel, Operator.NotEqual);
-					queryBuilder.filterField("地方党媒", mediaLevel, Operator.NotEqual);
-					queryBuilder.filterField("政府网站", mediaLevel, Operator.NotEqual);
-					queryBuilder.filterField("重点商业媒体", mediaLevel, Operator.NotEqual);
+					queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL,"中央党媒",Operator.NotEqual);
+					queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL,"地方党媒", Operator.NotEqual);
+					queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL,"政府网站", Operator.NotEqual);
+					queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL,"重点商业媒体", Operator.NotEqual);
 				}else {
 					queryBuilder.filterField(FtsFieldConst.FIELD_MEDIA_LEVEL, mediaLevel, Operator.Equal);
 				}

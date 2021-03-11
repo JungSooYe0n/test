@@ -271,7 +271,7 @@ public class IndexTabReportTask implements Runnable {
                                 if(ObjectUtil.isNotEmpty(areaMap)){
                                     dataTrendRR.setImg_data(JSON.toJSONString(areaMap));
                                     dataTrendRR.setImgType("mapChart");
-                                    dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(comment), "mapChart", null));
+                                    if (ObjectUtil.isNotEmpty(comment)) dataTrendRR.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(comment), "mapChart", null));
                                     dataTrendRR.setId(UUID.randomUUID().toString().replace("-", ""));
                                     reportData.setArea(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(dataTrendRR))));
                                 }
