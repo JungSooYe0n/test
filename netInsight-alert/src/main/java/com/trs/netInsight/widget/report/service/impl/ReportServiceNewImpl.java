@@ -12,6 +12,7 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.report.constant.Chapter;
@@ -35,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -1243,6 +1245,10 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	public String deleteReport(String reportId) {
 		if(StringUtil.isNotEmpty(reportId)){
 			reportNewRepository.delete(reportId);
+			List<ReportResource> reportResources = reportResourceRepository.findByReportId(reportId);
+			if(ObjectUtil.isNotEmpty(reportResources)) {
+				reportResourceRepository.deleteByReportId(reportId);
+			}
 			return Const.SUCCESS;
 		}else{
 			return "参数不能为空";
