@@ -78,6 +78,11 @@ public class FtsFieldConst {
 	public final static String FIELD_CONTENT = "IR_CONTENT";
 
 	/**
+	 * 正文（去除标红标签）
+	 */
+	public final static String FIELD_CONTENT_NEW = "IR_CONTENT_NEW";
+
+	/**
 	 * OCR 正文
 	 */
 	public final static String FIELD_OCR_CONTENT = "IR_OCR_CONTENT";
@@ -377,6 +382,11 @@ public class FtsFieldConst {
 	 * 8.文章标题
 	 */
 	public final static String FIELD_URLTITLE = "IR_URLTITLE";
+
+	/**
+	 * 9.文章标题(去除标红标签)
+	 */
+	public final static String FIELD_URLTITLE_NEW = "IR_URLTITLE_NEW";
 
 	/**
 	 * 11.阅读数 （设置列存储）

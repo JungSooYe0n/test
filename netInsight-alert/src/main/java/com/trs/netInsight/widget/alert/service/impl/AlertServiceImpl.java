@@ -590,6 +590,8 @@ public class AlertServiceImpl implements IAlertService {
 			if("fullText".equals(hybaseField)){
 				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
 						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_URLTITLE_NEW).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
+						.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT_NEW).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
 						.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 			}else {
 				fuzzyBuilder.append(hybaseField).append(":((\"").append(keywords.replaceAll("[,|，]+","\") AND (\"")
