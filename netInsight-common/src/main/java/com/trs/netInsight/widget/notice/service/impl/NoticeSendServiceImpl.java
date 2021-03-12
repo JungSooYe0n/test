@@ -355,6 +355,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				try {
 					record.addColumn(FtsFieldConst.FIELD_URLNAME, each.get("url"));
 					record.addColumn(FtsFieldConst.FIELD_URLTITLE, title);
+					if(StringUtil.isNotEmpty(title)){
+						record.addColumn(FtsFieldConst.FIELD_URLTITLE_NEW,title.replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
+					}
 					record.addColumn(FtsFieldConst.FIELD_GROUPNAME, each.get("groupName"));
 					record.addColumn(FtsFieldConst.FIELD_SID, each.get("sid"));
 					record.addColumn(FtsFieldConst.FIELD_SEND_WAY, sendWay.toString());
@@ -371,6 +374,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 					record.addColumn(FtsFieldConst.IR_RETWEETED_MID, retweetedMid);
 					record.addColumn(FtsFieldConst.FIELD_MD5TAG, each.get("md5"));
 					record.addColumn(FtsFieldConst.FIELD_CONTENT, content);
+					if(StringUtil.isNotEmpty(content)){
+						record.addColumn(FtsFieldConst.FIELD_CONTENT_NEW, content.replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
+					}
 					String scrName = "";
 					if (StringUtil.isNotEmpty(each.get("screenName"))) {
 						scrName = each.get("screenName");
@@ -792,6 +798,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 			try {
 				record.addColumn(FtsFieldConst.FIELD_URLNAME, each.get("url"));
 				record.addColumn(FtsFieldConst.FIELD_URLTITLE, title);
+				if(StringUtil.isNotEmpty(title)){
+					record.addColumn(FtsFieldConst.FIELD_URLTITLE_NEW,title.replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
+				}
 				record.addColumn(FtsFieldConst.FIELD_GROUPNAME, each.get("groupName"));
 				record.addColumn(FtsFieldConst.FIELD_SID, each.get("sid"));
 				record.addColumn(FtsFieldConst.FIELD_SEND_WAY_LIST, sendWays);
@@ -808,6 +817,9 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				record.addColumn(FtsFieldConst.IR_RETWEETED_MID, retweetedMid);
 				record.addColumn(FtsFieldConst.FIELD_MD5TAG, each.get("md5"));
 				record.addColumn(FtsFieldConst.FIELD_CONTENT, content);
+				if(StringUtil.isNotEmpty(content)){
+					record.addColumn(FtsFieldConst.FIELD_CONTENT_NEW, content.replaceAll("<font color=red>", "").replaceAll("<font color='red'>", "").replaceAll("</font>", ""));
+				}
 				record.addColumn(FtsFieldConst.FIELD_ALERT_CONTENT, each.get("fullContent"));
 				String scrName = "";
 				if (StringUtil.isNotEmpty(each.get("screenName"))) {
