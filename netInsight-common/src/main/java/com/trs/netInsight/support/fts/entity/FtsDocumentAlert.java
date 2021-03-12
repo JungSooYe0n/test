@@ -48,6 +48,13 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
      */
     @FtsField(value = "IR_URLTITLE", highLight = true)
     private String title;
+
+    /**
+     * 文章标题(去除标红标签)
+     */
+    @FtsField(value = "IR_URLTITLE_NEW", highLight = true)
+    private String titleNew;
+
     /**
      * 文章标题 未截取过
      */
@@ -58,6 +65,12 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
      */
     @FtsField(value = "IR_CONTENT", highLight = true)
     private String content;
+
+    /**
+     * 文章正文 150字内(去除标红标签)
+     */
+    @FtsField(value = "IR_CONTENT_NEW", highLight = true)
+    private String contentNew;
 
     /**
      * 文章正文 去掉图片后的完整正文
@@ -266,5 +279,44 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
         this.keywords = keywords;
         this.sim = sim;
         this.alertRuleBackupsId = alertRuleBackupsId;
+    }
+
+    public FtsDocumentAlert(String uid, String alertId, String sid, String title, String titleNew, String titleWhole, String content, String contentNew, String fullContent, String urlName, Date time, String siteName, String groupName, String alertRuleBackupsId, long commtCount, long rttCount, String screenName, String appraise, String receiver, String sendWay, String nreserved1, String md5tag, String retweetedMid, String sendOrreceive, String imageUrl, boolean send, Boolean favourite, String copyTitle, int sim, String trslk, String keywords, Date loadTime, String userId, String subGroupId, String organizationId, Date createdTime) {
+        this.uid = uid;
+        this.alertId = alertId;
+        this.sid = sid;
+        this.title = title;
+        this.titleNew = titleNew;
+        this.titleWhole = titleWhole;
+        this.content = content;
+        this.contentNew = contentNew;
+        this.fullContent = fullContent;
+        this.urlName = urlName;
+        this.time = time;
+        this.siteName = siteName;
+        this.groupName = groupName;
+        this.alertRuleBackupsId = alertRuleBackupsId;
+        this.commtCount = commtCount;
+        this.rttCount = rttCount;
+        this.screenName = screenName;
+        this.appraise = appraise;
+        this.receiver = receiver;
+        this.sendWay = sendWay;
+        this.nreserved1 = nreserved1;
+        this.md5tag = md5tag;
+        this.retweetedMid = retweetedMid;
+        this.sendOrreceive = sendOrreceive;
+        this.imageUrl = imageUrl;
+        this.send = send;
+        this.favourite = favourite;
+        this.copyTitle = copyTitle;
+        this.sim = sim;
+       // this.trslk = trslk;
+        this.keywords = keywords;
+        this.loadTime = loadTime;
+        this.userId = userId;
+        this.subGroupId = subGroupId;
+        this.organizationId = organizationId;
+        this.createdTime = createdTime;
     }
 }
