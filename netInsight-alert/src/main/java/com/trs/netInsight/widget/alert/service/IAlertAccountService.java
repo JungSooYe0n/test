@@ -123,6 +123,16 @@ public interface IAlertAccountService {
 	public List<AlertAccount> findByUserIdAndType(String id, SendWay weChat);
 
 	/**
+	 * 根据预警账号和用户id查询
+	 * @date Created at 2018年3月1日  上午11:43:55
+	 * @Author 谷泽昊
+	 * @param id
+	 * @param account
+	 * @return
+	 */
+	public List<AlertAccount> findByUserIdAndAccount(String id, String account);
+
+	/**
 	 *  通过用户角色 决定 通过用户id 或者 用户分组id 和 发送类型 查询
 	 * @param user
 	 * @param type
