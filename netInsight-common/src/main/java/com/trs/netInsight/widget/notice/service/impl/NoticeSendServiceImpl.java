@@ -486,6 +486,8 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 				}
 				switch (sendWay) {
 					case EMAIL:
+						List<AlertAccount> alertAccountsEMAIL = alertAccountRepository.findByAccountAndUserIdAndType(webReceiver,userId,
+								SendWay.EMAIL);
 						if (findByUserName != null) {
 							//计算今天与到期时间差多少
 							String expireAt = findByUserName.getExpireAt();
@@ -507,13 +509,18 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 								}
 							}
 						} else {
-							emailList.add(webReceiver);
+							if(alertAccountsEMAIL.size()>0) {
+								emailList.add(webReceiver);
+							}
 						}
 
 						break;
 					case SMS:// 站内
-						smsList.add(webReceiver);
-
+						List<AlertAccount> alertAccountsSMS = alertAccountRepository.findByAccountAndUserIdAndType(webReceiver,userId,
+								SendWay.SMS);
+						if(alertAccountsSMS.size()>0) {
+							smsList.add(webReceiver);
+						}
 						break;
 					case WE_CHAT:
 						List<AlertAccount> accountList = new ArrayList<>();
@@ -521,7 +528,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 							accountList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
 						} else {//直接传的微信号   这个人没停止预警  就发  停止预警就不发
 							//通过微信号查alertaccount中的active  true发  false不发
-							List<AlertAccount> byAccountAndUserIdAndType = alertAccountRepository.findByAccountAndType(webReceiver, SendWay.WE_CHAT);
+							List<AlertAccount> byAccountAndUserIdAndType = alertAccountRepository.findByAccountAndUserIdAndType(webReceiver, userId, SendWay.WE_CHAT);
 							AlertAccount alertaccount = null;
 							if (byAccountAndUserIdAndType.size() > 0) {
 								alertaccount = byAccountAndUserIdAndType.get(0);
@@ -537,7 +544,11 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						}
 						break;
 					case APP:// 安卓端
-						appList.add(webReceiver);
+						List<AlertAccount> alertAccountsAPP = alertAccountRepository.findByAccountAndUserIdAndType(webReceiver,userId,
+								SendWay.APP);
+						if(alertAccountsAPP.size()>0) {
+							appList.add(webReceiver);
+						}
 						break;
 					default:
 						break;
@@ -565,7 +576,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 				return "发送成功了";
 			} catch (Exception e) {
-				log.info("发送成功");
+				log.info("发送失败");
 				e.printStackTrace();
 				return "发送失败了";
 			}
