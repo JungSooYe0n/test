@@ -12,7 +12,6 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
-import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.report.constant.Chapter;
@@ -1243,7 +1242,10 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	@Override
 	public String deleteReport(String reportId) {
 		if(StringUtil.isNotEmpty(reportId)){
-			reportNewRepository.delete(reportId);
+			List<String> ids = Arrays.asList(reportId.split(";"));
+			List<ReportNew> reportNewList = reportNewRepository.findAll(ids);
+			reportNewRepository.delete(reportNewList);
+//			reportNewRepository.delete(reportId);
 			return Const.SUCCESS;
 		}else{
 			return "参数不能为空";

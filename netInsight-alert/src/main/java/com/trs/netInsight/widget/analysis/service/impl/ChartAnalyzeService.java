@@ -3041,7 +3041,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
     }
 
 	@Override
-	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder) throws TRSSearchException, TRSException {
+	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder,SpecialProject specialProject) throws TRSSearchException, TRSException {
 		return null;
 	}
 

@@ -973,7 +973,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				break;
 			case Const.NETIZEN_VIEW:
 				//微博+微信  这里我先查微博 再查微信
-				groupNames = "微信";
+				groupNames = "微信;微博";
 				break;
 		}
 		User user = UserUtils.getUser();
@@ -982,12 +982,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		long time = end - start;
 		log.info("观点分析海贝查询所需时间" + time);
 		if (infoListResult == null || infoListResult.getContent() == null) {
-			if (viewType.equals(Const.NETIZEN_VIEW)){
-				 infoListResult = commonListService.queryPageListForHot(builder, "微博", user, "special", false);
-				if (infoListResult == null || infoListResult.getContent() == null) {
-					return null;
-				}
-			}
+//			if (viewType.equals(Const.NETIZEN_VIEW)){
+//				 infoListResult = commonListService.queryPageListForHot(builder, "微博", user, "special", false);
+//				if (infoListResult == null || infoListResult.getContent() == null) {
+//					return null;
+//				}
+//			}
 			return null;
 		}
 		PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
@@ -4888,11 +4888,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder) throws TRSSearchException, TRSException {
+	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder,SpecialProject specialProject) throws TRSSearchException, TRSException {
 	//这个根据前端要求 按照他们的数据结构返回
 //		List<String> groupNames = Arrays.asList("新闻","微博","自媒体号","微信");
 		List<String> groupNames = Arrays.asList("新闻","自媒体号");
 		List<String> MEDIA_LEVEL = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体","其它媒体");
+		List<String> MEDIA_LEVEL_OTHER = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体");
 		List<Object> weixinAndZiMeiTiList = new ArrayList<>();
 		List<Object> xinweiAndWeiboList = new ArrayList<>();
 		HashMap weixinAndZiMeiTi = new HashMap();
@@ -4922,12 +4923,12 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				} else if (Const.MEDIA_TYPE_TF.contains(name)) {
 					contrastField = FtsFieldConst.FIELD_AUTHORS;
 				}
-				if (Const.GROUPNAME_XINWEN.equals(CommonListChartUtil.changeGroupName(name))){
-					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Const.REMOVEMEDIAS,Operator.NotEqual);
-				}
+//				if (Const.GROUPNAME_XINWEN.equals(CommonListChartUtil.changeGroupName(name))){
+//					queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Const.REMOVEMEDIAS,Operator.NotEqual);
+//				}
 				List<HashMap<String, String>> mapList = new ArrayList<>();
 				queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, false);
-				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, true, name, "special", UserUtils.getUser(), false);
+				InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, specialProject.isSimilar(), specialProject.isIrSimflag(), specialProject.isIrSimflagAll(), name, "special", UserUtils.getUser(), false);
 				if (ObjectUtil.isNotEmpty(infoListResult)) {
 					PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
 					List<FtsDocumentCommonVO> list = content.getPageItems();
