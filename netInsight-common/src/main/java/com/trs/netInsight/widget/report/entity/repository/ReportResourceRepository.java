@@ -4,6 +4,7 @@ import com.trs.netInsight.widget.report.entity.ReportResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +71,20 @@ public interface ReportResourceRepository
 	 * @return
 	 */
 	List<ReportResource> findByReportIdAndResourceStatus(String reportId, Integer resourceStatus);
+
+	/**
+	 * 删除手动报告时使用
+	 * @param reportId
+	 * @return
+	 */
+	List<ReportResource> findByReportId(String reportId);
+
+	/**
+	 * 删除手动报告时使用
+	 * @param reportId
+	 */
+	@Transactional
+	void  deleteByReportId(String reportId);
 
 	@Transactional
 	void deleteByReportTypeAndCreatedTimeLessThan(String reportType, Date createdTime);
