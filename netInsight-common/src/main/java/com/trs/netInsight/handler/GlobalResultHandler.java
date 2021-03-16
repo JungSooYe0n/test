@@ -116,8 +116,8 @@ public class GlobalResultHandler {
 			// proceed方法的作用是让目标方法执行
 			return CommonResult.build(pjp.proceed());
 		} catch (Throwable throwable) {
+			log.error(throwable.getMessage());
 			if (throwable instanceof LoginException) {
-				log.error(throwable.getMessage());
 				return new CommonResult(((LoginException) throwable).getCode(), throwable.getMessage(), null);
 			} else if (throwable instanceof TRSException) {
 				if (throwable.getMessage().contains("检索超时")){
