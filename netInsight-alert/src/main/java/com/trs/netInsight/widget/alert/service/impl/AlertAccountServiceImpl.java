@@ -102,6 +102,12 @@ public class AlertAccountServiceImpl implements IAlertAccountService {
 	}
 
 	@Override
+	public List<AlertAccount> findByUserIdAndAccount(String id, String account) {
+		List<AlertAccount> accountList = alertAccountRepository.findByUserIdAndAccount(id, account);
+		return accountList;
+	}
+
+	@Override
 	public List<AlertAccount> findByUserAndType(User user, SendWay type) {
 		if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
 			//这些角色 按 用户id 查询
