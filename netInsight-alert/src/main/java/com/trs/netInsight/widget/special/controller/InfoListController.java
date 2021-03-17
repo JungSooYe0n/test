@@ -423,7 +423,7 @@ public class InfoListController {
 				Object o = jsonArray.get(0);
 				JSONObject jsonObject = JSONObject.parseObject(String.valueOf(o));
 				searchKey = jsonObject.getString("keyWords");
-				searchKey = searchKey.replaceAll("\\s+", "");
+				searchKey = searchKey.replaceAll("\\s+", ",");
 				jsonObject.put("keyWords", searchKey);
 				if(wordFromNum == null ){
 					wordFromNum = 0;
@@ -569,7 +569,7 @@ public class InfoListController {
 				searchKey = jsonObject.getString("keyWords");
 
 //                searchKey = searchKey.replaceAll("\\s+", "");
-				searchKey = searchKey.replaceAll("\\s+", "");
+				searchKey = searchKey.replaceAll("\\s+", ",");
                 jsonObject.put("keyWords", searchKey);
                 if(wordFromNum == null ){
                     wordFromNum = 0;

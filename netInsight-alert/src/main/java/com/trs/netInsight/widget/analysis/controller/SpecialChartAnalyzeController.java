@@ -3489,7 +3489,7 @@ Date startDate = new Date();
 				// 根据时间升序,只要第一条
 				QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
 				Date hyStartDate = new Date();
-				Object object = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
+				Object object = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder,specialProject);
 				long end = new Date().getTime();
 				long time = end - start;
 				log.info("传播分析站点查询所需时间" + time);

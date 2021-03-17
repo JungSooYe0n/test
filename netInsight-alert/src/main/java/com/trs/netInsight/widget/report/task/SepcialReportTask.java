@@ -762,7 +762,7 @@ public class SepcialReportTask implements Runnable {
                                 try {
                                     QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
                                     searchBuilder.setGroupName(groName);
-                                    Object spreadAnalysisSiteName = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder);
+                                    Object spreadAnalysisSiteName = specialChartAnalyzeService.spreadAnalysisSiteName(searchBuilder,specialProject);
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, PROPAFATIONANALYSIS, (endMillis - startMillis)));
                                     if (ObjectUtil.isNotEmpty(spreadAnalysisSiteName )) {

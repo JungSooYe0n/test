@@ -12,7 +12,6 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
-import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.report.constant.Chapter;
@@ -36,7 +35,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -1244,17 +1242,10 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	@Override
 	public String deleteReport(String reportId) {
 		if(StringUtil.isNotEmpty(reportId)){
-			ReportNew reportNew = reportNewRepository.findOne(reportId);
-			reportNewRepository.delete(reportId);
-			//删除手动报告下的资源
-			List<ReportResource> reportResources = reportResourceRepository.findByReportId(reportId);
-			if(ObjectUtil.isNotEmpty(reportResources)) {
-				reportResourceRepository.deleteByReportId(reportId);
-			}
-			//删除专报，日常监测报下的资源
-			if (StringUtil.isNotEmpty(reportNew.getReportDataId())) {
-				reportDataNewRepository.delete(reportNew.getReportDataId());
-			}
+			List<String> ids = Arrays.asList(reportId.split(";"));
+			List<ReportNew> reportNewList = reportNewRepository.findAll(ids);
+			reportNewRepository.delete(reportNewList);
+//			reportNewRepository.delete(reportId);
 			return Const.SUCCESS;
 		}else{
 			return "参数不能为空";

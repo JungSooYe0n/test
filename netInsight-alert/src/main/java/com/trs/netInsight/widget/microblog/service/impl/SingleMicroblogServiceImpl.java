@@ -2,6 +2,7 @@ package com.trs.netInsight.widget.microblog.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.ESFieldConst;
 import com.trs.netInsight.config.constant.FtsFieldConst;
@@ -11,6 +12,7 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.entity.FtsDocumentReviews;
 import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.support.fts.entity.StatusUser;
@@ -21,12 +23,15 @@ import com.trs.netInsight.support.report.excel.ExcelData;
 import com.trs.netInsight.support.report.excel.ExcelFactory;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.microblog.constant.MicroblogConst;
 import com.trs.netInsight.widget.microblog.entity.SingleMicroblogData;
 import com.trs.netInsight.widget.microblog.entity.SpreadObject;
 import com.trs.netInsight.widget.microblog.service.ISingleMicroblogDataService;
 import com.trs.netInsight.widget.microblog.service.ISingleMicroblogService;
 import com.trs.netInsight.widget.microblog.task.*;
+import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +70,8 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
 
     @Autowired
     private ISingleMicroblogService singleMicroblogService;
+    @Autowired
+    private ICommonListService commonListService;
 
     /**
      * 单拿一个线程计算数据
@@ -85,17 +92,21 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
         //根据urlName查询(按机构允许最大时间查询）
         queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME,DateUtil.formatTimeRange("365d"), Operator.Between);
         queryBuilder.filterField(FtsFieldConst.FIELD_URLNAME,"\""+urlName+"\"",Operator.Equal);
-        List<SpreadObject> statuses = hybase8SearchService.ftsQuery(queryBuilder, SpreadObject.class, false, false,false,null);
-        if (ObjectUtil.isEmpty(statuses)){
+//        List<SpreadObject> statuses = hybase8SearchService.ftsQuery(queryBuilder, SpreadObject.class, false, false,false,null);
+        InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, true, Const.GROUPNAME_WEIBO, null, UserUtils.getUser(), false);
+        if (ObjectUtil.isEmpty(infoListResult) || ObjectUtil.isEmpty(infoListResult.getContent())){
             return null;
         }
-        SpreadObject spreadObject = statuses.get(0);
+        PagedList<FtsDocumentCommonVO> pagecontent = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+        List<FtsDocumentCommonVO> voList = pagecontent.getPageItems();
+
+//        SpreadObject spreadObject = statuses.get(0);
        // SpreadObject spreadObject = currentStatus(urlName);
 //        if (ObjectUtil.isEmpty(spreadObject)){
 //            return null;
 //        }
         Map<String, Object> dataMap = new HashMap<>();
-        dataMap.put("urlTime",spreadObject.getUrlTime());
+        dataMap.put("urlTime",voList.get(0).getUrlTime());
 
         return dataMap;
     }
