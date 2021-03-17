@@ -658,6 +658,10 @@ sequenceRepository.flush();
 				if (sortAll) {
 					if (!oneSc.getHide()) {
 						//拿到统计分析图的基本数据
+						//为统计分析的折现图加上groupName
+						if(mapper.getIndexTab() != null && !"".equals(mapper.getIndexTab()) && "brokenLineChart".equals(statisticalChartDTO.getChartType())) {
+							statisticalChartDTO.setGroupName(mapper.getIndexTab().getGroupName());
+						}
 						columnChartList.add(statisticalChartDTO);
 						Map<String, Object> map = new HashMap<>();
 						map.put("id", statisticalChartDTO.getId());
@@ -1137,14 +1141,14 @@ sequenceRepository.flush();
 				}else if (flag.equals(IndexFlag.StatisticalFlag)){
 //					if (parseObject.getBoolean("delete") || parseObject.getBoolean("hide")) sequenceRepository.delete(sequenceRepository.findByIndexId(id));
 
-						StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
-						statisticalChart.setTabWidth(parseObject.getInteger("tabWidth"));
-						if (parseObject.getBoolean("delete")){
-							statisticalChart.setIsTop(false);
-							sequenceRepository.delete(sequenceRepository.findByIndexId(id));
-						}
-						statisticalChart.setHide(parseObject.getBoolean("hide"));
-						statisticalChartRepository.save(statisticalChart);
+					StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
+					statisticalChart.setTabWidth(parseObject.getInteger("tabWidth"));
+					if (parseObject.getBoolean("delete")){
+						statisticalChart.setIsTop(false);
+						sequenceRepository.delete(sequenceRepository.findByIndexId(id));
+					}
+					statisticalChart.setHide(parseObject.getBoolean("hide"));
+					statisticalChartRepository.save(statisticalChart);
 
 				}
 //				if (flag.equals(IndexFlag.IndexPageFlag)) {
@@ -1307,45 +1311,45 @@ sequenceRepository.flush();
 				}
 				for (IndexSequence indexSequence : indexSequenceList) {
 
-						if (nextId.equals(indexSequence.getIndexId())) {
-							isChange = true;
-						}
-						if (isChange && !moveId.equals(indexSequence.getIndexId())) {
-							if (IndexFlag.IndexTabFlag.equals(indexSequence.getIndexFlag())) {
+					if (nextId.equals(indexSequence.getIndexId())) {
+						isChange = true;
+					}
+					if (isChange && !moveId.equals(indexSequence.getIndexId())) {
+						if (IndexFlag.IndexTabFlag.equals(indexSequence.getIndexFlag())) {
 //								List<IndexSequence> sequences = sequenceRepository.findByIndexTabIdOrderBySequence(indexSequence.getIndexTabId());
-								IndexTabMapper mapper = tabMapperRepository.findOne(indexSequence.getIndexId());
-								if (ObjectUtil.isNotEmpty(mapper)) {
-									IndexTab indexTab = mapper.getIndexTab();
-									if (parent != null) {
-										mapper.setIndexPage(parent);
-										indexTab.setParentId(parent.getId());
-
-									} else {
-										mapper.setIndexPage(null);
-									}
-									indexSequence.setParentId(parentId);
-									mapper.setSequence(indexSequence.getSequence() + nextPoint);
-									if (mapper.isMe()) {
-										indexTab.setSequence(indexSequence.getSequence() + nextPoint);
-										indexTabRepository.save(indexTab);
-									}
-									tabMapperRepository.save(mapper);
-								}
-
-							}else if (IndexFlag.IndexPageFlag.equals(indexSequence.getIndexFlag())){
-								IndexPage indexPage = indexPageRepository.findOne(indexSequence.getIndexId());
-								indexPage.setParentId(null);
+							IndexTabMapper mapper = tabMapperRepository.findOne(indexSequence.getIndexId());
+							if (ObjectUtil.isNotEmpty(mapper)) {
+								IndexTab indexTab = mapper.getIndexTab();
 								if (parent != null) {
-									indexPage.setParentId(parentId);
+									mapper.setIndexPage(parent);
+									indexTab.setParentId(parent.getId());
 
+								} else {
+									mapper.setIndexPage(null);
 								}
 								indexSequence.setParentId(parentId);
-								indexPage.setSequence(indexSequence.getSequence() + nextPoint);
-								indexPageRepository.save(indexPage);
+								mapper.setSequence(indexSequence.getSequence() + nextPoint);
+								if (mapper.isMe()) {
+									indexTab.setSequence(indexSequence.getSequence() + nextPoint);
+									indexTabRepository.save(indexTab);
+								}
+								tabMapperRepository.save(mapper);
 							}
 
-							indexSequence.setSequence(indexSequence.getSequence() + nextPoint);
+						}else if (IndexFlag.IndexPageFlag.equals(indexSequence.getIndexFlag())){
+							IndexPage indexPage = indexPageRepository.findOne(indexSequence.getIndexId());
+							indexPage.setParentId(null);
+							if (parent != null) {
+								indexPage.setParentId(parentId);
+
+							}
+							indexSequence.setParentId(parentId);
+							indexPage.setSequence(indexSequence.getSequence() + nextPoint);
+							indexPageRepository.save(indexPage);
 						}
+
+						indexSequence.setSequence(indexSequence.getSequence() + nextPoint);
+					}
 				}
 				sequenceRepository.save(indexSequenceList);
 
@@ -2350,13 +2354,13 @@ sequenceRepository.flush();
 			try {
 				AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
 				ColumnConfig config = new ColumnConfig();
-						if("hittitle".equals(sort)){
-							indexTab.setWeight(true);
+				if("hittitle".equals(sort)){
+					indexTab.setWeight(true);
 				}
 				//config.addFilterCondition(read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 				config.initSection(indexTab, timerange, pageNo, pageSize, source, emotion, entityType, dateTime, key, sort,  invitationCard,
 						keywords, fuzzyValueScope, forwarPrimary, read, mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter,imgOcr);
-						config.setChartPage(chartPageInfo);
+				config.setChartPage(chartPageInfo);
 				column.setCommonListService(commonListService);
 				column.setCommonChartService(commonChartService);
 				column.setCommonListService(commonListService);

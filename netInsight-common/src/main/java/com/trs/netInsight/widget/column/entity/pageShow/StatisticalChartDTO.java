@@ -24,6 +24,12 @@ public class StatisticalChartDTO implements Serializable {
     private Integer tabWidth = 50;
     private String pointToId;
     private Boolean hide = false;
+    private String groupName;
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
     private void setPointToId(String mapperId){
         this.pointToId = mapperId;
     }
