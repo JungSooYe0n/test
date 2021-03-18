@@ -54,7 +54,7 @@ public class GenerateReportImpl implements IGenerateReport {
 	@Value("${report.static.resource}")
 	private String resourceUrl;
 
-	@Autowired
+	@Autowired(required = false)
 	private OrganizationRepository organizationRepository;
 	
 	private static final String DOCX = ".docx";
@@ -1442,41 +1442,50 @@ public class GenerateReportImpl implements IGenerateReport {
 				//turnTimeRun.setBold(true);
 				turnTimeRun.addCarriageReturn();
 
-				//内容
-				if ("微博".equals(chapaterContent.get(i).getGroupName()) ||"国内微信".equals(chapaterContent.get(i).getGroupName()) || "微信".equals(chapaterContent.get(i).getGroupName()) || "国内新闻_电子报".equals(chapaterContent.get(i).getGroupName())){
-					String content = StringUtil.cutContent(chapaterContent.get(i).getContent(),150);
-					//String[] split = content.split("\\s{1,}");
-					//for (int j = 0; j < split.length; j++) {
-					XWPFParagraph turnBody = xdoc.createParagraph();
-					turnBody.setAlignment(ParagraphAlignment.BOTH);
-					//turnBody.setIndentationFirstLine(600);
-					//1.5倍行间距
-					turnBody.setSpacingBetween(1.5);
-					XWPFRun turnBodyRun = turnBody.createRun();
-					turnBodyRun.setText("摘要："+content);
-					turnBodyRun.setFontSize(TEXTFONTSIZE);
-					turnBodyRun.setFontFamily(TEXTFONTFAMILY);
-//					if (j == split.length-1){
-//					//回车
-					turnBodyRun.addCarriageReturn();
-//					}
-					//}
-				}else {//摘要
-					XWPFParagraph turnBody = xdoc.createParagraph();
-					turnBody.setAlignment(ParagraphAlignment.BOTH);
-					//turnBody.setIndentationFirstLine(600);
-					//1.5倍行间距
-					turnBody.setSpacingBetween(1.5);
-					XWPFRun turnBodyRun = turnBody.createRun();
-					turnBodyRun.setText("摘要："+chapaterContent.get(i).getNewsAbstract());
-					turnBodyRun.setFontSize(TEXTFONTSIZE);
-					turnBodyRun.setFontFamily(TEXTFONTFAMILY);
-					//if (j == split.length-1){
-					//回车
-					turnBodyRun.addCarriageReturn();
+				//摘要：
+				//如果是微博，则摘要这一块什么都不需要
+				if (!"微博".equals(chapaterContent.get(i).getGroupName())) {
+					//内容
+					if ("国内论坛".equals(chapaterContent.get(i).getGroupName()) ||
+							"国内微信".equals(chapaterContent.get(i).getGroupName()) || "微信".equals(chapaterContent.get(i).getGroupName()) ||
+							"国内新闻_电子报".equals(chapaterContent.get(i).getGroupName())){
+						String content = StringUtil.cutContent(chapaterContent.get(i).getContent(),150);
+						if (StringUtil.isNotEmpty(content)) {//如果内容为空，则摘要模块就不需要
+							//String[] split = content.split("\\s{1,}");
+							//for (int j = 0; j < split.length; j++) {
+							XWPFParagraph turnBody = xdoc.createParagraph();
+							turnBody.setAlignment(ParagraphAlignment.BOTH);
+							//turnBody.setIndentationFirstLine(600);
+							//1.5倍行间距
+							turnBody.setSpacingBetween(1.5);
+							XWPFRun turnBodyRun = turnBody.createRun();
+							turnBodyRun.setText("摘要："+content);
+							turnBodyRun.setFontSize(TEXTFONTSIZE);
+							turnBodyRun.setFontFamily(TEXTFONTFAMILY);
+		//					if (j == split.length-1){
+		//					//回车
+								turnBodyRun.addCarriageReturn();
+		//					}
+							//}
+						}
+					}else {//摘要
+						String newsAbstract = chapaterContent.get(i).getNewsAbstract();
+						if (StringUtil.isNotEmpty(newsAbstract)) {//如果摘要为空，则摘要模块就不需要
+							XWPFParagraph turnBody = xdoc.createParagraph();
+							turnBody.setAlignment(ParagraphAlignment.BOTH);
+							//turnBody.setIndentationFirstLine(600);
+							//1.5倍行间距
+							turnBody.setSpacingBetween(1.5);
+							XWPFRun turnBodyRun = turnBody.createRun();
+							turnBodyRun.setText("摘要：" + newsAbstract);
+							turnBodyRun.setFontSize(TEXTFONTSIZE);
+							turnBodyRun.setFontFamily(TEXTFONTFAMILY);
+							//if (j == split.length-1){
+							//回车
+							turnBodyRun.addCarriageReturn();
+						}
+					}
 				}
-
-
 
 				//文章地址
 				XWPFParagraph turnLink = xdoc.createParagraph();
