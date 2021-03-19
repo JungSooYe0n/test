@@ -173,8 +173,8 @@ public class AlertNum implements Job {
                             Object vo = AutoAlertRedisUtil.getOneDataForList(key);
                         }
 
-                        alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
-                        alertRule.setLastExecutionTime(System.currentTimeMillis());
+//                        alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
+//                        alertRule.setLastExecutionTime(System.currentTimeMillis());
                     }
                     alertRuleRepository.saveAndFlush(alertRule);
                 } catch (Exception e) {
