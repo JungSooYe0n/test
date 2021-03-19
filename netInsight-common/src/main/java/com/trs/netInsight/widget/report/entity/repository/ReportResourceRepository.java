@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,10 +113,9 @@ public interface ReportResourceRepository
 	List<ReportResource> findByTemplateIdAndChapterAndReportId(String templateId, String chapter, String reportId);
 
 	@Transactional
+	@Modifying
+	@Query(value = "delete from report_resource where template_id = ?1 and (report_id = '' or report_id is null)", nativeQuery = true)
 	void deleteByTemplateId(String templateId);
-
-	@Transactional
-	void deleteByTemplateIdAndReportIdIsNull(String templateId);
 
 	List<ReportResource> findByTemplateIdAndChapterAndResourceStatus(String templateId, String chapter,
                                                                      int resourceStatus);
