@@ -114,6 +114,9 @@ public interface ReportResourceRepository
 	@Transactional
 	void deleteByTemplateId(String templateId);
 
+	@Transactional
+	void deleteByTemplateIdAndReportIdIsNull(String templateId);
+
 	List<ReportResource> findByTemplateIdAndChapterAndResourceStatus(String templateId, String chapter,
                                                                      int resourceStatus);
 
