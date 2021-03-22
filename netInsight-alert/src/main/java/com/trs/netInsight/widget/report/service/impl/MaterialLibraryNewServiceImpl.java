@@ -457,6 +457,8 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
                         dataBases.add(Const.WEIBO);
                 }else if (Const.MEDIA_TYPE_TF.contains(groupName)){
                         dataBases.add(Const.HYBASE_OVERSEAS);
+                }else if (Const.MEDIA_TYPE_VIDEO.contains(groupName)) {
+                    dataBases.add(Const.HYBASE_VIDEO);
                 }
             }
             if (dataBases.contains(Const.WECHAT)){

@@ -12,6 +12,7 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.report.constant.Chapter;
@@ -1244,8 +1245,22 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		if(StringUtil.isNotEmpty(reportId)){
 			List<String> ids = Arrays.asList(reportId.split(";"));
 			List<ReportNew> reportNewList = reportNewRepository.findAll(ids);
+
+			for (ReportNew reportNew : reportNewList) {
+				//删除手动报告和素材库报告的资源
+				List<ReportResource> reportResources = reportResourceRepository.findByReportId(reportNew.getId());
+				if(ObjectUtil.isNotEmpty(reportResources)) {
+					reportResourceRepository.deleteByReportId(reportNew.getId());
+				}
+				//删除专报，日常监测报下的资源
+				if (StringUtil.isNotEmpty(reportNew.getReportDataId())) {
+					if (ObjectUtil.isNotEmpty(reportDataNewRepository.findOne(reportNew.getReportDataId()))) {
+						reportDataNewRepository.delete(reportNew.getReportDataId());
+					}
+				}
+			}
+
 			reportNewRepository.delete(reportNewList);
-//			reportNewRepository.delete(reportId);
 			return Const.SUCCESS;
 		}else{
 			return "参数不能为空";

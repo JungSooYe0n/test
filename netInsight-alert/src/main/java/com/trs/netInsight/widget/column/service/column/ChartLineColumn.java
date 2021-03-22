@@ -306,8 +306,12 @@ public class ChartLineColumn extends AbstractColumn{
 				}
 			}else{
 				if (ColumnConst.CONTRAST_TYPE_GROUP.equals(indexTab.getContrast())) {// 舆论来源对比
-                    String key = StringUtils.join(CommonListChartUtil.formatGroupName(super.config.getKey()), ";");
-                    commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);
+					String key = StringUtils.join(CommonListChartUtil.formatGroupName(super.config.getKey()), ";");
+					if (key.contains(";")) {
+						commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key.split(";"), Operator.Equal);
+					} else {
+						commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME, key, Operator.Equal);
+					}
 				}else if (ColumnConst.CONTRAST_TYPE_SITE.equals(indexTab.getContrast()) ||ColumnConst.CONTRAST_TYPE_WECHAT.equals(indexTab.getContrast())) {
 					//站点对比 + 微信公众号对比
 					String sitename = super.config.getKey().replaceAll(";"," OR ");

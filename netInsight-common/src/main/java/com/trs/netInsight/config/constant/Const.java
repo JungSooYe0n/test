@@ -699,13 +699,20 @@ public class Const {
 
         {
             put(GROUPNAME_XINWEN,PAGE_SHOW_XINWEN);
+            put("新闻网站",PAGE_SHOW_XINWEN);
             put(GROUPNAME_WEIBO,PAGE_SHOW_WEIBO);
             put(GROUPNAME_WEIXIN,PAGE_SHOW_WEIXIN);
+            put("微信",PAGE_SHOW_WEIXIN);
             put(GROUPNAME_KEHUDUAN,PAGE_SHOW_KEHUDUAN);
+            put("新闻app",PAGE_SHOW_KEHUDUAN);
             put(GROUPNAME_LUNTAN,PAGE_SHOW_LUNTAN);
+            put("论坛",PAGE_SHOW_LUNTAN);
             put(GROUPNAME_BOKE,PAGE_SHOW_BOKE);
+            put("博客",PAGE_SHOW_BOKE);
             put(GROUPNAME_DIANZIBAO,PAGE_SHOW_DIANZIBAO);
+            put("电子报",PAGE_SHOW_DIANZIBAO);
             put(GROUPNAME_GUOWAIXINWEN,PAGE_SHOW_GUOWAIXINWEN);
+            put("境外",PAGE_SHOW_GUOWAIXINWEN);
             put(GROUPNAME_ZIMEITI,PAGE_SHOW_ZIMEITI);
             put(GROUPNAME_TWITTER,PAGE_SHOW_TWITTER);
             put("twitter",PAGE_SHOW_TWITTER);
