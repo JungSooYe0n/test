@@ -90,16 +90,17 @@ public class AlertNum implements Job {
                 try {
                     String key = alertAutoPrefix + alertRule.getId();
                     Long dataSize = AutoAlertRedisUtil.getSizeForList(key);
-                    alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
-                    alertRule.setLastExecutionTime(System.currentTimeMillis());
+
                     if (ScheduleUtil.time(alertRule)) {
                         //在发送时间内，但是需要将昨晚的没用预警清空
                         if (dataSize > 0) {
                             log.info("按数据量预警，有数据可发送，预警：" + alertRule.getId() + "，名字：" + alertRule.getTitle() + "，数据条数为："+dataSize);
                             int timeInterval = alertRule.getTimeInterval() == 1 ? 5 : alertRule.getTimeInterval();
                             // 一分钟只做展示 还是五分钟发送一次
-                            boolean timeBoolean = alertRule.getLastExecutionTime() + (timeInterval * 60000) < System
-                                    .currentTimeMillis();
+                            boolean timeBoolean = (alertRule.getLastExecutionTime() + (timeInterval * 60000))/1000 <= System
+                                    .currentTimeMillis()/1000;
+                            alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
+                            alertRule.setLastExecutionTime(System.currentTimeMillis());
                             if ((alertRule.getGrowth() > 0 && dataSize > alertRule.getGrowth()) || timeBoolean) {
                                 //发送预警 列表中的预警全部拿出来 ，发送20条，其他的存入已发预警
                                 // 拿取规则决定了，先拿出来的是先放进去的，所以发送时，拿最后边的20条即可，保证最新数据
