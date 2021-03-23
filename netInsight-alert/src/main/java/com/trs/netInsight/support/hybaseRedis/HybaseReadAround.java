@@ -115,7 +115,7 @@ public class HybaseReadAround {
             result = point.proceed(paramValues);// 方法运行
             if(result != null){
                 RedisUtil.setObject(redisKey,result);
-                RedisUtil.expire(redisKey,120,TimeUnit.MINUTES);
+                RedisUtil.expire(redisKey,15,TimeUnit.MINUTES);
                 RedisUtil.setString(redisKeyAddTime,DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
             }
             return result;
@@ -143,13 +143,13 @@ public class HybaseReadAround {
         }
         //由于IR_URLTIME 使key失效,把IR_URLTIME 去掉
         String res = sb.toString();
-        if(res.contains("IR_URLTIME")){
-            int t1 = res.indexOf("IR_URLTIME");
-            StringBuilder resBuilder = new StringBuilder(res);
-            resBuilder.replace(t1+22,t1+26,"0000");
-            resBuilder.replace(t1+40,t1+44,"0000");
-            res = resBuilder.toString();
-        }
+//        if(res.contains("IR_URLTIME")){
+//            int t1 = res.indexOf("IR_URLTIME");
+//            StringBuilder resBuilder = new StringBuilder(res);
+//            resBuilder.replace(t1+22,t1+26,"0000");
+//            resBuilder.replace(t1+40,t1+44,"0000");
+//            res = resBuilder.toString();
+//        }
         return res;
     }
 
