@@ -361,7 +361,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		}
 		templateNewRepository.delete(templateId);
 		//删除模板下的资源
-		reportResourceRepository.deleteByTemplateIdAndReportIdIsNotNull(templateId);
+		reportResourceRepository.deleteByTemplateId(templateId);
 		return Const.SUCCESS;
 	}
 	/**
