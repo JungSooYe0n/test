@@ -498,7 +498,14 @@ public class GenerateReportImpl implements IGenerateReport {
 		if (report.getReportName().length() > 16){
 			report.setReportName(report.getReportName().substring(0,16)+"...");
 		}
-		return dir + "/" + report.getReportName() + "_"
+
+		String reportName = report.getReportName();
+
+		if (reportName.contains("/")) {
+			reportName = reportName.replaceAll("/", "_");
+		}
+
+		return dir + "/" + reportName + "_"
 				+ System.currentTimeMillis() + DOCX;
 	}
 
@@ -544,7 +551,14 @@ public class GenerateReportImpl implements IGenerateReport {
 		if (report.getReportName().length() > 40){
 			report.setReportName(report.getReportName().substring(0,40)+"...");
 		}
-		return dir + "/" + report.getReportName() + "_"
+
+		String reportName = report.getReportName();
+
+		if (reportName.contains("/")) {
+			reportName = reportName.replaceAll("/", "_");
+		}
+
+		return dir + "/" + reportName + "_"
 				+ System.currentTimeMillis() + DOCX;
 	}
 
