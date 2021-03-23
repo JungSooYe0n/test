@@ -90,6 +90,8 @@ public class AlertNum implements Job {
                 try {
                     String key = alertAutoPrefix + alertRule.getId();
                     Long dataSize = AutoAlertRedisUtil.getSizeForList(key);
+                    alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
+                    alertRule.setLastExecutionTime(System.currentTimeMillis());
                     if (ScheduleUtil.time(alertRule)) {
                         //在发送时间内，但是需要将昨晚的没用预警清空
                         if (dataSize > 0) {
@@ -163,8 +165,7 @@ public class AlertNum implements Job {
 
                                     }
                                 }
-                                alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
-                                alertRule.setLastExecutionTime(System.currentTimeMillis());
+                                alertRuleRepository.saveAndFlush(alertRule);
                             }
                         }
                     } else {
@@ -176,7 +177,6 @@ public class AlertNum implements Job {
 //                        alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
 //                        alertRule.setLastExecutionTime(System.currentTimeMillis());
                     }
-                    alertRuleRepository.saveAndFlush(alertRule);
                 } catch (Exception e) {
                     log.error("预警【" + alertRule.getTitle() + "】任务报错：", e);
                 }
