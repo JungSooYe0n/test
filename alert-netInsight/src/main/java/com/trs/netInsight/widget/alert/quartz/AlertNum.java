@@ -60,6 +60,8 @@ public class AlertNum implements Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        Long time = System.currentTimeMillis();
+        System.out.println(time);
         log.info("按数据量预警定时任务开始执行 ------------------");
         // 这个定时类找frequencyId为3的
         // 编写具体的业务逻辑
@@ -100,7 +102,7 @@ public class AlertNum implements Job {
                             boolean timeBoolean = (alertRule.getLastExecutionTime() + (timeInterval * 60000))/1000 <= System
                                     .currentTimeMillis()/1000;
                             alertRule.setLastStartTime(DateUtil.formatCurrentTime(DateUtil.yyyyMMddHHmmss));
-                            alertRule.setLastExecutionTime(System.currentTimeMillis());
+                            alertRule.setLastExecutionTime(time);
                             if ((alertRule.getGrowth() > 0 && dataSize > alertRule.getGrowth()) || timeBoolean) {
                                 //发送预警 列表中的预警全部拿出来 ，发送20条，其他的存入已发预警
                                 // 拿取规则决定了，先拿出来的是先放进去的，所以发送时，拿最后边的20条即可，保证最新数据
