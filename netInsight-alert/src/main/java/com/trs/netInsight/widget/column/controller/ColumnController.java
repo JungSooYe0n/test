@@ -1111,7 +1111,7 @@ if (isAddAlert) {
 	 * @throws TRSException
 	 */
 	@FormatResult
-	@Log(systemLogOperation = SystemLogOperation.COLUMN_DELETE_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_UPDATE_INDEX_TAB, systemLogType = SystemLogType.COLUMN,
 			systemLogOperationPosition = "修改通栏半栏属性（图表）：${indexMapperId}")
 	@RequestMapping(value = "/changeTabWidth", method = RequestMethod.POST)
 	@ApiOperation("三级栏目（图表）修改半栏通栏属性")
@@ -1223,6 +1223,7 @@ if (isAddAlert) {
 	 * @throws OperationException
 	 */
 	@FormatResult
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_SHOW_INDEX_PAGE, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "显示一级栏目：${indexPageId}")
 	@RequestMapping(value = "/showIndexPage", method = RequestMethod.GET)
 	@ApiOperation("一级栏目显示接口")
 	@ApiImplicitParams({
@@ -1243,6 +1244,7 @@ if (isAddAlert) {
 	 * @throws OperationException
 	 */
 	@FormatResult
+	@Log(systemLogOperation = SystemLogOperation.SELECT_ALL_INDEX_PAGE, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查询所有栏目：${typeId}")
 	@RequestMapping(value = "/selectColumn", method = RequestMethod.GET)
 	@ApiOperation("查找所有栏目接口")
 	public Object selectColumn(HttpServletRequest request,
@@ -1945,6 +1947,7 @@ if (isAddAlert) {
 	}
 
 	@ApiOperation("日常监测图表导出 - 所有图表都走这一个")
+	@Log(systemLogOperation = SystemLogOperation.COLUMN_DATA_EXPORT, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "图表类型：${chartType}")
 	@PostMapping("/exportChartData")
 	public void exportChartData(HttpServletResponse response,
 								@ApiParam("当前要导出的图的类型") @RequestParam(value = "chartType") String chartType,

@@ -11,6 +11,9 @@ import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
+import com.trs.netInsight.support.log.entity.enums.SystemLogType;
+import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
@@ -82,6 +85,7 @@ public class ReportController {
 	 */
 	@ApiOperation("我的收藏列表")
 	// @SystemControllerLog(module = "舆情报告", description = "查看 我的收藏列表")
+	@Log(systemLogOperation = SystemLogOperation.DRAR_LIST, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@FormatResult
 	@RequestMapping(value = "/dearList", method = RequestMethod.GET)
 	public Object favouritesList(
@@ -139,6 +143,7 @@ public class ReportController {
 	 *             createdbyxiaoying
 	 */
 	@ApiOperation("添加到我的收藏")
+	@Log(systemLogOperation = SystemLogOperation.ADD_FAVOURITES, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	// @SystemControllerLog(module = "舆情报告", description = "新增收藏")
 	@FormatResult
 	@ApiImplicitParams({
@@ -203,6 +208,7 @@ public class ReportController {
 	 * @throws OperationException
 	 */
 	@ApiOperation("取消收藏")
+	@Log(systemLogOperation = SystemLogOperation.DEL_FAVOURITES, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	// @SystemControllerLog(module = "舆情报告", description = "取消收藏")
 	@FormatResult
 	@RequestMapping(value = "delFavourites", method = RequestMethod.GET)

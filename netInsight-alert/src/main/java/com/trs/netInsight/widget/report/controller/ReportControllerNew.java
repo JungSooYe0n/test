@@ -314,7 +314,7 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "resourceDeleted", value = "是否删除资源，默认删除资源", dataType = "Integer", paramType = "query"),
 			@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "isUpdateTemplate", value = "是否更新对应模块", dataType = "Integer", paramType = "query", required = false)})
-	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
+	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "报告名称:${reportName}")
 	@RequestMapping(value = "/create", method = RequestMethod.POST)
 	@FormatResult
 	public Object createReport(
@@ -365,6 +365,7 @@ public class ReportControllerNew {
 	 * @throws Exception
 	 */
 	@ApiOperation("生成报告, 专报")
+	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE_SPECIAL, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
@@ -443,6 +444,7 @@ public class ReportControllerNew {
 	 * @return
 	 */
 	@ApiOperation("查询所有报告")
+    @Log(systemLogOperation = SystemLogOperation.LIST_ALL_REPORT, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "报告类型：${reportType}")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportType", value = "报告类型", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "searchText", value = "结果中搜索", dataType = "String", paramType = "query", required = true),
