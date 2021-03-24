@@ -628,6 +628,7 @@ public class InfoListController {
 	}
 	//@EnableRedis 这块不能加缓存，页面删除会失效  20191107
 	@FormatResult
+	@Log(systemLogOperation = SystemLogOperation.LIST_SIM, systemLogType = SystemLogType.OTHER, systemLogOperationPosition = "表达式：${trslk}")
 	@ApiOperation("相似文章列表 做统一列表  返回格式和日常监测跳的列表页一样")
 	@RequestMapping(value = "/listsim", method = RequestMethod.GET)
 	public Object simList(

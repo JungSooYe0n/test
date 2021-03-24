@@ -299,7 +299,7 @@ public enum SystemLogOperation {
 	/**
 	 * 查询专题分析 / 内容统计 / 来源类型统计
 	 */
-	SPECIAL_SELECT_ZHUANTI_WEBCOUNT("查询专题数据列表"),
+	SPECIAL_SELECT_ZHUANTI_WEBCOUNT("查询专题分析 / 内容统计 / 来源类型统计"),
 	/**
 	 * 查询专题分析 / 内容统计 / 微博top5
 	 */
@@ -397,6 +397,14 @@ public enum SystemLogOperation {
 	 * 隐藏一级栏目
 	 */
 	COLUMN_HIDE_INDEX_PAGE("隐藏一级栏目"),
+	/**
+	 * 显示一级栏目
+	 */
+	COLUMN_SHOW_INDEX_PAGE("显示一级栏目"),
+	/**
+	 * 查询所有栏目
+	 */
+	SELECT_ALL_INDEX_PAGE("查询所有栏目"),
 	/**
 	 * 拖拽一级栏目
 	 */
@@ -730,6 +738,71 @@ public enum SystemLogOperation {
 	 * 极简报告查询素材库资源列表
 	 */
 	SIMPLER_MATERIAL_LISTRESOURCE("极简报告查询素材库资源列表操作"),
+
+	/**
+	 * 日常监测图表导出
+	 */
+	COLUMN_DATA_EXPORT("日常监测图表导出"),
+
+	/**
+	 * 相似文章列表
+	 */
+	LIST_SIM("相似文章列表"),
+
+	/**
+	 * 预警规则列表
+	 */
+	ALERT_RULE_LIST("预警规则列表"),
+
+	/**
+	 * 新建预警规则
+	 */
+	ALERT_RULE_ADD("新建预警规则"),
+
+	/**
+	 * 修改预警规则
+	 */
+	ALERT_RULE_UPDATE("修改预警规则"),
+
+	/**
+	 * 删除预警规则
+	 */
+	ALERT_RULE_DELETE("删除预警规则"),
+
+	/**
+	 * 手动发送预警
+	 */
+	ARTIFICIAL_ALERT("手动发送预警"),
+
+	/**
+	 * 开启关闭预警
+	 */
+	ONOROFF_ALERT("开启关闭预警"),
+
+	/**
+	 * 预警右侧信息列表
+	 */
+	ALERT_RULE_LIST_DOCUMENT("预警右侧信息列表"),
+
+	/**
+	 * 查询所有报告
+	 */
+	LIST_ALL_REPORT("查询所有报告"),
+
+	/**
+	 * 我的收藏列表
+	 */
+	DRAR_LIST("我的收藏列表"),
+
+	/**
+	 * 新增收藏
+	 */
+	ADD_FAVOURITES("新增收藏"),
+
+	/**
+	 * 取消收藏
+	 */
+	DEL_FAVOURITES("取消收藏"),
 
 	/**
 	 * 极简报告删除素材库下资源
