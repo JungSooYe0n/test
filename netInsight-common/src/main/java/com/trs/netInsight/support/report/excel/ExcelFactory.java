@@ -321,7 +321,7 @@ public class ExcelFactory {
 					} else if (StringUtil.isNotEmpty(dataRow.get(j).getLink())) {
 						Cell hyperCell = newRow.createCell(j);
 						String url = dataRow.get(j).getLink();
-						url = url.startsWith("http://") ? url : "http://" + url;
+						url = url.startsWith("http://") || url.startsWith("https://") ? url : "http://" + url;
 						hyperCell.setCellType(CellType.STRING);
 						hyperCell.setCellStyle(linkStyle);
 						try {
