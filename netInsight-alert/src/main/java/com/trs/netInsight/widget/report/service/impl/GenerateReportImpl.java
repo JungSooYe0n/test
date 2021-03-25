@@ -345,7 +345,7 @@ public class GenerateReportImpl implements IGenerateReport {
 	}
 
 	@Override
-	public String generateReport(ReportNew report, Map<Integer, List<ReportResource>> collect, TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data, String reportIntro) throws Exception {
+	public String generateReport(ReportNew report, Map<Integer, List<ReportResource>> collect, TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data, String reportIntro, String dataSummary) throws Exception {
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
 		//因为是生成报告，所以使用报告里的 templateList
@@ -366,7 +366,10 @@ public class GenerateReportImpl implements IGenerateReport {
 						singleParagraph(xwpfDocument, e.getChapterName(), reportIntro, i.intValue());
 					} else if(e.getChapterPosition() == 1|| chapter.equals(Chapter.Statistics_Summarize)){
 						//数据统计概述
-						singleParagraph(xwpfDocument,  e.getChapterName(), CollectionUtils.isEmpty(chapaterContent) ? null : chapaterContent.get(0).getImgComment(), i.intValue());
+						if (!CollectionUtils.isEmpty(chapaterContent)) {
+							chapaterContent.get(0).setImgComment(dataSummary);
+						}
+						singleParagraph(xwpfDocument,  e.getChapterName(), dataSummary, i.intValue());
 					}
 					break;
 				case ReportConst.LISTRESOURCES:
