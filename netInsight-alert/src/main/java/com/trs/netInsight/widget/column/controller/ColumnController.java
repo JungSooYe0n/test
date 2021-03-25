@@ -1702,7 +1702,7 @@ if (isAddAlert) {
 			Date hyStartDate = new Date();
 			Object object =  columnService.selectList(indexTab, pageNo, pageSize, source, emotion, entityType, dateTime, key,
 					sort, invitationCard,forwarPrimary, fuzzyValue, fuzzyValueScope,read, indexTab.getMediaLevel(), indexTab.getMediaIndustry(),
-					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), preciseFilter,imgOcr,chartPageInfo);
+					indexTab.getContentIndustry(), indexTab.getFilterInfo(), indexTab.getContentArea(), indexTab.getMediaArea(), indexTab.getPreciseFilter(),imgOcr,chartPageInfo);
 			RequestTimeLog requestTimeLog = new RequestTimeLog();
 			requestTimeLog.setStartHybaseTime(hyStartDate);
 			requestTimeLog.setEndHybaseTime(new Date());

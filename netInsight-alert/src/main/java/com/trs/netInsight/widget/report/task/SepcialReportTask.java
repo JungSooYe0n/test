@@ -519,6 +519,7 @@ public class SepcialReportTask implements Runnable {
                                 startMillis = System.currentTimeMillis();
                                 try {
                                     String source = CommonListChartUtil.changeGroupName("微博");
+                                    specialProject.setSource(source);
                                     List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(source,
                                             specialProject, rangeTime, 8);
                                     endMillis = System.currentTimeMillis();
@@ -538,6 +539,7 @@ public class SepcialReportTask implements Runnable {
                                 startMillis = System.currentTimeMillis();
                                 try {
                                     String source = CommonListChartUtil.changeGroupName("微信");
+                                    specialProject.setSource(source);
                                     List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(source,
                                             specialProject, rangeTime, 8);
                                     endMillis = System.currentTimeMillis();
@@ -557,6 +559,7 @@ public class SepcialReportTask implements Runnable {
                                 startMillis = System.currentTimeMillis();
                                 try {
                                     String source = CommonListChartUtil.changeGroupName("自媒体号");
+                                    specialProject.setSource(source);
                                     List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(source,
                                             specialProject, rangeTime, 8);
                                     endMillis = System.currentTimeMillis();

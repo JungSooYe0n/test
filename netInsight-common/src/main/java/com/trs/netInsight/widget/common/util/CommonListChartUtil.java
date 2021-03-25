@@ -370,7 +370,7 @@ public class CommonListChartUtil {
 
                 map.put("simNum", 0);
                 map.put("readFlag",vo.isReadFlag());
-                map.put("hitWord",ReportUtil.calcuRedWord(true, vo.getTitle(), vo.getExportContent()));
+                map.put("hitWord",ReportUtil.calcuRedWord(true, vo.getTitle(), vo.getExportContent()+vo.getOcrContent()));
 
                 resultList.add(map);
             }

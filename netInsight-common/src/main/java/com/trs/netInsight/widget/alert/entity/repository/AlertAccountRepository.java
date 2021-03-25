@@ -107,6 +107,15 @@ public interface AlertAccountRepository
 	public List<AlertAccount> findByUserIdAndType(String userId, SendWay type);
 
 	/**
+	 * 通过用户名发送方式 不分页 查总数
+	 *
+	 * @param userId
+	 * @param account
+	 * @return
+	 */
+	public List<AlertAccount> findByUserIdAndAccount(String userId, String account);
+
+	/**
 	 * 通过用户分组id 发送方式 不分页 查询
 	 * @param subGroupId
 	 * @param type
