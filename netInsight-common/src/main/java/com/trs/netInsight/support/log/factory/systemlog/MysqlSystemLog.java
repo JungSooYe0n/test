@@ -17,10 +17,8 @@ import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.kafka.util.KafkaUtil;
 import com.trs.netInsight.support.log.entity.SystemLog;
 import com.trs.netInsight.support.log.factory.AbstractSystemLog;
-import com.trs.netInsight.util.IPUtil;
-import com.trs.netInsight.util.RedisUtil;
-import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.util.*;
+import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
@@ -67,11 +65,19 @@ public class MysqlSystemLog extends AbstractSystemLog {
 		//多个字段排序
 		List<Sort.Order> listSort = new ArrayList();
 		Sort.Order order =  null;
-		if(sortBy == 1 ){
+		if(sortBy == 1 || sortBy == 3 || sortBy == 4 ){
+			String orderStr = null;
+			if (sortBy == 1){
+				orderStr = "loginCount";
+			}else if (sortBy == 3){
+				orderStr = "lastDayCount";
+			}else {
+				orderStr = "weekCount";
+			}
 			if("asc".equals(ascDesc)){
-				order = new Sort.Order(Sort.Direction.ASC,"loginCount");
+				order = new Sort.Order(Sort.Direction.ASC,orderStr);
 			}else if("desc".equals(ascDesc)){
-				order = new Sort.Order(Sort.Direction.DESC,"loginCount");
+				order = new Sort.Order(Sort.Direction.DESC,orderStr);
 			}else{
 				order =new Sort.Order(Sort.Direction.DESC,"createdTime");
 			}
@@ -164,6 +170,8 @@ public class MysqlSystemLog extends AbstractSystemLog {
 			each.put("organizationType", "formal".equals(e.getOrganizationType()) ? "正式" : "试用");
 			each.put("onlineUserCount", getOnlineUserCount(activeSessions, e));
 			each.put("loginCount", getLoginCount(e));
+			each.put("lastDayCount", getLastDayCount(e));
+			each.put("weekCount", getWeekCount(e));
 			each.put("organizationId", e.getId());
 			resultDataList.add(each);
 		}
@@ -177,6 +185,16 @@ public class MysqlSystemLog extends AbstractSystemLog {
 		result.put("totalElements", organizations.getTotalElements());
 		result.put("totalPages", organizations.getTotalPages());
 		result.put("content", resultDataList);
+		if (ObjectUtil.isNotEmpty(orgs)){
+			List<String> orgList = new ArrayList<>();
+			for (Organization org:orgs){
+				orgList.add(org.getId());
+			}
+			int count = mysqlSystemLogRepository.findNumber(orgList,DateUtil.formatCurrentTime("yyyy-MM-dd"));
+			result.put("incomeCount", count);
+		}else {
+			result.put("incomeCount", 0);
+		}
 		return result;
 
 	}
@@ -217,6 +235,8 @@ public class MysqlSystemLog extends AbstractSystemLog {
 				each.put("organizationType", "formal".equals(e.getOrganizationType()) ? "正式" : "试用");
 				each.put("onlineUserCount", e.getOnlineUserCount());
 				each.put("loginCount", e.getLoginCount());
+				each.put("lastDayCount", getLastDayCount(e));
+				each.put("weekCount", getWeekCount(e));
 				each.put("organizationId", e.getId());
 				resultDataList.add(each);
 			}
@@ -740,6 +760,26 @@ public class MysqlSystemLog extends AbstractSystemLog {
 		AtomicInteger loginCount = new AtomicInteger(0);
 		for (User user : users) {
 			int currentUserLoginCount = UserUtils.getLoginCount(user.getUserName() + user.getId());
+			loginCount.addAndGet(currentUserLoginCount);
+		}
+		return loginCount.intValue();
+	}
+
+	private int getLastDayCount(Organization org) {
+		List<User> users = userRepository.findByOrganizationId(org.getOrganizationId());
+		AtomicInteger loginCount = new AtomicInteger(0);
+		for (User user : users) {
+			int currentUserLoginCount = UserUtils.getDaysBeforeLoginCount(user.getUserName() + user.getId(),1);
+			loginCount.addAndGet(currentUserLoginCount);
+		}
+		return loginCount.intValue();
+	}
+
+	private int getWeekCount(Organization org) {
+		List<User> users = userRepository.findByOrganizationId(org.getOrganizationId());
+		AtomicInteger loginCount = new AtomicInteger(0);
+		for (User user : users) {
+			int currentUserLoginCount = UserUtils.getWeekLoginCount(user.getUserName() + user.getId());
 			loginCount.addAndGet(currentUserLoginCount);
 		}
 		return loginCount.intValue();

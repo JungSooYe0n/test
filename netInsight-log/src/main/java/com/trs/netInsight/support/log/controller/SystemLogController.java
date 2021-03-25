@@ -13,20 +13,38 @@
  */
 package com.trs.netInsight.support.log.controller;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.servlet.http.HttpServletRequest;
 
+import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.support.log.entity.ItemPer;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.SystemLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.entity.enums.DepositPattern;
+import com.trs.netInsight.support.log.repository.MysqlSystemLogRepository;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.support.log.repository.SystemLogExceptionRepository;
+import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.user.entity.Organization;
 import com.trs.netInsight.widget.user.entity.User;
+import com.trs.netInsight.widget.user.repository.OrganizationRepository;
+import com.trs.netInsight.widget.user.repository.UserRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -56,6 +74,17 @@ public class SystemLogController {
 	@Autowired
 	SystemLogExceptionRepository systemLogExceptionRepository;
 
+	@Autowired
+	MysqlSystemLogRepository mysqlSystemLogRepository;
+
+	@Autowired
+	UserRepository userRepository;
+
+	@Autowired
+	OrganizationRepository organizationRepository;
+
+	@Autowired
+	RequestTimeLogRepository requestTimeLogRepository;
 	/**
 	 * 添加点击日志
 	 * 
@@ -77,7 +106,7 @@ public class SystemLogController {
 		long timeConsumed = new Date().getTime() - new Date().getTime();
 		String simpleStatus = 500 == ResultCode.SUCCESS ? "失败" : "成功";
 		SystemLog systemLog = new SystemLog(null, null, systemLogType.getValue(),
-				systemLogOperation.getValue(), systemLogTabId, NetworkUtil.getIpAddress(request),  request.getRequestURI(), new Date(), new Date(), timeConsumed,
+				systemLogOperation.getValue(),systemLogOperation.getOperator(), systemLogTabId, NetworkUtil.getIpAddress(request),  request.getRequestURI(), new Date(), new Date(), timeConsumed,
 				ResultCode.SUCCESS, null, null, null, null, null, null,
 				UserUtils.getUser().getUserName(), null,null,0);
 		User user = UserUtils.getUser();
@@ -112,7 +141,7 @@ public class SystemLogController {
 			@ApiParam("步长") @RequestParam(value = "pageSize") Integer pageSize,
 			@ApiParam("机构类型") @RequestParam(value = "organizationType",required = false) String organizationType,
 			@ApiParam("对当前在线进行筛选，全部：0、仅在线：1  ") @RequestParam(value = "onLine",required = false,defaultValue = "0") Integer onLine,
-			@ApiParam("排序:0不排序 1登录次数") @RequestParam(value = "sortBy",defaultValue = "0",required = false) Integer sortBy,
+			@ApiParam("排序:0不排序 1今日登录次数,3、昨日登录次数 4、周登录次数") @RequestParam(value = "sortBy",defaultValue = "0",required = false) Integer sortBy,
 			@ApiParam("升序降序") @RequestParam(value = "ascDesc",required = false,defaultValue = "desc") String ascDesc) throws Exception {
 		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(DepositPattern.MYSQL);
 		return abstractSystemLog.findorgList(retrievalCondition, retrievalInformation, id, pageNum, pageSize,onLine,sortBy,ascDesc,organizationType);
@@ -286,6 +315,350 @@ public class SystemLogController {
 	@FormatResult
 	public Object getExceptionByLogId(@ApiParam("systemLogId") @RequestParam(value = "systemLogId") String systemLogId){
 		return systemLogExceptionRepository.findBySystemLogId(systemLogId);
+	}
+
+	@ApiOperation("使用菜单占比")
+	@RequestMapping(value = "/getItemPercent", method = RequestMethod.GET)
+	@FormatResult
+	public Object getItemPercent(@ApiParam("当前用户id ") @RequestParam(value = "currId") String currId,
+								 @ApiParam("机构id ") @RequestParam(value = "orgId",required = false) String orgId,
+								 @ApiParam("查询某个账户的 用户id") @RequestParam(value = "selectedId",required = false) String selectedId,
+								 @ApiParam("查询时间范围 1h 1d 7d 1m 3m ") @RequestParam(value = "time",required = false,defaultValue = "1d") String time){
+		String beginTime = DateUtil.getBeginTime(time)[0];
+		List<String> orgIds = new ArrayList<>();
+		List<String> userIds = new ArrayList<>();
+		Object[] obj = null;
+		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
+			orgIds = getOrgIds(currId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
+		}else if (StringUtil.isNotEmpty(selectedId)){
+			userIds.add(selectedId);
+		}
+		if (ObjectUtil.isNotEmpty(userIds)){
+			obj = mysqlSystemLogRepository.itemPerByUserId(userIds,beginTime);
+		}else if (ObjectUtil.isNotEmpty(orgIds)){
+			obj =  mysqlSystemLogRepository.itemPer(orgIds,beginTime);
+		}
+		return obj;
+	}
+
+	@ApiOperation("常用栏目top10")
+	@RequestMapping(value = "/getTopTen", method = RequestMethod.GET)
+	@FormatResult
+	public Object getTopTen(@ApiParam("当前用户id ") @RequestParam(value = "currId") String currId,
+								 @ApiParam("机构id ") @RequestParam(value = "orgId",required = false) String orgId,
+								 @ApiParam("查询某个账户的 用户id") @RequestParam(value = "selectedId",required = false) String selectedId,
+								 @ApiParam("菜单 ") @RequestParam(value = "item",required = false) String item,
+								 @ApiParam("查询时间范围 1h 1d 7d 1m 3m ") @RequestParam(value = "time",required = false,defaultValue = "7d") String time){
+		String beginTime = DateUtil.getBeginTime(time)[0];
+		List<String> orgIds = new ArrayList<>();
+		List<String> userIds = new ArrayList<>();
+		Object[] obj = null;
+		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
+			orgIds = getOrgIds(currId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
+		}else if (StringUtil.isNotEmpty(selectedId)){
+			userIds.add(selectedId);
+		}
+		if (ObjectUtil.isNotEmpty(userIds)){
+			if (StringUtil.isNotEmpty(item)){
+				obj = requestTimeLogRepository.itemPerByUserId(userIds,beginTime,item+"%");
+			}else {
+				obj = requestTimeLogRepository.itemPerByUserId(userIds,beginTime);
+			}
+		}else if (ObjectUtil.isNotEmpty(orgIds)){
+			if (StringUtil.isNotEmpty(item)){
+				obj =  requestTimeLogRepository.itemPer(orgIds,beginTime,item+"%");
+			}else {
+				obj =  requestTimeLogRepository.itemPer(orgIds,beginTime);
+			}
+		}
+		return obj;
+	}
+
+	@ApiOperation("常用模块top10")
+	@RequestMapping(value = "/getMoudleTopTen", method = RequestMethod.GET)
+	@FormatResult
+	public Object getMoudleTopTen(@ApiParam("当前用户id ") @RequestParam(value = "currId") String currId,
+							@ApiParam("机构id ") @RequestParam(value = "orgId",required = false) String orgId,
+							@ApiParam("查询某个账户的 用户id") @RequestParam(value = "selectedId",required = false) String selectedId,
+							@ApiParam("菜单 ") @RequestParam(value = "item",required = false) String item,
+							@ApiParam("查询时间范围 1h 1d 7d 1m 3m ") @RequestParam(value = "time",required = false,defaultValue = "7d") String time){
+		String beginTime = DateUtil.getBeginTime(time)[0];
+		List<String> orgIds = new ArrayList<>();
+		List<String> userIds = new ArrayList<>();
+		List<RequestTimeLog> obj = null;
+		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
+			orgIds = getOrgIds(currId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
+		}else if (StringUtil.isNotEmpty(selectedId)){
+			userIds.add(selectedId);
+		}
+		if (ObjectUtil.isNotEmpty(userIds)){
+			obj = requestTimeLogRepository.topTenMoudleUserId(userIds,beginTime,item+"%");
+		}else if (ObjectUtil.isNotEmpty(orgIds)){
+			obj =  requestTimeLogRepository.topTenMoudle(orgIds,beginTime,item+"%");
+		}
+		HashMap<String,Integer> rtnMap = new HashMap<>();
+		for (RequestTimeLog log:obj){
+			String op = log.getOperation();
+			if (StringUtil.isNotEmpty(op)){
+				String[] split = op.split("-");
+				if (split.length == 3){
+					if (rtnMap.get(split[2]) != null){
+						rtnMap.put(split[2],rtnMap.get(split[2])+1);
+					}else {
+						rtnMap.put(split[2],1);
+					}
+				}
+			}
+		}
+		return rtnMap;
+	}
+
+	@ApiOperation("账号登录频率统计")
+	@RequestMapping(value = "/getLoginFre", method = RequestMethod.GET)
+	@FormatResult
+	public Object getLoginFre(@ApiParam("当前用户id ") @RequestParam(value = "currId") String currId,
+								  @ApiParam("机构id ") @RequestParam(value = "orgId",required = false) String orgId,
+								  @ApiParam("查询某个账户的 用户id") @RequestParam(value = "selectedId",required = false) String selectedId,
+								  @ApiParam("排序 最近登录时间 last_login_time 总登录次数 totalTimes 7天内登录次数 sevenDays ") @RequestParam(value = "orderBy",required = false,defaultValue = "last_login_time") String orderBy,
+							  @ApiParam("倒序 desc 正序 asc ") @RequestParam(value = "sort",required = false,defaultValue = "desc") String sort){
+		List<String> orgIds = new ArrayList<>();
+		List<String> userIds = new ArrayList<>();
+		List<User> obj = null;
+		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
+			orgIds = getOrgIds(currId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
+		}else if (StringUtil.isNotEmpty(selectedId)){
+			userIds.add(selectedId);
+		}
+		String order = "sevenDays".equals(orderBy)?"last_login_time":orderBy;
+		if (ObjectUtil.isNotEmpty(userIds)){
+			obj = userRepository.topTenMoudleUserId(userIds,order,sort);
+		}else if (ObjectUtil.isNotEmpty(orgIds)){
+			obj = userRepository.topTenMoudle(orgIds,order,sort);
+		}
+		for (User user:obj){
+			user.setLoginCount(UserUtils.getWeekLoginCount(user.getUserName()+user.getId()));
+		}
+
+		if ("sevenDays".equals(orderBy)){
+			Collections.sort(obj, new Comparator<User>() {
+				@Override
+				public int compare(User o1, User o2) {
+					int sortValue = -1;
+					if ("desc".equals(sort)) sortValue = 1;
+					if (o1.getLoginCount() > o2.getLoginCount()) {
+						return sortValue;
+					} else if (o1.getLoginCount() < o2.getLoginCount()) {
+						return -sortValue;
+					}
+					return 0;
+				}
+
+			});
+		}
+		return obj;
+	}
+
+    @ApiOperation("账号登录统计")
+    @RequestMapping(value = "/getLoginElastic", method = RequestMethod.GET)
+    @FormatResult
+    public Object getLoginElastic(@ApiParam("当前用户id ") @RequestParam(value = "currId") String currId,
+                              @ApiParam("机构id ") @RequestParam(value = "orgId",required = false) String orgId,
+                              @ApiParam("查询某个账户的 用户id") @RequestParam(value = "selectedId",required = false) String selectedId,
+                              @ApiParam("查询时间范围 1h 1d 7d 1m 3m ") @RequestParam(value = "time",required = false,defaultValue = "7d") String time){
+        List<String> orgIds = new ArrayList<>();
+        List<String> userIds = new ArrayList<>();
+        String[] beginAndEnd = DateUtil.getBeginTime(time);
+        String beginTime = beginAndEnd[0];
+		List<String[]> obj = null;
+        HashMap<String,Object> rtnMap = new HashMap<>();
+        if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
+            orgIds = getOrgIds(currId);
+        }else if (StringUtil.isNotEmpty(orgId)){
+            orgIds.add(orgId);
+        }else if (StringUtil.isNotEmpty(selectedId)){
+            userIds.add(selectedId);
+        }
+        if (ObjectUtil.isNotEmpty(userIds)){
+            obj = mysqlSystemLogRepository.timeStatic(userIds,beginTime);
+        }else if (ObjectUtil.isNotEmpty(orgIds)){
+            obj = mysqlSystemLogRepository.timeStaticOrg(orgIds,beginTime);
+        }
+        List<Organization> orgs = findOrgs(currId);
+        List<String> betweenDateString = DateUtil.getBetweenDateString(beginAndEnd[0], beginAndEnd[1], DateUtil.yyyyMMdd3);
+        for (Organization org:orgs){
+        	String id = org.getId();
+        	String name = org.getOrganizationName();
+            Map<String,Integer> item = new LinkedHashMap<>();
+            for (String st:betweenDateString){
+                item.put(st,0);
+            }
+            for (Object[] itemSta:obj){
+            	if (id.equals(itemSta[0].toString())){
+            		item.put(itemSta[1].toString(),Integer.parseInt(itemSta[2].toString()));
+				}
+			}
+            rtnMap.put(name,item);
+        }
+        return rtnMap;
+    }
+
+	@ApiOperation("使用习惯分析")
+	@RequestMapping(value = "/getHourElastic", method = RequestMethod.GET)
+	@FormatResult
+	public Object getHourElastic(@ApiParam("当前用户id ") @RequestParam(value = "currId") String currId,
+								  @ApiParam("机构id ") @RequestParam(value = "orgId",required = false) String orgId,
+								  @ApiParam("查询某个账户的 用户id") @RequestParam(value = "selectedId",required = false) String selectedId,
+								  @ApiParam("查询时间范围 1h 1d 7d 1m 3m ") @RequestParam(value = "time",required = false,defaultValue = "1d") String time){
+		List<String> orgIds = new ArrayList<>();
+		List<String> userIds = new ArrayList<>();
+		String[] beginAndEnd = DateUtil.getBeginTime(time);
+		String beginTime = beginAndEnd[0];
+		List<String[]> obj = null;
+		HashMap<String,Integer> rtnMap = new LinkedHashMap<>();
+		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
+			orgIds = getOrgIds(currId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
+		}else if (StringUtil.isNotEmpty(selectedId)){
+			userIds.add(selectedId);
+		}
+		if (ObjectUtil.isNotEmpty(userIds)){
+			obj = mysqlSystemLogRepository.hourStatic(userIds,beginTime);
+		}else if (ObjectUtil.isNotEmpty(orgIds)){
+			obj = mysqlSystemLogRepository.hourStaticOrg(orgIds,beginTime);
+		}
+		List<String> betweenDateHourString = DateUtil.getBetweenDateHourString3(beginAndEnd[0].replace("-","").replace(" ","").replace(":",""), beginAndEnd[1].replace("-","").replace(" ","").replace(":",""));
+		for (String str:betweenDateHourString){
+			rtnMap.put(str,0);
+		}
+		for (Object[] item:obj){
+			if (item[0] != null){
+				rtnMap.put(item[0].toString(),Integer.parseInt(item[1].toString()));
+			}
+		}
+		return rtnMap;
+	}
+
+	@ApiOperation("获取该账户下的机构")
+	@RequestMapping(value = "/getOrgs", method = RequestMethod.GET)
+	@FormatResult
+	public Object getOrgs(@ApiParam("当前用户id ") @RequestParam(value = "currId") String currId
+							  ){
+		List<Organization> orgs = findOrgs(currId);
+		return orgs;
+	}
+	private List<Organization> findOrgs(String currId){
+		Specification<Organization> criteria = new Specification<Organization>() {
+			@Override
+			public Predicate toPredicate(Root<Organization> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				List<Predicate> predicate = new ArrayList<>();
+
+				if (UserUtils.isRolePlatform()) {
+//					User user = userService.findById(id);
+					User user = userRepository.findOne(currId);
+					Collection<Organization> orgs1 = user.getOrganizations();
+					List<Organization> orgs = getOperationsOrgsPages(orgs1);
+					CriteriaBuilder.In<String> in = cb.in(root.get("id").as(String.class));
+					boolean hasV=false;
+					for (Organization organization : orgs) {
+						if(organization!=null){
+							hasV = true;
+							in.value(organization.getId());
+						}
+					}
+					if(hasV) predicate.add(in);
+				}else if (UserUtils.isRoleAdmin()) {
+					User user = UserUtils.getUser();
+					Organization organization = organizationRepository.findOne(user.getOrganizationId());
+					Collection<Organization> orgs1 = new ArrayList<>();
+					orgs1.add(organization);
+					List<Organization> orgs = getOperationsOrgsPages( orgs1);
+					CriteriaBuilder.In<String> in = cb.in(root.get("id").as(String.class));
+					boolean hasV=false;
+					for (Organization o : orgs) {
+						if(o!=null){
+							hasV = true;
+							in.value(o.getId());
+						}
+					}
+					if(hasV) predicate.add(in);
+				}
+				Predicate[] pre = new Predicate[predicate.size()];
+				return query.where(predicate.toArray(pre)).getRestriction();
+			}
+		};
+		List<Organization> orgs = organizationRepository.findAll(criteria);
+		return orgs;
+	}
+
+
+
+	private List<String> getOrgIds(String currId){
+		List<String> rtn = new ArrayList<>();
+		Specification<Organization> criteria = new Specification<Organization>() {
+			@Override
+			public Predicate toPredicate(Root<Organization> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				List<Predicate> predicate = new ArrayList<>();
+
+				if (UserUtils.isRolePlatform()) {
+//					User user = userService.findById(id);
+					User user = userRepository.findOne(currId);
+					Collection<Organization> orgs1 = user.getOrganizations();
+					List<Organization> orgs = getOperationsOrgsPages(orgs1);
+					CriteriaBuilder.In<String> in = cb.in(root.get("id").as(String.class));
+					boolean hasV=false;
+					for (Organization organization : orgs) {
+						if(organization!=null){
+							hasV = true;
+							in.value(organization.getId());
+						}
+					}
+					if(hasV) predicate.add(in);
+				}else if (UserUtils.isRoleAdmin()) {
+					User user = UserUtils.getUser();
+					Organization organization = organizationRepository.findOne(user.getOrganizationId());
+					Collection<Organization> orgs1 = new ArrayList<>();
+					orgs1.add(organization);
+					List<Organization> orgs = getOperationsOrgsPages( orgs1);
+					CriteriaBuilder.In<String> in = cb.in(root.get("id").as(String.class));
+					boolean hasV=false;
+					for (Organization o : orgs) {
+						if(o!=null){
+							hasV = true;
+							in.value(o.getId());
+						}
+					}
+					if(hasV) predicate.add(in);
+				}
+				Predicate[] pre = new Predicate[predicate.size()];
+				return query.where(predicate.toArray(pre)).getRestriction();
+			}
+		};
+		List<Organization> orgs = organizationRepository.findAll(criteria);
+		for (Organization org:orgs) {
+			rtn.add(org.getId());
+		}
+		return rtn;
+	}
+	private List<Organization> getOperationsOrgsPages(Collection<Organization> orgs) {
+		List<String> ids = new ArrayList<>();
+		if (orgs != null && orgs.size() > 0) {
+			for (Organization organization : orgs) {
+				if(organization!=null){
+					ids.add(organization.getId());
+				}
+			}
+		}
+//		return organizationRepository.findByIdIn(ids,new PageRequest(pageNum, pageSize, new Sort(listSort)));
+		return organizationRepository.findByIdIn(ids);
 	}
 
 }

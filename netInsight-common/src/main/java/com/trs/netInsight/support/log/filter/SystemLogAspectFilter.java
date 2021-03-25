@@ -147,7 +147,7 @@ public class SystemLogAspectFilter {
 			long timeConsumed = endTime.getTime() - startTime.getTime();
 			String simpleStatus = 500 == ResultCode.SUCCESS ? "失败" : "成功";
 			SystemLog systemLog = new SystemLog(parames, methodDescription, systemLogType.getValue(),
-					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
+					systemLogOperation.getValue(),systemLogOperation.getOperator(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					ResultCode.SUCCESS, simpleStatus, null, osInfo, browserInfo, sessionId, operationPosition,
 					user.getUserName() == null ? UserUtils.getUser().getUserName():user.getUserName(), trsl,num,0);
 			addUserInfo(systemLog);
@@ -276,7 +276,7 @@ public class SystemLogAspectFilter {
 			TRSException t = (TRSException) throwable;
 
 			SystemLog systemLog = new SystemLog(requestParams, methodDescription, systemLogType.getValue(),
-					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
+					systemLogOperation.getValue(), systemLogOperation.getOperator(),null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					t.getCode(), simpleStatus, StringUtils.substring(t.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
 					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
 			addUserInfo(systemLog);
@@ -292,7 +292,7 @@ public class SystemLogAspectFilter {
 			throw t;
 		} else {
 			SystemLog systemLog = new SystemLog(requestParams, methodDescription, systemLogType.getValue(),
-					systemLogOperation.getValue(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
+					systemLogOperation.getValue(),systemLogOperation.getOperator(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					ResultCode.OPERATION_EXCEPTION, simpleStatus, StringUtils.substring(throwable.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
 					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
 			addUserInfo(systemLog);

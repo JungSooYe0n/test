@@ -63,6 +63,12 @@ public class SystemLog extends SystemLogBaseEntity {
 	 */
 	@Column(name = "`system_log_operation`")
 	private String systemLogOperation;
+
+	/**
+	 * 具体操作类型
+	 */
+	@Column(name = "`system_log_operation_type`")
+	private String systemLogOperationType;
 	
 	
 	/**

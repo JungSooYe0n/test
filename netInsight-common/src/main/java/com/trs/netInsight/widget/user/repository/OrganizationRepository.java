@@ -74,6 +74,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, Stri
 	 */
 	public Page<Organization> findByIdIn(Collection<String> ids, Pageable pageable);
 
+	public List<Organization> findByIdIn(Collection<String> ids);
+
 	/**
 	 * 根据id批量查询
 	 * @date Created at 2018年9月25日  下午8:09:45
