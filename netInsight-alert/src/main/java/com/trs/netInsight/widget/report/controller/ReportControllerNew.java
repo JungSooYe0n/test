@@ -357,8 +357,8 @@ public class ReportControllerNew {
 	 */
 	@RequestMapping(value = "reBuild", method = RequestMethod.POST)
 	@FormatResult
-	public Object reBuildReport(String reportId, String jsonImgElements) throws Exception {
-		return reportServiceNew.reBuildReport(reportId, jsonImgElements);
+	public Object reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary) throws Exception {
+		return reportServiceNew.reBuildReport(reportId, jsonImgElements, reportIntro, dataSummary);
 	}
 	/**
 	 * 创建专报(分组）
