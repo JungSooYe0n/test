@@ -8,6 +8,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import com.trs.netInsight.util.RedisUtil;
 import com.trs.netInsight.util.UserUtils;
 import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.CacheManager;
@@ -146,6 +147,7 @@ public class KickoutSessionControlFilter extends AccessControlFilter {
 			// Map<String, String> resultMap = new HashMap<String, String>();
 			// 判断是不是Ajax请求
 			// 重定向
+			RedisUtil.setString("kickout"+sessionId,userName);
 			WebUtils.issueRedirect(request, response, kickoutUrl+"?userName="+userName);
 			return false;
 		}
