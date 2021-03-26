@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -290,7 +291,6 @@ public class LoginController {
 
 	/**
 	 * 判断是否被挤掉
-	 * @param sessionId
 	 * @param request
 	 * @return
 	 * @throws TRSException
@@ -299,7 +299,14 @@ public class LoginController {
 	//@ApiOperation("判断是否被挤掉")
 	@ResponseBody
 	@RequestMapping(value = "/isKickOut", method = RequestMethod.GET)
-	public Object kickOut(@RequestParam(value = "sessionId") String sessionId,HttpServletRequest request) throws TRSException {
+	public Object kickOut(HttpServletRequest request) throws TRSException {
+		Cookie[] cookies = request.getCookies();
+		String sessionId = null;
+		for (Cookie cookie : cookies) {
+			if(cookie.getName().equals("JSESSIONID")){
+				sessionId = cookie.getValue();
+			}
+		}
 		String userName = RedisUtil.getString("kickout"+sessionId);
 		if(userName!=null){
 			RedisUtil.deleteKey("kickout"+sessionId);
