@@ -289,6 +289,27 @@ public class LoginController {
 	}
 
 	/**
+	 * 判断是否被挤掉
+	 * @param sessionId
+	 * @param request
+	 * @return
+	 * @throws TRSException
+	 */
+	@FormatResult
+	//@ApiOperation("判断是否被挤掉")
+	@ResponseBody
+	@RequestMapping(value = "/isKickOut", method = RequestMethod.GET)
+	public Object kickOut(@RequestParam(value = "sessionId") String sessionId,HttpServletRequest request) throws TRSException {
+		String userName = RedisUtil.getString("kickout"+sessionId);
+		if(userName!=null){
+			RedisUtil.deleteKey("kickout"+sessionId);
+			return true;
+		}
+		//RedisUtil.deleteKey("kickout"+sessionId);
+		return false;
+	}
+
+	/**
 	 * 判断是否登录
 	 *
 	 * @date Created at 2017年11月17日 下午7:32:45
