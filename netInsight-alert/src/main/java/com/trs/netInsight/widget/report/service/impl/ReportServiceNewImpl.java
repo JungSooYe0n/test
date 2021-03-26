@@ -31,6 +31,9 @@ import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.docx4j.wml.Tr;
+import org.hibernate.jpa.HibernateEntityManager;
+import org.hibernate.jpa.event.internal.core.HibernateEntityManagerEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -82,7 +85,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	@Autowired
 	private ISpecialReportService sepcialReportService;
 
-	@Autowired
+	@Autowired(required = false)
 	private OrganizationRepository organizationRepository;
 
 	@Autowired
@@ -815,7 +818,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	}
 
     @Override
-	public ReportNew create(String reportIntro, String jsonImgElements,
+	public ReportNew create(String reportIntro, String dataSummary, String jsonImgElements,
 			ReportNew report, Integer isUpdateTemplate) throws Exception {
 		//primaryStatisticsTime 供template_header使用
 		String primaryStatisticsTime = report.getStatisticsTime();
@@ -828,6 +831,9 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		}
 		Map<String, List<Map<String, String>>> base64data = ReportUtil.getBase64data(jsonImgElements);
 		List<ReportResource> reportResources = reportResourceRepository.findByTemplateIdAndResourceStatus(report.getTemplateId(), 0);
+		//把 reportResources 从session中清除
+		entityManager.clear();
+
 		TemplateNew templateNew = templateNewRepository.findOne(report.getTemplateId());
 		//获取一份模板
 		TemplateNew oldTemplateNew = new TemplateNew();
@@ -837,7 +843,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 
 		report.setReportType(templateNew.getTemplateType());
 
-		String reportPath = generateReportImpl.generateReport(report, collect, templateNew, base64data,reportIntro);
+		String reportPath = generateReportImpl.generateReport(report, collect, templateNew, base64data, reportIntro, dataSummary);
 		report.setDocPath(reportPath);
 		User loginUser = UserUtils.getUser();
 		report.setUserId(loginUser.getId());
@@ -864,6 +870,26 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 
 		//重新保存template
 		templateNewRepository.save(templateNew);
+
+		//判断报告模板是否存在数据概述的资源
+		boolean flagTemplate = false;
+		for (ReportResource reportResource : reportResources) {
+			if ("Statistics_Summarize".equals(reportResource.getChapter())) {
+				flagTemplate = true;
+				break;
+			}
+		}
+
+		// 报告模板不存在数据统计概述的资源，为当前报告新创建一个数据统计概述资源
+		if (!flagTemplate) {
+			ReportResource reportResource = new ReportResource();
+			reportResource.setImgComment(dataSummary);
+			reportResource.setChapter("Statistics_Summarize");
+			reportResource.setReportType(report.getReportType());
+			reportResource.setChapterPosition(2);
+			reportResource.setTemplateId(templateNew.getId());
+			reportResources.add(reportResource);
+		}
 
 		//是否保存报告资源处理
 		resDelHandle(report, reportResources);
@@ -978,17 +1004,17 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		resourceCopyed.setMediaType(resource.getMediaType());
 		resourceCopyed.setReportId(resource.getReportId());
 		resourceCopyed.setUseage(resource.getUseage());
-		resourceCopyed.setId(resource.getId());
+//		resourceCopyed.setId(resource.getId());
 		resourceCopyed.setNewsAbstract(resource.getNewsAbstract());
 		resourceCopyed.setMapto(resource.getMapto());
 		return resourceCopyed;
 	}
 	@Override
-	public ReportNew create(String reportIntro, String jsonImgElements,
+	public ReportNew create(String reportIntro, String dataSummary, String jsonImgElements,
 			String reportId) throws Exception {
 		//生成report_data 保存到数据库，report_data_id 加入到report中，保存到数据库
 		ReportNew report = reportNewRepository.findOne(reportId);
-		return this.create(reportIntro, jsonImgElements, report, 0);
+		return this.create(reportIntro, dataSummary, jsonImgElements, report, 0);
 	}
 
 	@Override
@@ -1394,16 +1420,17 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	}
 
 	@Override
-	public String reBuildReport(String reportId, String jsonImgElements) throws Exception {
+	public String reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary) throws Exception {
 		log.info("舆情报告列表预览页，重新生成报告");
 		ReportNew report = reportNewRepository.findOne(reportId);
 		List<ReportResource> resources = reportResourceRepository.findByReportIdAndResourceStatus(reportId, 1);
+		entityManager.clear();
 		Map<Integer, List<ReportResource>> collect = resources.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
 		Map<String, List<Map<String, String>>> base64data = ReportUtil.getBase64data(jsonImgElements);
 		TemplateNew templateNew = new TemplateNew();
 		templateNew.setTemplateList(report.getTemplateList());
-		String reportIntro = getReportIntro(collect);
-		String docPath = generateReportImpl.generateReport(report, collect, templateNew, base64data, reportIntro);
+//		String reportIntro = getReportIntro(collect);
+		String docPath = generateReportImpl.generateReport(report, collect, templateNew, base64data, reportIntro, dataSummary);
 		report.setDocPath(docPath);
 		reportNewRepository.save(report);
 		return Const.SUCCESS;

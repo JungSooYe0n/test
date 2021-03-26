@@ -87,20 +87,22 @@ public interface IReportServiceNew {
 	 * 没有走预览，直接生成报告
 	 * @author shao.guangze
 	 * @param reportIntro
+	 * @param dataSummary
 	 * @param jsonImgElements
 	 * @param report
 	 * @param isUpdateTemplate 是否更新相应模板
 	 */
-	public ReportNew create(String reportIntro, String jsonImgElements,
+	public ReportNew create(String reportIntro, String dataSummary, String jsonImgElements,
 			ReportNew report, Integer isUpdateTemplate) throws Exception ;
 	/**
 	 * 已经走过预览
 	 * @author shao.guangze
 	 * @param reportIntro
+	 * @param dataSummary
 	 * @param jsonImgElements
 	 * @param reportId
 	 */
-	public ReportNew create(String reportIntro, String jsonImgElements,
+	public ReportNew create(String reportIntro, String dataSummary, String jsonImgElements,
 			String reportId) throws Exception ;
 	
 	/**
@@ -150,7 +152,7 @@ public interface IReportServiceNew {
 	 */
 	public void delAllReportResource(String templateId);
 
-    String reBuildReport(String reportId, String jsonImgElements) throws Exception;
+    String reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary) throws Exception;
 
 	Object searchResources(String keyWords, String statisticsTime, Integer pageNum, Integer pageSize) throws TRSException;
 
