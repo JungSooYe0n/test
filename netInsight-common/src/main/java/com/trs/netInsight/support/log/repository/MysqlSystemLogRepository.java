@@ -13,7 +13,6 @@
  */
 package com.trs.netInsight.support.log.repository;
 
-import com.trs.netInsight.support.log.entity.ItemPer;
 import com.trs.netInsight.support.log.entity.SystemLog;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -94,6 +93,13 @@ public interface MysqlSystemLogRepository extends JpaRepository<SystemLog, Strin
             "WHERE `organization_id` IN (:orgIds) AND `system_log_type` != '登录相关'" +
             "AND a.created_time >= date_format((:dateStr),'%Y-%m-%d %H:%M:%S') ORDER BY hourStr", nativeQuery = true)
     List<String[]> hourStaticOrg(@Param("orgIds")List<String> orgIds, @Param("dateStr")String dateStr);
+
+    //查询数量 根据机构查
+    @Query(value = "SELECT * " +//distinct 这里我进行了一个去重的操作 这个可以忽略,业务需求
+            "FROM system_log a " +
+            "WHERE `organization_id` IN (:orgIds) " +
+            "AND a.created_time >= date_format((:dateStr),'%Y-%m-%d %H:%M:%S') ORDER BY time_consumed desc limit 10 ", nativeQuery = true)
+    List<SystemLog> getResponseTimeElastic(@Param("orgIds")List<String> orgIds, @Param("dateStr")String dateStr);
 
 }
 

@@ -23,7 +23,6 @@ import javax.persistence.criteria.Root;
 import javax.servlet.http.HttpServletRequest;
 
 import com.trs.netInsight.support.fts.util.DateUtil;
-import com.trs.netInsight.support.log.entity.ItemPer;
 import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.SystemLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
@@ -169,10 +168,11 @@ public class SystemLogController {
 	@RequestMapping(value = "/curOrgLogs", method = RequestMethod.GET)
 	@FormatResult
 	public Object curOrgLogs(@ApiParam("机构id") @RequestParam(value = "organizationId") String organizationId,
-			@ApiParam("时间") @RequestParam(value = "timeLimited") String timeLimited,
-			@ApiParam("用户id") @RequestParam(value = "userId") String userId,
-			@ApiParam("操作") @RequestParam(value = "operation") String operation,
+			@ApiParam("时间") @RequestParam(value = "timeLimited",required = false) String timeLimited,
+			@ApiParam("用户id") @RequestParam(value = "userId",required = false) String userId,
+			@ApiParam("操作") @RequestParam(value = "operation",required = false) String operation,
 			@ApiParam("操作明细(增删改查)") @RequestParam(value = "operationDetail",required = false) String systemLogOperation,
+			@ApiParam("具体操作 查询 或 登录 ") @RequestParam(value = "systemLogOperationType",required = false) String systemLogOperationType,
 			@ApiParam("检索条件") @RequestParam(value = "retrievalCondition", required = false) String retrievalCondition,
 			@ApiParam("根据时间排序") @RequestParam(value = "createTimeOrder",required = false) String createTimeOrder,
 			@ApiParam("操作状态") @RequestParam(value = "simpleStatus",required = false) String simpleStatus,
@@ -181,7 +181,7 @@ public class SystemLogController {
 
 		AbstractSystemLog abstractSystemLog = SystemLogFactory.createSystemLog(DepositPattern.MYSQL);
 		return abstractSystemLog.findCurOrgLogs(organizationId, timeLimited, userId, operation,
-				systemLogOperation,createTimeOrder,simpleStatus, pageNum, pageSize,retrievalCondition);
+				systemLogOperation,systemLogOperationType,createTimeOrder,simpleStatus, pageNum, pageSize,retrievalCondition);
 	}
 
 	/***
@@ -330,10 +330,10 @@ public class SystemLogController {
 		Object[] obj = null;
 		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
 			orgIds = getOrgIds(currId);
-		}else if (StringUtil.isNotEmpty(orgId)){
-			orgIds.add(orgId);
 		}else if (StringUtil.isNotEmpty(selectedId)){
 			userIds.add(selectedId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
 		}
 		if (ObjectUtil.isNotEmpty(userIds)){
 			obj = mysqlSystemLogRepository.itemPerByUserId(userIds,beginTime);
@@ -357,10 +357,10 @@ public class SystemLogController {
 		Object[] obj = null;
 		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
 			orgIds = getOrgIds(currId);
-		}else if (StringUtil.isNotEmpty(orgId)){
-			orgIds.add(orgId);
 		}else if (StringUtil.isNotEmpty(selectedId)){
 			userIds.add(selectedId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
 		}
 		if (ObjectUtil.isNotEmpty(userIds)){
 			if (StringUtil.isNotEmpty(item)){
@@ -392,10 +392,10 @@ public class SystemLogController {
 		List<RequestTimeLog> obj = null;
 		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
 			orgIds = getOrgIds(currId);
-		}else if (StringUtil.isNotEmpty(orgId)){
-			orgIds.add(orgId);
 		}else if (StringUtil.isNotEmpty(selectedId)){
 			userIds.add(selectedId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
 		}
 		if (ObjectUtil.isNotEmpty(userIds)){
 			obj = requestTimeLogRepository.topTenMoudleUserId(userIds,beginTime,item+"%");
@@ -432,10 +432,10 @@ public class SystemLogController {
 		List<User> obj = null;
 		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
 			orgIds = getOrgIds(currId);
-		}else if (StringUtil.isNotEmpty(orgId)){
-			orgIds.add(orgId);
 		}else if (StringUtil.isNotEmpty(selectedId)){
 			userIds.add(selectedId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
 		}
 		String order = "sevenDays".equals(orderBy)?"last_login_time":orderBy;
 		if (ObjectUtil.isNotEmpty(userIds)){
@@ -444,6 +444,8 @@ public class SystemLogController {
 			obj = userRepository.topTenMoudle(orgIds,order,sort);
 		}
 		for (User user:obj){
+			Organization one = organizationRepository.findOne(user.getOrganizationId());
+			user.setOrganizationName(one.getOrganizationName());
 			user.setLoginCount(UserUtils.getWeekLoginCount(user.getUserName()+user.getId()));
 		}
 
@@ -481,10 +483,10 @@ public class SystemLogController {
         HashMap<String,Object> rtnMap = new HashMap<>();
         if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
             orgIds = getOrgIds(currId);
-        }else if (StringUtil.isNotEmpty(orgId)){
-            orgIds.add(orgId);
         }else if (StringUtil.isNotEmpty(selectedId)){
-            userIds.add(selectedId);
+			userIds.add(selectedId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+            orgIds.add(orgId);
         }
         if (ObjectUtil.isNotEmpty(userIds)){
             obj = mysqlSystemLogRepository.timeStatic(userIds,beginTime);
@@ -492,6 +494,14 @@ public class SystemLogController {
             obj = mysqlSystemLogRepository.timeStaticOrg(orgIds,beginTime);
         }
         List<Organization> orgs = findOrgs(currId);
+        if (StringUtil.isNotEmpty(orgId)){
+			orgs = orgs.stream().filter(new java.util.function.Predicate<Organization>() {
+				@Override
+				public boolean test(Organization organization) {
+					return organization.getId().equals(orgId);
+				}
+			}).collect(Collectors.toList());
+		}
         List<String> betweenDateString = DateUtil.getBetweenDateString(beginAndEnd[0], beginAndEnd[1], DateUtil.yyyyMMdd3);
         for (Organization org:orgs){
         	String id = org.getId();
@@ -525,10 +535,10 @@ public class SystemLogController {
 		HashMap<String,Integer> rtnMap = new LinkedHashMap<>();
 		if (StringUtil.isEmpty(orgId) && StringUtil.isEmpty(selectedId)){
 			orgIds = getOrgIds(currId);
-		}else if (StringUtil.isNotEmpty(orgId)){
-			orgIds.add(orgId);
 		}else if (StringUtil.isNotEmpty(selectedId)){
 			userIds.add(selectedId);
+		}else if (StringUtil.isNotEmpty(orgId)){
+			orgIds.add(orgId);
 		}
 		if (ObjectUtil.isNotEmpty(userIds)){
 			obj = mysqlSystemLogRepository.hourStatic(userIds,beginTime);
@@ -545,6 +555,22 @@ public class SystemLogController {
 			}
 		}
 		return rtnMap;
+	}
+
+	@ApiOperation("响应时间统计")
+	@RequestMapping(value = "/getResponseTimeElastic", method = RequestMethod.GET)
+	@FormatResult
+	public Object getResponseTimeElastic(@ApiParam("当前用户id ") @RequestParam(value = "currId") String currId,
+								 @ApiParam("查询时间范围 1h 1d 7d 1m 3m ") @RequestParam(value = "time",required = false,defaultValue = "7d") String time){
+		List<String> orgIds = new ArrayList<>();
+		String[] beginAndEnd = DateUtil.getBeginTime(time);
+		String beginTime = beginAndEnd[0];
+		List<SystemLog> obj = null;
+		HashMap<String,Integer> rtnMap = new LinkedHashMap<>();
+		orgIds = getOrgIds(currId);
+		obj = mysqlSystemLogRepository.getResponseTimeElastic(orgIds,beginTime);
+
+		return obj;
 	}
 
 	@ApiOperation("获取该账户下的机构")

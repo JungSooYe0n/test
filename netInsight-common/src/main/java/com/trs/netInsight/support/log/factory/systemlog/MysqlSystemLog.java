@@ -166,6 +166,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 			HashMap<String, Object> each = new HashMap<>();
 			each.put("order", i.intValue());
 			each.put("organizationName", e.getOrganizationName());
+			each.put("totalTimes", getTotalCount(e));
 			//each.put("systemName", e.getSystemName());
 			each.put("organizationType", "formal".equals(e.getOrganizationType()) ? "正式" : "试用");
 			each.put("onlineUserCount", getOnlineUserCount(activeSessions, e));
@@ -293,9 +294,9 @@ public class MysqlSystemLog extends AbstractSystemLog {
 
 	@Override
 	public Page<SystemLog> findCurOrgLogs(String organizationId, String timeLimited, String userId,
-                                          String operation, String operationDetail, String createTimeOrder,
+                                          String operation, String operationDetail,String systemLogOperationType, String createTimeOrder,
                                           String simpleStatus, Integer pageNum, Integer pageSize,String retrievalInformation) {
-		return getSysLogList(organizationId, timeLimited, userId, operation,operationDetail,
+		return getSysLogList(organizationId, timeLimited, userId, operation,operationDetail,systemLogOperationType,
 				createTimeOrder,simpleStatus, pageNum, pageSize,retrievalInformation);
 	}
 
@@ -602,7 +603,7 @@ public class MysqlSystemLog extends AbstractSystemLog {
 	 * @return
 	 */
 	private Page<SystemLog> getSysLogList(String organizationId, String timeLimited, String userId,
-                                          String operation, String operationDetail,
+                                          String operation, String operationDetail,String systemLogOperationType,
                                           String createTimeOrder, String simpleStatus,
                                           Integer pageNum, Integer pageSize,String retrievalInformation) {
 
@@ -620,6 +621,10 @@ public class MysqlSystemLog extends AbstractSystemLog {
 				}
 				if (StringUtil.isNotEmpty(operationDetail)) {
 					Predicate userIdPredicate = cb.like(root.get("systemLogOperation").as(String.class), "%"+operationDetail+"%");
+					allPredicates.add(userIdPredicate);
+				}
+				if (StringUtil.isNotEmpty(systemLogOperationType)) {
+					Predicate userIdPredicate = cb.like(root.get("systemLogOperationType").as(String.class), "%"+systemLogOperationType+"%");
 					allPredicates.add(userIdPredicate);
 				}
 				if (StringUtil.isNotEmpty(simpleStatus)) {
@@ -760,6 +765,21 @@ public class MysqlSystemLog extends AbstractSystemLog {
 		AtomicInteger loginCount = new AtomicInteger(0);
 		for (User user : users) {
 			int currentUserLoginCount = UserUtils.getLoginCount(user.getUserName() + user.getId());
+			loginCount.addAndGet(currentUserLoginCount);
+		}
+		return loginCount.intValue();
+	}
+
+	/***
+	 * 获取当前机构总登陆次数
+	 *
+	 * @return
+	 */
+	private int getTotalCount(Organization org) {
+		List<User> users = userRepository.findByOrganizationId(org.getOrganizationId());
+		AtomicInteger loginCount = new AtomicInteger(0);
+		for (User user : users) {
+			int currentUserLoginCount = user.getTotalTimes() == null?0:user.getTotalTimes();
 			loginCount.addAndGet(currentUserLoginCount);
 		}
 		return loginCount.intValue();
