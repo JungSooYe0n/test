@@ -67,17 +67,17 @@ public interface MysqlSystemLogRepository extends JpaRepository<SystemLog, Strin
     Object[] itemPerByUserId(@Param("userIds")List<String> userIds, @Param("dateStr")String dateStr);
 
     //查询数量 根据机构查
-    @Query(value = "SELECT organization_id,DATE(created_time) 'createdTime',COUNT(id) num " +//distinct 这里我进行了一个去重的操作 这个可以忽略,业务需求
+    @Query(value = "SELECT organization_id,DATE(created_time) 'createdTime',COUNT(id) num ,createduser_id " +//distinct 这里我进行了一个去重的操作 这个可以忽略,业务需求
             "FROM system_log a " +
             "WHERE `createduser_id` IN (:userIds) AND `system_log_type` != '登录相关'" +
-            "AND a.created_time >= date_format((:dateStr),'%Y-%m-%d %H:%M:%S') GROUP BY organization_id , createdTime ORDER BY createdTime", nativeQuery = true)
+            "AND a.created_time >= date_format((:dateStr),'%Y-%m-%d %H:%M:%S') GROUP BY organization_id ,createduser_id, createdTime ORDER BY createdTime", nativeQuery = true)
     List<String[]> timeStatic(@Param("userIds")List<String> userIds, @Param("dateStr")String dateStr);
 
     //查询数量 根据机构查
-    @Query(value = "SELECT organization_id,DATE(created_time) 'createdTime',COUNT(id) num " +//distinct 这里我进行了一个去重的操作 这个可以忽略,业务需求
+    @Query(value = "SELECT organization_id,DATE(created_time) 'createdTime',COUNT(id) num ,createduser_id " +//distinct 这里我进行了一个去重的操作 这个可以忽略,业务需求
             "FROM system_log a " +
             "WHERE `organization_id` IN (:orgIds) AND `system_log_type` != '登录相关'" +
-            "AND a.created_time >= date_format((:dateStr),'%Y-%m-%d %H:%M:%S') GROUP BY organization_id , createdTime ORDER BY createdTime", nativeQuery = true)
+            "AND a.created_time >= date_format((:dateStr),'%Y-%m-%d %H:%M:%S') GROUP BY organization_id ,createduser_id, createdTime ORDER BY createdTime", nativeQuery = true)
     List<String[]> timeStaticOrg(@Param("orgIds")List<String> orgIds, @Param("dateStr")String dateStr);
 
     //查询数量 根据机构查

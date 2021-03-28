@@ -166,6 +166,9 @@ public class SystemLog extends SystemLogBaseEntity {
 	@Column(name = "`num`")
 	private Integer num;
 
+	@Transient
+	private String orgName = "";
+
 	/**
 	 * 按分组统计
 	 */

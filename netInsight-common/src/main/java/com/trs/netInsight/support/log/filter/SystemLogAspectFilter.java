@@ -149,7 +149,7 @@ public class SystemLogAspectFilter {
 			SystemLog systemLog = new SystemLog(parames, methodDescription, systemLogType.getValue(),
 					systemLogOperation.getValue(),systemLogOperation.getOperator(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					ResultCode.SUCCESS, simpleStatus, null, osInfo, browserInfo, sessionId, operationPosition,
-					user.getUserName() == null ? UserUtils.getUser().getUserName():user.getUserName(), trsl,num,0);
+					user.getUserName() == null ? UserUtils.getUser().getUserName():user.getUserName(), trsl,num,null,0);
 			addUserInfo(systemLog);
 			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,log.depositPattern(),currentUser);
 			singleThreadExecutor.execute(runnableThreadTest);
@@ -278,7 +278,7 @@ public class SystemLogAspectFilter {
 			SystemLog systemLog = new SystemLog(requestParams, methodDescription, systemLogType.getValue(),
 					systemLogOperation.getValue(), systemLogOperation.getOperator(),null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					t.getCode(), simpleStatus, StringUtils.substring(t.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
-					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
+					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,null,0);
 			addUserInfo(systemLog);
 			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern,user);
 			singleThreadExecutor.execute(runnableThreadTest);
@@ -294,7 +294,7 @@ public class SystemLogAspectFilter {
 			SystemLog systemLog = new SystemLog(requestParams, methodDescription, systemLogType.getValue(),
 					systemLogOperation.getValue(),systemLogOperation.getOperator(), null, requestIp, requestUri, startTime, endTime, timeConsumed,
 					ResultCode.OPERATION_EXCEPTION, simpleStatus, StringUtils.substring(throwable.getMessage(), START, END), osInfo, browserInfo, sessionId, operationPosition,
-					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,0);
+					operationUserName == null ? UserUtils.getUser().getUserName():operationUserName, trsl,null,null,0);
 			addUserInfo(systemLog);
 			RunnableThreadTest runnableThreadTest = new RunnableThreadTest(systemLog,depositPattern,user);
 			singleThreadExecutor.execute(runnableThreadTest);

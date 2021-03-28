@@ -107,7 +107,7 @@ public class SystemLogController {
 		SystemLog systemLog = new SystemLog(null, null, systemLogType.getValue(),
 				systemLogOperation.getValue(),systemLogOperation.getOperator(), systemLogTabId, NetworkUtil.getIpAddress(request),  request.getRequestURI(), new Date(), new Date(), timeConsumed,
 				ResultCode.SUCCESS, null, null, null, null, null, null,
-				UserUtils.getUser().getUserName(), null,null,0);
+				UserUtils.getUser().getUserName(), null,null,null,0);
 		User user = UserUtils.getUser();
 		abstractSystemLog.add(systemLog,user);
 	}
@@ -506,17 +506,26 @@ public class SystemLogController {
         for (Organization org:orgs){
         	String id = org.getId();
         	String name = org.getOrganizationName();
-            Map<String,Integer> item = new LinkedHashMap<>();
-            for (String st:betweenDateString){
-                item.put(st,0);
-            }
-            for (Object[] itemSta:obj){
-            	if (id.equals(itemSta[0].toString())){
-            		item.put(itemSta[1].toString(),Integer.parseInt(itemSta[2].toString()));
+			List<User> byOrganizationId = userRepository.findByOrganizationId(id);
+			for (User user:byOrganizationId){
+				Map<String,Integer> item = new LinkedHashMap<>();
+				int isLogin = 0;
+				for (Object[] itemSta:obj){
+					if (id.equals(itemSta[0].toString()) && user.getId().equals(itemSta[3].toString())){
+						if (isLogin == 0){
+							for (String st:betweenDateString){
+								item.put(st,0);
+							}
+						}
+						isLogin++;
+						item.put(itemSta[1].toString(),Integer.parseInt(itemSta[2].toString()));
+					}
+				}
+				if (item.size()>0){
+					rtnMap.put(name+"-"+user.getUserName(),item);
 				}
 			}
-            rtnMap.put(name,item);
-        }
+		}
         return rtnMap;
     }
 
@@ -569,7 +578,9 @@ public class SystemLogController {
 		HashMap<String,Integer> rtnMap = new LinkedHashMap<>();
 		orgIds = getOrgIds(currId);
 		obj = mysqlSystemLogRepository.getResponseTimeElastic(orgIds,beginTime);
-
+		for (SystemLog systemLog:obj){
+			systemLog.setOrgName(organizationRepository.findOne(systemLog.getOrganizationId()).getOrganizationName());
+		}
 		return obj;
 	}
 
