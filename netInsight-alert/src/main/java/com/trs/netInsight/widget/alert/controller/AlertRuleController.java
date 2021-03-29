@@ -444,7 +444,7 @@ public class AlertRuleController {
 		alertRule.setAlertEndHour(alertEndHour);
 		// 防止修改后第一次预警时间交叉导致预警内容重复 所以注掉这两行
 //		alertRule.setLastStartTime(null);
-//		alertRule.setLastExecutionTime(0L);
+		alertRule.setLastExecutionTime(0L);
 		alertRule.setAlertType(alertSource);
 		alertRule.setWeek(week);
 		alertRule.setSpecialType(type);
@@ -653,6 +653,7 @@ public class AlertRuleController {
 		}
 		ScheduleStatus statusValue = ScheduleStatus.valueOf(status);
 		alertRule.setStatus(statusValue);
+		alertRule.setLastExecutionTime(0L);
 		try {
 			// 验证方法
 			AlertRule alertRuleUpdate = alertRuleService.addAlertRule(alertRule);
