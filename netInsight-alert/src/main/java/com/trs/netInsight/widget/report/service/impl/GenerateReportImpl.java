@@ -356,48 +356,51 @@ public class GenerateReportImpl implements IGenerateReport {
 //		elementList = ReportUtil.tElementListHandle(elementList);
 		AtomicInteger i = new AtomicInteger(0);
 		for(TElementNew e : elementList){
-			Chapter chapter = Chapter.valueOf(e.getChapterDetail());
-			switch (e.getChapterType()) {
-				case ReportConst.SINGLERESOURCE:
-					i.getAndIncrement();    //以原子方式将当前值 + 1
-					List<ReportResource> chapaterContent = e.getChapaterContent();
-					if (e.getChapterPosition() == 0 || chapter.equals(Chapter.Report_Synopsis)) {
-						//报告简介
-						singleParagraph(xwpfDocument, e.getChapterName(), reportIntro, i.intValue());
-					} else if(e.getChapterPosition() == 1|| chapter.equals(Chapter.Statistics_Summarize)){
-						//数据统计概述
-						if (!CollectionUtils.isEmpty(chapaterContent)) {
-							chapaterContent.get(0).setImgComment(dataSummary);
+			//只有被选上的模块才可以下载下来，也就是 selected 是 1
+			if (e.getSelected() != null && e.getSelected() == 1) {
+				Chapter chapter = Chapter.valueOf(e.getChapterDetail());
+				switch (e.getChapterType()) {
+					case ReportConst.SINGLERESOURCE:
+						i.getAndIncrement();    //以原子方式将当前值 + 1
+						List<ReportResource> chapaterContent = e.getChapaterContent();
+						if (e.getChapterPosition() == 0 || chapter.equals(Chapter.Report_Synopsis)) {
+							//报告简介
+							singleParagraph(xwpfDocument, e.getChapterName(), reportIntro, i.intValue());
+						} else if(e.getChapterPosition() == 1|| chapter.equals(Chapter.Statistics_Summarize)){
+							//数据统计概述
+							if (!CollectionUtils.isEmpty(chapaterContent)) {
+								chapaterContent.get(0).setImgComment(dataSummary);
+							}
+							singleParagraph(xwpfDocument,  e.getChapterName(), dataSummary, i.intValue());
 						}
-						singleParagraph(xwpfDocument,  e.getChapterName(), dataSummary, i.intValue());
-					}
-					break;
-				case ReportConst.LISTRESOURCES:
-					i.getAndIncrement();
-					try {
-						dataListParagraph(xwpfDocument, e.getChapterName(),e.getChapterDetail(), e.getChapaterContent(), i.intValue(),e.getElementNewType());
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-					break;
-				case ReportConst.CHART:
-					i.getAndIncrement();
-					String base64MapKey = e.getChapterName();
-					String keyName = e.getChapterDetail() + "_"+e.getChapterPosition();
-					if(base64data.containsKey(keyName)){
-						base64MapKey = keyName;
-					}
-					List<Map<String, String>> chapterContent = base64data.get(base64MapKey);
-					try {
-						imgParagraph(xwpfDocument, e.getChapterName(), chapterContent, i.intValue());
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-					break;
-				default:
-					break;
+						break;
+					case ReportConst.LISTRESOURCES:
+						i.getAndIncrement();
+						try {
+							dataListParagraph(xwpfDocument, e.getChapterName(),e.getChapterDetail(), e.getChapaterContent(), i.intValue(),e.getElementNewType());
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+						break;
+					case ReportConst.CHART:
+						i.getAndIncrement();
+						String base64MapKey = e.getChapterName();
+						String keyName = e.getChapterDetail() + "_"+e.getChapterPosition();
+						if(base64data.containsKey(keyName)){
+							base64MapKey = keyName;
+						}
+						List<Map<String, String>> chapterContent = base64data.get(base64MapKey);
+						try {
+							imgParagraph(xwpfDocument, e.getChapterName(), chapterContent, i.intValue());
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+						break;
+					default:
+						break;
+				}
 			}
-			}
+		}
 			//加入附件
 		List<ReportResource> chapterContent = new ArrayList<>();
 		for (TElementNew tElementNew : elementList) {
