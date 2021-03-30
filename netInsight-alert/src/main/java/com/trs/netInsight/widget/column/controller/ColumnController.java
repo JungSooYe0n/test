@@ -1340,7 +1340,7 @@ if (isAddAlert) {
 		if (ObjectUtil.isEmpty(wordFromNum)) wordFromNum = 200000000;
 		Date startDate = new Date();
 		IndexTab indexTab = null;
-		String operation = "日常监测 图表查询 - 栏目";
+		String operation = "日常监测-图表查询-栏目";
 		ChartPageInfo chartPageInfo = ChartPageInfo.valueOf(chartPage);
 		if(ChartPageInfo.CustomChart.equals(chartPageInfo)){
 			CustomChart customChart = columnChartService.findOneCustomChart(id);
@@ -1349,7 +1349,7 @@ if (isAddAlert) {
 			}
 			//待写， 需要通过自定义图表的类生成一个indextab
 			indexTab = customChart.indexTab();
-			operation = "日常监测 - 自定义图表-"+customChart.getName();
+			operation = "日常监测-自定义图表-"+customChart.getName();
 		}else if(ChartPageInfo.StatisticalChart.equals(chartPageInfo)){
 			StatisticalChart statisticalChart = columnChartService.findOneStatisticalChart(id);
 			if(ObjectUtil.isEmpty(statisticalChart)){
@@ -1363,7 +1363,7 @@ if (isAddAlert) {
 			if(StatisticalChartInfo.WORD_CLOUD.equals(statisticalChartInfo)){
 				indexTab.setTabWidth(100);
 			}
-			operation = "日常监测 - 统计分析 - "+statisticalChartInfo.getChartName();
+			operation = "日常监测-统计分析-"+statisticalChartInfo.getChartName();
 		}else{
 			IndexTabMapper mapper = indexTabMapperService.findOne(id);
 			if(ObjectUtil.isEmpty(mapper)){
@@ -1697,7 +1697,7 @@ if (isAddAlert) {
 			requestTimeLog.setStartTime(startDate);
 			requestTimeLog.setEndTime(new Date());
 			requestTimeLog.setRandomNum(randomNum);
-			requestTimeLog.setOperation("日常监测 图表跳列表页");
+			requestTimeLog.setOperation("日常监测-图表跳列表页");
 			requestTimeLogRepository.save(requestTimeLog);
 			return object;
 		}else{
@@ -1711,7 +1711,7 @@ if (isAddAlert) {
 			requestTimeLog.setStartTime(startDate);
 			requestTimeLog.setEndTime(new Date());
 			requestTimeLog.setRandomNum(randomNum);
-			requestTimeLog.setOperation("日常监测 图表跳列表页");
+			requestTimeLog.setOperation("日常监测-图表跳列表页");
 			requestTimeLogRepository.save(requestTimeLog);
 			return object;
 		}
@@ -1729,7 +1729,6 @@ if (isAddAlert) {
 			@ApiParam("一页多少条") @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
 			@ApiParam("结果中搜索") @RequestParam(value = "fuzzyValue", required = false) String fuzzyValue,
 			@ApiParam("结果中搜索de范围")@RequestParam(value = "fuzzyValueScope", defaultValue = "fullText",required = false) String fuzzyValueScope,
-
 			@ApiParam("时间") @RequestParam(value = "timeRange", required = false) String timeRange,
 			@ApiParam("排重规则  -  替换栏目条件") @RequestParam(value = "simflag", required = false) String simflag,
 			@ApiParam("关键词命中位置 0：标题、1：标题+正文、2：标题+摘要  替换栏目条件") @RequestParam(value = "wordIndex", required = false) String wordIndex,
@@ -1827,7 +1826,7 @@ if (isAddAlert) {
 		requestTimeLog.setStartTime(startDate);
 		requestTimeLog.setEndTime(new Date());
 		requestTimeLog.setRandomNum(randomNum);
-		requestTimeLog.setOperation("日常监测 信息列表 - 信息列表");
+		requestTimeLog.setOperation("日常监测-信息列表-信息列表");
 		requestTimeLogRepository.save(requestTimeLog);
 		return object;
 	}
@@ -1941,7 +1940,7 @@ if (isAddAlert) {
 		requestTimeLog.setStartTime(startDate);
 		requestTimeLog.setEndTime(new Date());
 		requestTimeLog.setRandomNum(randomNum);
-		requestTimeLog.setOperation("日常监测 信息列表 - 数据统计");
+		requestTimeLog.setOperation("日常监测-信息列表-数据统计");
 		requestTimeLogRepository.save(requestTimeLog);
 		return object;
 	}

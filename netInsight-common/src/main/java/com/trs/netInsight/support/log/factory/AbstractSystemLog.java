@@ -114,7 +114,7 @@ public abstract class AbstractSystemLog {
 	 * @return
 	 */
 	public abstract Page<SystemLog> findCurOrgLogs(String organizationId, String timeLimited, String userId,
-                                                   String operation, String operationDetail, String createTimeOrder, String simpleStatus, Integer pageNum, Integer pageSize,String retrievalCondition);
+                                                   String operation, String operationDetail,String systemLogOperationType, String createTimeOrder, String simpleStatus, Integer pageNum, Integer pageSize,String retrievalCondition);
 
 	/**
 	 * 查看机构下所有用户

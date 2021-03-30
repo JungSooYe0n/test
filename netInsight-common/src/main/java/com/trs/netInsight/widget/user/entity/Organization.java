@@ -285,13 +285,25 @@ public class Organization extends BaseEntity implements Comparable<Organization>
 	 */
 	@Transient
 	private Integer loginCount;
+
+	/**
+	 * 前天登录次数
+	 */
+	@Transient
+	private Integer lastDayCount;
+
+	/**
+	 * 一周登录次数
+	 */
+	@Transient
+	private Integer weekCount;
 	/**
 	 * 在线人数（不入库）
 	 */
 	@Transient
 	private Integer onlineUserCount;
 	/**
-	 * 上面两个参数哪个排序 0不排序 1在线人数 ,2登录次数
+	 * 上面两个参数哪个排序 0不排序 1在线人数 ,2登录次数,3昨日登录次数，4周登录次数
 	 */
 	@Transient
 	private Integer sortByCount;
@@ -314,9 +326,18 @@ public class Organization extends BaseEntity implements Comparable<Organization>
 		if(this.onlineUserCount==null) this.onlineUserCount=0;
 		if(o.onlineUserCount==null) o.onlineUserCount=0;
 		if(o.loginCount==null) o.loginCount=0;
+		if(o.lastDayCount==null) o.lastDayCount=0;
+		if(o.weekCount==null) o.weekCount=0;
 		if(this.ascDesc==null) this.ascDesc="";
-
-		if(this.ascDesc.equals("desc") && sortByCount==2){
+		if(this.ascDesc.equals("desc") && sortByCount==4){
+			return o.weekCount - this.weekCount;
+		}else if(this.ascDesc.equals("asc") && sortByCount==4){
+			return this.weekCount - o.weekCount;
+		}else if(this.ascDesc.equals("desc") && sortByCount==3){
+			return o.lastDayCount - this.lastDayCount;
+		}else if(this.ascDesc.equals("asc") && sortByCount==3){
+			return this.lastDayCount - o.lastDayCount;
+		}else if(this.ascDesc.equals("desc") && sortByCount==2){
 			return o.loginCount - this.loginCount;
 		}else if(this.ascDesc.equals("asc") && sortByCount==2){
 			return this.loginCount - o.loginCount;
