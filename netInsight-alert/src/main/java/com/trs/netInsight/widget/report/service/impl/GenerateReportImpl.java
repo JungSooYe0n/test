@@ -169,9 +169,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(StringUtil.isNotEmpty(reportData.getNewsEventContext())){
 					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getNewsEventContext(), new TypeReference<List<ReportResource>>() {});
-					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
+					dataListParagraph(xwpfDocument, "新闻网站事件脉络".equals(element.getChapterName()) ? "新闻事件脉络" : "新闻网站事件脉络", element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
-					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
+					dataListParagraph(xwpfDocument, "新闻网站事件脉络".equals(element.getChapterName()) ? "新闻事件脉络" : "新闻网站事件脉络", element.getChapterDetail(),null,i,element.getElementNewType());
 				}
 				log.info(String.format(GENERATEREPORTLOG,NEWSEVENTCONTEXT + DONE));
 				break;
