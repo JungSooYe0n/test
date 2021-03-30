@@ -401,11 +401,11 @@ public class UserUtils {
 		if (integer == null) {
 			RedisUtil.setInteger(key, 1);
 			count = 1;
-			RedisUtil.expire(key, 1, TimeUnit.DAYS);
+			RedisUtil.expire(key, 8, TimeUnit.DAYS);
 		} else {
 			RedisUtil.setInteger(key, ++integer);
 			count = integer;
-			RedisUtil.expire(key, 1, TimeUnit.DAYS);
+			RedisUtil.expire(key, 8, TimeUnit.DAYS);
 		}
 		return count;
 	}
@@ -430,6 +430,38 @@ public class UserUtils {
 			return 0;
 		}
 		return integer;
+	}
+
+	/**
+	 * 获取前一天登录次数
+	 * @param userName
+	 * @return
+	 */
+	public static int getDaysBeforeLoginCount(String userName,int days) {
+		String key = LOGIN_COUNT + userName + DateUtil.formatDaysBeforeTime(DateUtil.yyyyMMdd3,days);
+		Integer integer = null;
+		try {
+			integer = RedisUtil.getInteger(key);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		if (integer == null) {
+			return 0;
+		}
+		return integer;
+	}
+
+	/**
+	 * 获取前一周登录次数
+	 * @param userName
+	 * @return
+	 */
+	public static int getWeekLoginCount(String userName) {
+		int count = 0;
+		for (int i=0;i<7;i++){
+			count+=getDaysBeforeLoginCount(userName,i);
+		}
+		return count;
 	}
 	/**
 	 * 修改当前用户是否预警的信息

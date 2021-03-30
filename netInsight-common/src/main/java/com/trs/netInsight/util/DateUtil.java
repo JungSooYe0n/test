@@ -187,6 +187,14 @@ public class DateUtil {
 		return new SimpleDateFormat(format).format(new Date());
 	}
 
+	public static String formatDaysBeforeTime(String format,int day) {
+		Calendar ca = Calendar.getInstance();//得到一个Calendar的实例
+		ca.setTime(new Date()); //设置时间为当前时间
+		ca.add(Calendar.DATE, 0-day);
+		Date date = ca.getTime();
+		return new SimpleDateFormat(format).format(date);
+	}
+
 	/**
 	 *
 	 * 获取与指定日期间隔指定天数的日期
