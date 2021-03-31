@@ -214,35 +214,38 @@ public class SpecialReportUtil {
     // 日常监测 专题分析报告的 活跃账号
     private static String getActiveAccount(String imgData) {
         NumberFormat numberFormat1 = NumberFormat.getNumberInstance();
-        if(StringUtil.isNotEmpty(imgData)){
+        if(StringUtil.isNotEmpty(imgData)) {
             StringBuilder resultSb = new StringBuilder();
             List<Map<String, Object>> parseArray = JSONObject.parseObject(imgData,
                     new TypeReference<List<Map<String, Object>>>() {
                     });
 
             Map<String, Object> oneMap = parseArray.get(0);
-            String name = (String)oneMap.get("name");
-            List<Map<String, Object>>info = (List<Map<String, Object>>)oneMap.get("info");
-            resultSb.append("由图可知，活跃度最高的10个为");
-            String maxName = "";
-            Integer maxNum = -1;
-            for(Map<String, Object> infoMap :info){
-                String sitename = (String)infoMap.get("name");
-                if(StringUtil.isNotEmpty(sitename)){
-                    Integer value = Integer.valueOf(infoMap.get("value").toString());
-                    if(value >maxNum){
-                        maxName = sitename;
-                        maxNum = value;
+            String name = (String) oneMap.get("name");
+            List<Map<String, Object>> info = (List<Map<String, Object>>) oneMap.get("info");
+            if (info.size()>0) {
+                Integer count = info.size();
+                resultSb.append("由图可知，活跃度最高的"+count+"个为");
+                String maxName = "";
+                Integer maxNum = -1;
+                for (Map<String, Object> infoMap : info) {
+                    String sitename = (String) infoMap.get("name");
+                    if (StringUtil.isNotEmpty(sitename)) {
+                        Integer value = Integer.valueOf(infoMap.get("value").toString());
+                        if (value > maxNum) {
+                            maxName = sitename;
+                            maxNum = value;
+                        }
+                        resultSb.append(sitename).append("、");
                     }
-                    resultSb.append(sitename).append("、");
                 }
-            }
-            String str = resultSb.toString().substring(0,resultSb.length()-1);
-            resultSb = new StringBuilder(str);
-            resultSb.append("。其中，").append(maxName).append("发布的信息量最大，共")
-                    .append(numberFormat1.format(maxNum)).append("篇。");
+                String str = resultSb.toString().substring(0, resultSb.length() - 1);
+                resultSb = new StringBuilder(str);
+                resultSb.append("。其中，").append(maxName).append("发布的信息量最大，共")
+                        .append(numberFormat1.format(maxNum)).append("篇。");
 
-            return resultSb.toString();
+                return resultSb.toString();
+            }
         }
         return null;
     }
