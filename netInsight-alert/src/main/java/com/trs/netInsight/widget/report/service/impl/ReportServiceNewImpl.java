@@ -457,11 +457,11 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 //					}
 //					List<ReportResource> newChapterList = reportResourceRepository.findByTemplateIdAndChapter(templateId, chapter);
 					Integer docPosition = 0;
-					if(thisChapterList.size() == 0){
-						docPosition = -1;
-					}else{
-						docPosition = thisChapterList.size() + 1 + i;
-					}
+//					if(thisChapterList.size() == 0){
+//						docPosition = -1;
+//					}else{
+//						docPosition = thisChapterList.size() + 1 + i;
+//					}
 					//准备插入列表数据
 					insertListDataIntoResources(docPosition, sidArray, i ,userId, groupNameArray, chapter, img_data, null,
 							reportType, templateId, imgType, chapterPosition, reportId, reportResourcesList);
@@ -470,11 +470,15 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		}
 		List<ReportResource> thisChapterList = reportResourceRepository.findByTemplateIdAndChapter(templateId, chapter);
 		//资源池中完全没有数据，新加入数据时走这里
-		if(thisChapterList.size() == 0){
-			for(int i = 0; i < reportResourcesList.size(); i++){
-				reportResourcesList.get(i).setDocPosition(i + 1);
+		if(thisChapterList.size() > 0){
+			for(int i = 0; i < thisChapterList.size(); i++){
+				thisChapterList.get(i).setDocPosition(reportResourcesList.size()+ i + 1);
 			}
 		}
+		reportResourceRepository.save(thisChapterList);
+		for(int i = 0; i < reportResourcesList.size(); i++){
+				reportResourcesList.get(i).setDocPosition(i + 1);
+			}
 		//区分加入报告资源池和列表预览资源池
 		if(StringUtil.isEmpty(reportId)){
 			fixedThreadPool.execute(new ReportResourceTask(reportResourcesList,trslk));
