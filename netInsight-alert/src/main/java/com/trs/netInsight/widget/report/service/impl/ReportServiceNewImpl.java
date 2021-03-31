@@ -1261,7 +1261,9 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	private List<TElementNew> getlistPreviewData(List<ReportResource> previewResources, String templateList) {
 		List<TElementNew> elements = JSONArray.parseArray(templateList, TElementNew.class);
 		//elements = ReportUtil.tElementListHandle(elements);
-		return ReportUtil.setDataInElements(elements, previewResources);
+		//预览只展示被选上的模块
+		List<TElementNew> tElementNews = elements.stream().filter(e -> e.getSelected() == 1).collect(Collectors.toList());
+		return ReportUtil.setDataInElements(tElementNews, previewResources);
 	}
 	
 

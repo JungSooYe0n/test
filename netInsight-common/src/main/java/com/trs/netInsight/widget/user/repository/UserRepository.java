@@ -13,12 +13,14 @@
  */
 package com.trs.netInsight.widget.user.repository;
 
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -248,6 +250,18 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
 	 * @return
 	 */
 	public Page<User> findBySubGroupId(String subGroupId, Pageable pageable);
+
+	//查询数量 根据机构查
+	@Query(value = "SELECT * " +//distinct 这里我进行了一个去重的操作 这个可以忽略,业务需求
+			"FROM user a " +
+			"WHERE `id` IN (:userIds) order by :orderBy :orderBy :sort", nativeQuery = true)
+	List<User> topTenMoudleUserId(@Param("userIds")List<String> userIds,@Param("orderBy")String orderBy,@Param("sort")String sort);
+
+	//查询数量 根据机构查
+	@Query(value = "SELECT * " +//distinct 这里我进行了一个去重的操作 这个可以忽略,业务需求
+			"FROM user a " +
+			"WHERE `organization_id` IN (:orgIds) order by :orderBy :sort", nativeQuery = true)
+	List<User> topTenMoudle(@Param("orgIds")List<String> orgIds,@Param("orderBy")String orderBy,@Param("sort")String sort);
 
 }
 

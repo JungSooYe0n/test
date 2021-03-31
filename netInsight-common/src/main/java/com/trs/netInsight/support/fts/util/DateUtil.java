@@ -1,6 +1,7 @@
 package com.trs.netInsight.support.fts.util;
 
 import com.trs.netInsight.config.constant.FtsFieldConst;
+import com.trs.netInsight.handler.exception.NullException;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
@@ -64,6 +65,7 @@ public class DateUtil {
 	public static final String yyyyMMdd4 = "yyyy/MM/dd";
 	public static final String yyyyMMddHHmmss = "yyyyMMddHHmmss";
 	public static final String yyyyMMddHHmmss_Line = "yyyy/MM/dd HH:mm:ss";
+	public static final String yyyyMMddHHmmss_Spe = "yyyy-MM-dd HH:mm:ss";
 	public static final String yyyyMMddHHmmss_Line2 = "yyyy/MM/dd HH:mm";
 	/**
 	 * 全格式,至毫秒级
@@ -189,19 +191,6 @@ public class DateUtil {
 
 	public static int millisecondsToDays(long intervalMs) {
 		return (int) (intervalMs / (1000 * 86400));
-	}
-
-
-	public static void main(String[] args) {
-		try {
-			String time = "10n";
-			String[] timeArray = formatTimeRangeMinus1(time);
-			System.out.println(timeArray[0]);
-			System.out.println(timeArray[1]);
-		}catch (Exception e){
-			e.printStackTrace();
-		}
-
 	}
 
 	/**
@@ -1508,6 +1497,35 @@ public class DateUtil {
 		}
 		return list;
 	}
+
+	/**
+	 * 获取两个时间段之前的小时
+	 *
+	 * 要求开始时间和结束时间为同一天(单条微博分析——被转载趋势图)
+	 * @param beginDate
+	 * @param endDate
+	 * @return
+	 */
+	public static List<String> getBetweenDateHourString3(String beginDate, String endDate) {
+		List<String> list = new ArrayList<String>();
+		String start = "";
+		String end = "";
+		start = beginDate.substring(8,10);
+		end = endDate.substring(8,10);
+
+		int i1 = Integer.parseInt(end) - Integer.parseInt(start);
+		for (int i = 0; i <= (Integer.parseInt(end)-Integer.parseInt(start)); i++) {
+			String value = String.valueOf(Integer.parseInt(start) + i);
+			if (value.length()==1){
+				value = "0"+value;
+			}
+//			if ("00".equals(value)){//每天的00点要加上具体年月日
+//				value = stringToStringDate(beginDate.substring(0, 8), yyyyMMdd2, yyyyMMdd3);
+//			}
+			list.add(value);
+		}
+		return list;
+	}
 	/**
 	 * 获取当前时间内的所有时间 小时 例如 2017.01.01 01 2017.01.01 02
 	 *
@@ -1996,6 +2014,18 @@ public class DateUtil {
 			cal.add(field, -num);
 		}
 		return new SimpleDateFormat(yyyyMMddHHmmss).format(cal.getTime());
+	}
+
+	private static String getSpecialDateBefore(int num, int field) {
+		Calendar cal = Calendar.getInstance();
+		if (num == 0 && field == Calendar.DAY_OF_MONTH) {
+			cal.set(Calendar.HOUR_OF_DAY, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+		} else {
+			cal.add(field, -num);
+		}
+		return new SimpleDateFormat(yyyyMMddHHmmss_Spe).format(cal.getTime());
 	}
 	/**
 	 * 获取几天前的时间 格式为yyyy/MM/dd HH:mm:ss 主要是折线图部分需要
@@ -2834,6 +2864,54 @@ public class DateUtil {
 		}else{
 			return false;
 		}
+	}
+
+	public static String[] getBeginTime(String time){
+		// 可以不选择结束时间 以"至今"判断
+		String[] timeArray = new String[2];
+
+		Pattern pattern1 = Pattern.compile("[0-9]*[hdwmyn]");
+		// 如果满足xh/d/w/m/y(代表:近x时/天/周/月/年)这种格式
+		System.out.println(time.substring(0, time.length() - 1));
+		int timeNum = Integer.parseInt(time.substring(0, time.length() - 1));
+		if (time.indexOf("d")!=-1){
+			timeNum = timeNum>0?timeNum-1:0;
+		}
+		char timeFlag = time.charAt(time.length() - 1);
+		timeArray[1] = new SimpleDateFormat(yyyyMMdd3).format(new Date())+" 23:59:59";
+		switch (timeFlag) {
+			case 'h':
+				timeArray[0] = getSpecialDateBefore(timeNum, Calendar.HOUR_OF_DAY);
+				break;
+			case 'd':
+				timeArray[0] = getSpecialDateBefore(timeNum, Calendar.DAY_OF_MONTH);
+				timeArray[0] = timeArray[0].substring(0,10)+" 00:00:00";
+				break;
+			case 'w':
+				timeArray[0] = getSpecialDateBefore(timeNum, Calendar.WEEK_OF_MONTH);
+				timeArray[0] = timeArray[0].substring(0,10)+" 00:00:00";
+				break;
+			case 'm':
+				timeArray[0] = getSpecialDateBefore(timeNum, Calendar.MONTH);
+				timeArray[0] = timeArray[0].substring(0,10)+" 00:00:00";
+				break;
+			case 'y':
+				timeArray[0] = getSpecialDateBefore(timeNum, Calendar.YEAR);
+				timeArray[0] = timeArray[0].substring(0,10)+" 00:00:00";
+				break;
+			case 'n':
+				timeArray[0] = getSpecialDateBefore(timeNum, Calendar.MINUTE);
+				timeArray[0] = timeArray[0].substring(0,10)+" 00:00:00";
+				break;
+			default:
+				break;
+		}
+		return timeArray;
+
+	}
+
+	public static void main(String[] args) {
+		System.out.println(getBeginTime("1w"));
 	}
 
 
