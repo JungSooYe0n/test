@@ -109,7 +109,7 @@ public class HostListColumn extends AbstractColumn {
                     map.put("abstracts", content);
                     map.put("author", vo.getAuthors());
                 }
-                //自媒体、博客、视频、短视频的 siteName 用 authors 代替
+                //自媒体、博客、视频、短视频
                 if (Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(groupName) || Const.MEDIA_TYPE_VIDEO.contains(groupName)) {
                     map.put("siteName", StringUtil.isNotEmpty(vo.getAuthors()) ? vo.getSiteName() + "-" + vo.getAuthors() : vo.getSiteName());
                 }

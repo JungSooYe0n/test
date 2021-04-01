@@ -801,6 +801,10 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                     map.put("abstracts", content);
                     map.put("siteName", vo.getAuthors());
                 }
+                //自媒体、博客 siteName 用 authors 代替
+                if (Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(groupName)) {
+                    map.put("siteName", StringUtil.isNotEmpty(vo.getAuthors()) ? vo.getAuthors() : vo.getSiteName());
+                }
                 map.put("commtCount", vo.getCommtCount());
                 map.put("rttCount", vo.getRttCount());
                 long simNum = vo.getSimCount() == 0 ? 0:vo.getSimCount()-1;
