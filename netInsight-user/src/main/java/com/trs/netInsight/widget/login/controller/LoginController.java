@@ -300,13 +300,7 @@ public class LoginController {
 	@ResponseBody
 	@RequestMapping(value = "/isKickOut", method = RequestMethod.GET)
 	public Object kickOut(HttpServletRequest request) throws TRSException {
-		Cookie[] cookies = request.getCookies();
-		String sessionId = null;
-		for (Cookie cookie : cookies) {
-			if(cookie.getName().equals("JSESSIONID")){
-				sessionId = cookie.getValue();
-			}
-		}
+		String sessionId = request.getSession().getId();
 		String userName = RedisUtil.getString("kickout"+sessionId);
 		if(userName!=null){
 			RedisUtil.deleteKey("kickout"+sessionId);
