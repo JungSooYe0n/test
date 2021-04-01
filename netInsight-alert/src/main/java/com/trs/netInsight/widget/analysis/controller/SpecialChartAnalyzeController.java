@@ -1918,9 +1918,6 @@ public class SpecialChartAnalyzeController {
 				if(Const.PAGE_SHOW_WEIBO.equals(groupName) || Const.GROUPNAME_WEIBO.equals(groupName)) {
 					ftsDocument.setSiteName(ftsDocument.getAuthors());
 				}
-				if (Const.PAGE_SHOW_ZIMEITI.equals(groupName) || Const.GROUPNAME_ZIMEITI.equals(groupName)) {
-					ftsDocument.setSiteName(ftsDocument.getSiteName() + "-" + ftsDocument.getAuthors());
-				}
 			}
             RequestTimeLog requestTimeLog = new RequestTimeLog();
 			requestTimeLog.setTabId(specialId);

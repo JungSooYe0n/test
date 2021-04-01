@@ -470,12 +470,17 @@ public String reBuildReport(String reportId,String jsonImgElemets,String reportI
                     //reportResourceTemp.setNewsAbstract(ReportUtil.replaceHtml(StringUtil.removeFourChar(ftsDocumentCommonVO.getAbstractContent())));
                     weChat.add(reportResourceTemp);
                 } else {
+                    if (Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(ftsDocumentCommonVO.getGroupName()) || Const.MEDIA_TYPE_VIDEO.contains(ftsDocumentCommonVO.getGroupName())){
+                        //自媒体号、博客、视频、短视频
+                        reportResourceTemp.setSiteName(ftsDocumentCommonVO.getSiteName() + (StringUtil.isNotEmpty(ftsDocumentCommonVO.getAuthors()) ?  "-" + ftsDocumentCommonVO.getAuthors() : ""));
+                    } else {
+                        //传统媒体
+                        reportResourceTemp.setSiteName(ftsDocumentCommonVO.getSiteName());
+                    }
                     // 传统媒体
                     reportResourceTemp.setTitle(ReportUtil.replaceHtml(StringUtil.removeFourChar(ftsDocumentCommonVO.getTitle())));
                     reportResourceTemp.setSrcName(ftsDocumentCommonVO
                             .getSrcName());
-                    reportResourceTemp.setSiteName(ftsDocumentCommonVO
-                            .getSiteName());
                     reportResourceTemp.setSid(ftsDocumentCommonVO.getSid());
                     reportResourceTemp.setContent(ReportUtil.replaceHtml(StringUtil.removeFourChar(StringUtil.replaceImg(ftsDocumentCommonVO
                             .getContent()))));
