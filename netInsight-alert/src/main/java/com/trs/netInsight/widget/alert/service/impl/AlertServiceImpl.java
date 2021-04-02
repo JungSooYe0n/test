@@ -638,6 +638,9 @@ public class AlertServiceImpl implements IAlertService {
 					}
 				}
 				pageItem.setReceiver(org.apache.commons.lang.StringUtils.join(receiver.toArray(), ";"));
+				if (Const.MEDIA_TYPE_VIDEO.contains(pageItem.getGroupName()) || Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(pageItem.getGroupName())) {
+					pageItem.setSiteName(StringUtil.isNotEmpty(pageItem.getScreenName()) && !"undefined".equals(pageItem.getScreenName()) ? pageItem.getSiteName() + "-" + pageItem.getScreenName() : pageItem.getSiteName());
+				}
 			}
 			PageAlert pageAlert = new PageAlert();
 			pageAlert.setContent(ftsDocumentAlertPagedList.getPageItems());

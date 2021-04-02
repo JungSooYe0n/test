@@ -128,7 +128,7 @@ public class CommonListServiceImpl implements ICommonListService {
                 }else if(Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())){
                     document.setTitle(content);
                 } else if (Const.MEDIA_TYPE_VIDEO.contains(document.getGroupName()) || Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(document.getGroupName())) {
-                    document.setSiteName(document.getSiteName() + (StringUtil.isNotEmpty(document.getAuthors()) ?  "-" + document.getAuthors() : ""));
+                    document.setSiteName(document.getSiteName() + (StringUtil.isNotEmpty(document.getAuthors()) && !"undefined".equals(document.getAuthors()) ?  "-" + document.getAuthors() : ""));
                 }
                 // 控制标题长度
                 document.setId(document.getSid());
