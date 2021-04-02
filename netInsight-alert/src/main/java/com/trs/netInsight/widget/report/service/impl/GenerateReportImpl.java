@@ -657,13 +657,13 @@ public class GenerateReportImpl implements IGenerateReport {
 						height = 3200000;
 						break;
 					case DATASOURCEANALYSIS:
-						height = 3800000;
+						height = 3500000;
 						break;
 					case EMOTIONANALYSIS:
-						height = 3800000;
+						height = 3500000;
 						break;
 					case MOODSTATISTICS:
-						height = 3800000;
+						height = 3500000;
 						break;
 					case AREA:
 						height = 2800000;
