@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.report.service.impl;
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -678,10 +679,17 @@ public class GenerateReportImpl implements IGenerateReport {
 						height = 2800000;
 						break;
 					case SITUATIONACCESSMENT:
-						height = 3550000;
+						width = 3000000;
+						height = 2000000;
 						break;
                     case PROPAFATIONANALYSIS:
-                        height = 4670000;
+						BufferedImage img = javax.imageio.ImageIO.read(byteArrayInputStream);
+						int pwidth = img.getWidth();
+						int pheight = img.getHeight();
+						//下面按照图片的实际大小进行同比例缩放
+						height = (int) (width * ((float)pheight/(float)pwidth));
+						byteArrayInputStream.reset();
+                        //height = 4670000;
                         break;
 					default:break;
 				}
