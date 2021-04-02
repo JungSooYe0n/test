@@ -1426,7 +1426,7 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 	}
 
 	@Override
-	public String reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary) throws Exception {
+	public String reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary, String templateList) throws Exception {
 		log.info("舆情报告列表预览页，重新生成报告");
 		ReportNew report = reportNewRepository.findOne(reportId);
 		List<ReportResource> resources = reportResourceRepository.findByReportIdAndResourceStatus(reportId, 1);
@@ -1434,11 +1434,11 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		Map<Integer, List<ReportResource>> collect = resources.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
 		Map<String, List<Map<String, String>>> base64data = ReportUtil.getBase64data(jsonImgElements);
 		TemplateNew templateNew = new TemplateNew();
-		templateNew.setTemplateList(report.getTemplateList());
+		templateNew.setTemplateList(templateList);
 //		String reportIntro = getReportIntro(collect);
 		String docPath = generateReportImpl.generateReport(report, collect, templateNew, base64data, reportIntro, dataSummary);
 		report.setDocPath(docPath);
-		reportNewRepository.save(report);
+//		reportNewRepository.save(report);
 		return Const.SUCCESS;
 	}
 

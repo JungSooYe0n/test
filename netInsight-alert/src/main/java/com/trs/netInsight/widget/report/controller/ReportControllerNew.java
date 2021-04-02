@@ -357,8 +357,14 @@ public class ReportControllerNew {
 	 */
 	@RequestMapping(value = "reBuild", method = RequestMethod.POST)
 	@FormatResult
-	public Object reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary) throws Exception {
-		return reportServiceNew.reBuildReport(reportId, jsonImgElements, reportIntro, dataSummary);
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query"),
+		@ApiImplicitParam(name = "jsonImgElements", value = "json格式的图片数据", dataType = "String", paramType = "query"),
+		@ApiImplicitParam(name = "reportIntro", value = "报告简介文本内容", dataType = "String", paramType = "body"),
+		@ApiImplicitParam(name = "dataSummary", value = "数据统计概述文本内容", dataType = "String", paramType = "query", required = true),
+		@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = true)})
+	public Object reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary, String templateList) throws Exception {
+		return reportServiceNew.reBuildReport(reportId, jsonImgElements, reportIntro, dataSummary, templateList);
 	}
 	/**
 	 * 创建专报(分组）
