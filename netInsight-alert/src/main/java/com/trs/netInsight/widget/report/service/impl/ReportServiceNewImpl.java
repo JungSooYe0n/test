@@ -843,6 +843,35 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		TemplateNew oldTemplateNew = new TemplateNew();
 		copyTemplateNew(templateNew, oldTemplateNew);
 
+		//判断报告模板是否存在数据概述的资源
+		boolean flagTemplate = false;
+		for (ReportResource reportResource : reportResources) {
+			if ("Statistics_Summarize".equals(reportResource.getChapter())) {
+				flagTemplate = true;
+				break;
+			}
+		}
+
+		// 报告模板不存在数据统计概述的资源，为当前报告新创建一个数据统计概述资源
+		if (!flagTemplate) {
+			ReportResource reportResource = new ReportResource();
+			reportResource.setImgComment(dataSummary);
+			reportResource.setChapter("Statistics_Summarize");
+			reportResource.setReportType(report.getReportType());
+			reportResource.setChapterPosition(2);
+			reportResource.setTemplateId(templateNew.getId());
+
+			List<TElementNew> tElementNews = JSONArray.parseArray(report.getTemplateList(), TElementNew.class);
+			tElementNews.stream().forEach(e -> {
+				if (Chapter.valueOf(e.getChapterDetail()).equals(Chapter.Statistics_Summarize)) {
+					reportResource.setChapterPosition(e.getChapterPosition());
+				}
+			});
+
+			reportResources.add(reportResource);
+		}
+
+
 		Map<Integer, List<ReportResource>> collect = reportResources.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
 
 		report.setReportType(templateNew.getTemplateType());
@@ -874,26 +903,6 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 
 		//重新保存template
 		templateNewRepository.save(templateNew);
-
-		//判断报告模板是否存在数据概述的资源
-		boolean flagTemplate = false;
-		for (ReportResource reportResource : reportResources) {
-			if ("Statistics_Summarize".equals(reportResource.getChapter())) {
-				flagTemplate = true;
-				break;
-			}
-		}
-
-		// 报告模板不存在数据统计概述的资源，为当前报告新创建一个数据统计概述资源
-		if (!flagTemplate) {
-			ReportResource reportResource = new ReportResource();
-			reportResource.setImgComment(dataSummary);
-			reportResource.setChapter("Statistics_Summarize");
-			reportResource.setReportType(report.getReportType());
-			reportResource.setChapterPosition(2);
-			reportResource.setTemplateId(templateNew.getId());
-			reportResources.add(reportResource);
-		}
 
 		//是否保存报告资源处理
 		resDelHandle(report, reportResources);
