@@ -679,8 +679,8 @@ public class GenerateReportImpl implements IGenerateReport {
 						height = 2800000;
 						break;
 					case SITUATIONACCESSMENT:
-						width = 3000000;
-						height = 2000000;
+						width = 3500000;
+						height = 2500000;
 						break;
                     case PROPAFATIONANALYSIS:
 						BufferedImage img = javax.imageio.ImageIO.read(byteArrayInputStream);
