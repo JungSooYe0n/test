@@ -111,7 +111,7 @@ public class HostListColumn extends AbstractColumn {
                 }
                 //自媒体、博客、视频、短视频
                 if (Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(groupName) || Const.MEDIA_TYPE_VIDEO.contains(groupName)) {
-                    map.put("siteName", StringUtil.isNotEmpty(vo.getAuthors()) ? vo.getSiteName() + "-" + vo.getAuthors() : vo.getSiteName());
+                    map.put("siteName", StringUtil.isNotEmpty(vo.getAuthors()) && !"undefined".equals(vo.getAuthors()) ? vo.getSiteName() + "-" + vo.getAuthors() : vo.getSiteName());
                 }
                 map.put("commtCount", vo.getCommtCount());
                 map.put("rttCount", vo.getRttCount());

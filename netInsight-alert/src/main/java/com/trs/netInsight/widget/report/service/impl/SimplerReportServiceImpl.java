@@ -472,7 +472,7 @@ public String reBuildReport(String reportId,String jsonImgElemets,String reportI
                 } else {
                     if (Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(ftsDocumentCommonVO.getGroupName()) || Const.MEDIA_TYPE_VIDEO.contains(ftsDocumentCommonVO.getGroupName())){
                         //自媒体号、博客、视频、短视频
-                        reportResourceTemp.setSiteName(ftsDocumentCommonVO.getSiteName() + (StringUtil.isNotEmpty(ftsDocumentCommonVO.getAuthors()) ?  "-" + ftsDocumentCommonVO.getAuthors() : ""));
+                        reportResourceTemp.setSiteName(ftsDocumentCommonVO.getSiteName() + (StringUtil.isNotEmpty(ftsDocumentCommonVO.getAuthors()) && !"undefined".equals(ftsDocumentCommonVO.getAuthors()) ?  "-" + ftsDocumentCommonVO.getAuthors() : ""));
                     } else {
                         //传统媒体
                         reportResourceTemp.setSiteName(ftsDocumentCommonVO.getSiteName());

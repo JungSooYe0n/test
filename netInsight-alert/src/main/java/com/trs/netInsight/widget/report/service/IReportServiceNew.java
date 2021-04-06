@@ -152,7 +152,7 @@ public interface IReportServiceNew {
 	 */
 	public void delAllReportResource(String templateId);
 
-    String reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary) throws Exception;
+    String reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary, String templateList) throws Exception;
 
 	Object searchResources(String keyWords, String statisticsTime, Integer pageNum, Integer pageSize) throws TRSException;
 
