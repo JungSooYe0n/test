@@ -47,7 +47,10 @@ public enum ApiMethod {
      * 获取indexTable列表
      */
     IndexTableWithPageName(1008, "indexTable list with pagename", "1000", new String[]{"indexPageId"}),
-
+    /**
+     * 各舆论场趋势分析
+     */
+    StatisticalChart(1009, "statistical chart", "1000", new String[]{"indexPageId"}),
 
     // -------- Project --------
     /**

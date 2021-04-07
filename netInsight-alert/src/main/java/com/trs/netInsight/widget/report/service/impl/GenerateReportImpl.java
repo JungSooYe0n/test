@@ -686,9 +686,10 @@ public class GenerateReportImpl implements IGenerateReport {
 						BufferedImage img = javax.imageio.ImageIO.read(byteArrayInputStream);
 						int pwidth = img.getWidth();
 						int pheight = img.getHeight();
-						height = 4670000;
+						//height = 4670000;
 						//下面按照图片的实际大小进行同比例缩放
-						width = (int) (height * ((float)pwidth/(float)pheight));
+						height = (int) (width * ((float)pheight/(float)pwidth));
+						//width = (int) (height * ((float)pwidth/(float)pheight));
 						byteArrayInputStream.reset();
                         //height = 4670000;
                         break;

@@ -54,6 +54,10 @@ public enum SystemLogOperation {
 	 */
 	INDEX_TAB_DATA("获取栏目数据","查询"),
 	/**
+	 * 各舆论场趋势分析
+	 */
+	STATISTICAL_CHART("各舆论场趋势分析","查询"),
+	/**
 	 * 获取栏目列表数据
 	 */
 	INDEX_TAB_LIST_DATA("获取栏目列表数据","查询"),
