@@ -336,6 +336,35 @@ public class ApiController {
         }
         return null;
     }
+
+    /**
+     * 获取日常监测地域分布数据
+     *
+     * @param accessToken
+     * @param request
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "showType", value = "指定折线图的展示方式：按小时(hour)，按天数(day)", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "图表id", dataType = "String", paramType = "query",required = true)
+    })
+    @Api(value = "column area", method = ApiMethod.ColumnArea)
+    @GetMapping("/getColumnArea")
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_AREA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getColumnArea(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                @RequestParam(value = "showType", required = false, defaultValue = "day") String showType,
+                                @RequestParam(value = "timeRange", required = false) String timeRange,
+                                @RequestParam(value = "id") String id) throws Exception {
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnController.selectChart(id, "StatisticalChart", showType, "", "hitArticle", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
+        }
+        return null;
+    }
     /**
      * 栏目列表-更多（热点栏目总共最多50条，暂定其余栏目每页最多1000条）
      * @param accessToken

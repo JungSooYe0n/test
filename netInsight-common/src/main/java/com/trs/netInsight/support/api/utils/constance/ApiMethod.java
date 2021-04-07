@@ -51,6 +51,10 @@ public enum ApiMethod {
      * 各舆论场趋势分析
      */
     StatisticalChart(1009, "statistical chart", "1000", new String[]{"indexPageId"}),
+    /**
+     * 日常监测地域统计
+     */
+    ColumnArea(1010, "column area", "1000", new String[]{"indexPageId"}),
 
     // -------- Project --------
     /**
