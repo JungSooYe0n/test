@@ -41,13 +41,16 @@ import com.trs.netInsight.widget.analysis.controller.ChartAnalyzeController;
 import com.trs.netInsight.widget.analysis.controller.SpecialChartAnalyzeController;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
+import com.trs.netInsight.widget.column.controller.ColumnController;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
 import com.trs.netInsight.widget.column.service.IColumnService;
 import com.trs.netInsight.widget.column.service.IIndexPageService;
+import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
 import com.trs.netInsight.widget.column.service.IIndexTabService;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -62,6 +65,7 @@ import com.trs.netInsight.widget.special.service.ISpecialService;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.UserRepository;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +73,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.search.SearchException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +94,9 @@ public class ApiController {
 
     @Autowired
     private IIndexTabService indexTabService;
+
+    @Autowired
+    private IIndexTabMapperService indexTabMapperService;
 
     @Autowired
     private IInfoListService infoListService;
@@ -122,6 +130,9 @@ public class ApiController {
 
     @Autowired
     private ChartAnalyzeController chartAnalyzeController;
+
+    @Autowired
+    private ColumnController columnController;
     @Autowired
     private SpecialChartAnalyzeController specialChartAnalyzeController;
     @Autowired
@@ -268,47 +279,92 @@ public class ApiController {
      *
      * @param accessToken
      * @param request
-     * @param indexTabId
+     * @param id
+     * @param timeRange
      * @return
      * @throws OperationException
      * @Return : Object
      * @since changjiang @ 2018年7月17日
      */
-    @ApiImplicitParam(name = "indexTabId", value = "三级栏目id", dataType = "String", paramType = "query")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "栏目id", dataType = "String", paramType = "query",required = true)
+    })
     @Api(value = "indexTab data", method = ApiMethod.IndexTabData)
     @PostMapping("/indexTabData")
     @Log(systemLogOperation = SystemLogOperation.INDEX_TAB_DATA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getIndexTabInfo(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
-                                  @RequestParam(value = "indexTabId") String indexTabId,
-                                  @RequestParam(value = "entityType", defaultValue = "keywords") String entityType)
-            throws OperationException {
+                                  @RequestParam(value = "timeRange", required = false) String timeRange,
+                                  @RequestParam(value = "id") String id)
+            throws TRSException, SearchException {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
-        if (ObjectUtil.isNotEmpty(user)){
-            IndexTab indexTab = indexTabService.findByIdAndUser(indexTabId, user);
-            String timerange = indexTab.getTimeRange();
-            int pageSize=10;
-            //通栏下的站点统计和微信公众号改为15
-            if ("100".equals(indexTab.getTabWidth()) && StringUtil.isNotEmpty(indexTab.getContrast()) && (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_SITE) || indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT))){
-                pageSize=15;
-            }
-            AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
-            ColumnConfig config = new ColumnConfig();
-            config.initSection(indexTab, timerange, 0, pageSize, "", "", entityType, "", "", "default",
-                    "", "", "","","", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                    indexTab.getContentArea(), indexTab.getMediaArea(), "","");
-            //column.setChartAnalyzeService(chartAnalyzeService);
-            column.setDistrictInfoService(districtInfoService);
-            column.setCommonListService(commonListService);
-            column.setCommonChartService(commonChartService);
-            column.setConfig(config);
-            return column.getColumnData(timerange);
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnController.columnStattotal(id, timeRange, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "");
         }
-
         return null;
     }
 
+    /**
+     * 获取各舆论场趋势分析
+     *
+     * @param accessToken
+     * @param request
+     * @param id
+     * @return
+     * @throws OperationException
+     * @Return : Object
+     * @since changjiang @ 2018年7月17日
+     */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "showType", value = "指定折线图的展示方式：按小时(hour)，按天数(day)", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "图表id", dataType = "String", paramType = "query",required = true)
+    })
+    @Api(value = "Statistical chart", method = ApiMethod.StatisticalChart)
+    @PostMapping("/statisticalChart")
+    @Log(systemLogOperation = SystemLogOperation.STATISTICAL_CHART, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object StatisticalChart(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                   @RequestParam(value = "showType", required = false, defaultValue = "day") String showType,
+                                   @RequestParam(value = "timeRange", required = false) String timeRange,
+                                   @RequestParam(value = "id") String id)
+            throws TRSException, SearchException {
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnController.selectChart(id, "StatisticalChart", showType, "", "", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
+        }
+        return null;
+    }
 
+    /**
+     * 获取日常监测地域分布数据
+     *
+     * @param accessToken
+     * @param request
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "showType", value = "指定折线图的展示方式：按小时(hour)，按天数(day)", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "图表id", dataType = "String", paramType = "query",required = true)
+    })
+    @Api(value = "column area", method = ApiMethod.ColumnArea)
+    @GetMapping("/getColumnArea")
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_AREA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getColumnArea(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                @RequestParam(value = "showType", required = false, defaultValue = "day") String showType,
+                                @RequestParam(value = "timeRange", required = false) String timeRange,
+                                @RequestParam(value = "id") String id) throws Exception {
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnController.selectChart(id, "StatisticalChart", showType, "", "hitArticle", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
+        }
+        return null;
+    }
     /**
      * 栏目列表-更多（热点栏目总共最多50条，暂定其余栏目每页最多1000条）
      * @param accessToken
@@ -341,7 +397,8 @@ public class ApiController {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)){
-            IndexTab indexTab = indexTabService.findByIdAndUser(indexTabId, user);
+            IndexTabMapper mapper = indexTabMapperService.findOne(indexTabId);
+            IndexTab indexTab = mapper.getIndexTab();
             if(ObjectUtil.isNotEmpty(indexTab)){
                 String timerange = indexTab.getTimeRange();
                 AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
@@ -402,7 +459,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPECIAL_STAT_TOTAL, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getStatTotal(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId) throws TRSException {
-        return chartAnalyzeController.getStatTotal(specialId, "", "ALL", "", "");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return chartAnalyzeController.getStatTotal(specialId, "", "ALL", "", "");
+        }
+        return null;
     }
 
     /**
@@ -434,12 +496,16 @@ public class ApiController {
                               @ApiParam("条件筛选-微博 原发 primary / 转发 forward ，默认原发+转发") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary) throws TRSException {
         ApiAccessToken token = getToken(request);
         int maxPageSize = token.getMaxPageSize();
-        if (pageSize > maxPageSize){
+        if (pageSize > maxPageSize) {
             pageSize = maxPageSize;
         }
-        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"",
-                "","","","",false,0,false,"","ALL",
-                "","","","","","","","");
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return infoListController.dataList(specialId, pageNo, pageSize, source, sort, invitationCard, forwarPrimary, "", "", "", "", "", emotion, "",
+                    "", "", "", "", false, 0, false, "", "ALL",
+                    "", "", "", "", "", "", "", "");
+        }
+        return null;
     }
 
     /**
@@ -471,9 +537,11 @@ public class ApiController {
     @Api(value = "specialProject situationAssessment", method = ApiMethod.SituationAssessment)
     @GetMapping("/getSituationAssessment")
     @Log(systemLogOperation = SystemLogOperation.SITUATION_ASSESSMENT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query")
     public Object getSituationAssessment(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                         @RequestParam(value = "timeRange", required = false) String timeRange,
                                @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.situationAssessment(null, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return specialChartAnalyzeController.situationAssessment(timeRange, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     /**
@@ -485,11 +553,13 @@ public class ApiController {
      * @return
      * @throws Exception
      */
+    @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query")
     @Api(value = "specialProject webCountLine", method = ApiMethod.WebCountLine)
     @GetMapping("/getWebCountLine")
     @Log(systemLogOperation = SystemLogOperation.WEB_COUNT_LINE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getWebCountLine(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                          @RequestParam(value = "specialId",required = true) String specialId,
+                                  @RequestParam(value = "timeRange", required = false) String timeRange,
                                   @ApiParam("hour/day") @RequestParam(value = "showType",required = true) String showType) throws Exception {
         return specialChartAnalyzeController.webCountLine(null,specialId, showType, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
