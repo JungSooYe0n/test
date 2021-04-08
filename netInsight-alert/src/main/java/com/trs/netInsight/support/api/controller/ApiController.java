@@ -459,7 +459,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPECIAL_STAT_TOTAL, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getStatTotal(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId) throws TRSException {
-        return chartAnalyzeController.getStatTotal(specialId, "", "ALL", "", "");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return chartAnalyzeController.getStatTotal(specialId, "", "ALL", "", "");
+        }
+        return null;
     }
 
     /**
@@ -491,12 +496,16 @@ public class ApiController {
                               @ApiParam("条件筛选-微博 原发 primary / 转发 forward ，默认原发+转发") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary) throws TRSException {
         ApiAccessToken token = getToken(request);
         int maxPageSize = token.getMaxPageSize();
-        if (pageSize > maxPageSize){
+        if (pageSize > maxPageSize) {
             pageSize = maxPageSize;
         }
-        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"",
-                "","","","",false,0,false,"","ALL",
-                "","","","","","","","");
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return infoListController.dataList(specialId, pageNo, pageSize, source, sort, invitationCard, forwarPrimary, "", "", "", "", "", emotion, "",
+                    "", "", "", "", false, 0, false, "", "ALL",
+                    "", "", "", "", "", "", "", "");
+        }
+        return null;
     }
 
     /**
