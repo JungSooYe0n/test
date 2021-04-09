@@ -407,12 +407,16 @@ public class CommonChartServiceImpl implements ICommonChartService {
         }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
             areaMap = Const.CONTTENT_PROVINCE_NAME;
         }
+        List<String> aoMenAreas = Arrays.asList("大堂区", "望德堂区", "风顺堂区", "花王堂区", "花地玛堂区");
         for (GroupInfo classEntry : categoryInfos) {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                String cityArea = areaMap.get(areaName)+"\\\\"+d.getAreaName().replace("桃园市","桃园县");
-                String carea = area.replace("\\","\\\\");
+                String cityArea = areaMap.get(areaName)+"\\\\" + (aoMenAreas.contains(d.getAreaName()) ? "澳门半岛\\\\" + d.getAreaName() : d.getAreaName()).replace("桃园市","桃园县");
+                if ("圣方济各堂区".equals(d.getAreaName())) {
+                    cityArea = areaMap.get(areaName) + "\\\\离岛\\\\" + d.getAreaName();
+                }
+                String carea = area.replace("\\","\\\\").replaceAll("圣安多尼堂区", "花王堂区");
                 if (areaName.equals("香港")){
                     cityArea = areaMap.get(areaName)+"\\\\香港岛"+"\\\\"+d.getAreaName();
                     String cityArea2 = areaMap.get(areaName)+"\\\\新界"+"\\\\"+d.getAreaName();
