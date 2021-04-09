@@ -268,21 +268,21 @@ public class ColumnController {
 						 @ApiParam("要创建的栏目分组的父级分组id") @RequestParam(value = "parentId" ,required = false) String parentId,
 						 @ApiParam("导航栏id(非自定义情况下不传)") @RequestParam(value = "typeId",required = false, defaultValue = "") String typeId) throws TRSException {
 		User loginUser = UserUtils.getUser();
-		if (UserUtils.isRoleAdmin()){
-			Organization organization = organizationService.findOne(loginUser.getOrganizationId());
-			//机构管理员
-			if (organization.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)){
-				throw new TRSException(CodeUtils.FAIL,"该新创建的栏目分组下已没有可新建栏目的资源！");
-			}
-		}
-		if (UserUtils.isRoleOrdinary(loginUser)){
-			//如果是普通用户 受用户分组 可创建资源的限制
-			//查询该用户所在的用户分组下 是否有可创建资源
-			SubGroup subGroup = subGroupService.findOne(loginUser.getSubGroupId());
-			if (subGroup.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)){
-				throw new TRSException(CodeUtils.FAIL,"该新创建的栏目分组下已没有可新建栏目的资源！");
-			}
-		}
+//		if (UserUtils.isRoleAdmin()){
+//			Organization organization = organizationService.findOne(loginUser.getOrganizationId());
+//			//机构管理员
+//			if (organization.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)){
+//				throw new TRSException(CodeUtils.FAIL,"该新创建的栏目分组下已没有可新建栏目的资源！");
+//			}
+//		}
+//		if (UserUtils.isRoleOrdinary(loginUser)){
+//			//如果是普通用户 受用户分组 可创建资源的限制
+//			//查询该用户所在的用户分组下 是否有可创建资源
+//			SubGroup subGroup = subGroupService.findOne(loginUser.getSubGroupId());
+//			if (subGroup.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)){
+//				throw new TRSException(CodeUtils.FAIL,"该新创建的栏目分组下已没有可新建栏目的资源！");
+//			}
+//		}
 
 		if (StringUtil.isNotEmpty(name)) {
 			if (StringUtil.isNotEmpty(parentId)) {

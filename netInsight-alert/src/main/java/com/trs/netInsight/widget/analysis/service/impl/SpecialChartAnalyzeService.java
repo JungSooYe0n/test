@@ -978,6 +978,22 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				break;
 		}
 		User user = UserUtils.getUser();
+		//判断观点分析的数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
+		String[] groupNameArray = CommonListChartUtil.changeGroupName(groupNames).split(";");
+		if (groupNameArray.length > 0 && groupNameArray.length == 1) {
+			if (!specialProjectGroupName.contains(groupNameArray[0])) {
+				throw new TRSException("暂无数据，如需查看请勾选新闻网站数据哦~", CodeUtils.DATA_IS_NULL);
+			}
+		} else if (groupNameArray.length > 0 && groupNameArray.length == 2) {
+			if ((!specialProjectGroupName.contains(groupNameArray[0])) && specialProjectGroupName.contains(groupNameArray[1])) {
+				groupNames = groupNameArray[1];
+			} else if (specialProjectGroupName.contains(groupNameArray[0]) && (!specialProjectGroupName.contains(groupNameArray[1]))) {
+				groupNames = groupNameArray[0];
+			} else if ((!specialProjectGroupName.contains(groupNameArray[0])) && (!specialProjectGroupName.contains(groupNameArray[1]))) {
+				throw new TRSException("暂无数据，如需查看请勾选微信、微博数据哦~", CodeUtils.DATA_IS_NULL);
+			}
+		}
 		InfoListResult infoListResult = commonListService.queryPageListForHot(builder, groupNames, user, "special", false);
 		long end = new Date().getTime();
 		long time = end - start;

@@ -1284,21 +1284,21 @@ public class SpecialController {
 							 @ApiParam("要创建的栏目分组的父级分组id") @RequestParam(value = "parentId" ,required = false) String parentId) throws TRSException {
 
 		User loginUser = UserUtils.getUser();
-		if (UserUtils.isRoleAdmin()){
-			Organization organization = organizationRepository.findOne(loginUser.getOrganizationId());
-			//机构管理员
-			if (organization.getSpecialNum() <= specialProjectService.getSubGroupSpecialCount(loginUser)){
-				throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，该分组下已没有可新建专题分析的资源，如需更多，请联系相关运维人员。");
-			}
-		}
-		if (UserUtils.isRoleOrdinary(loginUser)){
-			//如果是普通用户 受用户分组 可创建资源的限制
-			//查询该用户所在的用户分组下 是否有可创建资源
-			SubGroup subGroup = subGroupRepository.findOne(loginUser.getSubGroupId());
-			if (subGroup.getSpecialNum() <= specialProjectService.getSubGroupSpecialCount(loginUser)){
-				throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，该分组下已没有可新建专题分析的资源，如需更多，请联系相关运维人员。");
-			}
-		}
+//		if (UserUtils.isRoleAdmin()){
+//			Organization organization = organizationRepository.findOne(loginUser.getOrganizationId());
+//			//机构管理员
+//			if (organization.getSpecialNum() <= specialProjectService.getSubGroupSpecialCount(loginUser)){
+//				throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，该分组下已没有可新建专题分析的资源，如需更多，请联系相关运维人员。");
+//			}
+//		}
+//		if (UserUtils.isRoleOrdinary(loginUser)){
+//			//如果是普通用户 受用户分组 可创建资源的限制
+//			//查询该用户所在的用户分组下 是否有可创建资源
+//			SubGroup subGroup = subGroupRepository.findOne(loginUser.getSubGroupId());
+//			if (subGroup.getSpecialNum() <= specialProjectService.getSubGroupSpecialCount(loginUser)){
+//				throw new TRSException(CodeUtils.FAIL,"您目前创建的专题已达上限，该分组下已没有可新建专题分析的资源，如需更多，请联系相关运维人员。");
+//			}
+//		}
 		return specialSubjectService.addSubject(name,parentId,loginUser);
 //		return specialSubjectService.addSubject(name);
 	}
