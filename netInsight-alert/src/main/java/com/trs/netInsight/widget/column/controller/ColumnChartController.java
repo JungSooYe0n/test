@@ -611,9 +611,9 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
             }
 
             SpecialType specialType = SpecialType.valueOf(columnType);
-            // 有几个图专家模式下 必须传xy表达式
+            // 有几个图专家模式下 必须传xy表达式,trsl改成xyTrsl
             if (SpecialType.SPECIAL.equals(specialType)) {
-                if (StringUtil.isNotEmpty(xyTrsl)) {
+                if (StringUtil.isNotEmpty(trsl) || StringUtil.isNotEmpty(xyTrsl)) {
                     if(!IndexTabType.MAP.equals(indexTabType)){
                         contrast = null;
                     }
