@@ -229,7 +229,7 @@ public class Const {
     /**
      * 媒体类型: 自媒体号 + 博客
      */
-    public static final List<String> MEDIA_TYPE_ZIMEITI_BOKE = Arrays.asList(Const.GROUPNAME_ZIMEITI, Const.PAGE_SHOW_ZIMEITI, Const.GROUPNAME_LUNTAN, Const.PAGE_SHOW_LUNTAN, Const.GROUPNAME_BOKE, Const.PAGE_SHOW_BOKE);
+    public static final List<String> MEDIA_TYPE_ZIMEITI_BOKE = Arrays.asList(Const.GROUPNAME_ZIMEITI, Const.PAGE_SHOW_ZIMEITI, Const.GROUPNAME_BOKE, Const.PAGE_SHOW_BOKE);
 
     /**
      * 文章类型:来源-传统媒体 2018/3/12启用此常量 请慎重修改内容 PS:特别是删除
