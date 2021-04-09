@@ -693,6 +693,16 @@ public class GenerateReportImpl implements IGenerateReport {
 						byteArrayInputStream.reset();
                         //height = 4670000;
                         break;
+                    case WORDCLOUDSTATISTICS:
+						BufferedImage img1 = javax.imageio.ImageIO.read(byteArrayInputStream);
+						int pwidth1 = img1.getWidth();
+						int pheight1 = img1.getHeight();
+						//height = 4670000;
+						//下面按照图片的实际大小进行同比例缩放
+						height = (int) (width * ((float)pheight1/(float)pwidth1));
+						//width = (int) (height * ((float)pwidth/(float)pheight));
+						byteArrayInputStream.reset();
+                        break;
 					default:break;
 				}
 				if(StringUtil.isNotEmpty(chapterDetail)){

@@ -140,7 +140,7 @@ public class KickoutSessionControlFilter extends AccessControlFilter {
 			// 会话被踢出了
 			try {
 				// 退出登录
-				subject.logout();
+				//subject.logout();
 			} catch (Exception e) { // ignore
 			}
 			saveRequest(request);
@@ -156,8 +156,8 @@ public class KickoutSessionControlFilter extends AccessControlFilter {
 //				}
 //			}
 			RedisUtil.setString("kickout"+jesessionId,userName);
-			WebUtils.issueRedirect(request, response, kickoutUrl+"?userName="+userName);
-			return false;
+			//WebUtils.issueRedirect(request, response, kickoutUrl+"?userName="+userName);
+			return true;
 		}
 		return true;
 	}

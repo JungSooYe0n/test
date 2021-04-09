@@ -375,6 +375,7 @@ public class ApiController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "showType", value = "指定折线图的展示方式：按小时(hour)，按天数(day)", dataType = "String", paramType = "query", required = false),
             @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "mapto", value = "地图下钻省", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "id", value = "图表id", dataType = "String", paramType = "query",required = true)
     })
     @Api(value = "column area", method = ApiMethod.ColumnArea)
@@ -383,11 +384,12 @@ public class ApiController {
     public Object getColumnArea(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                 @RequestParam(value = "showType", required = false, defaultValue = "day") String showType,
                                 @RequestParam(value = "timeRange", required = false) String timeRange,
+                                @RequestParam(value = "mapto", defaultValue = "", required = false) String mapto,
                                 @RequestParam(value = "id") String id) throws Exception {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)) {
-            return columnController.selectChart(id, "StatisticalChart", showType, "", "hitArticle", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
+            return columnController.selectChart(id, "StatisticalChart", showType, "", "hitArticle", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", mapto, "");
         }
         return null;
     }
@@ -423,8 +425,12 @@ public class ApiController {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)){
+            IndexTab indexTab = indexTabService.findOne(indexTabId);
             IndexTabMapper mapper = indexTabMapperService.findOne(indexTabId);
-            IndexTab indexTab = mapper.getIndexTab();
+            if(mapper!=null){
+                 indexTab = mapper.getIndexTab();
+            }
+            //IndexTab indexTab = indexTabService.findOne(indexTabId);
             if(ObjectUtil.isNotEmpty(indexTab)){
                 String timerange = indexTab.getTimeRange();
                 AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
