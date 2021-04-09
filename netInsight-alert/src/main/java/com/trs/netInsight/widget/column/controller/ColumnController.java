@@ -922,7 +922,7 @@ if (isAddAlert) {
 			SpecialType specialType = SpecialType.valueOf(columnType);
 			// 有几个图专家模式下 必须传xy表达式
 			if (SpecialType.SPECIAL.equals(specialType)) {
-				if (StringUtil.isNotEmpty(xyTrsl)) {
+				if (StringUtil.isNotEmpty(trsl) || StringUtil.isNotEmpty(xyTrsl)) {
 					if(!IndexTabType.MAP.equals(indexTabType)){
 						contrast = null;
 					}
