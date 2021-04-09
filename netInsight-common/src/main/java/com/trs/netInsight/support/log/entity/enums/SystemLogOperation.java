@@ -58,6 +58,10 @@ public enum SystemLogOperation {
 	 */
 	STATISTICAL_CHART("各舆论场趋势分析","查询"),
 	/**
+	 * 查找当前栏目对应的图表
+	 */
+	SELECT_TABSTATISTICAL_CHARTLIST("查找当前栏目对应的图表","查询"),
+	/**
 	 * 获取日常监测地域分布数据
 	 */
 	COLUMN_AREA("获取日常监测地域分布数据","查询"),

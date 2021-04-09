@@ -55,7 +55,10 @@ public enum ApiMethod {
      * 日常监测地域统计
      */
     ColumnArea(1010, "column area", "1000", new String[]{"indexPageId"}),
-
+    /**
+     * 各舆论场趋势分析
+     */
+    SelectTabStatisticalChartList(1011, "selectTabStatisticalChartList", "1000", new String[]{"indexPageId"}),
     // -------- Project --------
     /**
      * 获取专项列表数据
