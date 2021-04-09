@@ -41,6 +41,7 @@ import com.trs.netInsight.widget.analysis.controller.ChartAnalyzeController;
 import com.trs.netInsight.widget.analysis.controller.SpecialChartAnalyzeController;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
+import com.trs.netInsight.widget.column.controller.ColumnChartController;
 import com.trs.netInsight.widget.column.controller.ColumnController;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
@@ -48,10 +49,7 @@ import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
-import com.trs.netInsight.widget.column.service.IColumnService;
-import com.trs.netInsight.widget.column.service.IIndexPageService;
-import com.trs.netInsight.widget.column.service.IIndexTabMapperService;
-import com.trs.netInsight.widget.column.service.IIndexTabService;
+import com.trs.netInsight.widget.column.service.*;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.microblog.constant.MicroblogConst;
@@ -133,6 +131,8 @@ public class ApiController {
 
     @Autowired
     private ColumnController columnController;
+    @Autowired
+    private ColumnChartController columnChartController;
     @Autowired
     private SpecialChartAnalyzeController specialChartAnalyzeController;
     @Autowired
@@ -306,6 +306,32 @@ public class ApiController {
     }
 
     /**
+     * 查找当前栏目对应的图表
+     *
+     * @param accessToken
+     * @param request
+     * @param id
+     * @return
+     * @throws OperationException
+     * @Return : Object
+     * @since changjiang @ 2018年7月17日
+     */
+    @ApiImplicitParam(name = "id", value = "栏目id", dataType = "String", paramType = "query",required = true)
+    @Api(value = "selectTabStatisticalChartList", method = ApiMethod.SelectTabStatisticalChartList)
+    @PostMapping("/selectTabStatisticalChartList")
+    @Log(systemLogOperation = SystemLogOperation.SELECT_TABSTATISTICAL_CHARTLIST, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object StatisticalChart(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                   @RequestParam(value = "id") String id)
+            throws TRSException, SearchException {
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnChartController.selectTabStatisticalChartList(request, id, null);
+        }
+        return null;
+    }
+
+    /**
      * 获取各舆论场趋势分析
      *
      * @param accessToken
@@ -375,7 +401,7 @@ public class ApiController {
      * @return
      * @throws OperationException
      */
-    @ApiImplicitParam(name = "indexTabId", value = "三级栏目id", dataType = "String", paramType = "query")
+    @ApiImplicitParam(name = "indexTabId", value = "三级栏目id", dataType = "String", required = true,paramType = "query")
     @Api(value = "indexTab list data", method = ApiMethod.IndexTabListData)
     @PostMapping("/indexTabListData")
     @Log(systemLogOperation = SystemLogOperation.INDEX_TAB_LIST_DATA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
