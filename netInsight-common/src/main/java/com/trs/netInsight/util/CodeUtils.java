@@ -144,6 +144,11 @@ public class CodeUtils {
 	public static final int USER_DELETE = 223;
 
 	/**
+	 * 数据为空
+	 */
+	public static final int DATA_IS_NULL = 224;
+
+	/**
 	 * 服务器运算出错
 	 */
 	public static final int OPERATION_EXCEPTION = 500;

@@ -1876,8 +1876,14 @@ public class SpecialChartAnalyzeController {
 		RedisUtil.setLog(id, loginpool);
 		log.info(loginpool.toString());
 		// 这个不用管它是否排重 肯定查md5的
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		//判断事件脉络的四个数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
+		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).split(";");
+		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
+			throw new TRSException("暂无数据，如需查看请勾选" + groupName + "数据哦~", CodeUtils.DATA_IS_NULL);
+		}
 		try {
-			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			if(openFiltrate){
 				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
@@ -1996,6 +2002,12 @@ public class SpecialChartAnalyzeController {
 		String userName = UserUtils.getUser().getUserName();
 		long startTime = System.currentTimeMillis();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		//判断热点信息的四个数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
+		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).split(";");
+		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
+			throw new TRSException("暂无数据，如需查看请勾选" + groupName + "数据哦~", CodeUtils.DATA_IS_NULL);
+		}
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
@@ -3556,8 +3568,14 @@ Date startDate = new Date();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
 		log.info(loginpool.toString());
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		//判断传播分析的两个数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
+		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).split(";");
+		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
+			throw new TRSException("暂无数据，如需查看请勾选" + groupName + "数据哦~", CodeUtils.DATA_IS_NULL);
+		}
 		try {
-			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			if (specialProject != null) {
 				if(openFiltrate){
 					specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
