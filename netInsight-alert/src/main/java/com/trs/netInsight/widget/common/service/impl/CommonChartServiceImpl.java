@@ -407,14 +407,19 @@ public class CommonChartServiceImpl implements ICommonChartService {
         }else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(contrastField)){
             areaMap = Const.CONTTENT_PROVINCE_NAME;
         }
+        //澳门半岛下面的五个堂区
         List<String> aoMenAreas = Arrays.asList("大堂区", "望德堂区", "风顺堂区", "花王堂区", "花地玛堂区");
         for (GroupInfo classEntry : categoryInfos) {
             String area = classEntry.getFieldValue();
             int num2 = (int)classEntry.getCount();
             for(DistrictInfo d: citys){
-                String cityArea = areaMap.get(areaName)+"\\\\" + (aoMenAreas.contains(d.getAreaName()) ? "澳门半岛\\\\" + d.getAreaName() : d.getAreaName()).replace("桃园市","桃园县");
-                if ("圣方济各堂区".equals(d.getAreaName())) {
+                String cityArea = null;
+                if (aoMenAreas.contains(d.getAreaName())) {
+                    cityArea = areaMap.get(areaName)+"\\\\澳门半岛\\\\" + d.getAreaName();
+                } else if ("圣方济各堂区".equals(d.getAreaName()) || "嘉模堂区".equals(d.getAreaName())) {//离岛下的两个堂区
                     cityArea = areaMap.get(areaName) + "\\\\离岛\\\\" + d.getAreaName();
+                } else {
+                    cityArea = areaMap.get(areaName)+"\\\\" + d.getAreaName().replace("桃园市","桃园县");
                 }
                 String carea = area.replace("\\","\\\\").replaceAll("圣安多尼堂区", "花王堂区");
                 if (areaName.equals("香港")){
