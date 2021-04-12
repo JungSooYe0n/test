@@ -979,8 +979,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 		User user = UserUtils.getUser();
 		//判断观点分析的数据源是否被勾选了
-		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
-		String[] groupNameArray = CommonListChartUtil.changeGroupName(groupNames).split(";");
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报");
+		String[] groupNameArray = CommonListChartUtil.changeGroupName(groupNames).replace("国内新闻_电子报", "电子报").split(";");
 		if (groupNameArray.length > 0 && groupNameArray.length == 1) {
 			if (!specialProjectGroupName.contains(groupNameArray[0])) {
 				throw new TRSException("暂无数据，如需查看请勾选新闻网站数据哦~", CodeUtils.DATA_IS_NULL);
@@ -4906,9 +4906,19 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder,SpecialProject specialProject) throws TRSSearchException, TRSException {
-	//这个根据前端要求 按照他们的数据结构返回
-//		List<String> groupNames = Arrays.asList("新闻","微博","自媒体号","微信");
-		List<String> groupNames = Arrays.asList("新闻","自媒体号");
+		//这个根据前端要求 按照他们的数据结构返回
+		List<String> groupNames = null;
+		//判断传播分析/站点的数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报");
+		if ((!specialProjectGroupName.contains("国内新闻")) && specialProjectGroupName.contains("自媒体号")) {
+			groupNames = Arrays.asList("自媒体号");
+		} else if (specialProjectGroupName.contains("国内新闻") && (!specialProjectGroupName.contains("自媒体号"))) {
+			groupNames = Arrays.asList("新闻");
+		} else if ((!specialProjectGroupName.contains("国内新闻")) && (!specialProjectGroupName.contains("自媒体号"))) {
+			throw new TRSException("暂无数据，如需查看请勾选新闻网站或者自媒体号数据哦~", CodeUtils.DATA_IS_NULL);
+		} else {
+			groupNames = Arrays.asList("新闻","自媒体号");
+		}
 		List<String> MEDIA_LEVEL = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体","其它媒体");
 		List<String> MEDIA_LEVEL_OTHER = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体");
 		List<Object> weixinAndZiMeiTiList = new ArrayList<>();

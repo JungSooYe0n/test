@@ -1878,8 +1878,8 @@ public class SpecialChartAnalyzeController {
 		// 这个不用管它是否排重 肯定查md5的
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		//判断事件脉络的四个数据源是否被勾选了
-		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
-		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).split(";");
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报");
+		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).replace("国内新闻_电子报", "电子报").split(";");
 		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
 			throw new TRSException("暂无数据，如需查看请勾选" + groupName + "数据哦~", CodeUtils.DATA_IS_NULL);
 		}
@@ -2003,8 +2003,8 @@ public class SpecialChartAnalyzeController {
 		long startTime = System.currentTimeMillis();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		//判断热点信息的四个数据源是否被勾选了
-		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
-		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).split(";");
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报");
+		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).replace("国内新闻_电子报", "电子报").split(";");
 		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
 			throw new TRSException("暂无数据，如需查看请勾选" + groupName + "数据哦~", CodeUtils.DATA_IS_NULL);
 		}
@@ -3528,6 +3528,8 @@ Date startDate = new Date();
 			}else if (e.getMessage().contains("表达式过长")){
 				throw new TRSException("处理controller结果出错,message:" + e, CodeUtils.HYBASE_EXCEPTION,
 						e);
+			}else if (e.getMessage().contains("暂无数据，如需查看请勾选新闻网站或者自媒体号数据哦~")) {
+				throw new TRSException("暂无数据，如需查看请勾选新闻网站或者自媒体号数据哦~", CodeUtils.DATA_IS_NULL);
 			}
 			throw new OperationException("查询出错：" + e, e);
 		} finally {
@@ -3570,8 +3572,8 @@ Date startDate = new Date();
 		log.info(loginpool.toString());
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 		//判断传播分析的两个数据源是否被勾选了
-		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
-		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).split(";");
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报");
+		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).replace("国内新闻_电子报", "电子报").split(";");
 		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
 			throw new TRSException("暂无数据，如需查看请勾选" + groupName + "数据哦~", CodeUtils.DATA_IS_NULL);
 		}
