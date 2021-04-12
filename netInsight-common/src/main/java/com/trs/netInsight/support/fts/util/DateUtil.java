@@ -2910,8 +2910,9 @@ public class DateUtil {
 
 	}
 
-	public static void main(String[] args) {
-		System.out.println(getBeginTime("1w"));
+	public static void main(String[] args) throws OperationException {
+		String[] s = formatTimeRange2("3d");
+		System.out.println(s);
 	}
 
 

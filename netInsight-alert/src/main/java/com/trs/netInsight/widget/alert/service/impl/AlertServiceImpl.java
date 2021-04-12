@@ -538,10 +538,10 @@ public class AlertServiceImpl implements IAlertService {
 		//时间 这里按需求改为urlTime
 //		queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME,DateUtil.formatTimeRange(time),Operator.Between);
 		if("urltime".equals(sort)){
-			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME,DateUtil.formatTimeRange(time),Operator.Between);
+			queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME,DateUtil.formatTimeRange2(time),Operator.Between);
 			queryBuilder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
 		}else{
-			queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange(time),Operator.Between);
+			queryBuilder.filterField(FtsFieldConst.FIELD_LOADTIME,DateUtil.formatTimeRange2(time),Operator.Between);
 			queryBuilder.orderBy(FtsFieldConst.FIELD_LOADTIME, true);
 		}
 

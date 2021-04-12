@@ -226,7 +226,7 @@ public class AlertRuleController {
 
 		if (UserUtils.isRoleAdmin()){
 			//机构管理员(通过userID查询)
-			if (organization.getColumnNum() <= alertRuleService.getSubGroupAlertCount(loginUser)){
+			if (organization.getAlertNum() <= alertRuleService.getSubGroupAlertCount(loginUser)){
 				throw new TRSException(CodeUtils.FAIL,"您目前创建的预警主题已达上限，如需更多，请联系相关运维人员。");
 			}
 		}
@@ -235,7 +235,7 @@ public class AlertRuleController {
 			//查询该用户所在的用户分组下 是否有可创建资源
 			SubGroup subGroup = subGroupRepository.findOne(loginUser.getSubGroupId());
 			//通过用户分组
-			if (subGroup.getColumnNum() <= alertRuleService.getSubGroupAlertCount(loginUser)){
+			if (subGroup.getAlertNum() <= alertRuleService.getSubGroupAlertCount(loginUser)){
 				throw new TRSException(CodeUtils.FAIL,"您目前创建的预警主题已达上限，如需更多，请联系相关运维人员。！");
 			}
 		}
