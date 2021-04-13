@@ -1,17 +1,21 @@
 package com.trs.netInsight.widget.report.controller;
 
 import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONArray;
 import com.trs.netInsight.config.constant.Const;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.widget.report.constant.Chapter;
 import com.trs.netInsight.widget.report.entity.*;
+import com.trs.netInsight.widget.report.entity.repository.TemplateNewRepository;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.docx4j.wml.Tr;
@@ -60,6 +64,12 @@ public class ReportControllerNew {
 
 	@Autowired
 	private ISpecialReportService sepcialReportService;
+
+	@Autowired
+	private RequestTimeLogRepository requestTimeLogRepository;
+
+	@Autowired
+	private TemplateNewRepository templateNewRepository;
 
 	// 新增和修改共用的接口，修改时提供主键
 	@RequestMapping(value = "/saveTemplate", method = RequestMethod.POST)
@@ -211,6 +221,7 @@ public class ReportControllerNew {
 			@RequestParam(value = "reportId",required = false) String reportId,
 			@RequestParam(value = "mapto",required = false) String mapto) throws Exception {
 		try {
+			Date startDate = new Date();
 			//页面栏目数据未加载出来就点“加入简报”操作，造成传空入库后，模板内前端页面无法显示
 			if (StringUtil.isNotEmpty(img_type) && StringUtil.isEmpty(img_data)){
 				throw new OperationException("已知是图表类模块，图表数据为空！");
@@ -223,6 +234,7 @@ public class ReportControllerNew {
 				groupName = StringUtils.join(split, ";");
 			}
 			String userId = UserUtils.getUser().getId();
+			Date hyStartDate = new Date();
 			Object result = reportServiceNew.saveReportResource(sids,trslk, userId,
 					groupName, chapter, img_data, reportType,
 					templateId, img_type, chapterPosition, reportId,mapto);
@@ -232,6 +244,17 @@ public class ReportControllerNew {
 				log.error("该文章已被添加到资源池中");
 				return "AllSimilar";
 			}
+			RequestTimeLog requestTimeLog = new RequestTimeLog();
+			requestTimeLog.setTabId(templateId);
+			TemplateNew templateNew = templateNewRepository.findOne(templateId);
+			requestTimeLog.setTabName(templateNew.getTemplateName());
+			requestTimeLog.setStartHybaseTime(hyStartDate);
+			requestTimeLog.setEndHybaseTime(new Date());
+			requestTimeLog.setStartTime(startDate);
+			requestTimeLog.setEndTime(new Date());
+			//requestTimeLog.setRandomNum(randomNum);
+			requestTimeLog.setOperation("舆情报告-手动报告-"+reportType);
+			requestTimeLogRepository.save(requestTimeLog);
 			return result;
 		} catch (Exception e) {
 			log.error("增加资源池失败", e);
@@ -768,7 +791,17 @@ return reportNewPage;
 	@RequestMapping(value = "/specialReportCal", method = RequestMethod.POST)
 	@FormatResult
 	public Object special(String specialId) throws Exception {
+		Date hyStartDate = new Date();
 		List<Object> list = sepcialReportService.jumptoSpecialReport(specialId);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabName("专题分析报告");
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(hyStartDate);
+		requestTimeLog.setEndTime(new Date());
+		//requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("舆情报告-智能报告-专题分析报告");
+		requestTimeLogRepository.save(requestTimeLog);
 		return list.get(0);
 	}
 
@@ -781,7 +814,17 @@ return reportNewPage;
 	@RequestMapping(value = "/indexTabReportCal", method = RequestMethod.POST)
 	@FormatResult
 	public Object indexTabReportCal(String id) throws Exception {
+		Date hyStartDate = new Date();
 		List<Object> list =sepcialReportService.jumptoIndexTabReport(id);
+		RequestTimeLog requestTimeLog = new RequestTimeLog();
+		requestTimeLog.setTabName("日常监测报告");
+		requestTimeLog.setStartHybaseTime(hyStartDate);
+		requestTimeLog.setEndHybaseTime(new Date());
+		requestTimeLog.setStartTime(hyStartDate);
+		requestTimeLog.setEndTime(new Date());
+		//requestTimeLog.setRandomNum(randomNum);
+		requestTimeLog.setOperation("舆情报告-智能报告-日常监测报告");
+		requestTimeLogRepository.save(requestTimeLog);
 		return list.get(0);
 	}
 
