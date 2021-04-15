@@ -56,6 +56,7 @@ import com.trs.netInsight.widget.microblog.constant.MicroblogConst;
 import com.trs.netInsight.widget.microblog.entity.SingleMicroblogData;
 import com.trs.netInsight.widget.microblog.entity.SpreadObject;
 import com.trs.netInsight.widget.microblog.service.ISingleMicroblogDataService;
+import com.trs.netInsight.widget.microblog.service.ISingleMicroblogService;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.special.controller.InfoListController;
 import com.trs.netInsight.widget.special.service.IInfoListService;
@@ -116,6 +117,9 @@ public class ApiController {
 
     @Autowired
     private ISingleMicroblogDataService singleMicroblogDataService;
+
+    @Autowired
+    private ISingleMicroblogService singleMicroblogService;
 
     @Autowired
     private IHybaseShardService hybaseShardService;
@@ -1276,6 +1280,144 @@ public class ApiController {
         Object data = microBlog.getData();
 
         return data;
+    }
+
+    /**
+     * 添加微博分析
+     * @param accessToken
+     * @param urlName
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @Api(value = "save microblog", method = ApiMethod.SaveMicroblog)
+    @GetMapping("/saveMicroblog")
+    @Log(systemLogOperation = SystemLogOperation.SAVE_MICROBLOG, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object saveMicroblog(@RequestParam(value = "accessToken") String accessToken,
+                                     @RequestParam(value = "urlName", required = true) String urlName, HttpServletRequest request)
+            throws TRSException {
+        ApiAccessToken token = getToken(request);
+        String userId = token.getGrantSourceOwnerId();
+        User user = userRepository.findOne(userId);
+        if (urlName.indexOf("?") != -1){
+            //有问号
+            urlName = urlName.split("\\?")[0];
+        }
+        urlName = urlName.replace("https","http");
+        String random = UUID.randomUUID().toString().replace("-", "");
+        String currentUrl = urlName+random;
+        User loginUser = UserUtils.getUser();
+        List<SingleMicroblogData> states = singleMicroblogDataService.findStates(loginUser, MicroblogConst.MICROBLOGLIST,"分析中");
+        //列表查询
+        SingleMicroblogData microblogList = new SingleMicroblogData(MicroblogConst.MICROBLOGLIST,urlName,currentUrl);
+        microblogList.setUserId(loginUser.getId());
+        microblogList.setSubGroupId(loginUser.getSubGroupId());
+        microblogList.setLatelyTime(new Date());
+        if (ObjectUtil.isNotEmpty(states) && states.size() > 0){
+            microblogList.setState("正在排队");
+        }else {
+            microblogList.setState("分析中");
+        }
+
+        try {
+            SpreadObject spreadObject = singleMicroblogService.currentUrlMicroBlog(urlName);
+            if (ObjectUtil.isEmpty(spreadObject)){
+                return null;
+            }
+            microblogList.setData(spreadObject);
+        } catch (TRSException e) {
+            log.error(MicroblogConst.MICROBLOGLIST,e);
+        }
+        microblogList.setRandom(random);
+        microblogList.setLastModifiedTime(new Date());
+        SingleMicroblogData microblogData = singleMicroblogDataService.insert(microblogList);
+        //查询hybase，并将结果放在mongodb中
+        if (ObjectUtil.isNotEmpty(microblogData) && "分析中".equals(microblogData.getState())){
+            singleMicroblogService.dataAnalysis(microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
+        }
+
+        return microblogData;
+
+    }
+
+    /**
+     * 更新已完成的微博分析
+     * @param accessToken
+     * @param id
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @Api(value = "update microblog", method = ApiMethod.UpdateMicroblog)
+    @GetMapping("/updateMicroblog")
+    @Log(systemLogOperation = SystemLogOperation.UPDATE_MICROBLOG, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object updateMicroblog(@RequestParam(value = "accessToken") String accessToken,
+                                  @ApiParam("已分析完成的微博id")@RequestParam(value = "id", required = true) String id, HttpServletRequest request)
+            throws TRSException {
+        ApiAccessToken token = getToken(request);
+        String userId = token.getGrantSourceOwnerId();
+        User user = userRepository.findOne(userId);
+        SingleMicroblogData singleMicroblogData = singleMicroblogDataService.findOne(id);
+        if (ObjectUtil.isEmpty(singleMicroblogData)){
+            throw new OperationException("无效id");
+        }
+
+        String random = UUID.randomUUID().toString().replace("-", "");
+        singleMicroblogData.setRandom(random);
+        User loginUser = UserUtils.getUser();
+        List<SingleMicroblogData> states = singleMicroblogDataService.findStates(loginUser, MicroblogConst.MICROBLOGLIST,"分析中");
+        //列表查询
+        singleMicroblogData.setLatelyTime(new Date());
+        if (ObjectUtil.isNotEmpty(states) && states.size() > 0){
+            singleMicroblogData.setState("正在排队");
+
+        }else {
+            singleMicroblogData.setState("分析中");
+        }
+
+        try {
+            SpreadObject spreadObject = singleMicroblogService.currentUrlMicroBlog(singleMicroblogData.getOriginalUrl());
+            if (ObjectUtil.isEmpty(spreadObject)){
+                return null;
+            }
+            singleMicroblogData.setData(spreadObject);
+        } catch (TRSException e) {
+            log.error(MicroblogConst.MICROBLOGLIST,e);
+        }
+        SingleMicroblogData microblogData = singleMicroblogDataService.save(singleMicroblogData);
+        //查询hybase，并将结果放在mongodb中
+        if (ObjectUtil.isNotEmpty(microblogData) && "分析中".equals(microblogData.getState())){
+            singleMicroblogService.dataAnalysis(microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
+        }
+
+
+        return microblogData;
+
+    }
+
+    /**
+     * 删除的微博分析
+     * @param accessToken
+     * @param id
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @Api(value = "delete microblog", method = ApiMethod.DeleteMicroblog)
+    @GetMapping("/deleteMicroblog")
+    @Log(systemLogOperation = SystemLogOperation.DELETE_MICROBLOG, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object deleteMicroblog(@RequestParam(value = "accessToken") String accessToken,
+                                  @ApiParam("微博id")@RequestParam(value = "id", required = true) String id, HttpServletRequest request)
+            throws TRSException {
+        ApiAccessToken token = getToken(request);
+        String userId = token.getGrantSourceOwnerId();
+        User user = userRepository.findOne(userId);
+        if(ObjectUtil.isNotEmpty(user)){
+            singleMicroblogDataService.remove(id);
+            return "删除成功";
+        }
+        return null;
+
     }
 
     /**

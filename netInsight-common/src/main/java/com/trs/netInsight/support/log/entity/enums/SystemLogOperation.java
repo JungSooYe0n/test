@@ -194,6 +194,18 @@ public enum SystemLogOperation {
 	 */
 	MICRO_BLOG_DETAIL("获取当前微博信息","查询"),
 	/**
+	 * 添加微博信息
+	 */
+	SAVE_MICROBLOG("获取当前微博信息","添加"),
+	/**
+	 * 修改已完成的微博信息
+	 */
+	UPDATE_MICROBLOG("获取当前微博信息","修改"),
+	/**
+	 * 删除已完成的微博信息
+	 */
+	DELETE_MICROBLOG("获取当前微博信息","删除"),
+	/**
 	 * 热门评论TOP5
 	 */
 	HOT_REVIEWS("热门评论TOP5","查询"),
