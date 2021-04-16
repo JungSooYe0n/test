@@ -369,9 +369,6 @@ public class GenerateReportImpl implements IGenerateReport {
 							singleParagraph(xwpfDocument, e.getChapterName(), reportIntro, i.intValue());
 						} else if(e.getChapterPosition() == 1|| chapter.equals(Chapter.Statistics_Summarize)){
 							//数据统计概述
-//							if (!CollectionUtils.isEmpty(chapaterContent)) {
-//								chapaterContent.get(0).setImgComment(dataSummary);
-//							}
 							singleParagraph(xwpfDocument,  e.getChapterName(), chapaterContent.get(0).getImgComment(), i.intValue());
 						}
 						break;

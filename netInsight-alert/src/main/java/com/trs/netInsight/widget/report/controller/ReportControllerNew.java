@@ -433,15 +433,22 @@ public class ReportControllerNew {
 	 * 
 	 * @author shao.guangze
 	 * @return
+	 * @param isTemp 临时报告
 	 * @throws Exception 
 	 */
 	@Log(systemLogOperation = SystemLogOperation.REPORT_DOWNLOAD, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@ApiOperation("下载报告")
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
-	public ResponseEntity<InputStreamResource> downloadReport(HttpServletRequest request, HttpServletResponse response, String reportId) throws Exception {
+	public ResponseEntity<InputStreamResource> downloadReport(HttpServletRequest request, HttpServletResponse response, String reportId, String isTemp) throws Exception {
 		try {
 				ReportNew report = reportServiceNew.download(reportId);
-				FileSystemResource file = new FileSystemResource(report.getDocPath());
+				String docPath = null;
+				if (StringUtil.isNotEmpty(isTemp) && "temp".equals(isTemp)) {//临时的就走临时的
+					docPath = report.getTempDocPath();
+				} else {
+					docPath = report.getDocPath();
+				}
+				FileSystemResource file = new FileSystemResource(docPath);
 				response.resetBuffer();
 				HttpHeaders headers = new HttpHeaders();
 				headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
