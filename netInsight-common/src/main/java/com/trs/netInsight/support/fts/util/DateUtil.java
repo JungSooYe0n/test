@@ -1744,7 +1744,7 @@ public class DateUtil {
 			timeArray[1] = new SimpleDateFormat(yyyyMMddHHmmss).format(new Date());
 			switch (timeFlag) {
 				case 'h':
-					timeArray[0] = getDateBefore(timeNum+1, Calendar.HOUR_OF_DAY);
+					timeArray[0] = getDateBefore(timeNum, Calendar.HOUR_OF_DAY);
 					break;
 				case 'd':
 					timeArray[0] = getDateBefore(timeNum, Calendar.DAY_OF_MONTH);
@@ -2912,6 +2912,7 @@ public class DateUtil {
 
 	public static void main(String[] args) throws OperationException {
 		String[] s = formatTimeRange2("3d");
+        String[] s1 = formatTimeRange("3d");
 		System.out.println(s);
 	}
 

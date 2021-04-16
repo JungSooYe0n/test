@@ -691,8 +691,13 @@ public class GenerateReportImpl implements IGenerateReport {
                         //height = 4670000;
                         break;
                     case WORDCLOUDSTATISTICS:
-						height = 3200000;
+                    	width = 5400000;
+						height = 3500000;
                         break;
+					case Hand_Made_Word_Cloud:
+						width = 5400000;
+						height = 3500000;
+						break;
 					default:break;
 				}
 				if(StringUtil.isNotEmpty(chapterDetail)){
