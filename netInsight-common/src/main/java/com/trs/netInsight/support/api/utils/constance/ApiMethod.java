@@ -290,7 +290,18 @@ public enum ApiMethod {
      * 原发转发占比
      */
     PrimaryForwardRatio(7017,"get primaryForwardRatio data","7000"),
-
+    /**
+     * 添加微博分析
+     */
+    SaveMicroblog(7018,"save microblog","7000"),
+    /**
+     * 更新已完成的微博分析
+     */
+    UpdateMicroblog(7019,"update microblog","7000"),
+    /**
+     * 删除已完成的微博分析
+     */
+    DeleteMicroblog(7020,"delete microblog","7000"),
 
     /**
      *  查询数据详情
