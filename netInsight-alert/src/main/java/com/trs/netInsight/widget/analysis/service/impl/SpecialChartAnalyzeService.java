@@ -979,11 +979,15 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		}
 		User user = UserUtils.getUser();
 		//判断观点分析的数据源是否被勾选了
-		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报");
-		String[] groupNameArray = CommonListChartUtil.changeGroupName(groupNames).replace("国内新闻_电子报", "电子报").split(";");
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
+		String[] groupNameArray = CommonListChartUtil.changeGroupName(groupNames).split(";");
 		if (groupNameArray.length > 0 && groupNameArray.length == 1) {
 			if (!specialProjectGroupName.contains(groupNameArray[0])) {
-				throw new TRSException("暂无数据，如需查看请勾选新闻网站数据哦~", CodeUtils.DATA_IS_NULL);
+				Map<String, Object> resultMap = new HashMap<String, Object>();
+				resultMap.put("message", "暂无数据，如需查看请勾选新闻网站数据哦~");
+				List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+				resultList.add(resultMap);
+				return resultList;
 			}
 		} else if (groupNameArray.length > 0 && groupNameArray.length == 2) {
 			if ((!specialProjectGroupName.contains(groupNameArray[0])) && specialProjectGroupName.contains(groupNameArray[1])) {
@@ -991,7 +995,11 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			} else if (specialProjectGroupName.contains(groupNameArray[0]) && (!specialProjectGroupName.contains(groupNameArray[1]))) {
 				groupNames = groupNameArray[0];
 			} else if ((!specialProjectGroupName.contains(groupNameArray[0])) && (!specialProjectGroupName.contains(groupNameArray[1]))) {
-				throw new TRSException("暂无数据，如需查看请勾选微信、微博数据哦~", CodeUtils.DATA_IS_NULL);
+				Map<String, Object> resultMap = new HashMap<String, Object>();
+				resultMap.put("message", "暂无数据，如需查看请勾选微信、微博数据哦~");
+				List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+				resultList.add(resultMap);
+				return resultList;
 			}
 		}
 		InfoListResult infoListResult = commonListService.queryPageListForHot(builder, groupNames, user, "special", false);
@@ -4909,13 +4917,13 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		//这个根据前端要求 按照他们的数据结构返回
 		List<String> groupNames = null;
 		//判断传播分析/站点的数据源是否被勾选了
-		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报");
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
 		if ((!specialProjectGroupName.contains("国内新闻")) && specialProjectGroupName.contains("自媒体号")) {
 			groupNames = Arrays.asList("自媒体号");
 		} else if (specialProjectGroupName.contains("国内新闻") && (!specialProjectGroupName.contains("自媒体号"))) {
 			groupNames = Arrays.asList("新闻");
 		} else if ((!specialProjectGroupName.contains("国内新闻")) && (!specialProjectGroupName.contains("自媒体号"))) {
-			throw new TRSException("暂无数据，如需查看请勾选新闻网站或者自媒体号数据哦~", CodeUtils.DATA_IS_NULL);
+			return new HashMap<String, String>().put("message", "暂无数据，如需查看请勾选新闻网站或者自媒体号数据哦~");
 		} else {
 			groupNames = Arrays.asList("新闻","自媒体号");
 		}
