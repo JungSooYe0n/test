@@ -323,7 +323,9 @@ public class CommonChartServiceImpl implements ICommonChartService {
                                 // 因为吉林省市同名,单独拿出,防止按区域名称分类统计错误
                                 for (GroupInfo classEntry : categoryInfos) {
                                     if (classEntry.getFieldValue().contains(city) && !classEntry.getFieldValue().contains("吉林省\\吉林市")) {
-                                        num2 += classEntry.getCount();
+                                        if(!(classEntry.getFieldValue().equals("中国\\北京市\\朝阳区")&&"朝阳".equals(city))){
+                                            num2 += classEntry.getCount();
+                                        }
                                     } else if (classEntry.getFieldValue().contains("吉林省\\吉林市")) {
                                         numJiLin += classEntry.getCount();
                                     }
