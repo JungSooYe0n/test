@@ -1652,12 +1652,12 @@ public class ApiController {
             return null;
         }
         List<GroupInfo> emojiAnalysisOfForwardData = (List<GroupInfo>)emojiAnalysisOfForward.getData();
-//        if (ObjectUtil.isNotEmpty(emojiAnalysisOfForwardData)){
-//            for (GroupInfo groupInfo : emojiAnalysisOfForwardData) {
-//                String pinyin = PinyinUtil.toPinyinWithPolyphone(groupInfo.getFieldValue());
-//                groupInfo.setFieldValue(pinyin);
-//            }
-//        }
+        if (ObjectUtil.isNotEmpty(emojiAnalysisOfForwardData)){
+            for (GroupInfo groupInfo : emojiAnalysisOfForwardData) {
+                String pinyin = PinyinUtil.toPinyinWithPolyphone(groupInfo.getFieldValue());
+                groupInfo.setFieldValue(pinyin);
+            }
+        }
         return emojiAnalysisOfForwardData;
     }
 
