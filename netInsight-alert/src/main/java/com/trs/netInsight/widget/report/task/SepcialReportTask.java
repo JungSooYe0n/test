@@ -504,7 +504,7 @@ public class SepcialReportTask implements Runnable {
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, NEWSHOTTOP10, (endMillis - startMillis)));
                                     if (ObjectUtil.isNotEmpty(result) ) {
                                         if (ObjectUtil.isNotEmpty(result.get(0).get("message"))) {
-                                            String message = JSON.toJSONString(result.get(0));
+                                            String message = JSONArray.toJSONString(result);
                                             reportData.setNewsHotTopics(message);
                                         } else {
                                             reportData.setNewsHotTopics(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), NEWSHOTTOP10))));
@@ -528,7 +528,7 @@ public class SepcialReportTask implements Runnable {
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEIBOHOTTOP10, (endMillis - startMillis)));
                                     if (ObjectUtil.isNotEmpty(result)) {
                                         if (ObjectUtil.isNotEmpty(result.get(0).get("message"))) {
-                                            String message = JSON.toJSONString(result.get(0));
+                                            String message = JSONArray.toJSONString(result);
                                             reportData.setWeiboTop10(message);
                                         } else {
                                             reportData.setWeiboTop10(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WEIBOHOTTOP10))));
@@ -552,7 +552,7 @@ public class SepcialReportTask implements Runnable {
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WECHATHOTTOP10, (endMillis - startMillis)));
                                     if (ObjectUtil.isNotEmpty(result)) {
                                         if (ObjectUtil.isNotEmpty(result.get(0).get("message"))) {
-                                            String message = JSON.toJSONString(result.get(0));
+                                            String message = JSONArray.toJSONString(result);
                                             reportData.setWechatHotTop10(message);
                                         } else {
                                             reportData.setWechatHotTop10(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WECHATHOTTOP10))));
@@ -576,7 +576,7 @@ public class SepcialReportTask implements Runnable {
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, WEMEDIA, (endMillis - startMillis)));
                                     if (ObjectUtil.isNotEmpty(result)) {
                                         if (ObjectUtil.isNotEmpty(result.get(0).get("message"))) {
-                                            String message = JSON.toJSONString(result.get(0));
+                                            String message = JSONArray.toJSONString(result);
                                             reportData.setWeMediaHot(message);
                                         } else {
                                             reportData.setWeMediaHot(ReportUtil.replaceHtml(JSON.toJSONString(ReportUtil.top10list2RR(JSON.toJSONString(result), WEMEDIA))));
@@ -601,7 +601,9 @@ public class SepcialReportTask implements Runnable {
 //                                    queryFts.orderBy(FtsFieldConst.FIELD_URLTIME, false);
                                     Map<String, Object> resultMap = executeEventContext(Const.PAGE_SHOW_XINWEN, specialProject.clone());
                                     if (!resultMap.isEmpty()) {
-                                        reportData.setNewsEventContext(JSON.toJSONString(resultMap));
+                                        List<Map<String, Object>> res = new ArrayList<>();
+                                        res.add(resultMap);
+                                        reportData.setNewsEventContext(JSONArray.toJSONString(res));
                                     } else {
                                         QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
                                         searchBuilder.setPageSize(11);
@@ -638,7 +640,9 @@ public class SepcialReportTask implements Runnable {
                                 try {
                                     Map<String, Object> resultMap = executeEventContext(Const.PAGE_SHOW_WEIBO, specialProject.clone());
                                     if (!resultMap.isEmpty()) {
-                                        reportData.setWeiboEventContext(JSON.toJSONString(resultMap));
+                                        List<Map<String, Object>> res = new ArrayList<>();
+                                        res.add(resultMap);
+                                        reportData.setWeiboEventContext(JSONArray.toJSONString(res));
                                     } else {
                                         //找十个转发数量最多的原发 按时间排序
                                         QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
@@ -692,7 +696,9 @@ public class SepcialReportTask implements Runnable {
                                 try {
                                     Map<String, Object> resultMap = executeEventContext(Const.PAGE_SHOW_WEIXIN, specialProject.clone());
                                     if (!resultMap.isEmpty()) {
-                                        reportData.setWechatEventContext(JSON.toJSONString(resultMap));
+                                        List<Map<String, Object>> res = new ArrayList<>();
+                                        res.add(resultMap);
+                                        reportData.setWechatEventContext(JSONArray.toJSONString(res));
                                     } else {
                                         QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
                                         searchBuilder.setPageSize(11);
@@ -729,7 +735,9 @@ public class SepcialReportTask implements Runnable {
                                 try {
                                     Map<String, Object> resultMap = executeEventContext(Const.PAGE_SHOW_ZIMEITI, specialProject.clone());
                                     if (!resultMap.isEmpty()) {
-                                        reportData.setWemediaEventContext(JSON.toJSONString(resultMap));
+                                        List<Map<String, Object>> res = new ArrayList<>();
+                                        res.add(resultMap);
+                                        reportData.setWemediaEventContext(JSONArray.toJSONString(res));
                                     } else {
                                         QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
                                         searchBuilder.setPageSize(11);
@@ -800,7 +808,9 @@ public class SepcialReportTask implements Runnable {
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, PROPAFATIONANALYSIS, (endMillis - startMillis)));
                                     if (ObjectUtil.isNotEmpty(spreadAnalysisSiteName )) {
                                         if (spreadAnalysisSiteName instanceof Map && ((Map<String, Object>) spreadAnalysisSiteName).size() == 1 && ObjectUtil.isNotEmpty(((Map<String, Object>) spreadAnalysisSiteName).get("message"))) {
-                                            reportData.setSpreadAnalysisSiteName(JSON.toJSONString(((Map<String, Object>) spreadAnalysisSiteName).get("message")));
+                                            List<Map<String, Object>> res = new ArrayList<>();
+                                            res.add((Map<String, Object>) spreadAnalysisSiteName);
+                                            reportData.setSpreadAnalysisSiteName(JSONArray.toJSONString(res));
                                         } else {
                                             ReportResource spreadAnalysisRR = new ReportResource();
                                             spreadAnalysisRR.setImg_data(JSON.toJSONString(spreadAnalysisSiteName));
@@ -823,7 +833,9 @@ public class SepcialReportTask implements Runnable {
                                 try {
                                     Map<String, Object> resultMap = executePropafationAnalysis(Const.PAGE_SHOW_XINWEN, specialProject.clone());
                                     if (!resultMap.isEmpty()) {
-                                        reportData.setNewsSpreadAnalysisTimeList(JSON.toJSONString(resultMap));
+                                        List<Map<String, Object>> res = new ArrayList<>();
+                                        res.add(resultMap);
+                                        reportData.setNewsSpreadAnalysisTimeList(JSONArray.toJSONString(res));
                                     } else {
                                         // 根据时间升序,只要第一条
                                         QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, true);
@@ -856,7 +868,9 @@ public class SepcialReportTask implements Runnable {
                                 try {
                                     Map<String, Object> resultMap = executePropafationAnalysis(Const.PAGE_SHOW_ZIMEITI, specialProject.clone());
                                     if (!resultMap.isEmpty()) {
-                                        reportData.setWemediaSpreadAnalysisTimeList(JSON.toJSONString(resultMap));
+                                        List<Map<String, Object>> res = new ArrayList<>();
+                                        res.add(resultMap);
+                                        reportData.setWemediaSpreadAnalysisTimeList(JSONArray.toJSONString(res));
                                     } else {
                                         // 根据时间升序,只要第一条
                                         QueryBuilder searchBuilder = specialProject.toBuilder(0, 1, true);
