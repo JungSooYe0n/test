@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.CloneUtils;
 
 import javax.persistence.*;
 import java.text.ParseException;
@@ -41,7 +42,7 @@ import java.util.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "special_project")
-public class SpecialProject extends BaseEntity {
+public class SpecialProject extends BaseEntity implements Cloneable {
 	/**
 	* 
 	*/
@@ -566,6 +567,11 @@ public class SpecialProject extends BaseEntity {
 		this.excludeWeb =excludeWeb;
 		super.setCreatedTime(new Date());
 		super.setLastModifiedTime(new Date());
+	}
+	@Override
+	public SpecialProject clone() throws CloneNotSupportedException {
+		SpecialProject specialProject = (SpecialProject) super.clone();
+		return specialProject;
 	}
 	/**
 	 * 构建查询builder

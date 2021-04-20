@@ -977,9 +977,11 @@ public class ReportUtil {
 					common.add(resource);
 					tElement.setChapaterContent(common);
 				} else {
-					tElement.setChapaterContent(
-							JSONObject.parseObject(jsonData, new TypeReference<List<ReportResource>>() {
-							}));
+					try {
+						tElement.setChapaterContent(JSONObject.parseObject(jsonData, new TypeReference<List<ReportResource>>() {}));
+					} catch (Exception exception) {
+						tElement.setChapaterContent(null);
+					}
 				}
 				tElements.add(tElement);
 			}

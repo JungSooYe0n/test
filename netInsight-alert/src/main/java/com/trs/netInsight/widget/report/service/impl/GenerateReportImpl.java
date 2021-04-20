@@ -103,7 +103,12 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 				if(StringUtil.isNotEmpty(jsonStr)){
 					//使用TypeReference解析带泛型的List
-					List<ReportResource> chapaterContent = JSONObject.parseObject(jsonStr, new TypeReference<List<ReportResource>>() {});
+					List<ReportResource> chapaterContent = null;
+					try {
+						chapaterContent = JSONObject.parseObject(jsonStr, new TypeReference<List<ReportResource>>() {});
+					} catch (Exception e) {
+						chapaterContent = null;
+					}
 					dataListParagraph(xwpfDocument, chapterName,element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument,chapterName,element.getChapterDetail(),null,i,element.getElementNewType());
@@ -117,7 +122,12 @@ public class GenerateReportImpl implements IGenerateReport {
 					chapterName = WEIBOHOTTOP10;
 				}
 				if(StringUtil.isNotEmpty(reportData.getWeiboTop10())){
-					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeiboTop10(), new TypeReference<List<ReportResource>>() {});
+					List<ReportResource> chapaterContent = null;
+					try {
+						chapaterContent = JSONObject.parseObject(reportData.getWeiboTop10(), new TypeReference<List<ReportResource>>() {});
+					} catch (Exception e) {
+						chapaterContent = null;
+					}
 					dataListParagraph(xwpfDocument, chapterName,element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument,chapterName,element.getChapterDetail(),null,i,element.getElementNewType());
@@ -127,7 +137,12 @@ public class GenerateReportImpl implements IGenerateReport {
 			case WECHATHOTTOP10New:
 				i++;
 				if(StringUtil.isNotEmpty(reportData.getWechatHotTop10())){
-					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWechatHotTop10(), new TypeReference<List<ReportResource>>() {});
+					List<ReportResource> chapaterContent = null;
+					try {
+						chapaterContent = JSONObject.parseObject(reportData.getWechatHotTop10(), new TypeReference<List<ReportResource>>() {});
+					} catch (Exception e) {
+						chapaterContent = null;
+					}
 					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
@@ -138,7 +153,12 @@ public class GenerateReportImpl implements IGenerateReport {
 			case WEMEDIAkey:
 				i++;
 				if(StringUtil.isNotEmpty(reportData.getWeMediaHot())){
-					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeMediaHot(), new TypeReference<List<ReportResource>>() {});
+					List<ReportResource> chapaterContent = null;
+					try {
+						chapaterContent = JSONObject.parseObject(reportData.getWeMediaHot(), new TypeReference<List<ReportResource>>() {});
+					} catch (Exception e) {
+						chapaterContent = null;
+					}
 					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
@@ -149,7 +169,12 @@ public class GenerateReportImpl implements IGenerateReport {
 			case WEMEDIAEVENTCONTEXTkey:
 				i++;
 				if(StringUtil.isNotEmpty(reportData.getWemediaEventContext())){
-					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWemediaEventContext(), new TypeReference<List<ReportResource>>() {});
+					List<ReportResource> chapaterContent = null;
+					try {
+						chapaterContent = JSONObject.parseObject(reportData.getWemediaEventContext(), new TypeReference<List<ReportResource>>() {});
+					} catch (Exception e) {
+						chapaterContent = null;
+					}
 					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
@@ -159,7 +184,12 @@ public class GenerateReportImpl implements IGenerateReport {
 			case WECHATEVENTCONTEXTkey:
 				i++;
 				if(StringUtil.isNotEmpty(reportData.getWechatEventContext())){
-					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWemediaEventContext(), new TypeReference<List<ReportResource>>() {});
+					List<ReportResource> chapaterContent = null;
+					try {
+						chapaterContent = JSONObject.parseObject(reportData.getWechatEventContext(), new TypeReference<List<ReportResource>>() {});
+					} catch (Exception e) {
+						chapaterContent = null;
+					}
 					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
@@ -169,7 +199,12 @@ public class GenerateReportImpl implements IGenerateReport {
 			case NEWSEVENTCONTEXTkey:
 				i++;
 				if(StringUtil.isNotEmpty(reportData.getNewsEventContext())){
-					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getNewsEventContext(), new TypeReference<List<ReportResource>>() {});
+					List<ReportResource> chapaterContent = null;
+					try {
+						chapaterContent = JSONObject.parseObject(reportData.getNewsEventContext(), new TypeReference<List<ReportResource>>() {});
+					} catch (Exception e) {
+						chapaterContent = null;
+					}
 					dataListParagraph(xwpfDocument, "新闻网站事件脉络".equals(element.getChapterName()) ? "新闻事件脉络" : "新闻网站事件脉络", element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument, "新闻网站事件脉络".equals(element.getChapterName()) ? "新闻事件脉络" : "新闻网站事件脉络", element.getChapterDetail(),null,i,element.getElementNewType());
@@ -179,7 +214,12 @@ public class GenerateReportImpl implements IGenerateReport {
 			case WEIBOEVENTCONTEXTkey:
 				i++;
 				if(StringUtil.isNotEmpty(reportData.getWeiboEventContext())){
-					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getWeiboEventContext(), new TypeReference<List<ReportResource>>() {});
+					List<ReportResource> chapaterContent = null;
+					try {
+						chapaterContent = JSONObject.parseObject(reportData.getWeiboEventContext(), new TypeReference<List<ReportResource>>() {});
+					} catch (Exception e) {
+						chapaterContent = null;
+					}
 					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
 					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
@@ -207,7 +247,7 @@ public class GenerateReportImpl implements IGenerateReport {
 				}
 				log.info(String.format(GENERATEREPORTLOG,WEIBOHOTTOPICS + DONE));
 				break;
-			case PROPAFATIONANALYSISkey:
+			case PROPAFATIONANALYSISkey://传播分析
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
