@@ -2013,14 +2013,8 @@ public class SpecialChartAnalyzeController {
 		String userName = UserUtils.getUser().getUserName();
 		long startTime = System.currentTimeMillis();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
-		//判断热点信息的四个数据源是否被勾选了
-		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
-		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端").split(";");
-		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
-			Map<String, Object> resultMap = new HashMap<>();
-			resultMap.put("message", "暂无数据，如需查看请勾选" + groupName + "数据哦~");
-			return resultMap;
-		}
+		String source = specialProject.getSource();
+		String oldGroupName = groupName;
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
@@ -2037,7 +2031,8 @@ public class SpecialChartAnalyzeController {
 		// 跟统计表格一样 如果来源没选 就不查数据
 		groupName = CommonListChartUtil.changeGroupName(groupName);
 		Date hyStartDate = new Date();
-		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(groupName,
+		specialProject.setSource(source);
+		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(oldGroupName,
 				specialProject, timeRange,pageSize);
         RequestTimeLog requestTimeLog = new RequestTimeLog();
 		requestTimeLog.setTabId(specialId);
@@ -2049,6 +2044,12 @@ public class SpecialChartAnalyzeController {
         requestTimeLog.setRandomNum(randomNum);
         requestTimeLog.setOperation("专题分析-事件态势-热点信息");
         requestTimeLogRepository.save(requestTimeLog);
+		if (CollectionsUtil.isNotEmpty(result)) {
+			Object message = result.get(0).get("message");
+			if (ObjectUtil.isNotEmpty(message)) {
+				return result.get(0);
+			}
+		}
 		return result;
 	}
 	/**

@@ -4923,7 +4923,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		} else if (specialProjectGroupName.contains("国内新闻") && (!specialProjectGroupName.contains("自媒体号"))) {
 			groupNames = Arrays.asList("新闻");
 		} else if ((!specialProjectGroupName.contains("国内新闻")) && (!specialProjectGroupName.contains("自媒体号"))) {
-			return new HashMap<String, String>().put("message", "暂无数据，如需查看请勾选新闻网站或者自媒体号数据哦~");
+			Map<String, Object> resultMap = new HashMap<>();
+			resultMap.put("message", "暂无数据，如需查看请勾选新闻网站或者自媒体号数据哦~");
+			return resultMap;
 		} else {
 			groupNames = Arrays.asList("新闻","自媒体号");
 		}
@@ -5617,6 +5619,16 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		List<Map<String, Object>> list = new ArrayList<>();
 		Map<String, Object> map = null;
 
+		//判断热点信息的四个数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
+		String[] groupNames = CommonListChartUtil.changeGroupName(source).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端").split(";");
+		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
+			Map<String, Object> resultMap = new HashMap<>();
+			resultMap.put("message", "暂无数据，如需查看请勾选" + source + "数据哦~");
+			list.add(resultMap);
+			return list;
+		}
+		specialProject.setSource(source);
 		try {
 			if (timeRange != null) {
 				String[] timeArray = DateUtil.formatTimeRange(timeRange);
