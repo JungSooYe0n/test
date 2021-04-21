@@ -1863,7 +1863,7 @@ public class DateUtil {
 			timeArray[1] = new SimpleDateFormat(yyyyMMddHHmmss).format(new Date());
 			switch (timeFlag) {
 				case 'h':
-					timeArray[0] = getDateBefore(timeNum+1, Calendar.HOUR_OF_DAY);
+					timeArray[0] = getDateBefore(timeNum, Calendar.HOUR_OF_DAY);
 					break;
 				case 'd':
 					timeArray[0] = getDateBefore(timeNum, Calendar.DAY_OF_MONTH);
