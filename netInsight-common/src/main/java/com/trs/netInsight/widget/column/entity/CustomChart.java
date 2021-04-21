@@ -250,11 +250,17 @@ public class CustomChart extends BaseEntity {
     @Column(name = "top_sequence")
     private Integer topSequence;
 
+    /**
+     * 精准筛选
+     */
+    @Column(name = "precise_filter")
+    private String preciseFilter;
+
 
     public IndexTab indexTab() {
         IndexTab indexTab = new IndexTab(this.name, this.trsl, this.xyTrsl, this.type, this.contrast, this.excludeWeb, this.monitorSite,this.timeRange,
                 this.hide, this.keyWord, this.excludeWords, this.excludeWordIndex, this.keyWordIndex, this.groupName, this.similar, this.irSimflag, this.irSimflagAll,
-                this.weight, this.tabWidth, this.sequence, this.specialType, this.mediaLevel, this.mediaIndustry, this.contentIndustry, this.filterInfo, this.contentArea, this.mediaArea);
+                this.weight, this.tabWidth, this.sequence, this.specialType, this.mediaLevel, this.mediaIndustry, this.contentIndustry, this.filterInfo, this.contentArea, this.mediaArea, this.preciseFilter);
         return indexTab;
     }
 
@@ -287,7 +293,7 @@ public class CustomChart extends BaseEntity {
     public CustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, Boolean hide, String keyWord,
                        String excludeWords,String excludeWordIndex, String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll,
                        Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,
-                       String filterInfo, String contentArea,String mediaArea) {
+                       String filterInfo, String contentArea,String mediaArea, String preciseFilter) {
         this(name, trsl, xyTrsl, type, contrast, excludeWeb,monitorSite, timeRange, hide, keyWord, excludeWords, excludeWordIndex, keyWordIndex, groupName, similar, irSimflag, irSimflagAll, weight, tabWidth, parentId, sequence, specialType);
         this.mediaLevel = mediaLevel;
         this.mediaIndustry = mediaIndustry;
@@ -295,12 +301,13 @@ public class CustomChart extends BaseEntity {
         this.filterInfo = filterInfo;
         this.contentArea = contentArea;
         this.mediaArea = mediaArea;
+        this.preciseFilter = preciseFilter;
     }
 public CustomChart copy(){
         CustomChart customChart = new CustomChart(name, trsl, xyTrsl, type, contrast, excludeWeb,monitorSite, timeRange,hide, keyWord,
                 excludeWords,excludeWordIndex, keyWordIndex, groupName,similar, irSimflag,irSimflagAll,
                 weight, tabWidth, parentId,sequence,specialType,mediaLevel,mediaIndustry,contentIndustry,
-                filterInfo, contentArea,mediaArea);
+                filterInfo, contentArea,mediaArea, preciseFilter);
         customChart.setIsTop(true);
         return customChart;
 }

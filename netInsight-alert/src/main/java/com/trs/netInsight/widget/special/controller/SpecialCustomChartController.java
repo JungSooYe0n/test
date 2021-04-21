@@ -129,7 +129,8 @@ public class SpecialCustomChartController {
             @ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
+            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query")})
     public Object addCustomChart(@RequestParam("name") String name, @RequestParam(value = "specialId") String specialId,
                                  @RequestParam("specialType") String specialType,
                                  @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
@@ -153,6 +154,7 @@ public class SpecialCustomChartController {
                                  @RequestParam(value = "filterInfo", required = false) String filterInfo,
                                  @RequestParam(value = "contentArea", required = false) String contentArea,
                                  @RequestParam(value = "mediaArea", required = false) String mediaArea,
+                                 @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
                                  HttpServletRequest request)
             throws TRSException {
         String[] typeArr = type.split(";");
@@ -246,7 +248,7 @@ public class SpecialCustomChartController {
             groupName = CommonListChartUtil.changeGroupName(groupName);
             SpecialCustomChart customChart = new SpecialCustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb,monitorSite, timeRange, keyWord, excludeWords,
                     keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, specialId, sequence, specialType1,mediaLevel, mediaIndustry, contentIndustry,
-                    filterInfo, contentArea, mediaArea);
+                    filterInfo, contentArea, mediaArea, preciseFilter);
             customChart.setExcludeWordsIndex(excludeWordsIndex);
             customChart.setSort(sort);
             customChart = specialCustomChartService.saveSpecialCustomChart(customChart);
@@ -309,7 +311,8 @@ public class SpecialCustomChartController {
             @ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
+            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query")})
     public Object updateCustomChart(@RequestParam("id") String id, @RequestParam("name") String name,
                                     @RequestParam("specialType") String specialType,
                                     @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
@@ -333,6 +336,7 @@ public class SpecialCustomChartController {
                                     @RequestParam(value = "filterInfo", required = false) String filterInfo,
                                     @RequestParam(value = "contentArea", required = false) String contentArea,
                                     @RequestParam(value = "mediaArea", required = false) String mediaArea,
+                                    @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
                                     HttpServletRequest request)
             throws TRSException {
 
@@ -431,6 +435,7 @@ public class SpecialCustomChartController {
             customChart.setWeight(weight);
             customChart.setTabWidth(tabWidth);
             customChart.setSort(sort);
+            customChart.setPreciseFilter(preciseFilter);
             return specialCustomChartService.saveSpecialCustomChart(customChart);
         } catch (Exception e) {
             log.error("栏目下自定义图表修改报错", e);
