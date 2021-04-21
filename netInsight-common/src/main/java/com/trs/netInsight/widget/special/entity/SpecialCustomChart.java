@@ -11,6 +11,7 @@ import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.WordSpacingUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -254,6 +255,12 @@ public class SpecialCustomChart extends BaseEntity{
     @Column(name = "top_sequence")
     private Integer topSequence;
 
+    /**
+     * 精准筛选
+     */
+    @Column(name = "precise_filter")
+    private String preciseFilter;
+
     public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, String keyWord, String excludeWords,
                        String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType) {
         this.name = name;
@@ -279,7 +286,7 @@ public class SpecialCustomChart extends BaseEntity{
     }
     public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb, String monitorSite,String timeRange, String keyWord, String excludeWords,
                               String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,
-                              String filterInfo, String contentArea,String mediaArea) {
+                              String filterInfo, String contentArea, String mediaArea, String preciseFilter) {
         this(name, trsl, xyTrsl, type, contrast, excludeWeb,monitorSite,timeRange, keyWord, excludeWords, keyWordIndex, groupName, similar, irSimflag, irSimflagAll, weight, tabWidth, parentId, sequence, specialType);
         this.mediaLevel = mediaLevel;
         this.mediaIndustry = mediaIndustry;
@@ -287,6 +294,7 @@ public class SpecialCustomChart extends BaseEntity{
         this.filterInfo = filterInfo;
         this.contentArea = contentArea;
         this.mediaArea = mediaArea;
+        this.preciseFilter = preciseFilter;
     }
 
     public QueryBuilder getQueryBuilder(Boolean withTime,int pageNo,int pageSize){
@@ -364,7 +372,134 @@ public class SpecialCustomChart extends BaseEntity{
                         queryBuilder.filterByTRSL(sb.toString());
                     }
                 }
+                // 精准筛选
+                if (StringUtils.isNoneBlank(this.preciseFilter) && !"ALL".equals(this.preciseFilter)) {
 
+                    List<String> sourceList = CommonListChartUtil.formatGroupName(this.groupName);
+                    //精准筛选 与上面论坛的主回帖和微博的原转发类似 ，都需要在数据源的基础上进行修改
+                    if (sourceList.contains(Const.GROUPNAME_XINWEN) || sourceList.contains(Const.GROUPNAME_WEIBO) || sourceList.contains(Const.GROUPNAME_LUNTAN)) {
+                        String[] arr = preciseFilter.split(";");
+                        if (arr != null && arr.length > 0) {
+                            List<String> preciseFilterList = new ArrayList<>();
+                            for (String filter : arr) {
+                                preciseFilterList.add(filter);
+                            }
+                            StringBuffer buffer = new StringBuffer();
+                            // 新闻筛选  --- 屏蔽新闻转发 就是新闻 不要新闻不为空的时候，也就是要新闻原发
+                            if (sourceList.contains(Const.GROUPNAME_XINWEN) && preciseFilterList.contains("notNewsForward")) {
+
+                                buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_XINWEN + ")");
+                                buffer.append(" AND (").append(Const.SRCNAME_XINWEN).append(")");
+                                buffer.append(")");
+                                sourceList.remove(Const.GROUPNAME_XINWEN);
+                            }
+
+                            //论坛筛选  ---  屏蔽论坛主贴  -  为回帖  、屏蔽论坛回帖为主贴
+                            if (sourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
+                                if (buffer.length() > 0) {
+                                    buffer.append(" OR ");
+                                }
+                                buffer.append("(");
+                                buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+                                if (preciseFilterList.contains("notLuntanForward")) { //屏蔽论坛回帖 -- 主贴
+                                    buffer.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+                                }
+                                if (preciseFilterList.contains("notLuntanPrimary")) { //屏蔽论坛主贴
+                                    buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
+                                }
+                                buffer.append(")");
+
+                                sourceList.remove(Const.GROUPNAME_LUNTAN);
+                            }
+
+                            //微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
+                            if (sourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
+                                    || preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+                                    || preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
+                                    || preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")
+                            )) {
+
+                                if (buffer.length() > 0) {
+                                    buffer.append(" OR ");
+                                }
+                                buffer.append("(");
+                                buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+                                if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
+                                    buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
+                                }
+                                if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
+                                    buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
+                                }
+                                if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
+                                    buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
+                                }
+                                if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
+                                    buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
+                                }
+                                if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
+                                    buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
+                                }
+                                if (StringUtil.isNotEmpty(this.keyWord)) {
+                                    net.sf.json.JSONArray jsonArray = net.sf.json.JSONArray.fromObject(this.keyWord.trim());
+                                    StringBuilder childTrsl = new StringBuilder();
+                                    StringBuilder childTrsl2 = new StringBuilder();
+                                    StringBuilder childTrsl3 = new StringBuilder();
+                                    for (Object keyWord : jsonArray) {
+
+                                        net.sf.json.JSONObject parseObject = net.sf.json.JSONObject.fromObject(String.valueOf(keyWord));
+                                        String keyWordsSingle = parseObject.getString("keyWords");
+                                        if (StringUtil.isNotEmpty(keyWordsSingle)) {
+                                            //防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+                                            String[] split = keyWordsSingle.split(",");
+                                            String splitNode = "";
+                                            for (int i = 0; i < split.length; i++) {
+                                                if (StringUtil.isNotEmpty(split[i])) {
+                                                    if (split[i].endsWith(";")) {
+                                                        split[i] = split[i].substring(0, split[i].length() - 1);
+                                                    }
+                                                    splitNode += split[i] + ",";
+                                                }
+                                            }
+                                            keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
+                                            childTrsl.append("((\"")
+                                                    .append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
+                                                    .append("*\"))");
+//										childTrsl2.append("((")
+//												.append(keyWordsSingle.replaceAll("[,|，]", "*) AND (").replaceAll("[;|；]+", "* OR "))
+//												.append("*))");
+                                            childTrsl2.append("((")
+                                                    .append(keyWordsSingle.replaceAll("[,|，]", ") AND (").replaceAll("[;|；]+", " OR "))
+                                                    .append("))");
+                                            childTrsl3.append("(").append(keyWordsSingle.replaceAll("[;|；|，|,]"," OR ")).append(")");
+                                        }
+                                    }
+                                    if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+                                        buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+                                    }
+                                    if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+                                        buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+                                        buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+                                    }
+                                    if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+                                        buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append(") OR ").append(FtsFieldConst.FIELD_TAG_LIKE).append(":(").append(childTrsl2.toString()).append("))");
+                                    }
+                                }
+                                buffer.append(")");
+
+                                sourceList.remove(Const.GROUPNAME_WEIBO);
+                            }
+                            if (buffer.length() > 0) {
+                                if (sourceList.size() > 0) {
+                                    if (buffer.length() > 0) {
+                                        buffer.append(" OR ");
+                                    }
+                                    buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(sourceList, " OR ")).append("))");
+                                }
+                                queryBuilder.filterByTRSL(buffer.toString());
+                            }
+                        }
+                    }
+                }
                 break;
             case SPECIAL:
                 queryBuilder.filterByTRSL(this.trsl);
