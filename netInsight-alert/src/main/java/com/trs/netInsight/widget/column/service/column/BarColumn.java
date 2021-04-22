@@ -8,6 +8,7 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.util.SearchTimeLongUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
@@ -43,6 +44,8 @@ public class BarColumn extends AbstractColumn {
 			boolean irSimflag = indexTab.isIrSimflag();
 			boolean irSimflagAll = indexTab.isIrSimflagAll();
 			String groupName = indexTab.getGroupName();
+			//记录searchTimeLongLog日志
+			SearchTimeLongUtil.execute(indexTab.getName(), indexTab.getTimeRange());
 			builder.setPageSize(this.config.getPageSize());
 
 			//判断类型，如果是横向柱状图或微博热点话题，需要

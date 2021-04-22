@@ -416,6 +416,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         if (StringUtil.isNotEmpty(timeRange)) {
             customChart.setTimeRange(timeRange);
         }
+        //记录searchTimeLongLog日志
+        SearchTimeLongUtil.execute(customChart.getName(), customChart.getTimeRange());
         QueryBuilder commonBuilder = customChart.getQueryBuilder(true,-1,-1);
         Object result = null;
         IndexTabType indexTabType = ColumnFactory.chooseType(customChart.getType());

@@ -2350,6 +2350,8 @@ sequenceRepository.flush();
 		String userName = UserUtils.getUser().getUserName();
 		long start = new Date().getTime();
 		if (indexTab != null) {
+			//记录searchTimeLongLog日志
+			SearchTimeLongUtil.execute(indexTab.getName(), indexTab.getTimeRange());
 			String timerange = indexTab.getTimeRange();
 			try {
 				AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());

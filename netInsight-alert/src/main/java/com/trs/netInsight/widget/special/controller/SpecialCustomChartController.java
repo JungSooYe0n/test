@@ -7,9 +7,11 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.support.log.entity.RequestTimeLog;
+import com.trs.netInsight.support.log.entity.enums.SearchLogType;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.handler.SearchLog;
 import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.CodeUtils;
 import com.trs.netInsight.util.ObjectUtil;
@@ -472,6 +474,7 @@ public class SpecialCustomChartController {
      * @throws TRSException
      */
     @FormatResult
+    @SearchLog(searchLogType = SearchLogType.SPECIAL)
     @RequestMapping(value = "/selectChart", method = RequestMethod.POST)
     @ApiOperation("获取自定义图表的数据")
     public Object selectChart(HttpServletRequest request,

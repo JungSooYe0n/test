@@ -71,6 +71,29 @@ public class DateUtil {
 	public static String HOUR_END = "5959";
 
 	/**
+	 * 计算相差多少天 例如 2021-04-22 00:00:00 这种格式
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public static int getBetweenDays(String startTime, String endTime) {
+
+		SimpleDateFormat sdf = new SimpleDateFormat(yyyyMMdd);
+		Calendar calendar = Calendar.getInstance();
+		try {
+			calendar.setTime(sdf.parse(startTime));
+			long start = calendar.getTimeInMillis();
+			calendar.setTime(sdf.parse(endTime));
+			long end = calendar.getTimeInMillis();
+			long between = (end - start) / (1000*3600*24);
+			return Integer.parseInt(String.valueOf(between));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	/**
 	 * 将毫秒数转化为可读的时间字符串,如1天，1小时，1分<br>
 	 * 的区别是不会显示多个单位,更符合阅读习惯,如1天1小时显示为25小时,1小时3分显示为63分
 	 *

@@ -5921,6 +5921,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		boolean sim = specialProject.isSimilar();
 		boolean irSimflag = specialProject.isIrSimflag();
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
+		//记录searchTimeLongLog日志
+		SearchTimeLongUtil.execute(specialProject.getSpecialName(), specialProject.getTimeRange());
 //		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
 		 int weiboHigh = 20000;
 		 int weixinHigh = 500;

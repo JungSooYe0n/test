@@ -1925,6 +1925,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                 return;
             HttpServletRequest request = ((ServletRequestAttributes) ras).getRequest();
             request.setAttribute("system-log-trsl", trsl);
+            request.setAttribute("search_time_long_trsl", trsl);
         } catch (Exception e) {
             log.error("获取当前HttpServletRequest失败！");
             e.printStackTrace();

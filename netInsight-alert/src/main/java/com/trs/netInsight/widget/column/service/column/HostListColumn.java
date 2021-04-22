@@ -8,10 +8,7 @@ import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.entity.FtsDocumentCommonVO;
 import com.trs.netInsight.support.fts.util.DateUtil;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.RedisUtil;
-import com.trs.netInsight.util.StringUtil;
-import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.column.entity.IndexTab;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
@@ -40,6 +37,9 @@ public class HostListColumn extends AbstractColumn {
             String uid = UUID.randomUUID().toString();
             RedisUtil.setString(uid, builder.asTRSL());
             builder.setKeyRedis(uid);
+            IndexTab indexTab = super.config.getIndexTab();
+            //记录searchTimeLongLog日志
+            SearchTimeLongUtil.execute(indexTab.getName(), indexTab.getTimeRange());
             String source = super.config.getIndexTab().getGroupName();
             PagedList<FtsDocumentCommonVO> pagedList = commonListService.queryPageListForHotNoFormat(builder, "column", source);
             if (pagedList == null || pagedList.getPageItems() == null || pagedList.getPageItems().size() == 0) {

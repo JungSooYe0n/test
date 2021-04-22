@@ -26,9 +26,11 @@ import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.support.log.entity.RequestTimeLog;
+import com.trs.netInsight.support.log.entity.enums.SearchLogType;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.handler.SearchLog;
 import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
@@ -171,6 +173,7 @@ public class SpecialChartAnalyzeController {
 	@FormatResult
 	@ApiOperation("态势评估")
 	@RequestMapping(value = "/situationAssessment", method = RequestMethod.GET)
+	@SearchLog(searchLogType = SearchLogType.SPECIAL)
 	public Object situationAssessment(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
 									  @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
 

@@ -14,6 +14,7 @@ import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.util.SearchTimeLongUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.widget.analysis.entity.CategoryBean;
@@ -41,6 +42,8 @@ public class ChartLineColumn extends AbstractColumn{
 		//url排重
 		boolean irSimflag = indexTab.isIrSimflag();
 		boolean irSimflagAll = indexTab.isIrSimflagAll();
+		//记录searchTimeLongLog日志
+		SearchTimeLongUtil.execute(indexTab.getName(), indexTab.getTimeRange());
 		String tabWidth = indexTab.getTabWidth();
 		String contrast = indexTab.getContrast();
 		//用queryCommonBuilder和QueryBuilder 是一样的的
