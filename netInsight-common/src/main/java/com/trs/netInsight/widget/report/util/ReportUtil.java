@@ -1237,8 +1237,8 @@ public class ReportUtil {
 	public static void  setEmptyData(ReportDataNew reportData, String chapterType, String chapterDetail) {
 		if (ReportConst.SINGLERESOURCE.equals(chapterType) && OVERVIEWOFDATAkey.equals(chapterDetail)) {
 			ReportResource overviewRR = new ReportResource();
-			overviewRR.setImgComment("暂无数据！");
-			overviewRR.setImg_data("暂无数据！");
+			overviewRR.setImgComment("无");
+			overviewRR.setImg_data("无");
 			reportData.setOverviewOfdata(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(overviewRR))));
 		} else {
 			ReportResource emptyResource = new ReportResource();
