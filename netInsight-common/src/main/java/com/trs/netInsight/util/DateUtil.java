@@ -269,6 +269,44 @@ public class DateUtil {
 		return new SimpleDateFormat(format).format(calendarTemp.getTime());
 	}
 
+	/**
+	 * 获取与指定日期间隔指定小时的日期
+	 * @param date
+	 * @param format
+	 * @param relativeHour
+	 * @return
+	 */
+	public static String formatDateAfterForHour(String date, String format, int relativeHour) {
+		if (StringUtil.isEmpty(date) || StringUtil.isEmpty(format)) {
+			return "";
+		}
+		Calendar calendar = Calendar.getInstance();
+		try {
+			calendar.setTime(new SimpleDateFormat(format).parse(date));
+			calendar.add(Calendar.HOUR_OF_DAY, relativeHour);
+		} catch (ParseException e) {
+			return "";
+		}
+		return new SimpleDateFormat(format).format(calendar.getTime());
+	}
+
+	/**
+	 * 获取与指定日期间隔指定小时的日期
+	 * @param date
+	 * @param format
+	 * @param relativeHour
+	 * @return
+	 */
+	public static String formatDateAfterForHour(Date date, String format, int relativeHour) {
+		if (date == null || StringUtil.isEmpty(format)) {
+			return "";
+		}
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.HOUR_OF_DAY, relativeHour);
+		return new SimpleDateFormat(format).format(calendar.getTime());
+	}
+
 	public static String formatDateAfterNow(String format, int relativeDay) {
 		if (StringUtil.isEmpty(format)) {
 			return "";

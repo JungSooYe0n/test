@@ -73,9 +73,9 @@ public class SearchTimeLongLogAspectFilter {
             timeRange = strings[2];
             String[] times = DateUtil.formatTimeRange(timeRange);
             int searchTime = DateUtil.getBetweenDays(times[0], times[1]);
-            if (searchTime < 30 * 3) {//小于90天不记录日志
-                return proceed;
-            }
+//            if (searchTime < 30 * 3) {//小于90天不记录日志
+//                return proceed;
+//            }
             User currentUser = UserUtils.getUser();
             String organizationName = null;
             if (StringUtil.isNotEmpty(currentUser.getOrganizationId())) {
