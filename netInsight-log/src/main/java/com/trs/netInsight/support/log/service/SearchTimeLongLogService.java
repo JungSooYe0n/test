@@ -9,6 +9,6 @@ import java.util.Map;
  */
 public interface SearchTimeLongLogService {
 
-    List<Map<String, Object>> selectSearchLog(String modelType, String createdTime, String searchTime, int pageNum, int pageSize, String searchType, String searchText);
+    Map<String, Object> selectSearchLog(String modelType, String createdTime, String searchTime, int pageNum, int pageSize, String searchType, String searchText);
 
 }

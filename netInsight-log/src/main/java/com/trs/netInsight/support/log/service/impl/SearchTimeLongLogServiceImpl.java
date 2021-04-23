@@ -38,7 +38,7 @@ public class SearchTimeLongLogServiceImpl implements SearchTimeLongLogService {
     private SearchTimeLongLogRepository searchTimeLongLogRepository;
 
     @Override
-    public List<Map<String, Object>> selectSearchLog(String modelType, String createdTime, String searchTime, int pageNum, int pageSize, String searchType, String searchText) {
+    public Map<String, Object> selectSearchLog(String modelType, String createdTime, String searchTime, int pageNum, int pageSize, String searchType, String searchText) {
 
         if (UserUtils.isSuperAdmin() || UserUtils.isRolePlatform()) {
 
@@ -144,12 +144,12 @@ public class SearchTimeLongLogServiceImpl implements SearchTimeLongLogService {
 
             Page<SearchTimeLongLog> searchTimeLongLogPage = searchTimeLongLogRepository.findAll(specification, pageable);
 
-            List<Map<String, Object>> result = new ArrayList<>();
+            List<Map<String, Object>> content = new ArrayList<>();
             if (searchTimeLongLogPage != null) {
-                List<SearchTimeLongLog> content = searchTimeLongLogPage.getContent();
-                if (CollectionsUtil.isNotEmpty(content)) {
+                List<SearchTimeLongLog> searchTimeLongLogs = searchTimeLongLogPage.getContent();
+                if (CollectionsUtil.isNotEmpty(searchTimeLongLogs)) {
                     int i = 1;
-                    for (SearchTimeLongLog searchTimeLongLog : content) {
+                    for (SearchTimeLongLog searchTimeLongLog : searchTimeLongLogs) {
                         Map<String, Object> map = new HashMap<>();
                         map.put("num", i++);
                         map.put("organizationName", searchTimeLongLog.getOrganizationName());
@@ -160,10 +160,14 @@ public class SearchTimeLongLogServiceImpl implements SearchTimeLongLogService {
                         map.put("createdTime", DateUtil.format2String(searchTimeLongLog.getCreatedTime(), DateUtil.yyyyMMdd));
                         map.put("searchTime", searchTimeLongLog.getSearchTime());
                         map.put("trsl", searchTimeLongLog.getTrsl());
-                        result.add(map);
+                        content.add(map);
                     }
                 }
             }
+            Map<String, Object> result = new HashMap<>();
+            result.put("content", content);
+            result.put("totalPages", searchTimeLongLogPage.getTotalPages());
+            result.put("totalElements", searchTimeLongLogPage.getTotalElements());
             return result;
         }
         return null;
