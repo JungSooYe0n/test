@@ -40,7 +40,7 @@ public class SearchTimeLongLogServiceImpl implements SearchTimeLongLogService {
     @Override
     public List<Map<String, Object>> selectSearchLog(String modelType, String createdTime, String searchTime, int pageNum, int pageSize, String searchType, String searchText) {
 
-        if (UserUtils.isSuperAdmin()) {
+        if (UserUtils.isSuperAdmin() || UserUtils.isRolePlatform()) {
 
             Pageable pageable = new PageRequest(pageNum, pageSize, new Sort(new Sort.Order(Sort.Direction.DESC, "createdTime")));
 
