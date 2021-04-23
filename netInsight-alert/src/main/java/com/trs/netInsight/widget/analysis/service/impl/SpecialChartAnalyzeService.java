@@ -5947,18 +5947,22 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 		//把数据进行格式转换
 		Map<String, Long> newMap = new HashMap<>();
-		for (Map<String, Object> mapList : list) {
-			newMap.put(mapList.get("name").toString(), Long.parseLong(mapList.get("num").toString()));
+		if (list.size() > 0 && CollectionsUtil.isNotEmpty(list)) {
+			for (Map<String, Object> mapList : list) {
+				newMap.put(mapList.get("name").toString(), Long.parseLong(mapList.get("num").toString()));
+			}
 		}
 
-		//把 13 种舆论场归为 6 类
-		newMap.put("新闻网站", newMap.get("新闻网站") + newMap.get("境外") + newMap.get("电子报"));
-		newMap.put("自媒体号", newMap.get("自媒体号") + newMap.get("短视频") + newMap.get("视频") + newMap.get("博客") + newMap.get("Facebook") + newMap.get("Twitter"));
+		double total = 0D;
+		if (!newMap.isEmpty()) {
+			//把 13 种舆论场归为 6 类
+			newMap.put("新闻网站", newMap.get("新闻网站") + newMap.get("境外") + newMap.get("电子报"));
+			newMap.put("自媒体号", newMap.get("自媒体号") + newMap.get("短视频") + newMap.get("视频") + newMap.get("博客") + newMap.get("Facebook") + newMap.get("Twitter"));
 
-		double total = getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("新闻")), newsHigh) * 0.1 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微博")), weiboHigh) * 0.4 +
-				getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微信")), weixinHigh) * 0.3 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("客户端")), appHigh) * 0.1 +
-				getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("自媒体号")), zimeitiHigh) * 0.05 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("论坛")), luntanHigh) * 0.05;
-
+			total = getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("新闻")), newsHigh) * 0.1 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微博")), weiboHigh) * 0.4 +
+					getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微信")), weixinHigh) * 0.3 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("客户端")), appHigh) * 0.1 +
+					getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("自媒体号")), zimeitiHigh) * 0.05 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("论坛")), luntanHigh) * 0.05;
+		}
 //        searchBuilder.setPageSize(200);
 //		InfoListResult infoListResult = commonListService.queryPageList(searchBuilder,false,false,false,Const.GROUPNAME_WEIBO,"special",UserUtils.getUser(),false);
 //		PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
@@ -5974,7 +5978,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //		}
 //		total += getScore(Long.valueOf(weiboVipNum),100,150,200) * 0.1;
 		int result = BigDecimal.valueOf(total).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
-		return result == 0 ? 1 : result;
+		return result;
 	}
 
 	/**
