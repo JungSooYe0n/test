@@ -19,9 +19,13 @@ public class SearchTimeLongUtil {
     public static void execute(String modelName, String timeRange) {
         //获取HttpServletRequest请求
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
-        request.setAttribute("model_name_123", modelName);
-        request.setAttribute("timeRange_123", timeRange);
+        if (requestAttributes != null) {
+            HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+            if (request != null) {
+                request.setAttribute("model_name_123", modelName);
+                request.setAttribute("timeRange_123", timeRange);
+            }
+        }
     }
 
 }
