@@ -81,7 +81,7 @@ public class GenerateReportImpl implements IGenerateReport {
 			switch (element.getChapterDetail()) {
 			case REPORTINTRONew:
 				i++;
-				singleParagraph(xwpfDocument, REPORTINTRO, reportData.getReportIntro(), i);
+				singleParagraph(xwpfDocument, chapterName, reportData.getReportIntro(), i);
 				log.info(String.format(GENERATEREPORTLOG,REPORTINTRO + DONE));
 				break;
 			case OVERVIEWOFDATANew:
@@ -91,7 +91,7 @@ public class GenerateReportImpl implements IGenerateReport {
 					JSONObject object = (JSONObject)(JSONObject.parseArray(reportData.getOverviewOfdata()).get(0));
 					dataSummary =  object.getString("imgComment");
 				}
-				singleParagraph(xwpfDocument, OVERVIEWOFDATA, dataSummary, i);
+				singleParagraph(xwpfDocument, chapterName, dataSummary, i);
 				log.info(String.format(GENERATEREPORTLOG,OVERVIEWOFDATA + DONE));
 				break;
 			case NEWSHOTTOP10New:
