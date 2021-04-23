@@ -1119,6 +1119,9 @@ public class InfoListController {
 //        	加上已读 / 未读 标
 			for (FtsDocumentCommonVO ftsDocumentCommonVO : ftsQuery) {
 				readArticle(ftsDocumentCommonVO);
+				if("undefined".equals(ftsDocumentCommonVO.getAuthors())){
+					ftsDocumentCommonVO.setAuthors(ftsDocumentCommonVO.getSiteName());
+				}
 			}
 
             FtsDocumentCommonVO ftsDocument = ftsQuery.get(0);
