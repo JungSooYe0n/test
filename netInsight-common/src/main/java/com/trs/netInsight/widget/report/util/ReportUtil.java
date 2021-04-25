@@ -1177,8 +1177,6 @@ public class ReportUtil {
 
 			if ("微博事件脉络".equals(chapter)) {
 				reportResource.setSiteName(map.get("authors"));
-			} else if ("自媒体号事件脉络".equals(chapter)) {
-				reportResource.setSiteName(map.get("siteName") + "-" + map.get("authors"));
 			} else {
 				reportResource.setSiteName(map.get("siteName"));
 			}
