@@ -97,6 +97,9 @@ public class ReportUtil {
 		StringBuffer strResult = new StringBuffer();
 		Object parse = JSONArray.parse(data);
 		List list = (List) parse;
+		if (list.size() <=0) {
+				return "无";
+		}
 		if (list.size() > 0) {
 			if (((JSONObject) list.get(0)).getInteger("value") == null) {
 				// 进入折线图模式
