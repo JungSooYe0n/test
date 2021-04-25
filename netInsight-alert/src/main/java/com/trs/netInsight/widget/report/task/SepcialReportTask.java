@@ -302,8 +302,24 @@ public class SepcialReportTask implements Runnable {
                                            || ObjectUtil.isNotEmpty(exportResult)|| ObjectUtil.isNotEmpty(netizenResult)) {
 
                                         Map<String, Object> opinionResult = new HashMap<>();
-                                        opinionResult.put("OFFICIAL_VIEW", officialResult);
-                                        opinionResult.put("MEDIA_VIEW", mediaResult);
+                                        if (ObjectUtil.isEmpty(officialResult)) {
+                                            Map<String, Object> resultMap = new HashMap<String, Object>();
+                                            resultMap.put("message", "暂无数据");
+                                            List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+                                            resultList.add(resultMap);
+                                            opinionResult.put("OFFICIAL_VIEW", resultList);
+                                        } else {
+                                            opinionResult.put("OFFICIAL_VIEW", officialResult);
+                                        }
+                                        if (ObjectUtil.isEmpty(mediaResult)) {
+                                            Map<String, Object> resultMap = new HashMap<String, Object>();
+                                            resultMap.put("message", "暂无数据");
+                                            List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+                                            resultList.add(resultMap);
+                                            opinionResult.put("MEDIA_VIEW", resultList);
+                                        } else {
+                                            opinionResult.put("MEDIA_VIEW", mediaResult);
+                                        }
                                         //opinionResult.put("EXPORT_VIEW", exportResult);
                                         opinionResult.put("NETIZEN_VIEW", netizenResult);
                                         endMillis = System.currentTimeMillis();
