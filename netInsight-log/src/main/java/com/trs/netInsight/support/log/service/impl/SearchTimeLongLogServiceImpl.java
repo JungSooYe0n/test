@@ -8,7 +8,6 @@ import com.trs.netInsight.util.CollectionsUtil;
 import com.trs.netInsight.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
-import jdk.nashorn.internal.ir.IfNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -118,7 +117,7 @@ public class SearchTimeLongLogServiceImpl implements SearchTimeLongLogService {
                                     break;
                             }
                             if (time == 0) {
-                                predicates.add(cb.greaterThanOrEqualTo(root.get("searchTime"), time));
+                                predicates.add(cb.greaterThanOrEqualTo(root.get("searchTime"), 366));
                             } else {
                                 predicates.add(cb.lessThanOrEqualTo(root.get("searchTime"), time));
                             }
@@ -162,6 +161,8 @@ public class SearchTimeLongLogServiceImpl implements SearchTimeLongLogService {
                         map.put("trsl", searchTimeLongLog.getTrsl());
                         content.add(map);
                     }
+                } else {
+                    return null;
                 }
             }
             Map<String, Object> result = new HashMap<>();
