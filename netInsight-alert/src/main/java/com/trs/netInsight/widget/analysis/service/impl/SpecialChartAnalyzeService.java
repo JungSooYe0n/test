@@ -5242,6 +5242,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		try {
 			searchBuilder.setPageSize(10);
 			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION_2,"special",CommonListChartUtil.changeGroupName(groupName));
+			if (posResult == null) {
+				return null;
+			}
 			for(GroupInfo groupInfo : posResult) {
 				HashMap<String, Object> result = new HashMap<>();
 				result.put("name", groupInfo.getFieldValue());
@@ -5947,7 +5950,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 		//把数据进行格式转换
 		Map<String, Long> newMap = new HashMap<>();
-		if (list.size() > 0 && CollectionsUtil.isNotEmpty(list)) {
+		if (CollectionsUtil.isNotEmpty(list) && list.size() > 0) {
 			for (Map<String, Object> mapList : list) {
 				newMap.put(mapList.get("name").toString(), Long.parseLong(mapList.get("num").toString()));
 			}
