@@ -8,6 +8,8 @@ import com.trs.netInsight.util.CollectionsUtil;
 import com.trs.netInsight.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.user.entity.Organization;
+import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -136,6 +138,24 @@ public class SearchTimeLongLogServiceImpl implements SearchTimeLongLogService {
                                 break;
                         }
                     }
+
+                    //如果是运维管理员，只能看到其管理的机构
+                    if (UserUtils.isRolePlatform()) {
+                        User user = UserUtils.getUser();
+                        Set<Organization> organizations = user.getOrganizations();
+                        if (CollectionsUtil.isNotEmpty(organizations)) {
+                            Set<String> ids = new HashSet<>();
+                            for (Organization organization : organizations) {
+                                ids.add(organization.getId());
+                            }
+                            CriteriaBuilder.In<String> organizationIds = cb.in(root.get("organizationId").as(String.class));
+                            for (String id : ids) {
+                                organizationIds.value(id);
+                            }
+                            predicates.add(organizationIds);
+                        }
+                    }
+
                     Predicate[] pre = new Predicate[predicates.size()];
                     return query.where(predicates.toArray(pre)).getRestriction();
                 }
