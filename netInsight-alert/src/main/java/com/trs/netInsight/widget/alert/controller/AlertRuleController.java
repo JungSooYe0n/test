@@ -5,6 +5,9 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
+import com.trs.netInsight.support.log.entity.enums.SystemLogType;
+import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
 import com.trs.netInsight.widget.alert.constant.AlertAutoConst;
@@ -136,6 +139,7 @@ public class AlertRuleController {
 	 * @throws OperationException
 	 */
 	@ApiOperation("不分页查询")
+	@Log(systemLogOperation = SystemLogOperation.ALERT_RULE_LIST, systemLogType = SystemLogType.ALERT, systemLogOperationPosition = "预警规则列表：")
 	@FormatResult
 	@RequestMapping(value = "/allList", method = RequestMethod.GET)
 	public Object allList() throws OperationException {
@@ -177,6 +181,7 @@ public class AlertRuleController {
 	 * @throws OperationException
 	 */
 	@ApiOperation("新建预警")
+	@Log(systemLogOperation = SystemLogOperation.ALERT_RULE_ADD, systemLogType = SystemLogType.ALERT, systemLogOperationPosition = "预警标题：${title}")
 	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	@FormatResult
 	public Object addSpecial(@ApiParam("预警标题") @RequestParam("title") String title,
@@ -335,6 +340,7 @@ public class AlertRuleController {
 	 * @throws TRSException
 	 */
 	@ApiOperation("专项预警保存修改")
+	@Log(systemLogOperation = SystemLogOperation.ALERT_RULE_UPDATE, systemLogType = SystemLogType.ALERT, systemLogOperationPosition = "预警标题：${title}")
 	@FormatResult
 	@RequestMapping(value = "/saveUpdate", method = RequestMethod.POST)
 	public Object saveUpdate(@ApiParam("预警规则id") @RequestParam("id") String id,
@@ -438,7 +444,7 @@ public class AlertRuleController {
 		alertRule.setAlertEndHour(alertEndHour);
 		// 防止修改后第一次预警时间交叉导致预警内容重复 所以注掉这两行
 //		alertRule.setLastStartTime(null);
-//		alertRule.setLastExecutionTime(0L);
+		alertRule.setLastExecutionTime(0L);
 		alertRule.setAlertType(alertSource);
 		alertRule.setWeek(week);
 		alertRule.setSpecialType(type);
@@ -505,6 +511,7 @@ public class AlertRuleController {
 	 * @throws TRSSearchException
 	 */
 	@ApiOperation("信息列表手动预警发送邮件")
+	@Log(systemLogOperation = SystemLogOperation.ARTIFICIAL_ALERT, systemLogType = SystemLogType.ALERT, systemLogOperationPosition = "页面上填写的预警标题：${title}")
 	@FormatResult
 	@RequestMapping(value = "/listEmail", method = RequestMethod.POST)
 	public Object listEmail(
@@ -542,6 +549,7 @@ public class AlertRuleController {
 	 * @throws OperationException
 	 */
 	@ApiOperation("信息列表手动预警发送邮件--混合列表")
+	@Log(systemLogOperation = SystemLogOperation.ARTIFICIAL_ALERT, systemLogType = SystemLogType.ALERT, systemLogOperationPosition = "页面上填写的预警标题：${title}")
 	@FormatResult
 	@RequestMapping(value = "/listEmailBlend", method = RequestMethod.POST)
 	public Object listEmailBlend(
@@ -631,6 +639,7 @@ public class AlertRuleController {
 	 * @throws OperationException
 	 */
 	@ApiOperation("关闭开启预警")
+	@Log(systemLogOperation = SystemLogOperation.ONOROFF_ALERT, systemLogType = SystemLogType.ALERT, systemLogOperationPosition = "预警id：${id}")
 	@RequestMapping(value = "/onOrOff", method = RequestMethod.GET)
 	@FormatResult
 	public Object onOrOff(@ApiParam("预警规则id") @RequestParam("id") String id,
@@ -644,6 +653,7 @@ public class AlertRuleController {
 		}
 		ScheduleStatus statusValue = ScheduleStatus.valueOf(status);
 		alertRule.setStatus(statusValue);
+		alertRule.setLastExecutionTime(0L);
 		try {
 			// 验证方法
 			AlertRule alertRuleUpdate = alertRuleService.addAlertRule(alertRule);
@@ -665,6 +675,7 @@ public class AlertRuleController {
 	 * @throws OperationException
 	 */
 	@ApiOperation("删除预警规则")
+	@Log(systemLogOperation = SystemLogOperation.ALERT_RULE_DELETE, systemLogType = SystemLogType.ALERT, systemLogOperationPosition = "预警id：${id}")
 	@FormatResult
 	@RequestMapping(value = "/delete", method = RequestMethod.GET)
 	public Object onOrOff(@ApiParam("预警规则id") @RequestParam("id") String id) throws OperationException {
@@ -728,6 +739,7 @@ public class AlertRuleController {
 	 * @throws OperationException
 	 */
 	@ApiOperation("根据规则id查询规则")
+	@Log(systemLogOperation = SystemLogOperation.ALERT_RULE_LIST_DOCUMENT, systemLogType = SystemLogType.ALERT, systemLogOperationPosition = "预警规则id：${id}")
 	@RequestMapping(value = "/listDocument", method = RequestMethod.GET)
 	@FormatResult
 	public Object listDocument(@ApiParam("预警规则id") @RequestParam("id") String id,

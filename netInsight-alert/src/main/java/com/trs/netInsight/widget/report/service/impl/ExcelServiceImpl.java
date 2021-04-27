@@ -1237,7 +1237,7 @@ public class ExcelServiceImpl implements IExcelService {
 			if(Const.MEDIA_TYPE_WEIXIN.contains(groupName)){
 				weixinList.add(idArray[i]);
 			}else{
-				idList.add(idArray[i]);
+				idList.add( "\"" + idArray[i] + "\"");
 				if(!groupName_other.contains(groupNameArray[i])){
 					groupName_other.add(groupNameArray[i]);
 				}

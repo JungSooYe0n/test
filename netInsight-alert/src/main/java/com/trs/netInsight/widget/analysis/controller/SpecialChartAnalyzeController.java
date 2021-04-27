@@ -162,7 +162,7 @@ public class SpecialChartAnalyzeController {
 		requestTimeLog.setStartTime(startDate);
 		requestTimeLog.setEndTime(new Date());
 		requestTimeLog.setRandomNum(randomNum);
-		requestTimeLog.setOperation("各舆论场趋势分析");
+		requestTimeLog.setOperation("专题分析-事件态势-各舆论场趋势分析");
 		requestTimeLogRepository.save(requestTimeLog);
 		return object;
 
@@ -229,7 +229,7 @@ public class SpecialChartAnalyzeController {
 		requestTimeLog.setStartTime(startDate);
 		requestTimeLog.setEndTime(new Date());
 		requestTimeLog.setRandomNum(randomNum);
-		requestTimeLog.setOperation("专题分析-态势评估-态势评估");
+		requestTimeLog.setOperation("专题分析-事件态势-态势评估");
 		requestTimeLogRepository.save(requestTimeLog);
 		return object;
 
@@ -296,7 +296,7 @@ public class SpecialChartAnalyzeController {
         requestTimeLog.setStartTime(startDate);
         requestTimeLog.setEndTime(new Date());
         requestTimeLog.setRandomNum(randomNum);
-        requestTimeLog.setOperation("观点分析");
+        requestTimeLog.setOperation("专题分析-事件态势-观点分析");
         requestTimeLogRepository.save(requestTimeLog);
 		return object;
 
@@ -812,7 +812,7 @@ public class SpecialChartAnalyzeController {
             requestTimeLog.setStartTime(startDate);
             requestTimeLog.setEndTime(new Date());
             requestTimeLog.setRandomNum(randomNum);
-            requestTimeLog.setOperation("地域统计");
+            requestTimeLog.setOperation("专题分析-事件态势-地域统计");
             requestTimeLogRepository.save(requestTimeLog);
 //			List<Map<String, Object>> sortByValue = MapUtil.sortByValue(resultMap, "value");
 //			long end = new Date().getTime();
@@ -996,7 +996,7 @@ public class SpecialChartAnalyzeController {
 			requestTimeLog.setStartTime(startDate);
 			requestTimeLog.setEndTime(new Date());
 			requestTimeLog.setRandomNum(randomNum);
-            requestTimeLog.setOperation("活跃账号");
+            requestTimeLog.setOperation("专题分析-事件态势-活跃账号");
 			requestTimeLogRepository.save(requestTimeLog);
 //			log.info("媒体活跃等级图后台所需时间" + time);
 //			SpecialParam specParam = getSpecParam(specialProject);
@@ -1915,6 +1915,9 @@ public class SpecialChartAnalyzeController {
 			for (FtsDocumentCommonVO ftsDocument : voList) {
 				ftsDocument.setTrslk(trslkall);
 				ftsDocument.setSimCount(ftsDocument.getSimCount()-1 > 0 ? ftsDocument.getSimCount()-1 : 0);
+				if(Const.PAGE_SHOW_WEIBO.equals(groupName) || Const.GROUPNAME_WEIBO.equals(groupName)) {
+					ftsDocument.setSiteName(ftsDocument.getAuthors());
+				}
 			}
             RequestTimeLog requestTimeLog = new RequestTimeLog();
 			requestTimeLog.setTabId(specialId);
@@ -1924,7 +1927,7 @@ public class SpecialChartAnalyzeController {
             requestTimeLog.setStartTime(startDate);
             requestTimeLog.setEndTime(new Date());
             requestTimeLog.setRandomNum(randomNum);
-            requestTimeLog.setOperation("事件脉络");
+            requestTimeLog.setOperation("专题分析-事件态势-事件脉络");
             requestTimeLogRepository.save(requestTimeLog);
 			return voList;
 		} catch (Exception e) {
@@ -2019,7 +2022,7 @@ public class SpecialChartAnalyzeController {
         requestTimeLog.setStartTime(startDate);
         requestTimeLog.setEndTime(new Date());
         requestTimeLog.setRandomNum(randomNum);
-        requestTimeLog.setOperation("热点信息");
+        requestTimeLog.setOperation("专题分析-事件态势-热点信息");
         requestTimeLogRepository.save(requestTimeLog);
 		return result;
 	}
@@ -2598,7 +2601,7 @@ public class SpecialChartAnalyzeController {
             requestTimeLog.setStartTime(startDate);
             requestTimeLog.setEndTime(new Date());
             requestTimeLog.setRandomNum(randomNum);
-            requestTimeLog.setOperation("情绪统计");
+            requestTimeLog.setOperation("专题分析-事件态势-情绪统计");
             requestTimeLogRepository.save(requestTimeLog);
 			return object;
 		} catch (Exception e) {
@@ -3501,7 +3504,7 @@ Date startDate = new Date();
                 requestTimeLog.setStartTime(startDate);
                 requestTimeLog.setEndTime(new Date());
                 requestTimeLog.setRandomNum(randomNum);
-                requestTimeLog.setOperation("传播分析站点");
+                requestTimeLog.setOperation("专题分析-事件态势-传播分析站点");
                 requestTimeLogRepository.save(requestTimeLog);
 				return object;
 			}
@@ -3597,7 +3600,7 @@ Date startDate = new Date();
                 requestTimeLog.setStartTime(startDate);
                 requestTimeLog.setEndTime(new Date());
                 requestTimeLog.setRandomNum(randomNum);
-                requestTimeLog.setOperation("传播分析");
+                requestTimeLog.setOperation("专题分析-事件态势-传播分析");
                 requestTimeLogRepository.save(requestTimeLog);
 				return object;
 			}

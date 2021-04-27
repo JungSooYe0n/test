@@ -516,11 +516,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 						break;
 					case SMS:// 站内
-						List<AlertAccount> alertAccountsSMS = alertAccountRepository.findByAccountAndUserIdAndType(webReceiver,userId,
-								SendWay.SMS);
-						if(alertAccountsSMS.size()>0) {
 							smsList.add(webReceiver);
-						}
 						break;
 					case WE_CHAT:
 						List<AlertAccount> accountList = new ArrayList<>();

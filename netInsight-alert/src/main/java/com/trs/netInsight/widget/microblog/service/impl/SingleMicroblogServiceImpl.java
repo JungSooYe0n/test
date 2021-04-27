@@ -93,7 +93,7 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
         queryBuilder.filterField(FtsFieldConst.FIELD_URLTIME,DateUtil.formatTimeRange("365d"), Operator.Between);
         queryBuilder.filterField(FtsFieldConst.FIELD_URLNAME,"\""+urlName+"\"",Operator.Equal);
 //        List<SpreadObject> statuses = hybase8SearchService.ftsQuery(queryBuilder, SpreadObject.class, false, false,false,null);
-        InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, true, Const.GROUPNAME_WEIBO, null, UserUtils.getUser(), false);
+        InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, false, Const.GROUPNAME_WEIBO, null, UserUtils.getUser(), false);
         if (ObjectUtil.isEmpty(infoListResult) || ObjectUtil.isEmpty(infoListResult.getContent())){
             return null;
         }

@@ -157,6 +157,9 @@ public class User extends BaseEntity {
 	@Column(name = "`tenantId`")
 	private String tenantId = null;
 
+	@Column(name = "`totalTimes`")
+	private Integer totalTimes = 0;
+
 	/**
 	 * 角色
 	 */

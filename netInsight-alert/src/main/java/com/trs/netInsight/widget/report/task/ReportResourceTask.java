@@ -258,15 +258,17 @@ public class ReportResourceTask implements Runnable{
 					reportResourceTemp.setContent(ReportUtil.replaceHtml(StringUtil.removeFourChar(StringUtil.replaceImg(ftsDocumentCommonVO
 							.getContent()))));
 				} else {
-					// 传统媒体
+					if (Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(ftsDocumentCommonVO.getGroupName()) || Const.MEDIA_TYPE_VIDEO.contains(ftsDocumentCommonVO.getGroupName())){
+						//自媒体号、博客、视频、短视频
+						reportResourceTemp.setSiteName(ftsDocumentCommonVO.getSiteName() + (StringUtil.isNotEmpty(ftsDocumentCommonVO.getAuthors()) && !"undefined".equals(ftsDocumentCommonVO.getAuthors()) ?  "-" + ftsDocumentCommonVO.getAuthors() : ""));
+					} else {
+						//传统媒体
+						reportResourceTemp.setSiteName(ftsDocumentCommonVO.getSiteName());
+					}
 					reportResourceTemp.setTitle(ReportUtil.replaceHtml(StringUtil.removeFourChar(StringUtil.replaceImg(ftsDocumentCommonVO.getTitle()))));
-					reportResourceTemp.setSrcName(ftsDocumentCommonVO
-							.getSrcName());
-					reportResourceTemp.setSiteName(ftsDocumentCommonVO
-							.getSiteName());
+					reportResourceTemp.setSrcName(ftsDocumentCommonVO.getSrcName());
 					reportResourceTemp.setSid(ftsDocumentCommonVO.getSid());
-					reportResourceTemp.setContent(ReportUtil.replaceHtml(StringUtil.removeFourChar(StringUtil.replaceImg(ftsDocumentCommonVO
-							.getContent()))));
+					reportResourceTemp.setContent(ReportUtil.replaceHtml(StringUtil.removeFourChar(StringUtil.replaceImg(ftsDocumentCommonVO.getContent()))));
 					reportResourceTemp.setNewsAbstract(ReportUtil.replaceHtml(StringUtil.removeFourChar(StringUtil.replaceImg(ftsDocumentCommonVO.getAbstracts()))));
 				}
 

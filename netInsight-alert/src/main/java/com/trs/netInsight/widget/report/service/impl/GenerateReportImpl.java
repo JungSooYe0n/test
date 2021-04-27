@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.report.service.impl;
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -169,9 +170,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(StringUtil.isNotEmpty(reportData.getNewsEventContext())){
 					List<ReportResource> chapaterContent = JSONObject.parseObject(reportData.getNewsEventContext(), new TypeReference<List<ReportResource>>() {});
-					dataListParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
+					dataListParagraph(xwpfDocument, "新闻网站事件脉络".equals(element.getChapterName()) ? "新闻事件脉络" : "新闻网站事件脉络", element.getChapterDetail(),chapaterContent, i,element.getElementNewType());
 				}else{
-					dataListParagraph(xwpfDocument,element.getChapterName(),element.getChapterDetail(),null,i,element.getElementNewType());
+					dataListParagraph(xwpfDocument, "新闻网站事件脉络".equals(element.getChapterName()) ? "新闻事件脉络" : "新闻网站事件脉络", element.getChapterDetail(),null,i,element.getElementNewType());
 				}
 				log.info(String.format(GENERATEREPORTLOG,NEWSEVENTCONTEXT + DONE));
 				break;
@@ -345,7 +346,7 @@ public class GenerateReportImpl implements IGenerateReport {
 	}
 
 	@Override
-	public String generateReport(ReportNew report, Map<Integer, List<ReportResource>> collect, TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data, String reportIntro) throws Exception {
+	public String generateReport(ReportNew report, Map<Integer, List<ReportResource>> collect, TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data, String reportIntro, String dataSummary) throws Exception {
 		XWPFDocument xwpfDocument = new XWPFDocument();
 		createFirstPage(xwpfDocument, report);
 		//因为是生成报告，所以使用报告里的 templateList
@@ -356,45 +357,51 @@ public class GenerateReportImpl implements IGenerateReport {
 //		elementList = ReportUtil.tElementListHandle(elementList);
 		AtomicInteger i = new AtomicInteger(0);
 		for(TElementNew e : elementList){
-			Chapter chapter = Chapter.valueOf(e.getChapterDetail());
-			switch (e.getChapterType()) {
-				case ReportConst.SINGLERESOURCE:
-					i.getAndIncrement();    //以原子方式将当前值 + 1
-					List<ReportResource> chapaterContent = e.getChapaterContent();
-					if (e.getChapterPosition() == 0 || chapter.equals(Chapter.Report_Synopsis)) {
-						//报告简介
-						singleParagraph(xwpfDocument, e.getChapterName(), reportIntro, i.intValue());
-					} else if(e.getChapterPosition() == 1|| chapter.equals(Chapter.Statistics_Summarize)){
-						//数据统计概述
-						singleParagraph(xwpfDocument,  e.getChapterName(), CollectionUtils.isEmpty(chapaterContent) ? null : chapaterContent.get(0).getImgComment(), i.intValue());
-					}
-					break;
-				case ReportConst.LISTRESOURCES:
-					i.getAndIncrement();
-					try {
-						dataListParagraph(xwpfDocument, e.getChapterName(),e.getChapterDetail(), e.getChapaterContent(), i.intValue(),e.getElementNewType());
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-					break;
-				case ReportConst.CHART:
-					i.getAndIncrement();
-					String base64MapKey = e.getChapterName();
-					String keyName = e.getChapterDetail() + "_"+e.getChapterPosition();
-					if(base64data.containsKey(keyName)){
-						base64MapKey = keyName;
-					}
-					List<Map<String, String>> chapterContent = base64data.get(base64MapKey);
-					try {
-						imgParagraph(xwpfDocument, e.getChapterName(), chapterContent, i.intValue());
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-					break;
-				default:
-					break;
+			//只有被选上的模块才可以下载下来，也就是 selected 是 1
+			if (e.getSelected() != null && e.getSelected() == 1) {
+				Chapter chapter = Chapter.valueOf(e.getChapterDetail());
+				switch (e.getChapterType()) {
+					case ReportConst.SINGLERESOURCE:
+						i.getAndIncrement();    //以原子方式将当前值 + 1
+						List<ReportResource> chapaterContent = e.getChapaterContent();
+						if (e.getChapterPosition() == 0 || chapter.equals(Chapter.Report_Synopsis)) {
+							//报告简介
+							singleParagraph(xwpfDocument, e.getChapterName(), reportIntro, i.intValue());
+						} else if(e.getChapterPosition() == 1|| chapter.equals(Chapter.Statistics_Summarize)){
+							//数据统计概述
+//							if (!CollectionUtils.isEmpty(chapaterContent)) {
+//								chapaterContent.get(0).setImgComment(dataSummary);
+//							}
+							singleParagraph(xwpfDocument,  e.getChapterName(), chapaterContent.get(0).getImgComment(), i.intValue());
+						}
+						break;
+					case ReportConst.LISTRESOURCES:
+						i.getAndIncrement();
+						try {
+							dataListParagraph(xwpfDocument, e.getChapterName(),e.getChapterDetail(), e.getChapaterContent(), i.intValue(),e.getElementNewType());
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+						break;
+					case ReportConst.CHART:
+						i.getAndIncrement();
+						String base64MapKey = e.getChapterName();
+						String keyName = e.getChapterDetail() + "_"+e.getChapterPosition();
+						if(base64data.containsKey(keyName)){
+							base64MapKey = keyName;
+						}
+						List<Map<String, String>> chapterContent = base64data.get(base64MapKey);
+						try {
+							imgParagraph(xwpfDocument, e.getChapterName(), chapterContent, i.intValue());
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+						break;
+					default:
+						break;
+				}
 			}
-			}
+		}
 			//加入附件
 		List<ReportResource> chapterContent = new ArrayList<>();
 		for (TElementNew tElementNew : elementList) {
@@ -498,7 +505,14 @@ public class GenerateReportImpl implements IGenerateReport {
 		if (report.getReportName().length() > 16){
 			report.setReportName(report.getReportName().substring(0,16)+"...");
 		}
-		return dir + "/" + report.getReportName() + "_"
+
+		String reportName = report.getReportName();
+
+		if (reportName.contains("/")) {
+			reportName = reportName.replaceAll("/", "_");
+		}
+
+		return dir + "/" + reportName + "_"
 				+ System.currentTimeMillis() + DOCX;
 	}
 
@@ -544,7 +558,14 @@ public class GenerateReportImpl implements IGenerateReport {
 		if (report.getReportName().length() > 40){
 			report.setReportName(report.getReportName().substring(0,40)+"...");
 		}
-		return dir + "/" + report.getReportName() + "_"
+
+		String reportName = report.getReportName();
+
+		if (reportName.contains("/")) {
+			reportName = reportName.replaceAll("/", "_");
+		}
+
+		return dir + "/" + reportName + "_"
 				+ System.currentTimeMillis() + DOCX;
 	}
 
@@ -637,13 +658,13 @@ public class GenerateReportImpl implements IGenerateReport {
 						height = 3200000;
 						break;
 					case DATASOURCEANALYSIS:
-						height = 3800000;
+						height = 3500000;
 						break;
 					case EMOTIONANALYSIS:
-						height = 3800000;
+						height = 3500000;
 						break;
 					case MOODSTATISTICS:
-						height = 3800000;
+						height = 3500000;
 						break;
 					case AREA:
 						height = 2800000;
@@ -658,10 +679,18 @@ public class GenerateReportImpl implements IGenerateReport {
 						height = 2800000;
 						break;
 					case SITUATIONACCESSMENT:
-						height = 3550000;
+						width = 3000000;
+						height = 2000000;
 						break;
                     case PROPAFATIONANALYSIS:
-                        height = 4670000;
+						BufferedImage img = javax.imageio.ImageIO.read(byteArrayInputStream);
+						int pwidth = img.getWidth();
+						int pheight = img.getHeight();
+						height = 4670000;
+						//下面按照图片的实际大小进行同比例缩放
+						width = (int) (height * ((float)pwidth/(float)pheight));
+						byteArrayInputStream.reset();
+                        //height = 4670000;
                         break;
 					default:break;
 				}

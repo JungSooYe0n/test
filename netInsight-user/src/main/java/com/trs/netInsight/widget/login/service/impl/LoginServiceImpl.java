@@ -120,6 +120,17 @@ public class LoginServiceImpl implements ILoginService {
 			}
 			// 将登录次数存入redis（按用户）
 			Integer count = UserUtils.setLoginCount(userName+user.getId());
+			if (user.getTotalTimes() != null){
+				if (count>user.getTotalTimes()){
+					user.setTotalTimes(count);
+				}else {
+					user.setTotalTimes(user.getTotalTimes()+1);
+				}
+
+			}else {
+				user.setTotalTimes(count);
+			}
+			userService.update(user,false);
 			//loginFrequencyLogService.save(count,user.getId());
 			// 将登录次数存入redis（按分组）
 			String subGroupId = user.getSubGroupId();

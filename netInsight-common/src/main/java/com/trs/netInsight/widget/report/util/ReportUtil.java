@@ -1172,7 +1172,15 @@ public class ReportUtil {
 			reportResource.setTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
 			reportResource.setUrlTime(map.get("time")!=null?map.get("time"):map.get("urlTime"));
 			reportResource.setUrlTitle(map.get("urlTitle"));
-			reportResource.setSiteName(map.get("siteName"));
+
+			if ("微博事件脉络".equals(chapter)) {
+				reportResource.setSiteName(map.get("authors"));
+			} else if ("自媒体号事件脉络".equals(chapter)) {
+				reportResource.setSiteName(map.get("siteName") + "-" + map.get("authors"));
+			} else {
+				reportResource.setSiteName(map.get("siteName"));
+			}
+
 			if("微博TOP10".equals(chapter) || "微博热点".equals(chapter)) {
 				reportResource.setSrcName(map.get("author"));
 			} else {

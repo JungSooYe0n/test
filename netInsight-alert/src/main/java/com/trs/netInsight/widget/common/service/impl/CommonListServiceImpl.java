@@ -127,6 +127,8 @@ public class CommonListServiceImpl implements ICommonListService {
                     document.setTitle(content);
                 }else if(Const.MEDIA_TYPE_WEIBO.contains(document.getGroupName())){
                     document.setTitle(content);
+                } else if (Const.MEDIA_TYPE_VIDEO.contains(document.getGroupName()) || Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(document.getGroupName())) {
+                    document.setSiteName(document.getSiteName() + (StringUtil.isNotEmpty(document.getAuthors()) && !"undefined".equals(document.getAuthors()) ?  "-" + document.getAuthors() : ""));
                 }
                 // 控制标题长度
                 document.setId(document.getSid());
@@ -528,7 +530,9 @@ public class CommonListServiceImpl implements ICommonListService {
             //单独算法,已修改
             GroupResult md5TAG = commonListService.categoryQuery(builder, sim, irSimflag,
                     irSimflagAll, "MD5TAG", type);
-            groupList = md5TAG.getGroupList();
+            if (ObjectUtil.isNotEmpty(md5TAG)) {
+                groupList = md5TAG.getGroupList();
+            }
 
             int start = (int) (pageSize * pageNo);
             int end = (int) (pageSize * pageNo + pageSize - 1);

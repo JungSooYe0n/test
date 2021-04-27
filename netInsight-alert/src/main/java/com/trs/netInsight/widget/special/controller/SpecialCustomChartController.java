@@ -485,7 +485,7 @@ public class SpecialCustomChartController {
         if (ObjectUtil.isEmpty(customChart)) {
             throw new TRSException(CodeUtils.FAIL,"当前自定义图表不存在");
         }
-        String operation = "专题分析 - 自定义分析-"+customChart.getName();
+        String operation = "专题分析-自定义分析-"+customChart.getName();
         Date sqlEndDate = new Date();
         Date hyStartDate = new Date();
         Object result = specialCustomChartService.selectChartData(customChart, timeRange,showType, entityType, mapContrast,mapto);

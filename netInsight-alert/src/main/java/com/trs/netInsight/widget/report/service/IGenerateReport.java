@@ -20,7 +20,7 @@ public interface IGenerateReport {
 
 	//日报周报月报生成word报告
 	String generateReport(ReportNew report, Map<Integer, List<ReportResource>> collect,
-			TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data, String reportIntro)throws Exception;
+			TemplateNew templateNew, Map<String, List<Map<String, String>>> base64data, String reportIntro, String dataSummary)throws Exception;
 
 	//极简报告生成word报告
 	String generateSimplerReport(ReportNew report, Map<Integer, List<ReportResource>> collect, Map<String, List<Map<String, String>>> base64data, String reportIntro)throws Exception;

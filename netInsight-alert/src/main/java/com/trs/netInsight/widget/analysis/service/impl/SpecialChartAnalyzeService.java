@@ -216,7 +216,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				String contrastField = FtsFieldConst.FIELD_SITENAME;
 				if(Const.GROUPNAME_WEIBO.equals(oneGroupName)){
 					contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
-				}else if(Const.MEDIA_TYPE_TF.contains(oneGroupName)){
+				} else if (Const.MEDIA_TYPE_TF.contains(oneGroupName) || Const.MEDIA_TYPE_VIDEO.contains(oneGroupName) || Const.MEDIA_TYPE_ZIMEITI_LUNTAN_BOKE.contains(oneGroupName)) {
+					//FaceBook、Twitter、视频、短视频、自媒体号、论坛、博客
 					contrastField = FtsFieldConst.FIELD_AUTHORS;
 				}
 				if (Const.GROUPNAME_XINWEN.equals(oneGroupName)){
@@ -6306,7 +6307,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			String contrastField = FtsFieldConst.FIELD_SITENAME;
 			if(Const.GROUPNAME_WEIBO.equals(source)){
 				contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
-			}else if(Const.MEDIA_TYPE_TF.contains(source)){
+			}else if(Const.MEDIA_TYPE_TF.contains(source) || Const.MEDIA_TYPE_VIDEO.contains(source) || Const.MEDIA_TYPE_ZIMEITI_LUNTAN_BOKE.contains(source)){
+				//FaceBook、Twitter、视频、短视频、自媒体号、论坛、博客
 				contrastField = FtsFieldConst.FIELD_AUTHORS;
 			}
 			queryBuilder.filterField(contrastField, "\""+key+"\"", Operator.Equal);

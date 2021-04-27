@@ -313,8 +313,9 @@ public class ReportControllerNew {
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "resourceDeleted", value = "是否删除资源，默认删除资源", dataType = "Integer", paramType = "query"),
 			@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = true),
-			@ApiImplicitParam(name = "isUpdateTemplate", value = "是否更新对应模块", dataType = "Integer", paramType = "query", required = false)})
-	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
+			@ApiImplicitParam(name = "isUpdateTemplate", value = "是否更新对应模块", dataType = "Integer", paramType = "query", required = false),
+			@ApiImplicitParam(name = "dataSummary", value = "数据统计概述文本内容", dataType = "String", paramType = "query", required = true)})
+	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "报告名称:${reportName}")
 	@RequestMapping(value = "/create", method = RequestMethod.POST)
 	@FormatResult
 	public Object createReport(
@@ -330,7 +331,8 @@ public class ReportControllerNew {
 			@RequestParam(value = "reportId", required = false)String reportId,
 			@RequestParam(value = "resourceDeleted", required = false, defaultValue = "0")Integer resourceDeleted,
 			@RequestParam(value = "templateList", required = false)String templateList,
-			@RequestParam(value = "isUpdateTemplate", required = false)Integer isUpdateTemplate) throws Exception {
+			@RequestParam(value = "isUpdateTemplate", required = false)Integer isUpdateTemplate,
+			@RequestParam(value = "dataSummary", required = false)String dataSummary) throws Exception {
 		//如果reportId为空的话说明没走预览，这个时候需要把预览做的事情再做一遍————保存表头到report表中。
 		//无论该请求是从预览过来还是直接从报告资源池过来，都需要reportIntro,因为reportIntro是存在report_data表中
 		if(StringUtil.isEmpty(reportId)){
@@ -343,9 +345,9 @@ public class ReportControllerNew {
 					.withStatisticsTime(statisticsTime)
 					.withResourceDeleted(resourceDeleted)
 					.withTemplateList(templateList).build();
-			return reportServiceNew.create(reportIntro, jsonImgElements, report, isUpdateTemplate);
+			return reportServiceNew.create(reportIntro, dataSummary, jsonImgElements, report, isUpdateTemplate);
 		}else{
-			return reportServiceNew.create(reportIntro, jsonImgElements, reportId);
+			return reportServiceNew.create(reportIntro, dataSummary, jsonImgElements, reportId);
 		}
 	}
 
@@ -355,8 +357,14 @@ public class ReportControllerNew {
 	 */
 	@RequestMapping(value = "reBuild", method = RequestMethod.POST)
 	@FormatResult
-	public Object reBuildReport(String reportId, String jsonImgElements) throws Exception {
-		return reportServiceNew.reBuildReport(reportId, jsonImgElements);
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query"),
+		@ApiImplicitParam(name = "jsonImgElements", value = "json格式的图片数据", dataType = "String", paramType = "query"),
+		@ApiImplicitParam(name = "reportIntro", value = "报告简介文本内容", dataType = "String", paramType = "body"),
+		@ApiImplicitParam(name = "dataSummary", value = "数据统计概述文本内容", dataType = "String", paramType = "query", required = true),
+		@ApiImplicitParam(name = "templateList", value = "报告模板", dataType = "String", paramType = "query", required = true)})
+	public Object reBuildReport(String reportId, String jsonImgElements, String reportIntro, String dataSummary, String templateList) throws Exception {
+		return reportServiceNew.reBuildReport(reportId, jsonImgElements, reportIntro, dataSummary, templateList);
 	}
 	/**
 	 * 创建专报(分组）
@@ -365,6 +373,7 @@ public class ReportControllerNew {
 	 * @throws Exception
 	 */
 	@ApiOperation("生成报告, 专报")
+	@Log(systemLogOperation = SystemLogOperation.REPORT_CREATE_SPECIAL, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportId", value = "报告ID", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "templateId", value = "报告模板id", dataType = "String", paramType = "query", required = true),
@@ -443,6 +452,7 @@ public class ReportControllerNew {
 	 * @return
 	 */
 	@ApiOperation("查询所有报告")
+    @Log(systemLogOperation = SystemLogOperation.LIST_ALL_REPORT, systemLogType = SystemLogType.REPORT, systemLogOperationPosition = "报告类型：${reportType}")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "reportType", value = "报告类型", dataType = "String", paramType = "query", required = true),
 			@ApiImplicitParam(name = "searchText", value = "结果中搜索", dataType = "String", paramType = "query", required = true),

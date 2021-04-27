@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -286,6 +287,27 @@ public class LoginController {
 	@RequestMapping(value = "/kickout", method = RequestMethod.GET)
 	public Object kickout(@RequestParam(value = "userName") String userName) throws TRSException {
 		throw new TRSException(CodeUtils.COMPULSORY_OFFLINE, "[" + userName + "]已被强制下线！");
+	}
+
+	/**
+	 * 判断是否被挤掉
+	 * @param request
+	 * @return
+	 * @throws TRSException
+	 */
+	@FormatResult
+	//@ApiOperation("判断是否被挤掉")
+	@ResponseBody
+	@RequestMapping(value = "/isKickOut", method = RequestMethod.GET)
+	public Object kickOut(HttpServletRequest request) throws TRSException {
+		String sessionId = request.getSession().getId();
+		String userName = RedisUtil.getString("kickout"+sessionId);
+		if(userName!=null){
+			RedisUtil.deleteKey("kickout"+sessionId);
+			return true;
+		}
+		//RedisUtil.deleteKey("kickout"+sessionId);
+		return false;
 	}
 
 	/**

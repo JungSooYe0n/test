@@ -133,7 +133,11 @@ public class CommonListColumn extends AbstractColumn {
 						map.put("title", vo.getContent());
 					}
 					map.put("abstracts", content);
-					map.put("siteName", vo.getAuthors());
+					map.put("siteName", StringUtil.isNotEmpty(vo.getAuthors()) && !"undefined".equals(vo.getAuthors()) ? vo.getAuthors() : vo.getSiteName());
+				}
+				//自媒体、博客的 siteName 用 authors 代替
+				if (Const.MEDIA_TYPE_ZIMEITI_BOKE.contains(groupName)) {
+					map.put("siteName", StringUtil.isNotEmpty(vo.getAuthors()) ? vo.getAuthors() : vo.getSiteName());
 				}
 				map.put("commtCount", vo.getCommtCount());
 				map.put("rttCount", vo.getRttCount());

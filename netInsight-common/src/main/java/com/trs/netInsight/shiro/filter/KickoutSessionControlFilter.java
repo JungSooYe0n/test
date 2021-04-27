@@ -6,8 +6,10 @@ import java.util.LinkedList;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import com.trs.netInsight.util.RedisUtil;
 import com.trs.netInsight.util.UserUtils;
 import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.CacheManager;
@@ -146,6 +148,14 @@ public class KickoutSessionControlFilter extends AccessControlFilter {
 			// Map<String, String> resultMap = new HashMap<String, String>();
 			// 判断是不是Ajax请求
 			// 重定向
+			//Cookie[] cookies = ((HttpServletRequest)request).getCookies();
+			String jesessionId = ((HttpServletRequest)request).getSession().getId();
+//			for (Cookie cookie : cookies) {
+//				if(cookie.getName().equals("JSESSIONID")){
+//					jesessionId = cookie.getValue();
+//				}
+//			}
+			RedisUtil.setString("kickout"+jesessionId,userName);
 			WebUtils.issueRedirect(request, response, kickoutUrl+"?userName="+userName);
 			return false;
 		}
