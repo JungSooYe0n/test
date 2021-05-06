@@ -1429,9 +1429,9 @@ public class ApiController {
      * @throws TRSException
      */
     @Api(value = "get hot reviews TOP5", method = ApiMethod.HotReviews)
-    @GetMapping("/getHotReviewsTop5")
+    @GetMapping("/getHotReviews")
     @Log(systemLogOperation = SystemLogOperation.HOT_REVIEWS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
-    public Object getHotReviewsTop5(@RequestParam(value = "accessToken") String accessToken,
+    public Object getHotReviewsTop(@RequestParam(value = "accessToken") String accessToken,
                                  @RequestParam(value = "currentUrl", required = true) String currentUrl, HttpServletRequest request)
             throws TRSException {
         ApiAccessToken token = getToken(request);
