@@ -1306,12 +1306,12 @@ public class ApiController {
         urlName = urlName.replace("https","http");
         String random = UUID.randomUUID().toString().replace("-", "");
         String currentUrl = urlName+random;
-        User loginUser = UserUtils.getUser();
-        List<SingleMicroblogData> states = singleMicroblogDataService.findStates(loginUser, MicroblogConst.MICROBLOGLIST,"分析中");
+        //User loginUser = UserUtils.getUser();
+        List<SingleMicroblogData> states = singleMicroblogDataService.findStates(user, MicroblogConst.MICROBLOGLIST,"分析中");
         //列表查询
         SingleMicroblogData microblogList = new SingleMicroblogData(MicroblogConst.MICROBLOGLIST,urlName,currentUrl);
-        microblogList.setUserId(loginUser.getId());
-        microblogList.setSubGroupId(loginUser.getSubGroupId());
+        microblogList.setUserId(user.getId());
+        microblogList.setSubGroupId(user.getSubGroupId());
         microblogList.setLatelyTime(new Date());
         if (ObjectUtil.isNotEmpty(states) && states.size() > 0){
             microblogList.setState("正在排队");
@@ -1364,8 +1364,8 @@ public class ApiController {
 
         String random = UUID.randomUUID().toString().replace("-", "");
         singleMicroblogData.setRandom(random);
-        User loginUser = UserUtils.getUser();
-        List<SingleMicroblogData> states = singleMicroblogDataService.findStates(loginUser, MicroblogConst.MICROBLOGLIST,"分析中");
+        //User loginUser = UserUtils.getUser();
+        List<SingleMicroblogData> states = singleMicroblogDataService.findStates(user, MicroblogConst.MICROBLOGLIST,"分析中");
         //列表查询
         singleMicroblogData.setLatelyTime(new Date());
         if (ObjectUtil.isNotEmpty(states) && states.size() > 0){
@@ -1429,9 +1429,9 @@ public class ApiController {
      * @throws TRSException
      */
     @Api(value = "get hot reviews TOP5", method = ApiMethod.HotReviews)
-    @GetMapping("/getHotReviewsTop5")
+    @GetMapping("/getHotReviews")
     @Log(systemLogOperation = SystemLogOperation.HOT_REVIEWS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
-    public Object getHotReviewsTop5(@RequestParam(value = "accessToken") String accessToken,
+    public Object getHotReviewsTop(@RequestParam(value = "accessToken") String accessToken,
                                  @RequestParam(value = "currentUrl", required = true) String currentUrl, HttpServletRequest request)
             throws TRSException {
         ApiAccessToken token = getToken(request);
