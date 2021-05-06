@@ -47,25 +47,26 @@ public class KafkaReceiverFactory {
 
 	@KafkaListener(topics = { KafkaConst.KAFKA_TOPIC })
 	public void listen(ConsumerRecord<?, ?> record) {
-		log.info("kafka接收成功");
 		Optional<?> kafkaMessage = Optional.ofNullable(record.value());
 		if (kafkaMessage.isPresent()) {
 			Object data = kafkaMessage.get();
 			if (data != null) {
-				String dataString = String.valueOf(data);
-				JSONObject jsonObject = JSONObject.parseObject(dataString);
-				String searchTime = jsonObject.getString("searchTime");
-				SystemLog systemLog = null;
-				SearchTimeLongLog searchTimeLongLog = null;
-				if (StringUtil.isEmpty(searchTime)) {
-					systemLog = JSONObject.parseObject(dataString, SystemLog.class);
-				} else {
-					searchTimeLongLog = JSONObject.parseObject(dataString, SearchTimeLongLog.class);
-				}
 				try {
+					String dataString = String.valueOf(data);
+					JSONObject jsonObject = JSONObject.parseObject(dataString);
+					String searchTime = jsonObject.getString("searchTime");
+					SystemLog systemLog = null;
+					SearchTimeLongLog searchTimeLongLog = null;
+					if (StringUtil.isEmpty(searchTime)) {
+						systemLog = JSONObject.parseObject(dataString, SystemLog.class);
+					} else {
+						searchTimeLongLog = JSONObject.parseObject(dataString, SearchTimeLongLog.class);
+					}
 					if (ObjectUtil.isNotEmpty(systemLog)) {
+						log.info("kafka接收成功，接收对象：SystemLog对象");
 						mysqlLogRepository.saveAndFlush(systemLog);
 					} else if (ObjectUtil.isNotEmpty(searchTimeLongLog)) {
+						log.info("kafka接收成功，接收对象：SearchTimeLongLog对象");
 						searchTimeLongLogRepository.saveAndFlush(searchTimeLongLog);
 					}
 				} catch (Exception e) {

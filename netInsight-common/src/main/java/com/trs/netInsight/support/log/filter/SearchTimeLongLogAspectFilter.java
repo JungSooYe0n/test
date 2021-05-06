@@ -87,7 +87,7 @@ public class SearchTimeLongLogAspectFilter {
             SearchTimeLongLog searchTimeLongLog = new SearchTimeLongLog(organizationName, searchLogType.getValue(), modelName, trsl, timeRange, searchTime);
             addUserInfo(searchTimeLongLog);
             Task task = new Task(searchTimeLongLog);
-            executorService.execute(task);
+            new Thread(task).start();
             return proceed;
         } catch (Throwable throwable) {
             return throwable;
