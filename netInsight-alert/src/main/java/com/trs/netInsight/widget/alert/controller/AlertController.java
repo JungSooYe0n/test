@@ -87,67 +87,67 @@ public class AlertController {
 						  @ApiParam("页码") @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
 						  @ApiParam("步长") @RequestParam(value = "pageSize", defaultValue = "3", required = false) int pageSize)
 			throws TRSException {
-	    Boolean isAlert = UserUtils.getUser().getIsAlert();
-		if(isAlert == null || isAlert){
-
-			/*20200107修改
-			刚登陆进来，返回列表前三条
-			刷新页面时，首先查询十分钟内的数据，如果有则返回，没有则返回列表前三条.
-			页面定时请求  首先查询十分钟内的数据，如果有，则返回，没有则返回列表前三条*/
-
-			pageSize = pageSize >= 1 ? pageSize : 3;
-			int i = 0;
-			if (justLogin) {
-				time = "0d";
-			}
-			String source = SourceUtil.isSource("ALL");
-			if(StringUtil.isEmpty(source)){
-				return null;
-			}
-			//跨工程
-			PageAlert pageAlert = alertService.alertListHybase(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
-
-			if (ObjectUtil.isEmpty(pageAlert) || pageAlert.getContent() == null || pageAlert.getContent().size() ==0) {
-				//站内弹窗数据时间限制为当天
-				time = "0d";
-				pageAlert = alertService.alertListHybase(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
-			}
-
-			if (ObjectUtil.isEmpty(pageAlert)) {
-				return null;
-			}
-			User loginUser = UserUtils.getUser();
-			List<AlertTime> alertTimeList = null;
-			alertTimeList = alertTimeRepository.findByUserId(loginUser.getId());
-			if (ObjectUtil.isNotEmpty(alertTimeList)){
-				Date alertTime = alertTimeList.get(0).getAlertTime();
-				List<FtsDocumentAlert> ftsDocumentAlertList = new ArrayList<>();
-				for (FtsDocumentAlert fts:pageAlert.getContent()) {
-					if (fts.getLoadTime().after(alertTime)){
-						ftsDocumentAlertList.add(fts);
-					}
-				}
-				pageAlert.setContent(ftsDocumentAlertList);
-			}
-			if (ObjectUtil.isEmpty(pageAlert.getContent())){
-				return null;
-			}
-			if (ObjectUtil.isNotEmpty(alertTimeList)) {
-				AlertTime alertTime = alertTimeList.get(0);
-				alertTime.setAlertTime(pageAlert.getContent().get(0).getLoadTime());
-				alertTimeRepository.save(alertTime);
-			}else {
-				AlertTime alertTime = new AlertTime();
-				alertTime.setAlertTime(pageAlert.getContent().get(0).getLoadTime());
-				alertTimeRepository.save(alertTime);
-			}
-			String uuid = UUID.randomUUID().toString();
-			Map<String, Object> putValue = MapUtil.putValue(new String[] { "pageId", "list" }, uuid, pageAlert);
-			return putValue;
-		} else {
-			//预警弹框不在提醒  ---  如果设置了不再提醒，当前次登录中不再提醒，再次登录状态重置，继续提醒
+//	    Boolean isAlert = UserUtils.getUser().getIsAlert();
+//		if(isAlert == null || isAlert){
+//
+//			/*20200107修改
+//			刚登陆进来，返回列表前三条
+//			刷新页面时，首先查询十分钟内的数据，如果有则返回，没有则返回列表前三条.
+//			页面定时请求  首先查询十分钟内的数据，如果有，则返回，没有则返回列表前三条*/
+//
+//			pageSize = pageSize >= 1 ? pageSize : 3;
+//			int i = 0;
+//			if (justLogin) {
+//				time = "0d";
+//			}
+//			String source = SourceUtil.isSource("ALL");
+//			if(StringUtil.isEmpty(source)){
+//				return null;
+//			}
+//			//跨工程
+//			PageAlert pageAlert = alertService.alertListHybase(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
+//
+//			if (ObjectUtil.isEmpty(pageAlert) || pageAlert.getContent() == null || pageAlert.getContent().size() ==0) {
+//				//站内弹窗数据时间限制为当天
+//				time = "0d";
+//				pageAlert = alertService.alertListHybase(pageNo, pageSize, "SMS", source, time, "ALL", "", "", "", "");
+//			}
+//
+//			if (ObjectUtil.isEmpty(pageAlert)) {
+//				return null;
+//			}
+//			User loginUser = UserUtils.getUser();
+//			List<AlertTime> alertTimeList = null;
+//			alertTimeList = alertTimeRepository.findByUserId(loginUser.getId());
+//			if (ObjectUtil.isNotEmpty(alertTimeList)){
+//				Date alertTime = alertTimeList.get(0).getAlertTime();
+//				List<FtsDocumentAlert> ftsDocumentAlertList = new ArrayList<>();
+//				for (FtsDocumentAlert fts:pageAlert.getContent()) {
+//					if (fts.getLoadTime().after(alertTime)){
+//						ftsDocumentAlertList.add(fts);
+//					}
+//				}
+//				pageAlert.setContent(ftsDocumentAlertList);
+//			}
+//			if (ObjectUtil.isEmpty(pageAlert.getContent())){
+//				return null;
+//			}
+//			if (ObjectUtil.isNotEmpty(alertTimeList)) {
+//				AlertTime alertTime = alertTimeList.get(0);
+//				alertTime.setAlertTime(pageAlert.getContent().get(0).getLoadTime());
+//				alertTimeRepository.save(alertTime);
+//			}else {
+//				AlertTime alertTime = new AlertTime();
+//				alertTime.setAlertTime(pageAlert.getContent().get(0).getLoadTime());
+//				alertTimeRepository.save(alertTime);
+//			}
+//			String uuid = UUID.randomUUID().toString();
+//			Map<String, Object> putValue = MapUtil.putValue(new String[] { "pageId", "list" }, uuid, pageAlert);
+//			return putValue;
+//		} else {
+//			//预警弹框不在提醒  ---  如果设置了不再提醒，当前次登录中不再提醒，再次登录状态重置，继续提醒
 			return null;
-		}
+//		}
 	}
 
 	/**
