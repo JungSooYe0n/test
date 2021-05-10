@@ -44,6 +44,7 @@ public class CustomChartDTO implements Serializable {
     private String filterInfo;
     private String contentArea;
     private String mediaArea;
+    private String preciseFilter;
 
     private String pointToId;
     private void setPointToId(String mapperId){
@@ -101,6 +102,7 @@ public class CustomChartDTO implements Serializable {
         this.contentArea = customChart.getContentArea();
         this.mediaArea = customChart.getMediaArea();
         this.pointToId = customChart.getParentId();
+        this.preciseFilter = customChart.getPreciseFilter();
         addTypeSeq();
     }
     /**

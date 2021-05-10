@@ -17,10 +17,15 @@ import java.util.Optional;
 
 import com.alibaba.fastjson.JSONObject;
 import com.trs.netInsight.support.kafka.entity.KafkaMessage;
+import com.trs.netInsight.support.log.entity.SearchTimeLongLog;
 import com.trs.netInsight.support.log.entity.SystemLog;
 import com.trs.netInsight.support.log.repository.MysqlSystemLogRepository;
+import com.trs.netInsight.support.log.repository.SearchTimeLongLogRepository;
+import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.util.StringUtil;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -33,18 +38,37 @@ import lombok.extern.slf4j.Slf4j;
 public class KafkaReceiverFactory {
 
 	@Autowired
+	@Qualifier("mysqlSystemLogRepository")
 	private MysqlSystemLogRepository mysqlLogRepository;
+
+	@Qualifier("searchTimeLongLogRepository")
+	@Autowired
+	private SearchTimeLongLogRepository searchTimeLongLogRepository;
+
 	@KafkaListener(topics = { KafkaConst.KAFKA_TOPIC })
 	public void listen(ConsumerRecord<?, ?> record) {
-		log.info("kafka接收成功");
 		Optional<?> kafkaMessage = Optional.ofNullable(record.value());
 		if (kafkaMessage.isPresent()) {
 			Object data = kafkaMessage.get();
 			if (data != null) {
-				String dataString = String.valueOf(data);
-				SystemLog systemLog = JSONObject.parseObject(dataString, SystemLog.class);
 				try {
-					mysqlLogRepository.saveAndFlush(systemLog);
+					String dataString = String.valueOf(data);
+					JSONObject jsonObject = JSONObject.parseObject(dataString);
+					String searchTime = jsonObject.getString("searchTime");
+					SystemLog systemLog = null;
+					SearchTimeLongLog searchTimeLongLog = null;
+					if (StringUtil.isEmpty(searchTime)) {
+						systemLog = JSONObject.parseObject(dataString, SystemLog.class);
+					} else {
+						searchTimeLongLog = JSONObject.parseObject(dataString, SearchTimeLongLog.class);
+					}
+					if (ObjectUtil.isNotEmpty(systemLog)) {
+						log.info("kafka接收成功，接收对象：SystemLog对象");
+						mysqlLogRepository.saveAndFlush(systemLog);
+					} else if (ObjectUtil.isNotEmpty(searchTimeLongLog)) {
+						log.info("kafka接收成功，接收对象：SearchTimeLongLog对象");
+						searchTimeLongLogRepository.saveAndFlush(searchTimeLongLog);
+					}
 				} catch (Exception e) {
 					log.error("kafka报错！", e);
 				}

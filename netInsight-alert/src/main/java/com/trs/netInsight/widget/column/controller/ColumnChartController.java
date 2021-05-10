@@ -52,7 +52,7 @@ public class ColumnChartController {
     @Autowired
     private IIndexTabMapperService indexTabMapperService;
 
-    @Autowired
+    @Autowired(required = false)
     private OrganizationRepository organizationService;
 
     @Autowired
@@ -365,7 +365,8 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
             @ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
+            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query", required = false)})
     public Object addCustomChart(@RequestParam("name") String name, @RequestParam(value = "tabId") String tabId,
                                  @RequestParam("columnType") String columnType,
                                  @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
@@ -390,6 +391,7 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
                                  @RequestParam(value = "contentArea", required = false) String contentArea,
                                  @RequestParam(value = "mediaArea", required = false) String mediaArea,
                                  @RequestParam(value = "randomNum", required = false) String randomNum,
+                                 @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
                                  HttpServletRequest request)
             throws TRSException {
         String[] typeArr = type.split(";");
@@ -482,7 +484,7 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
             groupName = CommonListChartUtil.changeGroupName(groupName);
             CustomChart customChart = new CustomChart(name, trsl, xyTrsl, oneType, contrast, excludeWeb, monitorSite,timeRange, false, keyWord, excludeWords,excludeWordsIndex,
                     keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, tabId, sequence, specialType,mediaLevel, mediaIndustry, contentIndustry,
-                    filterInfo, contentArea, mediaArea);
+                    filterInfo, contentArea, mediaArea, preciseFilter);
             customChart.setSort(sort);
             customChart = columnChartService.saveCustomChart(customChart);
             result.add(customChart);
@@ -544,7 +546,8 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
             @ApiImplicitParam(name = "contentIndustry", value = "内容行业", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "filterInfo", value = "信息过滤", dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "contentArea", value = "信息地域", dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query")})
+            @ApiImplicitParam(name = "mediaArea", value = "媒体地域", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "preciseFilter", value = "精准筛选", dataType = "String", paramType = "query")})
     public Object updateCustomChart(@RequestParam("id") String id, @RequestParam("name") String name,
                                     @RequestParam("columnType") String columnType,
                                     @RequestParam("type") String type, @RequestParam(value = "contrast", required = false) String contrast,
@@ -568,6 +571,7 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
                                     @RequestParam(value = "filterInfo", required = false) String filterInfo,
                                     @RequestParam(value = "contentArea", required = false) String contentArea,
                                     @RequestParam(value = "mediaArea", required = false) String mediaArea,
+                                    @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
                                     @RequestParam(value = "randomNum", required = false) String randomNum,
                                     HttpServletRequest request)
             throws TRSException {
@@ -611,9 +615,9 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
             }
 
             SpecialType specialType = SpecialType.valueOf(columnType);
-            // 有几个图专家模式下 必须传xy表达式
+            // 有几个图专家模式下 必须传xy表达式,trsl改成xyTrsl
             if (SpecialType.SPECIAL.equals(specialType)) {
-                if (StringUtil.isNotEmpty(trsl)) {
+                if (StringUtil.isNotEmpty(trsl) || StringUtil.isNotEmpty(xyTrsl)) {
                     if(!IndexTabType.MAP.equals(indexTabType)){
                         contrast = null;
                     }
@@ -671,6 +675,7 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
             customChart.setWeight(weight);
             customChart.setSort(sort);
             customChart.setTabWidth(tabWidth);
+            customChart.setPreciseFilter(preciseFilter);
 
             return columnChartService.saveCustomChart(customChart);
         } catch (Exception e) {

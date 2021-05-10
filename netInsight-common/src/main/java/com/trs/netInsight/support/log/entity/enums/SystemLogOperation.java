@@ -54,6 +54,18 @@ public enum SystemLogOperation {
 	 */
 	INDEX_TAB_DATA("获取栏目数据","查询"),
 	/**
+	 * 各舆论场趋势分析
+	 */
+	STATISTICAL_CHART("各舆论场趋势分析","查询"),
+	/**
+	 * 查找当前栏目对应的图表
+	 */
+	SELECT_TABSTATISTICAL_CHARTLIST("查找当前栏目对应的图表","查询"),
+	/**
+	 * 获取日常监测地域分布数据
+	 */
+	COLUMN_AREA("获取日常监测地域分布数据","查询"),
+	/**
 	 * 获取栏目列表数据
 	 */
 	INDEX_TAB_LIST_DATA("获取栏目列表数据","查询"),
@@ -181,6 +193,18 @@ public enum SystemLogOperation {
 	 * 获取当前微博信息
 	 */
 	MICRO_BLOG_DETAIL("获取当前微博信息","查询"),
+	/**
+	 * 添加微博信息
+	 */
+	SAVE_MICROBLOG("获取当前微博信息","添加"),
+	/**
+	 * 修改已完成的微博信息
+	 */
+	UPDATE_MICROBLOG("获取当前微博信息","修改"),
+	/**
+	 * 删除已完成的微博信息
+	 */
+	DELETE_MICROBLOG("获取当前微博信息","删除"),
 	/**
 	 * 热门评论TOP5
 	 */

@@ -26,9 +26,11 @@ import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.support.log.entity.RequestTimeLog;
+import com.trs.netInsight.support.log.entity.enums.SearchLogType;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.handler.SearchLog;
 import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.*;
@@ -171,6 +173,7 @@ public class SpecialChartAnalyzeController {
 	@FormatResult
 	@ApiOperation("态势评估")
 	@RequestMapping(value = "/situationAssessment", method = RequestMethod.GET)
+	@SearchLog(searchLogType = SearchLogType.SPECIAL)
 	public Object situationAssessment(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false) String timeRange,
 									  @ApiParam("专项id") @RequestParam(value = "specialId", required = true) String specialId,
 
@@ -298,6 +301,15 @@ public class SpecialChartAnalyzeController {
         requestTimeLog.setRandomNum(randomNum);
         requestTimeLog.setOperation("专题分析-事件态势-观点分析");
         requestTimeLogRepository.save(requestTimeLog);
+		if (object instanceof List) {
+			List<Map<String, Object>> resultList = (List<Map<String, Object>>)object;
+			if (CollectionsUtil.isNotEmpty(resultList)) {
+				Object message = resultList.get(0).get("message");
+				if (ObjectUtil.isNotEmpty(message)) {
+					return resultList.get(0);
+				}
+			}
+		}
 		return object;
 
 	}
@@ -1876,8 +1888,16 @@ public class SpecialChartAnalyzeController {
 		RedisUtil.setLog(id, loginpool);
 		log.info(loginpool.toString());
 		// 这个不用管它是否排重 肯定查md5的
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		//判断事件脉络的四个数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
+		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端").split(";");
+		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
+			Map<String, Object> resultMap = new HashMap<>();
+			resultMap.put("message", "暂无数据，如需查看请勾选" + groupName + "数据哦~");
+			return resultMap;
+		}
 		try {
-			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			if(openFiltrate){
 				specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,
 						mediaLevel,groupName,mediaIndustry,contentIndustry,filterInfo,contentArea,mediaArea);
@@ -1996,6 +2016,8 @@ public class SpecialChartAnalyzeController {
 		String userName = UserUtils.getUser().getUserName();
 		long startTime = System.currentTimeMillis();
 		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		String source = specialProject.getSource();
+		String oldGroupName = groupName;
 		ObjectUtil.assertNull(specialProject, "专题ID");
 		if (StringUtils.isBlank(timeRange)) {
 			timeRange = specialProject.getTimeRange();
@@ -2012,7 +2034,8 @@ public class SpecialChartAnalyzeController {
 		// 跟统计表格一样 如果来源没选 就不查数据
 		groupName = CommonListChartUtil.changeGroupName(groupName);
 		Date hyStartDate = new Date();
-		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(groupName,
+		specialProject.setSource(source);
+		List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(oldGroupName,
 				specialProject, timeRange,pageSize);
         RequestTimeLog requestTimeLog = new RequestTimeLog();
 		requestTimeLog.setTabId(specialId);
@@ -2024,6 +2047,12 @@ public class SpecialChartAnalyzeController {
         requestTimeLog.setRandomNum(randomNum);
         requestTimeLog.setOperation("专题分析-事件态势-热点信息");
         requestTimeLogRepository.save(requestTimeLog);
+		if (CollectionsUtil.isNotEmpty(result)) {
+			Object message = result.get(0).get("message");
+			if (ObjectUtil.isNotEmpty(message)) {
+				return result.get(0);
+			}
+		}
 		return result;
 	}
 	/**
@@ -3556,8 +3585,16 @@ Date startDate = new Date();
 		LogPrintUtil loginpool = new LogPrintUtil();
 		RedisUtil.setLog(id, loginpool);
 		log.info(loginpool.toString());
+		SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
+		//判断传播分析的两个数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
+		String[] groupNames = CommonListChartUtil.changeGroupName(groupName).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端").split(";");
+		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
+			Map<String, Object> resultMap = new HashMap<>();
+			resultMap.put("message", "暂无数据，如需查看请勾选" + groupName + "数据哦~");
+			return resultMap;
+		}
 		try {
-			SpecialProject specialProject = specialProjectNewRepository.findOne(specialId);
 			if (specialProject != null) {
 				if(openFiltrate){
 					specialProject.formatSpecialProject(simflag,wordIndex,excludeWeb,monitorSite,excludeWords,excludeWordsIndex,updateWordForm,wordFromNum,wordFromSort,

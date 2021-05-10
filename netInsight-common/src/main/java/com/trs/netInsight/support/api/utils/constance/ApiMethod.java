@@ -47,8 +47,18 @@ public enum ApiMethod {
      * 获取indexTable列表
      */
     IndexTableWithPageName(1008, "indexTable list with pagename", "1000", new String[]{"indexPageId"}),
-
-
+    /**
+     * 各舆论场趋势分析
+     */
+    StatisticalChart(1009, "statistical chart", "1000", new String[]{"indexPageId"}),
+    /**
+     * 日常监测地域统计
+     */
+    ColumnArea(1010, "column area", "1000", new String[]{"indexPageId"}),
+    /**
+     * 各舆论场趋势分析
+     */
+    SelectTabStatisticalChartList(1011, "selectTabStatisticalChartList", "1000", new String[]{"indexPageId"}),
     // -------- Project --------
     /**
      * 获取专项列表数据
@@ -280,7 +290,18 @@ public enum ApiMethod {
      * 原发转发占比
      */
     PrimaryForwardRatio(7017,"get primaryForwardRatio data","7000"),
-
+    /**
+     * 添加微博分析
+     */
+    SaveMicroblog(7018,"save microblog","7000"),
+    /**
+     * 更新已完成的微博分析
+     */
+    UpdateMicroblog(7019,"update microblog","7000"),
+    /**
+     * 删除已完成的微博分析
+     */
+    DeleteMicroblog(7020,"delete microblog","7000"),
 
     /**
      *  查询数据详情

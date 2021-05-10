@@ -64,6 +64,9 @@ public class ReportNew extends BaseEntity{
 	@Column(name = "doc_path")
 	private String docPath;
 
+	@Column(name = "temp_doc_path")
+	private String tempDocPath;
+
 	//专报分组
 	@Column(name = "group_name")
 	private String groupName;

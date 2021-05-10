@@ -41,20 +41,22 @@ import com.trs.netInsight.widget.analysis.controller.ChartAnalyzeController;
 import com.trs.netInsight.widget.analysis.controller.SpecialChartAnalyzeController;
 import com.trs.netInsight.widget.analysis.service.IDistrictInfoService;
 import com.trs.netInsight.widget.analysis.service.impl.ChartAnalyzeService;
+import com.trs.netInsight.widget.column.controller.ColumnChartController;
+import com.trs.netInsight.widget.column.controller.ColumnController;
 import com.trs.netInsight.widget.column.entity.IndexPage;
 import com.trs.netInsight.widget.column.entity.IndexTab;
+import com.trs.netInsight.widget.column.entity.mapper.IndexTabMapper;
 import com.trs.netInsight.widget.column.factory.AbstractColumn;
 import com.trs.netInsight.widget.column.factory.ColumnConfig;
 import com.trs.netInsight.widget.column.factory.ColumnFactory;
-import com.trs.netInsight.widget.column.service.IColumnService;
-import com.trs.netInsight.widget.column.service.IIndexPageService;
-import com.trs.netInsight.widget.column.service.IIndexTabService;
+import com.trs.netInsight.widget.column.service.*;
 import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.microblog.constant.MicroblogConst;
 import com.trs.netInsight.widget.microblog.entity.SingleMicroblogData;
 import com.trs.netInsight.widget.microblog.entity.SpreadObject;
 import com.trs.netInsight.widget.microblog.service.ISingleMicroblogDataService;
+import com.trs.netInsight.widget.microblog.service.ISingleMicroblogService;
 import com.trs.netInsight.widget.report.entity.repository.FavouritesRepository;
 import com.trs.netInsight.widget.special.controller.InfoListController;
 import com.trs.netInsight.widget.special.service.IInfoListService;
@@ -62,6 +64,7 @@ import com.trs.netInsight.widget.special.service.ISpecialService;
 import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.UserRepository;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +72,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.search.SearchException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +93,9 @@ public class ApiController {
 
     @Autowired
     private IIndexTabService indexTabService;
+
+    @Autowired
+    private IIndexTabMapperService indexTabMapperService;
 
     @Autowired
     private IInfoListService infoListService;
@@ -112,6 +119,9 @@ public class ApiController {
     private ISingleMicroblogDataService singleMicroblogDataService;
 
     @Autowired
+    private ISingleMicroblogService singleMicroblogService;
+
+    @Autowired
     private IHybaseShardService hybaseShardService;
 
     @Autowired
@@ -122,6 +132,11 @@ public class ApiController {
 
     @Autowired
     private ChartAnalyzeController chartAnalyzeController;
+
+    @Autowired
+    private ColumnController columnController;
+    @Autowired
+    private ColumnChartController columnChartController;
     @Autowired
     private SpecialChartAnalyzeController specialChartAnalyzeController;
     @Autowired
@@ -268,47 +283,120 @@ public class ApiController {
      *
      * @param accessToken
      * @param request
-     * @param indexTabId
+     * @param id
+     * @param timeRange
      * @return
      * @throws OperationException
      * @Return : Object
      * @since changjiang @ 2018年7月17日
      */
-    @ApiImplicitParam(name = "indexTabId", value = "三级栏目id", dataType = "String", paramType = "query")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "栏目id", dataType = "String", paramType = "query",required = true)
+    })
     @Api(value = "indexTab data", method = ApiMethod.IndexTabData)
     @PostMapping("/indexTabData")
     @Log(systemLogOperation = SystemLogOperation.INDEX_TAB_DATA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getIndexTabInfo(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
-                                  @RequestParam(value = "indexTabId") String indexTabId,
-                                  @RequestParam(value = "entityType", defaultValue = "keywords") String entityType)
-            throws OperationException {
+                                  @RequestParam(value = "timeRange", required = false) String timeRange,
+                                  @RequestParam(value = "id") String id)
+            throws TRSException, SearchException {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
-        if (ObjectUtil.isNotEmpty(user)){
-            IndexTab indexTab = indexTabService.findByIdAndUser(indexTabId, user);
-            String timerange = indexTab.getTimeRange();
-            int pageSize=10;
-            //通栏下的站点统计和微信公众号改为15
-            if ("100".equals(indexTab.getTabWidth()) && StringUtil.isNotEmpty(indexTab.getContrast()) && (indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_SITE) || indexTab.getContrast().equals(ColumnConst.CONTRAST_TYPE_WECHAT))){
-                pageSize=15;
-            }
-            AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
-            ColumnConfig config = new ColumnConfig();
-            config.initSection(indexTab, timerange, 0, pageSize, "", "", entityType, "", "", "default",
-                    "", "", "","","", indexTab.getMediaLevel(), indexTab.getMediaIndustry(), indexTab.getContentIndustry(), indexTab.getFilterInfo(),
-                    indexTab.getContentArea(), indexTab.getMediaArea(), "","");
-            //column.setChartAnalyzeService(chartAnalyzeService);
-            column.setDistrictInfoService(districtInfoService);
-            column.setCommonListService(commonListService);
-            column.setCommonChartService(commonChartService);
-            column.setConfig(config);
-            return column.getColumnData(timerange);
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnController.columnStattotal(id, timeRange, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "");
         }
-
         return null;
     }
 
+    /**
+     * 查找当前栏目对应的图表
+     *
+     * @param accessToken
+     * @param request
+     * @param id
+     * @return
+     * @throws OperationException
+     * @Return : Object
+     * @since changjiang @ 2018年7月17日
+     */
+    @ApiImplicitParam(name = "id", value = "栏目id", dataType = "String", paramType = "query",required = true)
+    @Api(value = "selectTabStatisticalChartList", method = ApiMethod.SelectTabStatisticalChartList)
+    @PostMapping("/selectTabStatisticalChartList")
+    @Log(systemLogOperation = SystemLogOperation.SELECT_TABSTATISTICAL_CHARTLIST, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object StatisticalChart(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                   @RequestParam(value = "id") String id)
+            throws TRSException, SearchException {
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnChartController.selectTabStatisticalChartList(request, id, null);
+        }
+        return null;
+    }
 
+    /**
+     * 获取各舆论场趋势分析
+     *
+     * @param accessToken
+     * @param request
+     * @param id
+     * @return
+     * @throws OperationException
+     * @Return : Object
+     * @since changjiang @ 2018年7月17日
+     */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "showType", value = "指定折线图的展示方式：按小时(hour)，按天数(day)", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "图表id", dataType = "String", paramType = "query",required = true)
+    })
+    @Api(value = "Statistical chart", method = ApiMethod.StatisticalChart)
+    @PostMapping("/statisticalChart")
+    @Log(systemLogOperation = SystemLogOperation.STATISTICAL_CHART, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object StatisticalChart(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                   @RequestParam(value = "showType", required = false, defaultValue = "day") String showType,
+                                   @RequestParam(value = "timeRange", required = false) String timeRange,
+                                   @RequestParam(value = "id") String id)
+            throws TRSException, SearchException {
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnController.selectChart(id, "StatisticalChart", showType, "", "", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
+        }
+        return null;
+    }
+
+    /**
+     * 获取日常监测地域分布数据
+     *
+     * @param accessToken
+     * @param request
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "showType", value = "指定折线图的展示方式：按小时(hour)，按天数(day)", dataType = "String", paramType = "query", required = false),
+            @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "mapto", value = "地图下钻省", dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "id", value = "图表id", dataType = "String", paramType = "query",required = true)
+    })
+    @Api(value = "column area", method = ApiMethod.ColumnArea)
+    @GetMapping("/getColumnArea")
+    @Log(systemLogOperation = SystemLogOperation.COLUMN_AREA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object getColumnArea(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                @RequestParam(value = "showType", required = false, defaultValue = "day") String showType,
+                                @RequestParam(value = "timeRange", required = false) String timeRange,
+                                @RequestParam(value = "mapto", defaultValue = "", required = false) String mapto,
+                                @RequestParam(value = "id") String id) throws Exception {
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return columnController.selectChart(id, "StatisticalChart", showType, "", "hitArticle", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", mapto, "");
+        }
+        return null;
+    }
     /**
      * 栏目列表-更多（热点栏目总共最多50条，暂定其余栏目每页最多1000条）
      * @param accessToken
@@ -319,7 +407,7 @@ public class ApiController {
      * @return
      * @throws OperationException
      */
-    @ApiImplicitParam(name = "indexTabId", value = "三级栏目id", dataType = "String", paramType = "query")
+    @ApiImplicitParam(name = "indexTabId", value = "三级栏目id", dataType = "String", required = true,paramType = "query")
     @Api(value = "indexTab list data", method = ApiMethod.IndexTabListData)
     @PostMapping("/indexTabListData")
     @Log(systemLogOperation = SystemLogOperation.INDEX_TAB_LIST_DATA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
@@ -341,7 +429,12 @@ public class ApiController {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)){
-            IndexTab indexTab = indexTabService.findByIdAndUser(indexTabId, user);
+            IndexTab indexTab = indexTabService.findOne(indexTabId);
+            IndexTabMapper mapper = indexTabMapperService.findOne(indexTabId);
+            if(mapper!=null){
+                 indexTab = mapper.getIndexTab();
+            }
+            //IndexTab indexTab = indexTabService.findOne(indexTabId);
             if(ObjectUtil.isNotEmpty(indexTab)){
                 String timerange = indexTab.getTimeRange();
                 AbstractColumn column = ColumnFactory.createColumn(indexTab.getType());
@@ -402,7 +495,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPECIAL_STAT_TOTAL, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getStatTotal(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId) throws TRSException {
-        return chartAnalyzeController.getStatTotal(specialId, "", "ALL", "", "");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return chartAnalyzeController.getStatTotal(specialId, "", "ALL", "", "");
+        }
+        return null;
     }
 
     /**
@@ -434,12 +532,16 @@ public class ApiController {
                               @ApiParam("条件筛选-微博 原发 primary / 转发 forward ，默认原发+转发") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary) throws TRSException {
         ApiAccessToken token = getToken(request);
         int maxPageSize = token.getMaxPageSize();
-        if (pageSize > maxPageSize){
+        if (pageSize > maxPageSize) {
             pageSize = maxPageSize;
         }
-        return infoListController.dataList(specialId,pageNo,pageSize,source,sort,invitationCard,forwarPrimary,"","","","","",emotion,"",
-                "","","","",false,0,false,"","ALL",
-                "","","","","","","","");
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return infoListController.dataList(specialId, pageNo, pageSize, source, sort, invitationCard, forwarPrimary, "", "", "", "", "", emotion, "",
+                    "", "", "", "", false, 0, false, "", "ALL",
+                    "", "", "", "", "", "", "", "");
+        }
+        return null;
     }
 
     /**
@@ -471,9 +573,11 @@ public class ApiController {
     @Api(value = "specialProject situationAssessment", method = ApiMethod.SituationAssessment)
     @GetMapping("/getSituationAssessment")
     @Log(systemLogOperation = SystemLogOperation.SITUATION_ASSESSMENT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query")
     public Object getSituationAssessment(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
+                                         @RequestParam(value = "timeRange", required = false) String timeRange,
                                @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.situationAssessment(null, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return specialChartAnalyzeController.situationAssessment(timeRange, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     /**
@@ -485,11 +589,13 @@ public class ApiController {
      * @return
      * @throws Exception
      */
+    @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query")
     @Api(value = "specialProject webCountLine", method = ApiMethod.WebCountLine)
     @GetMapping("/getWebCountLine")
     @Log(systemLogOperation = SystemLogOperation.WEB_COUNT_LINE, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getWebCountLine(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                          @RequestParam(value = "specialId",required = true) String specialId,
+                                  @RequestParam(value = "timeRange", required = false) String timeRange,
                                   @ApiParam("hour/day") @RequestParam(value = "showType",required = true) String showType) throws Exception {
         return specialChartAnalyzeController.webCountLine(null,specialId, showType, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
@@ -1177,6 +1283,144 @@ public class ApiController {
     }
 
     /**
+     * 添加微博分析
+     * @param accessToken
+     * @param urlName
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @Api(value = "save microblog", method = ApiMethod.SaveMicroblog)
+    @GetMapping("/saveMicroblog")
+    @Log(systemLogOperation = SystemLogOperation.SAVE_MICROBLOG, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object saveMicroblog(@RequestParam(value = "accessToken") String accessToken,
+                                     @RequestParam(value = "urlName", required = true) String urlName, HttpServletRequest request)
+            throws TRSException {
+        ApiAccessToken token = getToken(request);
+        String userId = token.getGrantSourceOwnerId();
+        User user = userRepository.findOne(userId);
+        if (urlName.indexOf("?") != -1){
+            //有问号
+            urlName = urlName.split("\\?")[0];
+        }
+        urlName = urlName.replace("https","http");
+        String random = UUID.randomUUID().toString().replace("-", "");
+        String currentUrl = urlName+random;
+        //User loginUser = UserUtils.getUser();
+        List<SingleMicroblogData> states = singleMicroblogDataService.findStates(user, MicroblogConst.MICROBLOGLIST,"分析中");
+        //列表查询
+        SingleMicroblogData microblogList = new SingleMicroblogData(MicroblogConst.MICROBLOGLIST,urlName,currentUrl);
+        microblogList.setUserId(user.getId());
+        microblogList.setSubGroupId(user.getSubGroupId());
+        microblogList.setLatelyTime(new Date());
+        if (ObjectUtil.isNotEmpty(states) && states.size() > 0){
+            microblogList.setState("正在排队");
+        }else {
+            microblogList.setState("分析中");
+        }
+
+        try {
+            SpreadObject spreadObject = singleMicroblogService.currentUrlMicroBlog(urlName);
+            if (ObjectUtil.isEmpty(spreadObject)){
+                return null;
+            }
+            microblogList.setData(spreadObject);
+        } catch (TRSException e) {
+            log.error(MicroblogConst.MICROBLOGLIST,e);
+        }
+        microblogList.setRandom(random);
+        microblogList.setLastModifiedTime(new Date());
+        SingleMicroblogData microblogData = singleMicroblogDataService.insert(microblogList);
+        //查询hybase，并将结果放在mongodb中
+        if (ObjectUtil.isNotEmpty(microblogData) && "分析中".equals(microblogData.getState())){
+            singleMicroblogService.dataAnalysis(microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
+        }
+
+        return microblogData;
+
+    }
+
+    /**
+     * 更新已完成的微博分析
+     * @param accessToken
+     * @param id
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @Api(value = "update microblog", method = ApiMethod.UpdateMicroblog)
+    @GetMapping("/updateMicroblog")
+    @Log(systemLogOperation = SystemLogOperation.UPDATE_MICROBLOG, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object updateMicroblog(@RequestParam(value = "accessToken") String accessToken,
+                                  @ApiParam("已分析完成的微博id")@RequestParam(value = "id", required = true) String id, HttpServletRequest request)
+            throws TRSException {
+        ApiAccessToken token = getToken(request);
+        String userId = token.getGrantSourceOwnerId();
+        User user = userRepository.findOne(userId);
+        SingleMicroblogData singleMicroblogData = singleMicroblogDataService.findOne(id);
+        if (ObjectUtil.isEmpty(singleMicroblogData)){
+            throw new OperationException("无效id");
+        }
+
+        String random = UUID.randomUUID().toString().replace("-", "");
+        singleMicroblogData.setRandom(random);
+        //User loginUser = UserUtils.getUser();
+        List<SingleMicroblogData> states = singleMicroblogDataService.findStates(user, MicroblogConst.MICROBLOGLIST,"分析中");
+        //列表查询
+        singleMicroblogData.setLatelyTime(new Date());
+        if (ObjectUtil.isNotEmpty(states) && states.size() > 0){
+            singleMicroblogData.setState("正在排队");
+
+        }else {
+            singleMicroblogData.setState("分析中");
+        }
+
+        try {
+            SpreadObject spreadObject = singleMicroblogService.currentUrlMicroBlog(singleMicroblogData.getOriginalUrl());
+            if (ObjectUtil.isEmpty(spreadObject)){
+                return null;
+            }
+            singleMicroblogData.setData(spreadObject);
+        } catch (TRSException e) {
+            log.error(MicroblogConst.MICROBLOGLIST,e);
+        }
+        SingleMicroblogData microblogData = singleMicroblogDataService.save(singleMicroblogData);
+        //查询hybase，并将结果放在mongodb中
+        if (ObjectUtil.isNotEmpty(microblogData) && "分析中".equals(microblogData.getState())){
+            singleMicroblogService.dataAnalysis(microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
+        }
+
+
+        return microblogData;
+
+    }
+
+    /**
+     * 删除的微博分析
+     * @param accessToken
+     * @param id
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @Api(value = "delete microblog", method = ApiMethod.DeleteMicroblog)
+    @GetMapping("/deleteMicroblog")
+    @Log(systemLogOperation = SystemLogOperation.DELETE_MICROBLOG, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object deleteMicroblog(@RequestParam(value = "accessToken") String accessToken,
+                                  @ApiParam("微博id")@RequestParam(value = "id", required = true) String id, HttpServletRequest request)
+            throws TRSException {
+        ApiAccessToken token = getToken(request);
+        String userId = token.getGrantSourceOwnerId();
+        User user = userRepository.findOne(userId);
+        if(ObjectUtil.isNotEmpty(user)){
+            singleMicroblogDataService.remove(id);
+            return "删除成功";
+        }
+        return null;
+
+    }
+
+    /**
      * 热门评论TOP5
      * @param accessToken
      * @param currentUrl
@@ -1185,9 +1429,9 @@ public class ApiController {
      * @throws TRSException
      */
     @Api(value = "get hot reviews TOP5", method = ApiMethod.HotReviews)
-    @GetMapping("/getHotReviewsTop5")
+    @GetMapping("/getHotReviews")
     @Log(systemLogOperation = SystemLogOperation.HOT_REVIEWS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
-    public Object getHotReviewsTop5(@RequestParam(value = "accessToken") String accessToken,
+    public Object getHotReviewsTop(@RequestParam(value = "accessToken") String accessToken,
                                  @RequestParam(value = "currentUrl", required = true) String currentUrl, HttpServletRequest request)
             throws TRSException {
         ApiAccessToken token = getToken(request);
@@ -1408,12 +1652,12 @@ public class ApiController {
             return null;
         }
         List<GroupInfo> emojiAnalysisOfForwardData = (List<GroupInfo>)emojiAnalysisOfForward.getData();
-//        if (ObjectUtil.isNotEmpty(emojiAnalysisOfForwardData)){
-//            for (GroupInfo groupInfo : emojiAnalysisOfForwardData) {
-//                String pinyin = PinyinUtil.toPinyinWithPolyphone(groupInfo.getFieldValue());
-//                groupInfo.setFieldValue(pinyin);
-//            }
-//        }
+        if (ObjectUtil.isNotEmpty(emojiAnalysisOfForwardData)){
+            for (GroupInfo groupInfo : emojiAnalysisOfForwardData) {
+                String pinyin = PinyinUtil.toPinyinWithPolyphone(groupInfo.getFieldValue());
+                groupInfo.setFieldValue(pinyin);
+            }
+        }
         return emojiAnalysisOfForwardData;
     }
 

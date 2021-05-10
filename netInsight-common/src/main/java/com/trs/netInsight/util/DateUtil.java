@@ -71,6 +71,29 @@ public class DateUtil {
 	public static String HOUR_END = "5959";
 
 	/**
+	 * 计算相差多少天 例如 2021-04-22 00:00:00 这种格式
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public static int getBetweenDays(String startTime, String endTime) {
+
+		SimpleDateFormat sdf = new SimpleDateFormat(yyyyMMdd);
+		Calendar calendar = Calendar.getInstance();
+		try {
+			calendar.setTime(sdf.parse(startTime));
+			long start = calendar.getTimeInMillis();
+			calendar.setTime(sdf.parse(endTime));
+			long end = calendar.getTimeInMillis();
+			long between = (end - start) / (1000*3600*24);
+			return Integer.parseInt(String.valueOf(between));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	/**
 	 * 将毫秒数转化为可读的时间字符串,如1天，1小时，1分<br>
 	 * 的区别是不会显示多个单位,更符合阅读习惯,如1天1小时显示为25小时,1小时3分显示为63分
 	 *
@@ -244,6 +267,44 @@ public class DateUtil {
 		calendarTemp.setTime(date);
 		calendarTemp.add(Calendar.DAY_OF_YEAR, relativeDay);
 		return new SimpleDateFormat(format).format(calendarTemp.getTime());
+	}
+
+	/**
+	 * 获取与指定日期间隔指定小时的日期
+	 * @param date
+	 * @param format
+	 * @param relativeHour
+	 * @return
+	 */
+	public static String formatDateAfterForHour(String date, String format, int relativeHour) {
+		if (StringUtil.isEmpty(date) || StringUtil.isEmpty(format)) {
+			return "";
+		}
+		Calendar calendar = Calendar.getInstance();
+		try {
+			calendar.setTime(new SimpleDateFormat(format).parse(date));
+			calendar.add(Calendar.HOUR_OF_DAY, relativeHour);
+		} catch (ParseException e) {
+			return "";
+		}
+		return new SimpleDateFormat(format).format(calendar.getTime());
+	}
+
+	/**
+	 * 获取与指定日期间隔指定小时的日期
+	 * @param date
+	 * @param format
+	 * @param relativeHour
+	 * @return
+	 */
+	public static String formatDateAfterForHour(Date date, String format, int relativeHour) {
+		if (date == null || StringUtil.isEmpty(format)) {
+			return "";
+		}
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.HOUR_OF_DAY, relativeHour);
+		return new SimpleDateFormat(format).format(calendar.getTime());
 	}
 
 	public static String formatDateAfterNow(String format, int relativeDay) {

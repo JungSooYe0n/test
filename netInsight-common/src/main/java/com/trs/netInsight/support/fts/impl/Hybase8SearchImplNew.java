@@ -33,6 +33,7 @@ import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.regexp.RE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -76,6 +77,15 @@ public class Hybase8SearchImplNew implements FullTextSearch {
     @Value("${system.hybase.isSet80.open}")
     private boolean isHybase80;
     private static final int MAX_PAGE_SIZE = 512 * 2;
+
+    //存入redis中
+    private static final String QUERY_HYBASE_TIME = "query_hybase_time" + "123456789";
+
+    //查询hybase超时时间
+    private static final int QUERY_HYBASE_OVER_TIME = 20 * 1000;
+    //半年时间转换的毫秒数
+    private static final long URL_TIME_MAX = 180 * 24 * 3600 * 1000L;
+
     private List<KnowledgeBase> findByClassify(KnowledgeClassify classify) {
         if(ObjectUtil.isEmpty(classify)){
             return knowledgeBaseRepository.findAll();
@@ -458,6 +468,10 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             systemLogRecord(trsl);
             long timeEnd = new Date().getTime();
             int queryTime = (int) (timeEnd - timeStart);
+            if (queryTime > QUERY_HYBASE_OVER_TIME) {
+                RedisUtil.deleteString(QUERY_HYBASE_TIME);
+                RedisUtil.setString(QUERY_HYBASE_TIME, String.valueOf(timeStart), 10, TimeUnit.MINUTES);
+            }
             queryTime(timeStart, timeEnd, trsl, queryTime, connectTime, db, connection.getURL());
             if (StringUtil.isNotEmpty(query.getKeyRedis())) {
                 RedisUtil.setString(query.getKeyRedis(), trsl, 60, TimeUnit.MINUTES);
@@ -783,6 +797,11 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             long endHybase = new Date().getTime();
 
             int queryTime = (int) (endHybase - startHybase);
+            //查询时间大于20秒
+            if (queryTime > QUERY_HYBASE_OVER_TIME) {
+                RedisUtil.deleteString(QUERY_HYBASE_TIME);
+                RedisUtil.setString(QUERY_HYBASE_TIME, String.valueOf(startHybase), 10, TimeUnit.MINUTES);
+            }
             categoryTime(startHybase, endHybase, trsl, queryTime, connectTime, db, groupField, connection.getURL());
             GroupResult result1 = new GroupResult();
             if (result.getCategoryMap() != null) {
@@ -1338,7 +1357,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                         // 因为开始时间已经是根据权限范围设置 所以结束时间在开始时间之前 证明不在范围之内
                         throw new TRSSearchException("时间范围不在权限之内",1008);
                     }
-                   return trsl.replace(times[0],searchTimes[0]);
+                    return trsl.replace(times[0], updateTrsl(searchTimes[0], DateUtil.format2String(endDate, DateUtil.yyyyMMddHHmmss)));
                 }
             }
 
@@ -1358,7 +1377,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                             // 因为开始时间已经是根据权限范围设置 所以结束时间在开始时间之前 证明不在范围之内
                             throw new TRSSearchException("时间范围不在权限之内",1008);
                         }
-                        return trsl.replace(times[0],searchTimes[0]);
+                        return trsl.replace(times[0], updateTrsl(searchTimes[0], DateUtil.format2String(endDate, DateUtil.yyyyMMddHHmmss)));
                     }
                 }
             }
@@ -1378,7 +1397,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                         // 因为开始时间已经是根据权限范围设置 所以结束时间在开始时间之前 证明不在范围之内
                         throw new TRSSearchException("时间范围不在权限之内",1008);
                     }
-                    return trsl.replace(times[0],searchTimes[0]);
+                    return trsl.replace(times[0], updateTrsl(searchTimes[0], DateUtil.format2String(endDate, DateUtil.yyyyMMddHHmmss)));
                 }
             }
 
@@ -1386,6 +1405,26 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
     }
     return trsl;
     }
+
+    /**
+     * 时间超过半年的矫正为 3 个月
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    private String updateTrsl(String startTime, String endTime) {
+        long range = DateUtil.formatDate2Millis(endTime, DateUtil.yyyyMMddHHmmss) - DateUtil.formatDate2Millis(startTime, DateUtil.yyyyMMddHHmmss);
+        //如果查询时间范围大于半年
+        if (range >= URL_TIME_MAX) {
+            String query_hybase_time = RedisUtil.getString(QUERY_HYBASE_TIME);
+            if (StringUtil.isNotEmpty(query_hybase_time)) {
+                String UpdateUrlTimeStartTime = DateUtil.formatDateAfter(endTime, DateUtil.yyyyMMddHHmmss, -90);
+                return UpdateUrlTimeStartTime;
+            }
+        }
+        return startTime;
+    }
+
     /**
      * 根据表达式抽取检索时间范围
      *
@@ -1886,6 +1925,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                 return;
             HttpServletRequest request = ((ServletRequestAttributes) ras).getRequest();
             request.setAttribute("system-log-trsl", trsl);
+            request.setAttribute("search_time_long_trsl", trsl);
         } catch (Exception e) {
             log.error("获取当前HttpServletRequest失败！");
             e.printStackTrace();

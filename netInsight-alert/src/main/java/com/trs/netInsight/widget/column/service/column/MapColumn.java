@@ -8,6 +8,7 @@ import com.trs.netInsight.handler.exception.TRSSearchException;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.util.SearchTimeLongUtil;
 import com.trs.netInsight.util.SpringUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
@@ -42,7 +43,9 @@ public class MapColumn extends AbstractColumn {
 		boolean sim = indexTab.isSimilar();
 		boolean irSimflag = indexTab.isIrSimflag();
 		boolean irSimflagAll = indexTab.isIrSimflagAll();
-		String groupNames = super.config.getIndexTab().getGroupName();//本身存储的来源;
+		String groupNames = indexTab.getGroupName();//本身存储的来源;
+		//记录searchTimeLongLog日志
+		SearchTimeLongUtil.execute(indexTab.getName(), indexTab.getTimeRange());
 		List<Map<String, Object>> list = new ArrayList<>();
 		builder.setPageSize(Integer.MAX_VALUE);
         ChartResultField resultField = new ChartResultField("name", "value");

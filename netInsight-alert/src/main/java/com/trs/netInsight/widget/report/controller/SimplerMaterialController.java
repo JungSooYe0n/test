@@ -3,10 +3,14 @@ package com.trs.netInsight.widget.report.controller;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.support.log.entity.RequestTimeLog;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.UserUtils;
+import com.trs.netInsight.widget.report.entity.MaterialLibraryNew;
+import com.trs.netInsight.widget.report.entity.TemplateNew;
 import com.trs.netInsight.widget.report.service.IMaterialLibraryNewService;
 import com.trs.netInsight.widget.user.entity.User;
 import io.swagger.annotations.*;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,6 +37,9 @@ import java.util.List;
 public class SimplerMaterialController {
     @Autowired
     private IMaterialLibraryNewService materialLibraryNewService;
+
+    @Autowired
+    private RequestTimeLogRepository requestTimeLogRepository;
 
     /**
      * 素材库列表
@@ -98,6 +106,7 @@ public class SimplerMaterialController {
             @ApiImplicitParam(name = "groupNames", value = "素材资源来源", dataType = "String", paramType = "query",required = true)})
     @FormatResult
     public Object saveMaterialResource( String sids, String md5s, String urlTimes,String groupNames,String libraryId,String name) throws OperationException {
+        Date startDate = new Date();
         String[] groupNameArray = groupNames.split(";");
         String[] sidArray = sids.split(";");
         if(groupNameArray.length != sidArray.length){
@@ -112,8 +121,23 @@ public class SimplerMaterialController {
             }
         }
         groupNames = StringUtils.join(groupNameArray, ";");
-
-        return materialLibraryNewService.saveMaterialResource(sids,UserUtils.getUser(),md5s,urlTimes,groupNames,libraryId,name);
+        Date hyStartDate = new Date();
+        String result = materialLibraryNewService.saveMaterialResource(sids,UserUtils.getUser(),md5s,urlTimes,groupNames,libraryId,name);
+        RequestTimeLog requestTimeLog = new RequestTimeLog();
+        requestTimeLog.setTabId(libraryId);
+        MaterialLibraryNew materialLibraryNew = materialLibraryNewService.findOne(libraryId);
+        if(StringUtils.isEmpty(name)){
+            name = materialLibraryNew.getSpecialName();
+        }
+        requestTimeLog.setTabName(name);
+        requestTimeLog.setStartHybaseTime(hyStartDate);
+        requestTimeLog.setEndHybaseTime(new Date());
+        requestTimeLog.setStartTime(startDate);
+        requestTimeLog.setEndTime(new Date());
+        //requestTimeLog.setRandomNum(randomNum);
+        requestTimeLog.setOperation("舆情报告-素材报告");
+        requestTimeLogRepository.save(requestTimeLog);
+        return result;
     }
 
     @RequestMapping(value = "/findMaterialResource", method = RequestMethod.GET)

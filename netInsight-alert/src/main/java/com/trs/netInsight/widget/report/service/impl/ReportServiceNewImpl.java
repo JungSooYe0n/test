@@ -54,6 +54,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.trs.netInsight.widget.report.constant.ReportConst.*;
@@ -1441,13 +1442,26 @@ public class ReportServiceNewImpl implements IReportServiceNew {
 		List<ReportResource> resources = reportResourceRepository.findByReportIdAndResourceStatus(reportId, 1);
 		entityManager.clear();
 		Map<Integer, List<ReportResource>> collect = resources.stream().collect(Collectors.groupingBy(ReportResource::getChapterPosition));
+		List<TElementNew> tElementNews = JSONArray.parseArray(templateList, TElementNew.class);
+		AtomicInteger statisticsChapterDetail = new AtomicInteger(-1);
+		tElementNews.stream().forEach(e -> {
+			if ("Statistics_Summarize".equals(e.getChapterDetail())) {
+				statisticsChapterDetail.set(e.getChapterPosition());
+			}
+		});
+		collect.get(statisticsChapterDetail.get()).get(0).setImgComment(dataSummary);
 		Map<String, List<Map<String, String>>> base64data = ReportUtil.getBase64data(jsonImgElements);
 		TemplateNew templateNew = new TemplateNew();
-		templateNew.setTemplateList(templateList);
+		//取一份旧的报告模板
+		String oldReportTemplateList = report.getTemplateList();
+		if (StringUtil.isNotEmpty(templateList)) {
+			report.setTemplateList(templateList);
+		}
 //		String reportIntro = getReportIntro(collect);
 		String docPath = generateReportImpl.generateReport(report, collect, templateNew, base64data, reportIntro, dataSummary);
-		report.setDocPath(docPath);
-//		reportNewRepository.save(report);
+		report.setTempDocPath(docPath);
+		report.setTemplateList(oldReportTemplateList);
+		reportNewRepository.save(report);
 		return Const.SUCCESS;
 	}
 

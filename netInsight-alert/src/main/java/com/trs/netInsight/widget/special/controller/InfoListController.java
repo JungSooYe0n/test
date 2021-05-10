@@ -729,6 +729,7 @@ public class InfoListController {
 				case "fullText":
 					trsl.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
 							.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
+							.replaceAll("[;|；]+","\" OR \"")).append("\"))").append(" OR "+FtsFieldConst.FIELD_OCR_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+","\") AND (\"")
 							.replaceAll("[;|；]+","\" OR \"")).append("\"))");
 					break;
 			}
@@ -1118,6 +1119,9 @@ public class InfoListController {
 //        	加上已读 / 未读 标
 			for (FtsDocumentCommonVO ftsDocumentCommonVO : ftsQuery) {
 				readArticle(ftsDocumentCommonVO);
+				if("undefined".equals(ftsDocumentCommonVO.getAuthors())){
+					ftsDocumentCommonVO.setAuthors(ftsDocumentCommonVO.getSiteName());
+				}
 			}
 
             FtsDocumentCommonVO ftsDocument = ftsQuery.get(0);

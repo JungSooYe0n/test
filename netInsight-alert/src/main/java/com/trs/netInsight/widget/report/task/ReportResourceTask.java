@@ -66,6 +66,13 @@ public class ReportResourceTask implements Runnable{
 		List<ReportResource> list ;
 		try {
 			list = reportResourceHandle(reportResourcesList,trslk);
+			list.stream().forEach(e -> {
+				String siteName = e.getSiteName();
+				e.setSiteName(StringUtil.filterEmoji(StringUtil.replaceImg(siteName)));
+				if (StringUtil.isNotEmpty(e.getSrcName())) {
+					e.setSrcName(StringUtil.filterEmoji(StringUtil.replaceImg(e.getSrcName())));
+				}
+			});
 			reportResourceRepository.save(list);
 			log.info(String.format(REPORTRESOURCELOG,"成功保存至数据库，size："+list.size()));
 		} catch (Exception e) {

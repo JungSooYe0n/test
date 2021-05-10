@@ -1162,6 +1162,8 @@ public class ReportServiceImpl implements IReportService {
 						String authors = fav.getAuthors();
 						newAdd.setAuthors(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
 						newAdd.setAuthor(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+						String siteName = fav.getSiteName();
+						newAdd.setSiteName(StringUtil.filterEmoji(StringUtil.replaceImg(siteName)));
 						String screenName = fav.getScreenName();
 						String srcName = fav.getSrcName();
 

@@ -111,6 +111,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("filterInfo", chart.getFilterInfo());
                 chartMap.put("contentArea", chart.getContentArea());
                 chartMap.put("mediaArea", chart.getMediaArea());
+                chartMap.put("preciseFilter", chart.getPreciseFilter());
                 chartMap.put("pointToId", chart.getParentId());
                 result.add(chartMap);
             }
@@ -355,6 +356,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 if ("fullText".equals(hybaseField)) {
                     fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
                             .replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
+                            .replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_OCR_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
                             .replaceAll("[;|；]+", "\" OR \"")).append("\"))");
                 } else {
                     fuzzyBuilder.append(hybaseField).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
@@ -414,6 +416,8 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
         if (StringUtil.isNotEmpty(timeRange)) {
             customChart.setTimeRange(timeRange);
         }
+        //记录searchTimeLongLog日志
+        SearchTimeLongUtil.execute(customChart.getName(), customChart.getTimeRange());
         QueryBuilder commonBuilder = customChart.getQueryBuilder(true,-1,-1);
         Object result = null;
         IndexTabType indexTabType = ColumnFactory.chooseType(customChart.getType());

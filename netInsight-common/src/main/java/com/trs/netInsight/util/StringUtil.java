@@ -1310,7 +1310,7 @@ public final class StringUtil {
 //			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png)").matcher(img);
 			Matcher m = Pattern.compile("(http:|https:)//[^\":<>]*\\.(jpg|bmp|gif|ico|pcx|jpeg|tif|png).\\s*(.*?)[^>]*?(>|&gt;|&quot;|nbsp;)").matcher(img);
 			while (m.find()) {
-				pics.add(m.group().replace("&quot;/&gt;","").replace("&amp;","&").replace("&quot;","").replace("&gt;","").replace("&nbsp;",""));
+				pics.add(m.group().replace("&quot;/&gt;","").replace("&amp;","&").replace("&quot;","").replace("&gt;","").replace("&nbsp;"," "));
 			}
 		}
 		return pics;

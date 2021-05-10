@@ -978,6 +978,30 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 				break;
 		}
 		User user = UserUtils.getUser();
+		//判断观点分析的数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
+		String[] groupNameArray = CommonListChartUtil.changeGroupName(groupNames).split(";");
+		if (groupNameArray.length > 0 && groupNameArray.length == 1) {
+			if (!specialProjectGroupName.contains(groupNameArray[0])) {
+				Map<String, Object> resultMap = new HashMap<String, Object>();
+				resultMap.put("message", "暂无数据，如需查看请勾选新闻网站数据哦~");
+				List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+				resultList.add(resultMap);
+				return resultList;
+			}
+		} else if (groupNameArray.length > 0 && groupNameArray.length == 2) {
+			if ((!specialProjectGroupName.contains(groupNameArray[0])) && specialProjectGroupName.contains(groupNameArray[1])) {
+				groupNames = groupNameArray[1];
+			} else if (specialProjectGroupName.contains(groupNameArray[0]) && (!specialProjectGroupName.contains(groupNameArray[1]))) {
+				groupNames = groupNameArray[0];
+			} else if ((!specialProjectGroupName.contains(groupNameArray[0])) && (!specialProjectGroupName.contains(groupNameArray[1]))) {
+				Map<String, Object> resultMap = new HashMap<String, Object>();
+				resultMap.put("message", "暂无数据，如需查看请勾选微信、微博数据哦~");
+				List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+				resultList.add(resultMap);
+				return resultList;
+			}
+		}
 		InfoListResult infoListResult = commonListService.queryPageListForHot(builder, groupNames, user, "special", false);
 		long end = new Date().getTime();
 		long time = end - start;
@@ -4890,9 +4914,21 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 	@Override
 	public Object spreadAnalysisSiteName(QueryBuilder searchBuilder,SpecialProject specialProject) throws TRSSearchException, TRSException {
-	//这个根据前端要求 按照他们的数据结构返回
-//		List<String> groupNames = Arrays.asList("新闻","微博","自媒体号","微信");
-		List<String> groupNames = Arrays.asList("新闻","自媒体号");
+		//这个根据前端要求 按照他们的数据结构返回
+		List<String> groupNames = null;
+		//判断传播分析/站点的数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
+		if ((!specialProjectGroupName.contains("国内新闻")) && specialProjectGroupName.contains("自媒体号")) {
+			groupNames = Arrays.asList("自媒体号");
+		} else if (specialProjectGroupName.contains("国内新闻") && (!specialProjectGroupName.contains("自媒体号"))) {
+			groupNames = Arrays.asList("新闻");
+		} else if ((!specialProjectGroupName.contains("国内新闻")) && (!specialProjectGroupName.contains("自媒体号"))) {
+			Map<String, Object> resultMap = new HashMap<>();
+			resultMap.put("message", "暂无数据，如需查看请勾选新闻网站或者自媒体号数据哦~");
+			return resultMap;
+		} else {
+			groupNames = Arrays.asList("新闻","自媒体号");
+		}
 		List<String> MEDIA_LEVEL = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体","其它媒体");
 		List<String> MEDIA_LEVEL_OTHER = Arrays.asList("中央党媒","地方党媒","政府网站","重点商业媒体");
 		List<Object> weixinAndZiMeiTiList = new ArrayList<>();
@@ -5206,6 +5242,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		try {
 			searchBuilder.setPageSize(10);
 			GroupResult posResult = commonListService.categoryQuery(searchBuilder,sim, specialProject.isIrSimflag(),specialProject.isIrSimflagAll(),FtsFieldConst.FIELD_EMOTION_2,"special",CommonListChartUtil.changeGroupName(groupName));
+			if (posResult == null) {
+				return null;
+			}
 			for(GroupInfo groupInfo : posResult) {
 				HashMap<String, Object> result = new HashMap<>();
 				result.put("name", groupInfo.getFieldValue());
@@ -5583,6 +5622,16 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		List<Map<String, Object>> list = new ArrayList<>();
 		Map<String, Object> map = null;
 
+		//判断热点信息的四个数据源是否被勾选了
+		String specialProjectGroupName = CommonListChartUtil.changeGroupName(specialProject.getSource()).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端");
+		String[] groupNames = CommonListChartUtil.changeGroupName(source).replace("国内新闻_电子报", "电子报").replace("国内新闻_手机客户端", "手机客户端").split(";");
+		if (groupNames.length == 1 && !specialProjectGroupName.contains(groupNames[0])) {
+			Map<String, Object> resultMap = new HashMap<>();
+			resultMap.put("message", "暂无数据，如需查看请勾选" + source + "数据哦~");
+			list.add(resultMap);
+			return list;
+		}
+		specialProject.setSource(source);
 		try {
 			if (timeRange != null) {
 				String[] timeArray = DateUtil.formatTimeRange(timeRange);
@@ -5875,6 +5924,8 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 		boolean sim = specialProject.isSimilar();
 		boolean irSimflag = specialProject.isIrSimflag();
 		boolean irSimflagAll = specialProject.isIrSimflagAll();
+		//记录searchTimeLongLog日志
+		SearchTimeLongUtil.execute(specialProject.getSpecialName(), specialProject.getTimeRange());
 //		String groupName = CommonListChartUtil.changeGroupName(specialProject.getSource());
 		 int weiboHigh = 20000;
 		 int weixinHigh = 500;
@@ -5899,18 +5950,22 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 
 		//把数据进行格式转换
 		Map<String, Long> newMap = new HashMap<>();
-		for (Map<String, Object> mapList : list) {
-			newMap.put(mapList.get("name").toString(), Long.parseLong(mapList.get("num").toString()));
+		if (CollectionsUtil.isNotEmpty(list) && list.size() > 0) {
+			for (Map<String, Object> mapList : list) {
+				newMap.put(mapList.get("name").toString(), Long.parseLong(mapList.get("num").toString()));
+			}
 		}
 
-		//把 13 种舆论场归为 6 类
-		newMap.put("新闻网站", newMap.get("新闻网站") + newMap.get("境外") + newMap.get("电子报"));
-		newMap.put("自媒体号", newMap.get("自媒体号") + newMap.get("短视频") + newMap.get("视频") + newMap.get("博客") + newMap.get("Facebook") + newMap.get("Twitter"));
+		double total = 0D;
+		if (!newMap.isEmpty()) {
+			//把 13 种舆论场归为 6 类
+			newMap.put("新闻网站", newMap.get("新闻网站") + newMap.get("境外") + newMap.get("电子报"));
+			newMap.put("自媒体号", newMap.get("自媒体号") + newMap.get("短视频") + newMap.get("视频") + newMap.get("博客") + newMap.get("Facebook") + newMap.get("Twitter"));
 
-		double total = getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("新闻")), newsHigh) * 0.1 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微博")), weiboHigh) * 0.4 +
-				getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微信")), weixinHigh) * 0.3 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("客户端")), appHigh) * 0.1 +
-				getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("自媒体号")), zimeitiHigh) * 0.05 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("论坛")), luntanHigh) * 0.05;
-
+			total = getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("新闻")), newsHigh) * 0.1 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微博")), weiboHigh) * 0.4 +
+					getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("微信")), weixinHigh) * 0.3 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("客户端")), appHigh) * 0.1 +
+					getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("自媒体号")), zimeitiHigh) * 0.05 + getScore(newMap.get(CommonListChartUtil.formatPageShowGroupName("论坛")), luntanHigh) * 0.05;
+		}
 //        searchBuilder.setPageSize(200);
 //		InfoListResult infoListResult = commonListService.queryPageList(searchBuilder,false,false,false,Const.GROUPNAME_WEIBO,"special",UserUtils.getUser(),false);
 //		PagedList<FtsDocumentCommonVO> content = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
@@ -5926,7 +5981,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //		}
 //		total += getScore(Long.valueOf(weiboVipNum),100,150,200) * 0.1;
 		int result = BigDecimal.valueOf(total).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
-		return result == 0 ? 1 : result;
+		return result;
 	}
 
 	/**
@@ -6415,6 +6470,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 			if ("fullText".equals(hybaseField)) {
 				fuzzyBuilder.append(FtsFieldConst.FIELD_TITLE).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")
 						.replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND \"")
+						.replaceAll("[;|；]+", "\" OR \"")).append("\"))").append(" OR " + FtsFieldConst.FIELD_OCR_CONTENT).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND \"")
 						.replaceAll("[;|；]+", "\" OR \"")).append("\"))");
 			} else {
 				fuzzyBuilder.append(hybaseField).append(":((\"").append(fuzzyValue.replaceAll("[,|，]+", "\") AND (\"")

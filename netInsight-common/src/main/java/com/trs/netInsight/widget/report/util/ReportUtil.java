@@ -97,6 +97,9 @@ public class ReportUtil {
 		StringBuffer strResult = new StringBuffer();
 		Object parse = JSONArray.parse(data);
 		List list = (List) parse;
+		if (list.size() <=0) {
+				return "无";
+		}
 		if (list.size() > 0) {
 			if (((JSONObject) list.get(0)).getInteger("value") == null) {
 				// 进入折线图模式
@@ -977,9 +980,11 @@ public class ReportUtil {
 					common.add(resource);
 					tElement.setChapaterContent(common);
 				} else {
-					tElement.setChapaterContent(
-							JSONObject.parseObject(jsonData, new TypeReference<List<ReportResource>>() {
-							}));
+					try {
+						tElement.setChapaterContent(JSONObject.parseObject(jsonData, new TypeReference<List<ReportResource>>() {}));
+					} catch (Exception exception) {
+						tElement.setChapaterContent(null);
+					}
 				}
 				tElements.add(tElement);
 			}
@@ -1101,7 +1106,7 @@ public class ReportUtil {
 			List<String> hitWords = new ArrayList<>();
 			//所有命中关键词
 			while (m.find() && hitWords.size() < 6) {
-				String trim = m.group(1).trim();
+				String trim = m.group(1).trim().replaceAll("&nbsp;"," ");
 				if (!hitWords.contains(trim)) {
 					hitWords.add(trim);
 				}
@@ -1175,8 +1180,6 @@ public class ReportUtil {
 
 			if ("微博事件脉络".equals(chapter)) {
 				reportResource.setSiteName(map.get("authors"));
-			} else if ("自媒体号事件脉络".equals(chapter)) {
-				reportResource.setSiteName(map.get("siteName") + "-" + map.get("authors"));
 			} else {
 				reportResource.setSiteName(map.get("siteName"));
 			}
@@ -1235,8 +1238,8 @@ public class ReportUtil {
 	public static void  setEmptyData(ReportDataNew reportData, String chapterType, String chapterDetail) {
 		if (ReportConst.SINGLERESOURCE.equals(chapterType) && OVERVIEWOFDATAkey.equals(chapterDetail)) {
 			ReportResource overviewRR = new ReportResource();
-			overviewRR.setImgComment("暂无数据！");
-			overviewRR.setImg_data("暂无数据！");
+			overviewRR.setImgComment("无");
+			overviewRR.setImg_data("无");
 			reportData.setOverviewOfdata(ReportUtil.replaceHtml(JSON.toJSONString(Collections.singletonList(overviewRR))));
 		} else {
 			ReportResource emptyResource = new ReportResource();

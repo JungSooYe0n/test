@@ -59,6 +59,8 @@ public class CommonListColumn extends AbstractColumn {
 		boolean sim = indexTab.isSimilar();
 		boolean irSimflag = indexTab.isIrSimflag();
 		boolean irSimflagAll = indexTab.isIrSimflagAll();
+		//记录searchTimeLongLog日志
+		SearchTimeLongUtil.execute(indexTab.getName(), indexTab.getTimeRange());
 		List<Map<String, Object>> list = new ArrayList<>();
 		try {
 			//微博content字段已经有title别名  不需要再为微博写个builder

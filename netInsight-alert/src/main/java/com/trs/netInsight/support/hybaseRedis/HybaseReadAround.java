@@ -22,6 +22,9 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
@@ -56,6 +59,23 @@ public class HybaseReadAround {
             User user = UserUtils.getUser();
             // 获取参数列表及参数值
             Object[] paramValues = point.getArgs();
+            String trsl = null;
+            for (Object paramValue : paramValues) {
+                if (paramValue instanceof QueryBuilder) {
+                    trsl = ((QueryBuilder) paramValue).getAppendTRSL().toString();
+                    break;
+                } else if (paramValue instanceof QueryCommonBuilder) {
+                    trsl = ((QueryCommonBuilder) paramValue).getAppendTRSL().toString();
+                    break;
+                }
+            }
+            if (StringUtil.isNotEmpty(trsl)) {
+                RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+                if (requestAttributes != null) {
+                    HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+                    request.setAttribute("search_time_long_trsl", trsl);
+                }
+            }
             if (ObjectUtil.isNotEmpty(user)){
                 user = UserUtils.checkOrganization(user);
 //                小库 涉及 已读 / 未读，情绪标的修改 与 筛选，为保证列表页统计数据与信息数据一致， 不走缓存

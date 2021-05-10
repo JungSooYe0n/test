@@ -28,9 +28,11 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.log.entity.RequestTimeLog;
+import com.trs.netInsight.support.log.entity.enums.SearchLogType;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
+import com.trs.netInsight.support.log.handler.SearchLog;
 import com.trs.netInsight.support.log.repository.RequestTimeLogRepository;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.constant.AlertAutoConst;
@@ -268,21 +270,21 @@ public class ColumnController {
 						 @ApiParam("要创建的栏目分组的父级分组id") @RequestParam(value = "parentId" ,required = false) String parentId,
 						 @ApiParam("导航栏id(非自定义情况下不传)") @RequestParam(value = "typeId",required = false, defaultValue = "") String typeId) throws TRSException {
 		User loginUser = UserUtils.getUser();
-		if (UserUtils.isRoleAdmin()){
-			Organization organization = organizationService.findOne(loginUser.getOrganizationId());
-			//机构管理员
-			if (organization.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)){
-				throw new TRSException(CodeUtils.FAIL,"该新创建的栏目分组下已没有可新建栏目的资源！");
-			}
-		}
-		if (UserUtils.isRoleOrdinary(loginUser)){
-			//如果是普通用户 受用户分组 可创建资源的限制
-			//查询该用户所在的用户分组下 是否有可创建资源
-			SubGroup subGroup = subGroupService.findOne(loginUser.getSubGroupId());
-			if (subGroup.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)){
-				throw new TRSException(CodeUtils.FAIL,"该新创建的栏目分组下已没有可新建栏目的资源！");
-			}
-		}
+//		if (UserUtils.isRoleAdmin()){
+//			Organization organization = organizationService.findOne(loginUser.getOrganizationId());
+//			//机构管理员
+//			if (organization.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)){
+//				throw new TRSException(CodeUtils.FAIL,"该新创建的栏目分组下已没有可新建栏目的资源！");
+//			}
+//		}
+//		if (UserUtils.isRoleOrdinary(loginUser)){
+//			//如果是普通用户 受用户分组 可创建资源的限制
+//			//查询该用户所在的用户分组下 是否有可创建资源
+//			SubGroup subGroup = subGroupService.findOne(loginUser.getSubGroupId());
+//			if (subGroup.getColumnNum() <= indexTabService.getSubGroupColumnCount(loginUser)){
+//				throw new TRSException(CodeUtils.FAIL,"该新创建的栏目分组下已没有可新建栏目的资源！");
+//			}
+//		}
 
 		if (StringUtil.isNotEmpty(name)) {
 			if (StringUtil.isNotEmpty(parentId)) {
@@ -922,7 +924,7 @@ if (isAddAlert) {
 			SpecialType specialType = SpecialType.valueOf(columnType);
 			// 有几个图专家模式下 必须传xy表达式
 			if (SpecialType.SPECIAL.equals(specialType)) {
-				if (StringUtil.isNotEmpty(trsl)) {
+				if (StringUtil.isNotEmpty(trsl) || StringUtil.isNotEmpty(xyTrsl)) {
 					if(!IndexTabType.MAP.equals(indexTabType)){
 						contrast = null;
 					}
@@ -1270,6 +1272,7 @@ if (isAddAlert) {
 	 * @throws TRSException
 	 */
 	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_DATA, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "查看二级栏目（图表）：${id}")
+	@SearchLog(searchLogType = SearchLogType.COLUMN)
 	@FormatResult
 	//@EnableRedis
 	@RequestMapping(value = "/selectChart", method = RequestMethod.POST)
@@ -1720,6 +1723,7 @@ if (isAddAlert) {
 	@FormatResult
 	@RequestMapping(value = "/columnList", method = RequestMethod.POST)
 	@Log(systemLogOperation = SystemLogOperation.COLUMN_SELECT_INDEX_TAB_INFO, systemLogType = SystemLogType.COLUMN, systemLogOperationPosition = "栏目对应信息列表页面数据查询：${id}")
+	@SearchLog(searchLogType = SearchLogType.COLUMN)
 	@ApiOperation("栏目对应信息列表页面数据查询")
 	public Object columnList(
 			@ApiParam("日常监测栏目id") @RequestParam(value = "id") String id,

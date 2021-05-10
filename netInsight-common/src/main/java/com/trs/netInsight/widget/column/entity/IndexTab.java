@@ -359,7 +359,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	public IndexTab(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, boolean hide, String keyWord,
 					String excludeWords, String excludeWordIndex,String keyWordIndex, String groupName, boolean similar, boolean irSimflag, boolean irSimflagAll, boolean weight,
 					int tabWidth, Integer sequence,SpecialType specialType,String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
-					String contentArea,String mediaArea) {
+					String contentArea,String mediaArea, String preciseFilter) {
 		this.name = name;
 		this.trsl = trsl;
 		this.xyTrsl = xyTrsl;
@@ -387,6 +387,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 		this.filterInfo = filterInfo;
 		this.contentArea = contentArea;
 		this.mediaArea = mediaArea;
+		this.preciseFilter = preciseFilter;
 	}
 
 
