@@ -334,6 +334,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
     public <T extends IDocument> PagedList<T> ftsPageList(String keyRedis, String trsl, String orderBy, long pageSize,
                                                           long pageNo, Class<T> resultClass, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, boolean server, String type)
             throws TRSSearchException {
+        log.error("trsl1111111111111111111111111111111111------------>"+trsl);
         queryCount();
         //只用返回结果实体类对应的数据库
         String databases = FtsParser.getDatabases(resultClass);
@@ -342,7 +343,8 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         }
         String db = addHybaseInsert(databases);
         // 判断是否排重
-        trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, resultClass);
+        if (!"hotTop".equals(type) && !"weiboHtb".equals(type)) trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, resultClass);
+        log.error("trsl12222222222222222222222222222------------>"+trsl);
         //log.warn(trsl);
         TRSConnection connection = null;
         try {
@@ -356,8 +358,9 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             searchParams.setReadColumns(String.join(";", FtsParser.getSearchField(resultClass)));
             searchParams.setColorColumns(String.join(";", FtsParser.getHighLightField(resultClass)));
             String search = extractByTrsl(trsl, true, type);
+            log.error("trsl333333333333333333333333------------>"+trsl);
 
-            if (search != null) {
+            if (search != null && !"weiboHtb".equals(type)) {
                 searchParams.setProperty("search.range.filter", search);
             }
             if (StringUtil.isNotEmpty(keyRedis)) {
@@ -370,9 +373,12 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             }
 
             long startHybase = new Date().getTime();
-            if(!verifyFilterTime(searchParams)){
-                return null;
+            if (!"weiboHtb".equals(type)) {
+                if (!verifyFilterTime(searchParams)) {
+                    return null;
+                }
             }
+            log.error("trsl------------>"+trsl);
             TRSResultSet resultSet = connection.executeSelect(db, trsl, from, recordNum, searchParams);
             // 系统日志记录
             systemLogRecord(trsl);
@@ -1776,7 +1782,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
 
         //log.debug("------>" + StringUtil.isNotEmpty(indices));
         //log.debug("------>" + !indices.contains(Const.SINAUSERS));
-        if (StringUtil.isNotEmpty(indices) && !indices.contains(Const.SINAUSERS) && !indices.contains(Const.SINAREVIEWS))
+        if (StringUtil.isNotEmpty(indices) && !indices.contains(Const.SINAUSERS) && !indices.contains(Const.SINAREVIEWS) && !indices.contains(Const.DC_BANGDAN) && !indices.contains(Const.WEIBO_RSB) && !indices.contains(Const.WEIBO_HTB) )
             indices = indices + ";" + Const.INSERT;
 
         if (UserUtils.isRoleAdmin() || UserUtils.isRoleOrdinary(user)){

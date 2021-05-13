@@ -5,6 +5,7 @@ import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.builder.condition.SearchCondition;
 import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
+import com.trs.netInsight.util.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -196,7 +197,7 @@ public class QueryBuilder extends IQueryBuilder implements Cloneable{
 
 	public QueryBuilder orderBy(String field, boolean desc) {
 		if (!isEmpty(field)) {
-			this.orderBy = (desc ? "-" : "+") + field;
+			this.orderBy = StringUtil.isEmpty(this.orderBy) ? (desc ? "-" : "+") + field : this.orderBy+";"+(desc ? "-" : "+") + field;
 		}
 		return this;
 	}

@@ -63,6 +63,12 @@ public final class FtsParser {
                 indices = Const.SINAUSERS;
             } else if(hybaseType.equals(FtsHybaseType.MIX)){
                 indices = Const.MIX_DATABASE;
+            }else if (hybaseType.equals(FtsHybaseType.WEIBO_RSB)){
+                indices = Const.WEIBO_RSB;
+            }else if (hybaseType.equals(FtsHybaseType.WEIBO_HTB)){
+                indices = Const.WEIBO_HTB;
+            }else if (hybaseType.equals(FtsHybaseType.RANK_LIST)){
+                indices = Const.DC_BANGDAN;
             }else {
                 indices = Const.HYBASE_NI_INDEX;
             }

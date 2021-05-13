@@ -135,6 +135,18 @@ public class Const {
      * 返乡日记日记数据
      */
     public static final String HYBASE_HOMECOMING = "system2.homecoming_190225";
+    /**
+     * 微博热搜榜
+     */
+    public static final String WEIBO_RSB = "system2.weiborsb_200410";
+    /**
+     * 微博话题榜
+     */
+    public static final String WEIBO_HTB = "system2.weibohtb_210511";
+    /**
+     * 榜单库
+     */
+    public static final String DC_BANGDAN = "system2.dc_bangdan_0109";
 
     /**
      * 词云库
@@ -1556,6 +1568,14 @@ public class Const {
     public static final String mapto = "mapto_";
 //    地图下钻,通过省获得市,id拼接前缀
     public static final String maptopri = "0000";
+
+    public static final String HTB_SITENAME_BAIDU = "百度搜索风云榜";
+    public static final String HTB_SITENAME_360 = "360实时热搜榜";
+    public static final String HTB_SITENAME_soudog = "搜狗热搜榜";
+    public static final String HTB_SITENAME_SOUDOG_WEINXIN = "搜狗微信";
+    public static final String HTB_SITENAME_TENTXUNNEWS = "腾讯新闻";
+    public static final String HTB_SITENAME_JINRI = "今日头条";
+    public static final String HTB_SITENAME_ZHIHUHTB = "知乎热搜榜";
 
 
 }
