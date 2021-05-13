@@ -302,6 +302,10 @@ public enum ApiMethod {
      * 删除已完成的微博分析
      */
     DeleteMicroblog(7020,"delete microblog","7000"),
+    /**
+     * 查看微博分析进度
+     */
+    StepMicroblog(7021,"step microblog","7000"),
 
     /**
      *  查询数据详情

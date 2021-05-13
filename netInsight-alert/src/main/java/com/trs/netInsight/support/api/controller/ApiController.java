@@ -1333,13 +1333,39 @@ public class ApiController {
         SingleMicroblogData microblogData = singleMicroblogDataService.insert(microblogList);
         //查询hybase，并将结果放在mongodb中
         if (ObjectUtil.isNotEmpty(microblogData) && "分析中".equals(microblogData.getState())){
-            singleMicroblogService.dataAnalysis(microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
+            singleMicroblogService.dataAnalysisApi(user,microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
         }
 
         return microblogData;
 
     }
 
+    /**
+     * 查看微博分析进度
+     * @param accessToken
+     * @param urlName
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @Api(value = "confirmStep", method = ApiMethod.StepMicroblog)
+    @GetMapping("/confirmStep")
+    //@Log(systemLogOperation = SystemLogOperation.SAVE_MICROBLOG, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object confirmStep(@RequestParam(value = "accessToken") String accessToken,
+                                @RequestParam(value = "currentUrl", required = true) String urlName, HttpServletRequest request)
+            throws TRSException {
+        ApiAccessToken token = getToken(request);
+        String userId = token.getGrantSourceOwnerId();
+        User user = userRepository.findOne(userId);
+        long start = new Date().getTime();
+        log.info(urlName);
+        log.info("开始统计计算："+start);
+        Object confirmStep = singleMicroblogService.confirmStepApi(user,urlName);
+        long end = new Date().getTime();
+        log.info("结束统计计算："+end+"，查看查询进度共用时长："+(end-start));
+        return confirmStep;
+
+    }
     /**
      * 更新已完成的微博分析
      * @param accessToken
