@@ -222,7 +222,7 @@ public class FtsFieldConst {
 	/**
 	 * 转发消息的用户昵称
 	 */
-	public final static String FIELD_RETWEETED_SCREEN_NAME = "IR_RETWEETED_SCREEN_NAME";
+	public final static String FIELD_RETWEETED_SCREEN_NAME = "IR_RETWEETED_S CREEN_NAME";
 
 	/**
 	 * 转发消息的用户ID

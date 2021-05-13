@@ -47,5 +47,17 @@ public enum FtsHybaseType {
     /**
      * 已发预警 类型 主要是 微信与APP  -- 默认的
      */
-    ALERT_TYPE
+    ALERT_TYPE,
+    /**
+     * 热搜榜
+     */
+    WEIBO_RSB,
+    /**
+     * 话题榜
+     */
+    WEIBO_HTB,
+    /**
+     * 榜单
+     */
+    RANK_LIST
 }
