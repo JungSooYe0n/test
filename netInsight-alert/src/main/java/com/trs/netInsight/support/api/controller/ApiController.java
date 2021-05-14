@@ -1413,7 +1413,7 @@ public class ApiController {
         SingleMicroblogData microblogData = singleMicroblogDataService.save(singleMicroblogData);
         //查询hybase，并将结果放在mongodb中
         if (ObjectUtil.isNotEmpty(microblogData) && "分析中".equals(microblogData.getState())){
-            singleMicroblogService.dataAnalysis(microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
+            singleMicroblogService.dataAnalysisApi(user,microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
         }
 
 
