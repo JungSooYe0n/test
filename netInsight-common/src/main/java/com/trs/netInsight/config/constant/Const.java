@@ -1576,6 +1576,8 @@ public class Const {
     public static final String HTB_SITENAME_TENTXUNNEWS = "腾讯新闻";
     public static final String HTB_SITENAME_JINRI = "今日头条";
     public static final String HTB_SITENAME_ZHIHUHTB = "知乎热搜榜";
+    public static final String HTB_SITENAME_PENGPAI = "澎湃";
+    public static final String HTB_SITENAME_TIANYA = "天涯社区";
 
 
 }

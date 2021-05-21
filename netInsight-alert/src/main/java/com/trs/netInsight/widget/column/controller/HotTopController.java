@@ -59,13 +59,15 @@ public class HotTopController {
         queryBuilder.setPageNo(0);
         queryBuilder.setPageSize(50);
         queryBuilder.orderBy("IR_LASTTIME", true);
-        if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName)) {
+        if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)) {
             queryBuilder.orderBy("IR_RANK", false);
         }
         if (ObjectUtil.isNotEmpty(channelName)) queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL,channelName,Operator.Equal);
         if (ObjectUtil.isNotEmpty(siteName)) queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,siteName,Operator.Equal);
-//        String trsl = "IR_URLTITLE:" + keyword;
-//        queryBuilder.filterByTRSL(trsl);
+        if (StringUtil.isNotEmpty(keyword)) {
+            String trsl = "IR_URLTITLE:" + keyword;
+            queryBuilder.filterByTRSL(trsl);
+        }
         if (Const.GROUPNAME_WEIBO.equals(siteName)){
             queryBuilder.setDatabase("热搜榜".equals(channelName) ? Const.WEIBO_RSB : Const.WEIBO_HTB);
             if ("热搜榜".equals(channelName)){
@@ -145,7 +147,7 @@ public class HotTopController {
             if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
                 SortListBangdan sortList = new SortListBangdan();
                 Collections.sort(listTemp, sortList);
-            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName)){
+            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)){
 
             }else {
                 SortListBangdanHeat sortList = new SortListBangdanHeat();
@@ -159,7 +161,7 @@ public class HotTopController {
                 map.put("title",vo.getTitle());
                 if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
                     map.put("heat",vo.getSearchIndex());
-                }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName)){
+                }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)){
 
                 }else {
                     map.put("heat",vo.getHeat());
