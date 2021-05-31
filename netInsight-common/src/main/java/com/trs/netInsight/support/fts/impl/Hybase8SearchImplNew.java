@@ -33,7 +33,6 @@ import com.trs.netInsight.widget.user.entity.User;
 import com.trs.netInsight.widget.user.repository.OrganizationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.regexp.RE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -334,7 +333,6 @@ public class Hybase8SearchImplNew implements FullTextSearch {
     public <T extends IDocument> PagedList<T> ftsPageList(String keyRedis, String trsl, String orderBy, long pageSize,
                                                           long pageNo, Class<T> resultClass, boolean isSimilar, boolean irSimflag, boolean irSimflagAll, boolean server, String type)
             throws TRSSearchException {
-        log.error("trsl1111111111111111111111111111111111------------>"+trsl);
         queryCount();
         //只用返回结果实体类对应的数据库
         String databases = FtsParser.getDatabases(resultClass);
@@ -344,7 +342,6 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         String db = addHybaseInsert(databases);
         // 判断是否排重
         if (!"hotTop".equals(type) && !"weiboHtb".equals(type)) trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, resultClass);
-        log.error("trsl12222222222222222222222222222------------>"+trsl);
         //log.warn(trsl);
         TRSConnection connection = null;
         try {
@@ -358,7 +355,6 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             searchParams.setReadColumns(String.join(";", FtsParser.getSearchField(resultClass)));
             searchParams.setColorColumns(String.join(";", FtsParser.getHighLightField(resultClass)));
             String search = extractByTrsl(trsl, true, type);
-            log.error("trsl333333333333333333333333------------>"+trsl);
 
             if (search != null && !"weiboHtb".equals(type)) {
                 searchParams.setProperty("search.range.filter", search);
@@ -1640,7 +1636,11 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                 } else if ("special".equals(type)) {
                     dataDate = organization.getSpecialDateLimit();
                 } else if ("advance".equals(type)) {
-                    dataDate = organization.getASearchDateLimit();
+//                    if (!"csbzftrs".equals(UserUtils.getUser().getUserName())){
+                        dataDate = organization.getASearchDateLimit();
+//                    }
+
+
                 } else {
                     return new Date[]{startTime, endTime};
                 }
@@ -1649,8 +1649,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                 Date endDate = new Date();
                 // 开始时间
                 Date beginDate = DateUtil.dateAfter(endDate, -dataDate);
-
-                if (beginDate != null) {
+               if (beginDate != null /*&& !("csbzftrs".equals(UserUtils.getUser().getUserName()) && "advance".equals(type))*/) {
                     // 如果表达式的开始时间在机构限制时间之前，则选择机构限制时间
                     if (startTime.before(beginDate)) {
                         startTime = beginDate;
