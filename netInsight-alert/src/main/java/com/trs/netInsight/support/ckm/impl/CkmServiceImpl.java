@@ -13,37 +13,10 @@
  */
 package com.trs.netInsight.support.ckm.impl;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.Map.Entry;
-
-import com.trs.netInsight.support.ckm.entity.*;
-import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
-import edu.stanford.nlp.trees.*;
-import edu.stanford.nlp.trees.international.pennchinese.ChineseTreebankLanguagePack;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import com.trs.ckm.rulecat.RuleCATResultRR;
-import com.trs.ckm.soap.ABSHold;
-import com.trs.ckm.soap.ABSResult;
-import com.trs.ckm.soap.AbsTheme;
-import com.trs.ckm.soap.CATRevDetail;
-import com.trs.ckm.soap.CkmSoapException;
-import com.trs.ckm.soap.CluClsGraph;
-import com.trs.ckm.soap.CluClsInfo;
-import com.trs.ckm.soap.CluDocInfo;
-import com.trs.ckm.soap.CluParam;
-import com.trs.ckm.soap.Constants;
-import com.trs.ckm.soap.PLOResult;
-import com.trs.ckm.soap.RevDetail;
-import com.trs.ckm.soap.RevHold;
-import com.trs.ckm.soap.RuleCATField;
-import com.trs.ckm.soap.SegDictWord;
-import com.trs.ckm.soap.SimMD5Result;
-import com.trs.ckm.soap.TrsCkmSoapClient;
+import com.trs.ckm.soap.*;
 import com.trs.netInsight.support.ckm.ICkmService;
+import com.trs.netInsight.support.ckm.entity.*;
 import com.trs.netInsight.support.ckm.enums.PloType;
 import com.trs.netInsight.support.ckm.util.CkmAnalysisUtil;
 import com.trs.netInsight.support.fts.entity.FtsDocument;
@@ -51,6 +24,16 @@ import com.trs.netInsight.support.fts.entity.FtsDocumentStatus;
 import com.trs.netInsight.support.fts.entity.FtsDocumentWeChat;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.StringUtil;
+import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
+import edu.stanford.nlp.trees.*;
+import edu.stanford.nlp.trees.international.pennchinese.ChineseTreebankLanguagePack;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @Desc CKM服务实现类
@@ -77,7 +60,7 @@ public class CkmServiceImpl implements ICkmService {
 	public static final String HAPPY = "快乐";
 	public static final String SADNESS = "悲伤";
 	public static final String AMAZED = "惊讶";
-//	public static final String modelPath = "/Users/yanyan/IdeaProjects/netinsight-java/chineseFactored.ser";
+//	public static final String modelPath = "D:/workspace/trs/model/chineseFactored.ser";
 	public static final String modelPath = "/home/trs/data/trsNetInsight/model/chineseFactored.ser";
 	// "/home/trs/data/trsNetInsight/model/chineseFactored.ser";
 	// "D:/workspace/trs/model/chineseFactored.ser";
