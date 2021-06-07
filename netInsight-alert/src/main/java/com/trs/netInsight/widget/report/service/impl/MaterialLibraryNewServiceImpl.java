@@ -115,15 +115,15 @@ public class MaterialLibraryNewServiceImpl implements IMaterialLibraryNewService
     @Override
     public List<MaterialLibraryNew> findByUser(User user) {
         if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
-            return  materialLibraryNewRepository.findByUserId(user.getId(), new Sort(Sort.Direction.DESC, "lastModifiedTime"));
+            return  materialLibraryNewRepository.findByUserId(user.getId(), new Sort(Sort.Direction.DESC, "createdTime"));
         }else {
-            return materialLibraryNewRepository.findBySubGroupId(user.getSubGroupId(), new Sort(Sort.Direction.DESC, "lastModifiedTime"));
+            return materialLibraryNewRepository.findBySubGroupId(user.getSubGroupId(), new Sort(Sort.Direction.DESC, "createdTime"));
         }
     }
 
     @Override
     public List<MaterialLibraryNew> findBySubGroupId() {
-        return materialLibraryNewRepository.findBySubGroupId(UserUtils.getUser().getSubGroupId(), new Sort(Sort.Direction.DESC, "lastModifiedTime"));
+        return materialLibraryNewRepository.findBySubGroupId(UserUtils.getUser().getSubGroupId(), new Sort(Sort.Direction.DESC, "createdTime"));
     }
 
     @Override
