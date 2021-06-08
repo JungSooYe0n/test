@@ -843,7 +843,7 @@ public class ReportUtil {
 				list.get(i).setGroupName(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(list.get(i).getGroupName()));
 			}
 		}
-		collect = list.stream().sorted(Comparator.comparing(ReportResource::getSimCountNew).reversed())
+		collect = list.stream().sorted(Comparator.comparing(x -> Integer.parseInt(x.getSimCount()),Comparator.reverseOrder()))
 				.collect(Collectors.toList());
 
 		return collect;

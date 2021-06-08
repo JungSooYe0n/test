@@ -228,15 +228,6 @@ public class ReportResource extends BaseEntity {
 	 */
 	//@Column(name = "done_flag")
 	//private Integer doneFlag;
-	@Transient
-	private Integer simCountNew;
-	public Integer getSimCountNew(){
-		if(StringUtil.isEmpty(this.simCount)){
-			return 0;
-		}else{
-			return Integer.parseInt(this.simCount);
-		}
-	}
 	/**
 	 * 构造方法
 	 *
