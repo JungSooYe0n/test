@@ -502,7 +502,7 @@ public class ColumnConfig {
 					//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
 					if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
 						|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
-						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
+						|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation") || preciseFilterList.contains("notWeiboRtLocation")
 						|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")
 					)) {
 						if (buffer.length() > 0) {
@@ -562,6 +562,9 @@ public class ColumnConfig {
 							}
 							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
 								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+							}
+							if (preciseFilterList.contains("notWeiboRtLocation")) {//屏蔽被转发微博位置信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_RT_LOCATION).append(":(").append(childTrsl3.toString()).append(")) ");
 							}
 							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
 								buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");

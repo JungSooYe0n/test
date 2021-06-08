@@ -210,6 +210,7 @@ public class FtsFieldConst {
 	 * 地域信息
 	 */
 	public final static String FIELD_LOCATION = "IR_LOCATION";
+	public final static String FIELD_RT_LOCATION = "IR_RT_LOCATION";
 	public final static String FIELD_LOCATION_LIKE = "IR_LOCATION_LIKE";//模糊检索使用
 	public final static String FIELD_LON = "IR_LON";
 	public final static String FIELD_POIID = "IR_POIID";
