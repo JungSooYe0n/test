@@ -9,6 +9,7 @@ import lombok.Setter;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.Date;
 
 /**
@@ -227,6 +228,15 @@ public class ReportResource extends BaseEntity {
 	 */
 	//@Column(name = "done_flag")
 	//private Integer doneFlag;
+	@Transient
+	private Integer simCountNew;
+	public Integer getSimCountNew(){
+		if(StringUtil.isEmpty(this.simCount)){
+			return 0;
+		}else{
+			return Integer.parseInt(this.simCount);
+		}
+	}
 	/**
 	 * 构造方法
 	 *

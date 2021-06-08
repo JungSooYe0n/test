@@ -142,6 +142,9 @@ public class ReportConst {
     public static final String LISTRESOURCES = "ListResources";
     public static final String CHART = "chart";
 
+    public static final String HOT_NEWS = "Hot_News";
+    public static final String HOT_WEIBO = "Hot_Weibo";
+
     public static final String DBCREATEDTIMEPATTERN = "yyyy-MM-dd HH:mm:ss";//the pattern of createdTime in DB
     public static final Integer DailyReportExpiration = -31;    //1个月
     public static final Integer WeeklyReportExpiration = -31;   //1个月
