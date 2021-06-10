@@ -69,6 +69,7 @@ public class ReportConst {
     public static final String EMOTIONANALYSISNew = "EMOTIONANALYSIS"; // 情感分析
     public static final String NEWSHOTTOPICSNew = "NEWSHOTTOPICS"; // 新闻热点话题
     public static final String WEIBOHOTTOPICSNew = "WEIBOHOTTOPICS"; // 微博热点话题
+    public static final String OPININOANALYSISNew = "OPININOANALYSIS"; // 微博热点话题
     //专题报 改造 20191121
     public static final String NEWSHOTTOP10New = "NEWSHOTTOP10"; // 新闻热点TOP10
     public static final String WEIBOHOTTOP10New = "WEIBOHOTTOP10"; // 微博热点TOP10

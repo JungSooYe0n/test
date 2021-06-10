@@ -243,9 +243,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,SITUATIONACCESSMENT + DONE));
 				break;
@@ -254,9 +254,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				String topicJson = reportData.getWeiboHotTopics();
 				if (base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else {
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,WEIBOHOTTOPICS + DONE));
 				break;
@@ -264,9 +264,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,PROPAFATIONANALYSIS + DONE));
 				break;
@@ -274,9 +274,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,ACTIVEACCOUNT + DONE));
 				break;
@@ -284,9 +284,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,DATATRENDANALYSIS + DONE));
 				break;
@@ -296,9 +296,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,DATASOURCEANALYSIS + DONE));
 				break;
@@ -306,9 +306,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(), element.getChapterDetail(),chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,OPININOANALYSIS + DONE));
 				break;
@@ -319,9 +319,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,WEBSITESOURCETOP10 + DONE));
 				break;
@@ -329,9 +329,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,WEIBOACTIVETOP10 + DONE));
 				break;
@@ -339,9 +339,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,WECHATACTIVETOP10 + DONE));
 				break;
@@ -349,9 +349,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,AREA + DONE));
 				break;
@@ -359,9 +359,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,EMOTIONANALYSIS + DONE));
 				break;
@@ -369,9 +369,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,MOODSTATISTICS + DONE));
 				break;
@@ -379,9 +379,9 @@ public class GenerateReportImpl implements IGenerateReport {
 				i++;
 				if(base64data.get(element.getChapterName()) != null){
 					List<Map<String, String>> chapterContent = base64data.get(element.getChapterName());
-					imgParagraph(xwpfDocument, element.getChapterName(), chapterContent, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), chapterContent, i);
 				}else{
-					imgParagraph(xwpfDocument, element.getChapterName(), null, i);
+					imgParagraph(xwpfDocument, element.getChapterName(),element.getChapterDetail(), null, i);
 				}
 				log.info(String.format(GENERATEREPORTLOG,WORDCLOUDSTATISTICS + DONE));
 				break;
@@ -677,7 +677,7 @@ public class GenerateReportImpl implements IGenerateReport {
 			textLine.setText(text);
 		}
 	}
-	
+
 	private void imgParagraph(XWPFDocument xwpfDocument, String title, List<Map<String, String>> chapterContent, int i) throws Exception{
 		XWPFParagraph titleParagraph = xwpfDocument.createParagraph();
 		titleParagraph.setAlignment(ParagraphAlignment.LEFT);
@@ -686,7 +686,7 @@ public class GenerateReportImpl implements IGenerateReport {
 		titleLine.setText(IntUtil.toChinese(i)+"、"+title);
 		titleLine.setFontFamily(TITLEFONTFAMILY);
 		titleLine.setBold(true); // 加粗
-		
+
 		if(chapterContent != null && chapterContent.size() != 0){
 			Base64 base64 = new Base64();
 			for(int j =0 ; j <chapterContent.size() ; j++){
@@ -732,7 +732,7 @@ public class GenerateReportImpl implements IGenerateReport {
 						width = 3500000;
 						height = 2500000;
 						break;
-                    case PROPAFATIONANALYSIS:
+					case PROPAFATIONANALYSIS:
 						BufferedImage img = javax.imageio.ImageIO.read(byteArrayInputStream);
 						int pwidth = img.getWidth();
 						int pheight = img.getHeight();
@@ -741,12 +741,12 @@ public class GenerateReportImpl implements IGenerateReport {
 						height = (int) (width * ((float)pheight/(float)pwidth));
 						//width = (int) (height * ((float)pwidth/(float)pheight));
 						byteArrayInputStream.reset();
-                        //height = 4670000;
-                        break;
-                    case WORDCLOUDSTATISTICS:
-                    	width = 5400000;
+						//height = 4670000;
+						break;
+					case WORDCLOUDSTATISTICS:
+						width = 5400000;
 						height = 3500000;
-                        break;
+						break;
 					case Hand_Made_Word_Cloud:
 						width = 5400000;
 						height = 3500000;
@@ -779,9 +779,112 @@ public class GenerateReportImpl implements IGenerateReport {
 			textLine.setFontSize(TEXTFONTSIZE);
 			textLine.setFontFamily(TEXTFONTFAMILY);
 			textLine.setText("无");
-		}		
+		}
 	}
 
+	private void imgParagraph(XWPFDocument xwpfDocument, String title, String chapterDetails,List<Map<String, String>> chapterContent, int i) throws Exception{
+		XWPFParagraph titleParagraph = xwpfDocument.createParagraph();
+		titleParagraph.setAlignment(ParagraphAlignment.LEFT);
+		XWPFRun titleLine = titleParagraph.createRun();
+		titleLine.setFontSize(TITLEFONTSIZE); //
+		titleLine.setText(IntUtil.toChinese(i)+"、"+title);
+		titleLine.setFontFamily(TITLEFONTFAMILY);
+		titleLine.setBold(true); // 加粗
+
+		if(chapterContent != null && chapterContent.size() != 0){
+			Base64 base64 = new Base64();
+			for(int j =0 ; j <chapterContent.size() ; j++){
+				XWPFParagraph mainBodyParagraph = xwpfDocument.createParagraph();
+				mainBodyParagraph.setAlignment(ParagraphAlignment.CENTER);
+				XWPFRun textLine = mainBodyParagraph.createRun();
+				String chapterDetail = chapterContent.get(j).get("chapterDetail");
+				byte[] imgComments = base64.decode(chapterContent.get(j).get("imgComment"));
+				byte[] decode = null;
+				if (imgComments != null){
+					decode = base64.decode(chapterContent.get(j).get("img_data"));
+				}
+				//动态设置
+				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decode);
+				int width = 5270000;
+				int height = 3000000;
+				switch (chapterDetails){
+					case DATATRENDANALYSISNew:
+						height = 3200000;
+						break;
+					case DATASOURCEANALYSISNew:
+						height = 3500000;
+						break;
+					case EMOTIONANALYSISNew:
+						height = 3500000;
+						break;
+					case MOODSTATISTICSkey:
+						height = 3500000;
+						break;
+					case AREAkey:
+						height = 2800000;
+						break;
+					case ACTIVEACCOUNTkey:
+						height = 4400000;
+						break;
+					case WEIBOHOTTOPICSNew:
+						height = 4400000;
+						break;
+					case OPININOANALYSISNew:
+						height = 2800000;
+						break;
+					case SITUATIONACCESSMENTkey:
+						width = 3500000;
+						height = 2500000;
+						break;
+					case PROPAFATIONANALYSISkey:
+						BufferedImage img = javax.imageio.ImageIO.read(byteArrayInputStream);
+						int pwidth = img.getWidth();
+						int pheight = img.getHeight();
+						//height = 4670000;
+						//下面按照图片的实际大小进行同比例缩放
+						height = (int) (width * ((float)pheight/(float)pwidth));
+						//width = (int) (height * ((float)pwidth/(float)pheight));
+						byteArrayInputStream.reset();
+						//height = 4670000;
+						break;
+					case WORDCLOUDSTATISTICSkey:
+						width = 5400000;
+						height = 3500000;
+						break;
+					case Hand_Made_Word_Cloud:
+						width = 5400000;
+						height = 3500000;
+						break;
+					default:break;
+				}
+				if(StringUtil.isNotEmpty(chapterDetail)){
+					if(Chapter.Source_contrast.toString().equals(chapterDetail)){
+						width = 5000000;
+						height = 3300000;
+					}else if(Chapter.Emotion_Analyze.toString().equals(chapterDetail)){
+						width = 5000000;
+						height = 3300000;
+					}
+				}
+				textLine.addPicture(byteArrayInputStream, Document.PICTURE_TYPE_PNG, "1.png", width, height);
+				XWPFParagraph commentParagraph = xwpfDocument.createParagraph();
+				commentParagraph.setAlignment(ParagraphAlignment.LEFT);
+				commentParagraph.setIndentationFirstLine(600);
+				XWPFRun comment = commentParagraph.createRun();
+				comment.setFontSize(TEXTFONTSIZE);
+				comment.setFontFamily(TEXTFONTFAMILY);
+				comment.setText(chapterContent.get(j).get("imgComment"));
+			}
+		}else{
+			XWPFParagraph mainBodyParagraph = xwpfDocument.createParagraph();
+			mainBodyParagraph.setAlignment(ParagraphAlignment.LEFT);
+			mainBodyParagraph.setIndentationFirstLine(600);
+			XWPFRun textLine = mainBodyParagraph.createRun();
+			textLine.setFontSize(TEXTFONTSIZE);
+			textLine.setFontFamily(TEXTFONTFAMILY);
+			textLine.setText("无");
+		}
+	}
 	private void dataListParagraph(XWPFDocument xdoc, String title,String chapterDetail, List<ReportResource> chapterContent, int i,String eleType) throws Exception {
         XWPFParagraph titleParagraph = xdoc.createParagraph();    
         titleParagraph.setAlignment(ParagraphAlignment.LEFT);
