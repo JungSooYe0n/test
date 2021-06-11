@@ -1153,6 +1153,7 @@ public class ReportServiceImpl implements IReportService {
 						newAdd.setAppraise(StringUtil.isEmpty(fav.getAppraise()) ? "中性":fav.getAppraise());
 						newAdd.setKeywords(fav.getKeywords());
 						newAdd.setChannel(fav.getChannel());
+						newAdd.setCapture(false);
 						if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
 							newAdd.setImgSrc(null);
 						}else{
@@ -1272,6 +1273,49 @@ public class ReportServiceImpl implements IReportService {
 			throw new OperationException("检索异常：message:" + e);
 		}
 	}
+
+	@Override
+	public String probeCapture(String sids, String userId) {
+		String[] sidArry = sids.split(SEMICOLON);
+		User loginUser = UserUtils.getUser();
+		//原生sql
+		Specification<Favourites> criteria = new Specification<Favourites>() {
+			@Override
+			public Predicate toPredicate(Root<Favourites> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+
+				List<Predicate> predicates = new ArrayList<>();
+				if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
+					predicates.add(cb.equal(root.get("userId"),loginUser.getId()));
+				}else {
+					predicates.add(cb.equal(root.get("subGroupId"),loginUser.getSubGroupId()));
+				}
+				predicates.add(cb.isNull(root.get("libraryId")));
+
+				CriteriaBuilder.In<Object> sid = cb.in(root.get("sid"));
+				List<String> sids = Arrays.asList(sidArry);
+				if (ObjectUtil.isNotEmpty(sids)){
+					for (String str : sids) {
+						if (StringUtil.isNotEmpty(str)){
+							sid.value(str);
+						}
+					}
+					predicates.add(sid);
+				}
+
+				Predicate[] pre = new Predicate[predicates.size()];
+				return query.where(predicates.toArray(pre)).getRestriction();
+			}
+		};
+
+		List<Favourites> findAll = favouritesRepository.findAll(criteria);
+		for (Favourites favourites : findAll) {
+			favourites.setCapture(true);
+			favourites.setCaptureTime(new Date());
+		}
+		favouritesRepository.save(findAll);
+		return Const.SUCCESS;
+	}
+
 	/**
 	 * 取消收藏
 	 *
@@ -2488,7 +2532,7 @@ public class ReportServiceImpl implements IReportService {
 	 *
 	 * @throws TRSException
 	 */
-	public Object getFavouritesByCondition(User user, int pageNo, int pageSize, List<String> groupNameList, String keyword, String fuzzyValueScope, String invitationCard, String forwarPrimary, Boolean isExport) throws TRSException {
+	public Object getFavouritesByCondition(User user, int pageNo, int pageSize, List<String> groupNameList, String keyword, String fuzzyValueScope, String invitationCard, String forwarPrimary, Boolean isExport,Boolean isCapture) throws TRSException {
 		//获取用户可查询的数据源
 		String groupNames = org.apache.commons.lang3.StringUtils.join(groupNameList, ";");
 		List<String> groupName = SourceUtil.getGroupNameList(groupNames);
@@ -2496,7 +2540,12 @@ public class ReportServiceImpl implements IReportService {
 			return null;
 		}
 		String source = StringUtils.join(groupName, ";");
-		Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+		Sort sort;
+		if (isCapture) {
+			sort = new Sort(Sort.Direction.DESC, "captureTime");
+		}else {
+			sort = new Sort(Sort.Direction.DESC, "createdTime");
+		}
 		PageRequest pageable = new PageRequest(pageNo, pageSize, sort);
 		Page<Favourites> list = null;
 		Specification<Favourites> criteria = new Specification<Favourites>() {
@@ -2510,6 +2559,7 @@ public class ReportServiceImpl implements IReportService {
 					predicate.add(cb.equal(root.get("subGroupId"), user.getSubGroupId()));
 				}
 				predicate.add(cb.isNull(root.get("libraryId")));
+				if (isCapture) predicate.add(cb.isTrue(root.get("isCapture")));
 
 				if (StringUtil.isNotEmpty(keyword)) {
 					String[] split = keyword.split("\\s+|,");
@@ -2707,6 +2757,8 @@ public class ReportServiceImpl implements IReportService {
 					//前端页面显示需要，与后端无关
 					map.put("isImg", StringUtil.isEmpty(item.getImgSrc())? false:true);
 					map.put("simNum", 0);
+					map.put("isCapture",item.isCapture());
+					map.put("captureTime",item.getCaptureTime());
 					resultList.add(map);
 				});
 				return new InfoListResult<>(resultList, (int) list.getTotalElements(), list.getTotalPages());
