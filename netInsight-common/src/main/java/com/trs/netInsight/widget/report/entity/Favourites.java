@@ -1,6 +1,5 @@
 package com.trs.netInsight.widget.report.entity;
 
-import com.trs.netInsight.support.fts.annotation.FtsField;
 import com.trs.netInsight.support.template.GUIDGenerator;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
@@ -225,6 +224,10 @@ public class Favourites extends BaseEntity {
 	 */
 	@Column(name = "urltime")
 	private String urltime;
+	@Column(name = "is_capture")
+	private boolean isCapture;
+	@Column(name = "capture_time")
+	private Date captureTime;
 
 	public String getUrltime() {
 		return urltime;

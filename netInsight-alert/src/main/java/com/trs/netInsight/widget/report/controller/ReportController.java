@@ -97,6 +97,7 @@ public class ReportController {
 			@ApiParam("微博 原发 primary / 转发 forward ") @RequestParam(value = "forwarPrimary", required = false) String forwarPrimary,
 			@ApiParam("论坛主贴 0 /回帖 1 ") @RequestParam(value = "invitationCard", required = false) String invitationCard,
 			@ApiParam("是否导出 主要是全部收藏导出时使用") @RequestParam(value = "isExport", defaultValue = "false", required = false) Boolean isExport,
+			@ApiParam("是否探针 主要是探针列表使用") @RequestParam(value = "isCapture", defaultValue = "false", required = false) Boolean isCapture,
 			HttpServletRequest request) throws TRSException {
 		try {
 			User loginUser = UserUtils.getUser();
@@ -115,7 +116,7 @@ public class ReportController {
 			}
 
 			return reportService.getFavouritesByCondition(loginUser, pageNo, pageSize,
-					source, keywords,fuzzyValueScope, invitationCard, forwarPrimary,false);
+					source, keywords,fuzzyValueScope, invitationCard, forwarPrimary,false,isCapture);
 			/*
 			历史方法，但是没有筛选功能
 			return reportService.getAllFavourites(loginUser, pageNo, pageSize,
@@ -221,6 +222,26 @@ public class ReportController {
 		} catch (Exception e) {
 			log.error("删除收藏失败", e);
 			throw new OperationException("删除收藏失败,message" + e);
+		}
+	}
+	/**
+	 * @param sids
+	 *            需要删除的sid集合，用分号（;）隔开
+	 * @param request
+	 * @return
+	 * @throws OperationException
+	 */
+	@ApiOperation("探针截图")
+	@FormatResult
+	@RequestMapping(value = "/probeCapture", method = RequestMethod.GET)
+	public Object probeCapture(@RequestParam(value = "sids") String sids,
+								   HttpServletRequest request) throws OperationException {
+		try {
+			String userId = UserUtils.getUser().getId();
+			return reportService.probeCapture(sids, userId);
+		} catch (Exception e) {
+			log.error("添加探针截图失败", e);
+			throw new OperationException("探针截图失败,message" + e);
 		}
 	}
 	/**

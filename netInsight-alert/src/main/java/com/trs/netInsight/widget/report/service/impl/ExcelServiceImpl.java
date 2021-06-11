@@ -1,7 +1,5 @@
 package com.trs.netInsight.widget.report.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.jpa.utils.Criteria;
 import com.trs.jpa.utils.Criterion.MatchMode;
@@ -30,7 +28,6 @@ import com.trs.netInsight.widget.alert.entity.PageAlert;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.service.IAlertService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
-import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.microblog.service.ISingleMicroblogService;
 import com.trs.netInsight.widget.report.entity.Favourites;
 import com.trs.netInsight.widget.report.entity.enums.ExportListType;
@@ -45,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -1357,7 +1353,7 @@ public class ExcelServiceImpl implements IExcelService {
 			InfoListResult allFavourites = null;
 			List<Favourites> list = new ArrayList<>();
 			if (ExportListType.COLLECT.equals(exportListType)) {
-				allFavourites = (InfoListResult)reportService.getFavouritesByCondition(user, 0, num, Arrays.asList(source), keywords,fuzzyValueScope, invitationCard, forwarPrimary,true);
+				allFavourites = (InfoListResult)reportService.getFavouritesByCondition(user, 0, num, Arrays.asList(source), keywords,fuzzyValueScope, invitationCard, forwarPrimary,true,false);
 
 			} else if (ExportListType.LIBRARY.equals(exportListType)) {
 				allFavourites = (InfoListResult)materialLibraryNewService.findMaterialSourceByCondition(libraryId,0,num,Arrays.asList(source),keywords,fuzzyValueScope,invitationCard,forwarPrimary,time,true);

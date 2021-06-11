@@ -1636,9 +1636,9 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                 } else if ("special".equals(type)) {
                     dataDate = organization.getSpecialDateLimit();
                 } else if ("advance".equals(type)) {
-//                    if (!"csbzftrs".equals(UserUtils.getUser().getUserName())){
+                    if (!"csbzftrs".equals(UserUtils.getUser().getUserName())){
                         dataDate = organization.getASearchDateLimit();
-//                    }
+                    }
 
 
                 } else {
@@ -1649,7 +1649,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                 Date endDate = new Date();
                 // 开始时间
                 Date beginDate = DateUtil.dateAfter(endDate, -dataDate);
-               if (beginDate != null /*&& !("csbzftrs".equals(UserUtils.getUser().getUserName()) && "advance".equals(type))*/) {
+               if (beginDate != null && !("csbzftrs".equals(UserUtils.getUser().getUserName()) && "advance".equals(type))) {
                     // 如果表达式的开始时间在机构限制时间之前，则选择机构限制时间
                     if (startTime.before(beginDate)) {
                         startTime = beginDate;
