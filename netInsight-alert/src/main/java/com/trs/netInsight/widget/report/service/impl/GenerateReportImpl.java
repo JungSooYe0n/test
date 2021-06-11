@@ -849,7 +849,7 @@ public class GenerateReportImpl implements IGenerateReport {
 						break;
 					case WORDCLOUDSTATISTICSkey:
 						width = 5400000;
-						height = 3500000;
+						height = 3000000;
 						break;
 					case Hand_Made_Word_Cloud:
 						width = 5400000;

@@ -460,6 +460,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             if (recordNum == 0) {
                 recordNum = 20;
             }
+            log.info("最终查询表达式：" + trsl);
             //log.error(trsl);
             long timeStart = new Date().getTime();
             if(!verifyFilterTime(searchParams)){
