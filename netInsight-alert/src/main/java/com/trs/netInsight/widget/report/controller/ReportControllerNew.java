@@ -342,7 +342,7 @@ public class ReportControllerNew {
 	@RequestMapping(value = "/create", method = RequestMethod.POST)
 	@FormatResult
 	public Object createReport(
-			@RequestParam(value = "reportIntro")String reportIntro,
+			@RequestParam(value = "reportIntro",required = false)String reportIntro,
 			@RequestParam(value = "reportName",required = false)String reportName, 
 			@RequestParam(value = "totalIssue",required = false)String totalIssue,
 			@RequestParam(value = "thisIssue",required = false)String thisIssue, 

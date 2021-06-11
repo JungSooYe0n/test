@@ -1103,6 +1103,11 @@ public class ApiController {
             }
         }
         commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName,Operator.Equal);
+        String[] timeArry = DateUtil.formatTimeRange(time);
+        Long days = DateUtil.getDays(timeArry);
+        if(days>90){
+            return "time检索时间不能超过3个月";
+        }
         commonBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time),
                 Operator.Between);
         if (StringUtil.isNotEmpty(keyWords)){
@@ -1161,6 +1166,11 @@ public class ApiController {
         jsonObject.put("wordOrder",false);
         jsonArray.add(jsonObject);
         keywords = jsonArray.toJSONString();
+        String[] timeArry = DateUtil.formatTimeRange(time);
+        Long days = DateUtil.getDays(timeArry);
+        if(days>90){
+            return "time检索时间不能超过3个月";
+        }
         return infoListController.searchList(pageNo,pageSize,sort,keywords,"precise",time,simflag,"1",false,"","",emotion,
                 0,false,"","","1","ALL","","","",
                 "","","","","",invitationCard,forwarPrimary,"","",groupName,"");
@@ -1193,6 +1203,11 @@ public class ApiController {
         int maxPageSize = token.getMaxPageSize();
         if (pageSize > maxPageSize){
             pageSize = maxPageSize;
+        }
+        String[] timeArry = DateUtil.formatTimeRange(time);
+        Long days = DateUtil.getDays(timeArry);
+        if(days>90){
+            return "time检索时间不能超过3个月";
         }
         return apiService.expertSearch(trsl,groupName,sort,time,emotion,invitationCard,forwarPrimary,pageNo,pageSize);
     }

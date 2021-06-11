@@ -417,12 +417,12 @@ public class GenerateReportImpl implements IGenerateReport {
 					case ReportConst.SINGLERESOURCE:
 						i.getAndIncrement();    //以原子方式将当前值 + 1
 						List<ReportResource> chapaterContent = e.getChapaterContent();
-						if (e.getChapterPosition() == 0 || chapter.equals(Chapter.Report_Synopsis)) {
+						if (chapter.equals(Chapter.Report_Synopsis)) {
 							//报告简介
-							singleParagraph(xwpfDocument, e.getChapterName(), reportIntro, i.intValue());
-						} else if(e.getChapterPosition() == 1|| chapter.equals(Chapter.Statistics_Summarize)){
+							singleParagraph(xwpfDocument, e.getChapterName(), e.getChapterTabName(), i.intValue());
+						} else if(chapter.equals(Chapter.Statistics_Summarize)){
 							//数据统计概述
-							singleParagraph(xwpfDocument,  e.getChapterName(), chapaterContent.get(0).getImgComment(), i.intValue());
+							singleParagraph(xwpfDocument,  e.getChapterName(), e.getChapterTabName(), i.intValue());
 						}
 						break;
 					case ReportConst.LISTRESOURCES:
@@ -824,7 +824,7 @@ public class GenerateReportImpl implements IGenerateReport {
 						height = 2800000;
 						break;
 					case ACTIVEACCOUNTkey:
-						height = 4400000;
+						height = 3500000;
 						break;
 					case WEIBOHOTTOPICSNew:
 						height = 4400000;

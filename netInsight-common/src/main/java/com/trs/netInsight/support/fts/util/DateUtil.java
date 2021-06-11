@@ -21,6 +21,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -2910,10 +2911,19 @@ public class DateUtil {
 
 	}
 
-	public static void main(String[] args) throws OperationException {
-		String[] s = formatTimeRange2("3d");
-        String[] s1 = formatTimeRange("3d");
-		System.out.println(s);
+//	public static void main(String[] args) throws OperationException {
+//		String[] s = formatTimeRange2("3d");
+//        String[] s1 = formatTimeRange("3d");
+//		System.out.println(s);
+//	}
+
+	public static Long getDays(String[] array){
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+		LocalDate startDate = LocalDate.parse(array[0], formatter);
+		LocalDate endDate = LocalDate.parse(array[1], formatter);
+        // 日期区间
+		long days = ChronoUnit.DAYS.between(startDate, endDate);
+		return days;
 	}
 
 
