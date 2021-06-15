@@ -148,7 +148,7 @@ public class OAuthServiceImpl implements IOAuthService {
 			Organization organization = this.organizationRepository.findOne(orgId);
 
 			// 代理申请CLient
-			ApiClient client = ClientUtil.applyClientByOrg(organization, "Common",clientRepository);
+			ApiClient client = ClientUtil.applyClientByOrg(organization, level,clientRepository);
 			if (client != null) {
 
 				// 直接对该client进行授权

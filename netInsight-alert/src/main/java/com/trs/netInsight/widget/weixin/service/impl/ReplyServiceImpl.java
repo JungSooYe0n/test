@@ -251,8 +251,8 @@ public class ReplyServiceImpl implements IReplyService {
 							respContent = "该网察账号已经绑定够"+accountNumCan+"个微信，请先解绑其他。";
 							return replyTextMessage(fromUserName, toUserName, respContent);
 						}
-						//绑定预警后把账号存到预警账号表
-						alertAccount = new AlertAccount(jsonObject.getString("nickname"), "", SendWay.WE_CHAT, fromUserName, true, true, jsonObject.getString("headimgurl"),true,true,true,true,true);
+						//绑定预警后把账号存到预警账号表StringUtil.filterEmoji(StringUtil.replaceImg(jsonObject.getString("nickname")))
+						alertAccount = new AlertAccount(StringUtil.filterEmoji(StringUtil.replaceImg(jsonObject.getString("nickname"))), "", SendWay.WE_CHAT, fromUserName, true, true, jsonObject.getString("headimgurl"),true,true,true,true,true);
 						alertAccount.setUserId(userId);
 						alertAccount.setOrganizationId(origanizationId);
 						alertAccount.setSubGroupId(user.getSubGroupId());

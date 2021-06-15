@@ -5,6 +5,7 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.widget.microblog.entity.SpreadObject;
+import com.trs.netInsight.widget.user.entity.User;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,6 +37,15 @@ public interface ISingleMicroblogService {
      */
     public String dataAnalysis(String originalUrl,String currentUrl,String random) throws TRSException;
 
+    /**
+     * Api接口调用：开始去hybase去查询各个模块数据并存储到mongodb
+     * @param originalUrl
+     * @param currentUrl
+     * @return
+     * @throws TRSException
+     */
+    public String dataAnalysisApi(User user,String originalUrl, String currentUrl, String random) throws TRSException;
+
 
 
     /**
@@ -44,6 +54,13 @@ public interface ISingleMicroblogService {
      * @return
      */
     public String confirmStep(String urlName) throws TRSException;
+
+    /**
+     * 查看分析进度
+     * @param urlName
+     * @return
+     */
+    public String confirmStepApi(User user,String urlName) throws TRSException;
 
     /**
      * 查询当前地址对应的微博

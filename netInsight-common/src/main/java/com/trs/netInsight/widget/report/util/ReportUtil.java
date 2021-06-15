@@ -743,9 +743,13 @@ public class ReportUtil {
 					List<ReportResource> list = collect.get(e.getChapterPosition());
 					if (ObjectUtil.isNotEmpty(list)) {
 						if(e.getChapterType().equals(ReportConst.LISTRESOURCES)){//如果是列表，则需要把列表的数据源进行转化
-							e.setChapaterContent(sortDoc(list));
+							if(e.getChapterDetail().equals(ReportConst.HOT_NEWS)||e.getChapterDetail().equals(ReportConst.HOT_WEIBO)){
+								e.setChapaterContent(sortSimCount(list));
+							}else{
+								e.setChapaterContent(sortUrlDate(list));
+							}
 						}else{
-							e.setChapaterContent(sortDoc(list));
+							e.setChapaterContent(sortUrlDate(list));
 						}
 					} else {
 						e.setChapaterContent(collect.get(e.getChapterPosition()));
@@ -791,6 +795,57 @@ public class ReportUtil {
 		}
 		collect = list.stream().sorted(Comparator.comparing(ReportResource::getDocPosition))
 				.collect(Collectors.toList());
+		return collect;
+	}
+
+	/**
+	 *
+	 * @param list
+	 *            每个模块的doc集合进行排序
+	 * @return 排序后的List<ReportResource>
+	 */
+	private static List<ReportResource> sortUrlDate(List<ReportResource> list) {
+		List<ReportResource> collect = new ArrayList<ReportResource>();
+		// 静态注入
+		ReportResourceRepository reportResourceRepository = SpringUtil.getBean(ReportResourceRepository.class);
+		// 位置字段新加的，为了不删除原报告数据，先对原数据位置字段进行赋值
+		for (int i = 0; i < list.size(); i++) {
+//			if (list.get(i).getDocPosition() == 0) {
+//				list.get(i).setDocPosition(i + 1);
+//				reportResourceRepository.save(list.get(i));
+//			}
+			if(StringUtil.isNotEmpty(list.get(i).getGroupName())){
+				list.get(i).setGroupName(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(list.get(i).getGroupName()));
+			}
+		}
+		collect = list.stream().sorted(Comparator.comparing(ReportResource::getUrlDate).reversed())
+				.collect(Collectors.toList());
+		return collect;
+	}
+
+	/**
+	 *
+	 * @param list
+	 *            每个模块的doc集合进行排序
+	 * @return 排序后的List<ReportResource>
+	 */
+	private static List<ReportResource> sortSimCount(List<ReportResource> list) {
+		List<ReportResource> collect = new ArrayList<ReportResource>();
+		// 静态注入
+		ReportResourceRepository reportResourceRepository = SpringUtil.getBean(ReportResourceRepository.class);
+		// 位置字段新加的，为了不删除原报告数据，先对原数据位置字段进行赋值
+		for (int i = 0; i < list.size(); i++) {
+//			if (list.get(i).getDocPosition() == 0) {
+//				list.get(i).setDocPosition(i + 1);
+//				reportResourceRepository.save(list.get(i));
+//			}
+			if(StringUtil.isNotEmpty(list.get(i).getGroupName())){
+				list.get(i).setGroupName(Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(list.get(i).getGroupName()));
+			}
+		}
+		collect = list.stream().sorted(Comparator.comparing(x -> Integer.parseInt(x.getSimCount()),Comparator.reverseOrder()))
+				.collect(Collectors.toList());
+
 		return collect;
 	}
 

@@ -146,6 +146,40 @@ public class SingleMicroblogServiceImpl implements ISingleMicroblogService {
     }
 
     @Override
+    public String dataAnalysisApi(User loginUser,String originalUrl,String currentUrl,String random) throws TRSException {
+        if (StringUtil.isEmpty(originalUrl)){
+            //这块异常怎么处理，还待商榷
+            throw new TRSException(CodeUtils.STATUS_URLNAME, "请输入要分析的微博地址！");
+        }
+
+        //User loginUser = UserUtils.getUser();
+        //修改统计时间
+        SingleMicroblogData microblogData = singleMicroblogDataService.findSMDBySthNoRandom(loginUser, currentUrl, MicroblogConst.MICROBLOGLIST);
+        microblogData.setLastModifiedTime(new Date());
+        microblogData = singleMicroblogDataService.save(microblogData);
+        //另起线程 查询并存储数据
+        //查询热门评论
+        fixedThreadPool.execute(new HotReviewsTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        //查询除热门评论以外的模块
+        // fixedThreadPool.execute(new MicroblogDataTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new MicroblogDetailTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new SpreadAnalysisTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new ForwardedTrendTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new SpreadPathTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new CoreForwardTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new OpinionLeadersTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new AreaAnalysisForwardersTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new EmojiAnalysisForwardTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new GenderRatioTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new CertifiedRatioTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new DispatchFrequencyTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new TakeSuperLanguageTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new EmotionStatisticsTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        fixedThreadPool.execute(new PrimaryForwardRatioTask(originalUrl,currentUrl,loginUser,microblogData.getRandom()));
+        return currentUrl;
+    }
+
+    @Override
     public String confirmStep(String urlName) throws TRSException {
         if (StringUtil.isEmpty(urlName)){
             throw new TRSException(CodeUtils.STATUS_URLNAME, "请输入要分析的微博地址！");
@@ -167,6 +201,41 @@ for (SingleMicroblogData singleMicroblogData : allSMD){
             singleMicroblogDataService.save(microblogData);
         }
         return String.valueOf(allSMD.size()-1);
+//        if (allSMD.size() == 16){
+//            if (ObjectUtil.isNotEmpty(microblogData)){
+//                microblogData.setState("完成");
+//            }
+//            singleMicroblogDataService.save(microblogData);
+//            return "finish";
+//        }else if (ObjectUtil.isNotEmpty(hotStep)){
+//            return "hot";
+//        }else {
+//            return "other";
+//        }
+    }
+
+    @Override
+    public String confirmStepApi(User loginUser ,String urlName) throws TRSException {
+        if (StringUtil.isEmpty(urlName)){
+            throw new TRSException(CodeUtils.STATUS_URLNAME, "请输入要分析的微博地址！");
+        }
+        //User loginUser = UserUtils.getUser();
+        SingleMicroblogData microblogData = singleMicroblogDataService.findSMDBySthNoRandom(loginUser, urlName, MicroblogConst.MICROBLOGLIST);
+        //查看热门评论进度
+        SingleMicroblogData hotStep = singleMicroblogDataService.findSMDBySth(loginUser, urlName, MicroblogConst.HOTREVIEWS,microblogData.getRandom());
+
+        //查看所有进度
+        List<SingleMicroblogData> allSMD = singleMicroblogDataService.findAllSMDWithRandom(loginUser, urlName,microblogData.getRandom());
+        for (SingleMicroblogData singleMicroblogData : allSMD){
+            System.out.print(singleMicroblogData.getName()+"/n");
+        }
+        if (allSMD.size() == 16){
+            if (ObjectUtil.isNotEmpty(microblogData)){
+                microblogData.setState("完成");
+            }
+            singleMicroblogDataService.save(microblogData);
+        }
+        return microblogData.getState();
 //        if (allSMD.size() == 16){
 //            if (ObjectUtil.isNotEmpty(microblogData)){
 //                microblogData.setState("完成");

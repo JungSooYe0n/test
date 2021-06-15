@@ -558,7 +558,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPECIAL_WEB_COUNT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getWebCount(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                               @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.webCountnew(null, specialId, "ALL", "ALL");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.webCountnew(null, specialId, "ALL", "ALL");
+        }
+        return null;
     }
 
     /**
@@ -577,7 +582,12 @@ public class ApiController {
     public Object getSituationAssessment(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                          @RequestParam(value = "timeRange", required = false) String timeRange,
                                @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.situationAssessment(timeRange, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.situationAssessment(timeRange, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
     /**
@@ -597,7 +607,12 @@ public class ApiController {
                                          @RequestParam(value = "specialId",required = true) String specialId,
                                   @RequestParam(value = "timeRange", required = false) String timeRange,
                                   @ApiParam("hour/day") @RequestParam(value = "showType",required = true) String showType) throws Exception {
-        return specialChartAnalyzeController.webCountLine(null,specialId, showType, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.webCountLine(null, specialId, showType, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
     /**
@@ -614,7 +629,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.WEB_COMMIT_COUNT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getWebCommitCount(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.webCommitCount(null,specialId,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.webCommitCount(null, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
     /**
@@ -632,7 +652,12 @@ public class ApiController {
     public Object getSentimentAnalysis(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                        @ApiParam("观点分析范围") @RequestParam(value = "viewType", required = false, defaultValue = "OFFICIAL_VIEW") String viewType,
                                     @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.sentimentAnalysis(null,specialId,viewType,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.sentimentAnalysis(null, specialId, viewType, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
     /**
@@ -649,7 +674,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.MOOD_STATISTICS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getMoodStatistics(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                        @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.moodStatistics(specialId,null,false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.moodStatistics(specialId, null, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
     /**
@@ -667,7 +697,12 @@ public class ApiController {
     public Object getHotMessage(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                 @ApiParam("类型：新闻网站/微博/微信/自媒体号") @RequestParam(value = "groupName", required = false ,defaultValue = "新闻网站") String groupName,
                                 @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.hotMessage(null, specialId, 8, groupName, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.hotMessage(null, specialId, 8, groupName, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
     /**
@@ -684,7 +719,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPREAD_ANALYSIS_SITE_NAME, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getSpreadAnalysisSiteName(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                 @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.spreadAnalysisSiteName(specialId,null, false, null,null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.spreadAnalysisSiteName(specialId, null, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
 
@@ -703,7 +743,12 @@ public class ApiController {
     public Object getTop5(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                           @RequestParam(value = "specialId") String specialId,
                           @RequestParam(value = "sortType", defaultValue = "NEWEST") String sortType) throws Exception {
-        return specialChartAnalyzeController.top5(specialId, "ALL", sortType, "ALL", "");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.top5(specialId, "ALL", sortType, "ALL", "");
+        }
+        return null;
     }
 
     /**
@@ -721,7 +766,12 @@ public class ApiController {
     public Object getArea(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                           @RequestParam(value = "specialId") String specialId) throws Exception {
         //return specialChartAnalyzeController.area(specialId, "ALL", null, "ALL");
-        return specialChartAnalyzeController.area(specialId, null, "", true, "", "", "", "", "", "", "", "", false, null, false, "", "ALL", "", "", "", "", "", "", "", "", "");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.area(specialId, null, "", true, "", "", "", "", "", "", "", "", false, null, false, "", "ALL", "", "", "", "", "", "", "", "", "");
+        }
+        return null;
     }
 
     /**
@@ -739,7 +789,12 @@ public class ApiController {
     public Object getActiveLevel(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                  @RequestParam(value = "specialId") String specialId,
                                  @RequestParam(value = "source", required = true) String source) throws Exception {
-        return specialChartAnalyzeController.getActiveLevel(specialId, "ALL", "ALL", source,"65d");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.getActiveLevel(specialId, "ALL", "ALL", source, "65d");
+        }
+        return null;
     }
 
     /**
@@ -756,9 +811,14 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPECIAL_STATUS_OPTION, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getStatusOption(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.weiboOption(specialId, "", false,null,null,null,null,
-                null,null,null,null,null,null,
-                null,null,null,null,null,null,null,null,null,null,null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.weiboOption(specialId, "", false, null, null, null, null,
+                    null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
 
@@ -780,10 +840,15 @@ public class ApiController {
                            @ApiParam("类型：新闻网站/微博/微信/自媒体号") @RequestParam(value = "type", required = false ,defaultValue = "新闻网站") String type) throws Exception {
 //        Object first = specialChartAnalyzeController.trendTime(specialId, 1, type, "", "ALL", "ALL");
 //        Object other = specialChartAnalyzeController.trendMd5(specialId, 9, type, "","", "ALL", "ALL");
-        Object other = specialChartAnalyzeController.affairVenation(specialId, 10, type, "", "0d", true, "", "", "", "", "", "", "", "", false, null, null, "", "", "", "", "", "", "", "", "", "");
-        Map<String, Object> data = new HashMap<>();
-        data.put("other", other);
-        return data;
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            Object other = specialChartAnalyzeController.affairVenation(specialId, 10, type, "", "0d", true, "", "", "", "", "", "", "", "", false, null, null, "", "", "", "", "", "", "", "", "", "");
+            Map<String, Object> data = new HashMap<>();
+            data.put("other", other);
+            return data;
+        }
+        return null;
     }
 
     /**
@@ -804,12 +869,16 @@ public class ApiController {
                                   @RequestParam(value = "specialId") String specialId,
                                   @RequestParam(value = "type", defaultValue = "message") String type,
                                   @RequestParam(value = "showType", required = false,defaultValue = "day") String showType) throws Exception {
-        if ("message".equals(type)){//信息走势
-            return specialChartAnalyzeController.trendMessage("", specialId, "ALL", "ALL", showType);
-        }else if ("netizen".equals(type)){//网民参与
-            return specialChartAnalyzeController.netTendency("", specialId, "ALL", "ALL", showType);
-        }else if ("media".equals(type)){//媒体参与
-            return specialChartAnalyzeController.metaTendency("", specialId, "ALL", "ALL", showType);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            if ("message".equals(type)) {//信息走势
+                return specialChartAnalyzeController.trendMessage("", specialId, "ALL", "ALL", showType);
+            } else if ("netizen".equals(type)) {//网民参与
+                return specialChartAnalyzeController.netTendency("", specialId, "ALL", "ALL", showType);
+            } else if ("media".equals(type)) {//媒体参与
+                return specialChartAnalyzeController.metaTendency("", specialId, "ALL", "ALL", showType);
+            }
         }
         return null;
     }
@@ -828,7 +897,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPECIAL_TIPPING_POINT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getTippingPoint(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                   @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.getTippingPoint(specialId, "", "ALL", "ALL");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.getTippingPoint(specialId, "", "ALL", "ALL");
+        }
+        return null;
     }
 
     /**
@@ -846,7 +920,12 @@ public class ApiController {
     public Object getVolume(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                             @RequestParam(value = "specialId") String specialId,
                             @RequestParam(value = "showType", defaultValue = "day") String showType) throws Exception {
-        return specialChartAnalyzeController.getVolumeNew(specialId, "", "ALL", "ALL",showType);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.getVolumeNew(specialId, "", "ALL", "ALL", showType);
+        }
+        return null;
     }
 
     /**
@@ -864,7 +943,12 @@ public class ApiController {
     public Object getNewsSiteAnalysis(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                       @RequestParam(value = "specialId") String specialId) throws Exception {
         //return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
-        return specialChartAnalyzeController.spreadAnalysis(specialId, "0d", "ALL", true, "", "", "", "", "", "", "", "", false, null, false, "", "", "", "", "", "", "", "", "");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.spreadAnalysis(specialId, "0d", "ALL", true, "", "", "", "", "", "", "", "", false, null, false, "", "", "", "", "", "", "", "", "");
+        }
+        return null;
     }
 
     /**
@@ -882,9 +966,14 @@ public class ApiController {
     public Object getActiveAccount(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                       @RequestParam(value = "specialId") String specialId) throws Exception {
         //return specialChartAnalyzeController.newsSiteAnalysis(specialId, "", "ALL", true,"ALL");
-        return specialChartAnalyzeController.getActiveAccount(specialId, null, false,null,null,null,null,
-                null,null,null,null,null,null,
-                null,null,null,null,null,null,null,null,null,null,null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.getActiveAccount(specialId, null, false, null, null, null, null,
+                    null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
     /**
@@ -901,7 +990,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPECIAL_USER_VIEWS, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getUserViews(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.userViews(specialId, "", "ALL", "ALL");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.userViews(specialId, "", "ALL", "ALL");
+        }
+        return null;
     }
 
     /**
@@ -920,9 +1014,14 @@ public class ApiController {
     public Object getWordCloud(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                @RequestParam(value = "specialId") String specialId,
                                @RequestParam(value = "entityType") String entityType) throws Exception {
-        return specialChartAnalyzeController.getWordYun(specialId, "",entityType,"all",false,null,null,null,null,
-                null,null,null,null,null,null,
-                null,null,null,null,null,null,null,null,null,null,null);
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.getWordYun(specialId, "", entityType, "all", false, null, null, null, null,
+                    null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null, null);
+        }
+        return null;
     }
 
     /**
@@ -939,7 +1038,12 @@ public class ApiController {
     @Log(systemLogOperation = SystemLogOperation.SPECIAL_TOPIC_EVO_EXPLOR, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object getTopicEvoExplor(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
                                     @RequestParam(value = "specialId") String specialId) throws Exception {
-        return specialChartAnalyzeController.topicEvoExplor(specialId, "", "ALL", "ALL", "all");
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return specialChartAnalyzeController.topicEvoExplor(specialId, "", "ALL", "ALL", "all");
+        }
+        return null;
     }
 
 
@@ -999,6 +1103,11 @@ public class ApiController {
             }
         }
         commonBuilder.filterField(FtsFieldConst.FIELD_GROUPNAME,groupName,Operator.Equal);
+        String[] timeArry = DateUtil.formatTimeRange(time);
+        Long days = DateUtil.getDays(timeArry);
+        if(days>90){
+            return "time检索时间不能超过3个月";
+        }
         commonBuilder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(time),
                 Operator.Between);
         if (StringUtil.isNotEmpty(keyWords)){
@@ -1057,6 +1166,11 @@ public class ApiController {
         jsonObject.put("wordOrder",false);
         jsonArray.add(jsonObject);
         keywords = jsonArray.toJSONString();
+        String[] timeArry = DateUtil.formatTimeRange(time);
+        Long days = DateUtil.getDays(timeArry);
+        if(days>90){
+            return "time检索时间不能超过3个月";
+        }
         return infoListController.searchList(pageNo,pageSize,sort,keywords,"precise",time,simflag,"1",false,"","",emotion,
                 0,false,"","","1","ALL","","","",
                 "","","","","",invitationCard,forwarPrimary,"","",groupName,"");
@@ -1089,6 +1203,11 @@ public class ApiController {
         int maxPageSize = token.getMaxPageSize();
         if (pageSize > maxPageSize){
             pageSize = maxPageSize;
+        }
+        String[] timeArry = DateUtil.formatTimeRange(time);
+        Long days = DateUtil.getDays(timeArry);
+        if(days>90){
+            return "time检索时间不能超过3个月";
         }
         return apiService.expertSearch(trsl,groupName,sort,time,emotion,invitationCard,forwarPrimary,pageNo,pageSize);
     }
@@ -1333,13 +1452,39 @@ public class ApiController {
         SingleMicroblogData microblogData = singleMicroblogDataService.insert(microblogList);
         //查询hybase，并将结果放在mongodb中
         if (ObjectUtil.isNotEmpty(microblogData) && "分析中".equals(microblogData.getState())){
-            singleMicroblogService.dataAnalysis(microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
+            singleMicroblogService.dataAnalysisApi(user,microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
         }
 
         return microblogData;
 
     }
 
+    /**
+     * 查看微博分析进度
+     * @param accessToken
+     * @param urlName
+     * @param request
+     * @return
+     * @throws TRSException
+     */
+    @Api(value = "confirmStep", method = ApiMethod.StepMicroblog)
+    @GetMapping("/confirmStep")
+    //@Log(systemLogOperation = SystemLogOperation.SAVE_MICROBLOG, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
+    public Object confirmStep(@RequestParam(value = "accessToken") String accessToken,
+                                @RequestParam(value = "currentUrl", required = true) String urlName, HttpServletRequest request)
+            throws TRSException {
+        ApiAccessToken token = getToken(request);
+        String userId = token.getGrantSourceOwnerId();
+        User user = userRepository.findOne(userId);
+        long start = new Date().getTime();
+        log.info(urlName);
+        log.info("开始统计计算："+start);
+        Object confirmStep = singleMicroblogService.confirmStepApi(user,urlName);
+        long end = new Date().getTime();
+        log.info("结束统计计算："+end+"，查看查询进度共用时长："+(end-start));
+        return confirmStep;
+
+    }
     /**
      * 更新已完成的微博分析
      * @param accessToken
@@ -1387,7 +1532,7 @@ public class ApiController {
         SingleMicroblogData microblogData = singleMicroblogDataService.save(singleMicroblogData);
         //查询hybase，并将结果放在mongodb中
         if (ObjectUtil.isNotEmpty(microblogData) && "分析中".equals(microblogData.getState())){
-            singleMicroblogService.dataAnalysis(microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
+            singleMicroblogService.dataAnalysisApi(user,microblogData.getOriginalUrl(),microblogData.getCurrentUrl(),microblogData.getRandom());
         }
 
 
