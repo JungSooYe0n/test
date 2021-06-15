@@ -986,7 +986,11 @@ public class GenerateReportImpl implements IGenerateReport {
 					index += 1;
 				}
 				//来源
-				setCellText(xdoc, getCellHight(xTable, i + 1, index), chapaterContent.get(i).getSiteName(),bgColor, 800);
+				String siteName = chapaterContent.get(i).getSiteName();
+				if(WEIBOHOTTOP10key.equals(chapterDetail)){
+					siteName = chapaterContent.get(i).getSrcName();
+				}
+				setCellText(xdoc, getCellHight(xTable, i + 1, index), siteName,bgColor, 800);
 				index += 1;
 					//时间
 				Date urlDate = chapaterContent.get(i).getUrlDate();
