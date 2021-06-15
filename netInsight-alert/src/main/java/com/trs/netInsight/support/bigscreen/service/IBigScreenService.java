@@ -63,4 +63,5 @@ public interface IBigScreenService {
      * @return
      */
     public Object hotWordCloud(String keyWords,String timeRange) throws OperationException;
+    public Object mapInfo(String timeRange) throws OperationException;
 }

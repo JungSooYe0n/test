@@ -36,10 +36,7 @@ import com.trs.netInsight.widget.special.entity.AsyncInfo;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import com.trs.netInsight.widget.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.formula.functions.T;
-import org.docx4j.wml.Tr;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -86,8 +83,11 @@ public class CommonListServiceImpl implements ICommonListService {
      */
     private InfoListResult formatPageListResult(User user, String pageId, String nextPageId, PagedList<FtsDocumentCommonVO> pagedList, String database, String type, Boolean isCalculateSimNum) {
         List<FtsDocumentCommonVO> list = pagedList.getPageItems();
+        List<Favourites> favouritesList = null;
+        if (ObjectUtil.isNotEmpty(user)){
+            favouritesList = favouritesService.findAll(user);
+        }
 
-        List<Favourites> favouritesList = favouritesService.findAll(user);
         List<FtsDocumentCommonVO> ftsList = new ArrayList<>();
         List<String> md5List = new ArrayList<>();
 
@@ -117,10 +117,10 @@ public class CommonListServiceImpl implements ICommonListService {
                 if (Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())) {
                     document.setSid(document.getHkey());
                     // 检验收藏
-                    document.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(document.getHkey())));
+                    if (ObjectUtil.isNotEmpty(favouritesList)) document.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(document.getHkey())));
                 } else {
                     // 检验收藏
-                    document.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(document.getSid())));
+                    if (ObjectUtil.isNotEmpty(favouritesList)) document.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(document.getSid())));
                 }
                 if (Const.MEDIA_TYPE_TF.contains(document.getGroupName())) {
                     document.setSiteName(document.getGroupName());

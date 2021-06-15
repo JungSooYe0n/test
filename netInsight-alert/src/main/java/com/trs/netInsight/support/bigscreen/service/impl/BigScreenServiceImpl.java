@@ -3,6 +3,7 @@ package com.trs.netInsight.support.bigscreen.service.impl;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.support.bigscreen.service.IBigScreenService;
 import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
@@ -16,6 +17,8 @@ import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.analysis.entity.BigScreenDistrictInfo;
 import com.trs.netInsight.widget.analysis.service.IBigScreenDistrictInfoService;
+import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.special.entity.InfoListResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +37,8 @@ public class BigScreenServiceImpl implements IBigScreenService {
 
     @Autowired
     private IBigScreenDistrictInfoService bigScreenDistrictInfoService;
-
+    @Autowired
+    private ICommonListService commonListService;
 
     @Override
     public Object dataCount(String keyWords) throws OperationException {
@@ -508,6 +512,45 @@ public class BigScreenServiceImpl implements IBigScreenService {
 //        return listMap;
     }
 
+    @Override
+    public Object mapInfo(String timeRange) throws OperationException {
+        String contrastField = FtsFieldConst.FIELD_CATALOG_AREA;
+        HashMap map = new HashMap();
+
+        QueryBuilder builder = new QueryBuilder();
+        builder.setPageSize(3);
+        builder.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\泗县" + ")");
+        builder.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        QueryBuilder builder2 = new QueryBuilder();
+        builder2.setPageSize(3);
+        builder2.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\灵璧县" + ")");
+        builder2.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        QueryBuilder builder3 = new QueryBuilder();
+        builder3.setPageSize(3);
+        builder3.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\砀山县" + ")");
+        builder3.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        QueryBuilder builder4 = new QueryBuilder();
+        builder4.setPageSize(3);
+        builder4.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\萧县" + ")");
+        builder4.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        InfoListResult infoListResult = null;
+        InfoListResult infoListResult2 = null;
+        InfoListResult infoListResult3 = null;
+        InfoListResult infoListResult4 = null;
+        try {
+            infoListResult = commonListService.queryPageListForHot(builder,"ALL",null,"special",false);
+            infoListResult2 = commonListService.queryPageListForHot(builder2,"ALL",null,"special",false);
+            infoListResult3 = commonListService.queryPageListForHot(builder3,"ALL",null,"special",false);
+            infoListResult4 = commonListService.queryPageListForHot(builder4,"ALL",null,"special",false);
+            map.put("SIXIAN",infoListResult);
+            map.put("LINGBI",infoListResult2);
+            map.put("TANGSHAN",infoListResult3);
+            map.put("XIAOXIAN",infoListResult4);
+        } catch (TRSException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
 
 
     private String handleKeyWords(String keyWords){

@@ -2,22 +2,41 @@ package com.trs.netInsight.support.bigscreen.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.trs.dev4.jdk16.dao.PagedList;
+import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.support.bigscreen.service.IBigScreenService;
+import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.support.fts.util.DateUtil;
+import com.trs.netInsight.util.MD5;
+import com.trs.netInsight.widget.analysis.controller.SpecialChartAnalyzeController;
 import com.trs.netInsight.widget.analysis.entity.BigScreenDistrictInfo;
 import com.trs.netInsight.widget.analysis.service.IBigScreenDistrictInfoService;
+import com.trs.netInsight.widget.analysis.service.IChartAnalyzeService;
+import com.trs.netInsight.widget.column.controller.HotTopController;
+import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
+import com.trs.netInsight.widget.special.entity.InfoListResult;
+import com.trs.netInsight.widget.special.entity.SpecialProject;
+import com.trs.netInsight.widget.special.service.IInfoListService;
+import com.trs.netInsight.widget.special.service.ISpecialProjectService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 大屏 控制层
@@ -41,6 +60,19 @@ public class BigScreenController {
 
     @Autowired
     private IBigScreenDistrictInfoService bigScreenDistrictInfoService;
+    @Autowired
+    private IInfoListService infoListService;
+    @Autowired
+    private ISpecialProjectService specialProjectService;
+    @Autowired
+    private SpecialChartAnalyzeController specialChartAnalyzeController;
+    @Autowired
+    private IChartAnalyzeService specialChartAnalyzeService;
+    @Autowired
+    private ICommonListService commonListService;
+    @Autowired
+    private HotTopController hotTopController;
+    private String slat = "hashKw9d$wx[NNL2RBPT0=";
 
     /**
      *  计算 今日、本周、本月数据总量
@@ -175,5 +207,180 @@ public class BigScreenController {
         } catch (Exception e) {
             return null;
         }
+    }
+    @ApiOperation("宿州涉市舆情事件列表接口")
+    @FormatResult
+    @RequestMapping(value = "/getSentimentInfoList", method = RequestMethod.POST)
+    public Object getSentimentInfoList(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
+                                       @ApiParam("时间戳") @RequestParam("msec") String msec,
+                                       @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws TRSException {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(specialProject.getSource(),
+                specialProject, specialProject.getTimeRange(),24);
+        return result;
+    }
+    @ApiOperation("报道量走势接口")
+    @FormatResult
+    @RequestMapping(value = "/sentimentLine", method = RequestMethod.POST)
+    public Object sentimentLine(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId ,
+                                @ApiParam("时间戳") @RequestParam("msec") String msec,
+                                @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws TRSException, ParseException {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        return specialChartAnalyzeController.webCountLine(null,specialId, "day", false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+    @ApiOperation("舆情态势指数接口")
+    @FormatResult
+    @RequestMapping(value = "/situationAssessment", method = RequestMethod.POST)
+    public Object situationAssessment(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
+                                      @ApiParam("时间戳") @RequestParam("msec") String msec,
+                                      @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws TRSException, ParseException {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        String timeRange = specialProject.getTimeRange();
+        if (StringUtils.isBlank(timeRange)) {
+            timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+            timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+        }
+        return specialChartAnalyzeController.situationAssessment(timeRange, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+    @ApiOperation("情感分析接口")
+    @FormatResult
+    @RequestMapping(value = "/emotionOption", method = RequestMethod.POST)
+    public Object emotionOption(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
+                                @ApiParam("时间戳") @RequestParam("msec") String msec,
+                                @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws Exception {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
+        List<Map<String, String>> list =specialChartAnalyzeService.emotionOption(searchBuilder,specialProject);
+        return list;
+    }
+    @ApiOperation("活跃媒体排行接口")
+    @FormatResult
+    @RequestMapping(value = "/active_account", method = RequestMethod.POST)
+    public Object getActiveAccount(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
+                                   @ApiParam("时间戳") @RequestParam("msec") String msec,
+                                   @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws Exception {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        QueryBuilder builder = specialProject.toNoPagedBuilder();
+        String timeRange = specialProject.getTimeRange();
+        if (StringUtils.isBlank(timeRange)) {
+            timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+            timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+        }
+        String[] range = DateUtil.formatTimeRange(timeRange);
+        Object mediaActiveAccount = specialChartAnalyzeService.mediaActiveAccount(builder,specialProject.getSource(), range, specialProject.isSimilar(),
+                specialProject.isIrSimflag(),specialProject.isIrSimflagAll());
+        return mediaActiveAccount;
+    }
+    @ApiOperation("宿州地图信息接口")
+    @FormatResult
+    @RequestMapping(value = "/mapInfo", method = RequestMethod.POST)
+    public Object getMapInfo(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = false,defaultValue = "0d") String timeRange,
+                             @ApiParam("时间戳") @RequestParam("msec") String msec,
+                             @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws Exception {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+
+        return bigScreenService.mapInfo(timeRange);
+    }
+    @ApiOperation("涉市热点预警接口")
+    @FormatResult
+    @RequestMapping(value = "/hotList", method = RequestMethod.POST)
+    public Object getHotList(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
+                             @ApiParam("时间戳") @RequestParam("msec") String msec,
+                             @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws Exception {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        QueryBuilder builder = specialProject.toNoPagedBuilder();
+        String timeRange = specialProject.getTimeRange();
+        if (StringUtils.isBlank(timeRange)) {
+            timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+            timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+        }
+        String[] range = DateUtil.formatTimeRange(timeRange);
+        List<Map<String, Object>> result = specialChartAnalyzeService.getHotListMessage(specialProject.getSource(),
+                specialProject, specialProject.getTimeRange(),21);
+        return result;
+    }
+    @ApiOperation("涉市敏感预警接口")
+    @FormatResult
+    @RequestMapping(value = "/sensitiveList", method = RequestMethod.POST)
+    public Object getSensitiveList(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
+                                   @ApiParam("时间戳") @RequestParam("msec") String msec,
+                                   @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws Exception {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        QueryBuilder builder = specialProject.toSearchBuilder(0, 21, true);
+        String timeRange = specialProject.getTimeRange();
+        if (StringUtils.isBlank(timeRange)) {
+            timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+            timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+        }
+        String[] range = DateUtil.formatTimeRange(timeRange);
+        InfoListResult infoListResult = null;
+        builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+        infoListResult = commonListService.queryPageList(builder, specialProject.isSimilar(), specialProject.isIrSimflag(), specialProject.isIrSimflagAll(), specialProject.getSource(), "special", null, false);
+        if (infoListResult != null) {
+            if (infoListResult.getContent() != null) {
+                String trslk = infoListResult.getTrslk();
+                String wordIndex = String.valueOf(specialProject.getSearchScope().ordinal());
+                PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult, trslk, wordIndex);
+                infoListResult.setContent(resultContent);
+            }
+        }
+        return infoListResult;
+    }
+
+    @ApiOperation("热榜接口")
+    @FormatResult
+    @RequestMapping(value = "/hotTopList", method = RequestMethod.POST)
+    public Object getHotList(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = true) String timeRange,
+                             @ApiParam("榜单类型") @RequestParam(value = "siteName", required = true) String siteName,
+                             @ApiParam("频道类型") @RequestParam(value = "channelName", required = false) String channelName,
+                             @ApiParam("关键词") @RequestParam(value = "keyword", required = false) String keyword,
+                             @ApiParam("时间戳") @RequestParam("msec") String msec,
+                             @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws Exception {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+
+        return hotTopController.hotList(timeRange,siteName,channelName,keyword);
     }
 }
