@@ -365,7 +365,39 @@ public class BigScreenController {
         }
         return infoListResult;
     }
-
+    @ApiOperation("涉市账号预警接口")
+    @FormatResult
+    @RequestMapping(value = "/accountAlertList", method = RequestMethod.POST)
+    public Object accountAlertList(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
+                                  @ApiParam("时间戳") @RequestParam("msec") String msec,
+                                   @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws Exception {
+        String passNum = MD5.getBase64(msec+slat);
+        if(!encrypting.equals(passNum)){
+            log.error("验证失败");
+            throw new TRSException("密文验证失败!");
+        }
+        SpecialProject specialProject = specialProjectService.findOne(specialId);
+        specialProject.setSource("自媒体号");
+        QueryBuilder builder = specialProject.toSearchBuilder(0, 21, true);
+        String timeRange = specialProject.getTimeRange();
+        if (StringUtils.isBlank(timeRange)) {
+            timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
+            timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
+        }
+        String[] range = DateUtil.formatTimeRange(timeRange);
+        InfoListResult infoListResult = null;
+        builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
+        infoListResult = commonListService.queryPageList(builder, specialProject.isSimilar(), specialProject.isIrSimflag(), specialProject.isIrSimflagAll(), specialProject.getSource(), "special", null, false);
+        if (infoListResult != null) {
+            if (infoListResult.getContent() != null) {
+                String trslk = infoListResult.getTrslk();
+                String wordIndex = String.valueOf(specialProject.getSearchScope().ordinal());
+                PagedList<Object> resultContent = CommonListChartUtil.formatListData(infoListResult, trslk, wordIndex);
+                infoListResult.setContent(resultContent);
+            }
+        }
+        return infoListResult;
+    }
     @ApiOperation("热榜接口")
     @FormatResult
     @RequestMapping(value = "/hotTopList", method = RequestMethod.POST)
