@@ -128,7 +128,9 @@ public class CkmServiceImpl implements ICkmService {
 					int n = 0;//作为填入新词组就不能重复填入的判断标志
 					for (int i = 0; i < segResult.length; i++) {
 						System.out.println("分词：" + i + ": " + segResult[i].getword() + " : " + segResult[i].getcate());
+
 						if (i > n || n == 0) {
+
 							if (segResult[i].getcate().contains("nr")) {
 								if (segResult.length > (i + 2)) {
 									if (segResult[i + 2].getcate().equals("n") || segResult[i + 2].getcate().equals("v") || segResult[i + 2].getcate().contains("nr") || segResult[i + 2].getcate().equals("t") || segResult[i + 2].getcate().equals("w") || segResult[i + 2].getword().length() >= 2) {
@@ -191,7 +193,9 @@ public class CkmServiceImpl implements ICkmService {
 								}else {
 										result.add(new SegDictWord(segResult[i].getword(), segResult[i].getcate()));
 								}
-							} else {
+							} else if (segResult[i].getcate().equals("w")){
+
+							}else {
 								if (segResult.length > (i + 1) && segResult[i].getword().length() == segResult[i + 1].getword().length() && segResult[i].getcate().equals(segResult[i + 1].getcate())) {
 									result.add(new SegDictWord(segResult[i].getword() + segResult[i + 1].getword(), "n"));
 									n = i + 1;
