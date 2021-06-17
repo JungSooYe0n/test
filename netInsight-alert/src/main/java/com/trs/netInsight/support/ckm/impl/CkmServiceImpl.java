@@ -60,8 +60,8 @@ public class CkmServiceImpl implements ICkmService {
 	public static final String HAPPY = "快乐";
 	public static final String SADNESS = "悲伤";
 	public static final String AMAZED = "惊讶";
-//	public static final String modelPath = "D:/workspace/trs/model/chineseFactored.ser";
-	public static final String modelPath = "/home/trs/data/trsNetInsight/model/chineseFactored.ser";
+	public static final String modelPath = "D:/workspace/trs/model/chineseFactored.ser";
+//	public static final String modelPath = "/home/trs/data/trsNetInsight/model/chineseFactored.ser";
 	// "/home/trs/data/trsNetInsight/model/chineseFactored.ser";
 	// "D:/workspace/trs/model/chineseFactored.ser";
 	private static LexicalizedParser lp;
@@ -126,6 +126,11 @@ public class CkmServiceImpl implements ICkmService {
 				List<SegDictWord> result = new ArrayList<>();
 				if (segResult != null) {
 					int n = 0;//作为填入新词组就不能重复填入的判断标志
+					for (int i = 0; i < segResult.length; i++) {
+						if (segResult[i].getcate().equals("w")){
+							segResult[i].setword("");
+						}
+					}
 					for (int i = 0; i < segResult.length; i++) {
 						System.out.println("分词：" + i + ": " + segResult[i].getword() + " : " + segResult[i].getcate());
 

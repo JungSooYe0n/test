@@ -533,19 +533,26 @@ public class BigScreenServiceImpl implements IBigScreenService {
         builder4.setPageSize(3);
         builder4.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\萧县" + ")");
         builder4.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        QueryBuilder builder5 = new QueryBuilder();
+        builder5.setPageSize(3);
+        builder5.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\埇桥区" + ")");
+        builder5.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
         InfoListResult infoListResult = null;
         InfoListResult infoListResult2 = null;
         InfoListResult infoListResult3 = null;
         InfoListResult infoListResult4 = null;
+        InfoListResult infoListResult5 = null;
         try {
             infoListResult = commonListService.queryPageListForHot(builder,"ALL",null,"special",false);
             infoListResult2 = commonListService.queryPageListForHot(builder2,"ALL",null,"special",false);
             infoListResult3 = commonListService.queryPageListForHot(builder3,"ALL",null,"special",false);
             infoListResult4 = commonListService.queryPageListForHot(builder4,"ALL",null,"special",false);
+            infoListResult5 = commonListService.queryPageListForHot(builder5,"ALL",null,"special",false);
             map.put("SIXIAN",infoListResult);
             map.put("LINGBI",infoListResult2);
             map.put("TANGSHAN",infoListResult3);
             map.put("XIAOXIAN",infoListResult4);
+            map.put("YONGQIAO",infoListResult5);
         } catch (TRSException e) {
             e.printStackTrace();
         }
