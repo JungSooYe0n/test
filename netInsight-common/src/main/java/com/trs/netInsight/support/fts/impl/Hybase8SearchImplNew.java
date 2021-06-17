@@ -341,7 +341,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         }
         String db = addHybaseInsert(databases);
         // 判断是否排重
-        if (!"hotTop".equals(type) && !"weiboHtb".equals(type)) trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, resultClass);
+        if (!"hotTop".equals(type)/* && !"weiboHtb".equals(type)*/) trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, resultClass);
         //log.warn(trsl);
         TRSConnection connection = null;
         try {

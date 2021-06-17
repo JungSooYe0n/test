@@ -244,18 +244,18 @@ public class BigScreenController {
     public Object situationAssessment(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
                                       @ApiParam("时间戳") @RequestParam("msec") String msec,
                                       @ApiParam("加密后的密文") @RequestParam("encrypting") String encrypting) throws TRSException, ParseException {
-        String passNum = MD5.getBase64(msec+slat);
-        if(!encrypting.equals(passNum)){
-            log.error("验证失败");
-            throw new TRSException("密文验证失败!");
-        }
+//        String passNum = MD5.getBase64(msec+slat);
+//        if(!encrypting.equals(passNum)){
+//            log.error("验证失败");
+//            throw new TRSException("密文验证失败!");
+//        }
         SpecialProject specialProject = specialProjectService.findOne(specialId);
         String timeRange = specialProject.getTimeRange();
         if (StringUtils.isBlank(timeRange)) {
             timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
             timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
         }
-        return specialChartAnalyzeController.situationAssessment(timeRange, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return specialChartAnalyzeController.situationAssessment("0d", specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
     @ApiOperation("情感分析接口")
     @FormatResult
@@ -377,7 +377,7 @@ public class BigScreenController {
             throw new TRSException("密文验证失败!");
         }
         SpecialProject specialProject = specialProjectService.findOne(specialId);
-        specialProject.setSource("自媒体号");
+        specialProject.setSource("微博;微信;自媒体号;短视频");
         QueryBuilder builder = specialProject.toSearchBuilder(0, 21, true);
         String timeRange = specialProject.getTimeRange();
         if (StringUtils.isBlank(timeRange)) {
