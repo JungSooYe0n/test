@@ -276,7 +276,14 @@ public class CommonListChartUtil {
                         }
                     }else{
                         //摘要
-                        map.put("abstracts", StringUtil.replaceImg(vo.getAbstracts()));
+                        //map.put("abstracts", StringUtil.replaceImg(vo.getAbstracts()));
+                        if(StringUtil.isEmpty(vo.getAbstracts())){
+                            //摘要
+                            map.put("abstracts", StringUtil.replaceImg(vo.getContent()));
+                        }else{
+                            //摘要
+                            map.put("abstracts", StringUtil.replaceImg(vo.getAbstracts()));
+                        }
                     }
                 }
                 if(vo.getKeywords() != null && vo.getKeywords().size() >3){

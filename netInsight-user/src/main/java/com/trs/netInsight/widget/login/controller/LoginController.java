@@ -453,6 +453,43 @@ public class LoginController {
 	}
 
 	/**
+	 * 单点登录接口（密码加密传输）
+	 *
+	 * @date Created at 2018年7月2日 下午3:49:18
+	 * @param userName
+	 * @param password
+	 * @param request
+	 * @param response
+	 * @return http://localhost:28088/netInsight/user/singleLogin?userName=lilingshao&password=1q2w3e4R
+	 * @throws TRSException
+	 */
+	@Log(systemLogOperation = SystemLogOperation.FORM_LOGIN, systemLogType = SystemLogType.LOGIN, methodDescription = "登录账号为：${userName}", systemLogOperationPosition = "登录账号为：@{userName}")
+	@RequestMapping(value = "/singleLoginNew", method = {RequestMethod.GET,RequestMethod.POST})
+	public String singleLoginNew(@RequestParam(value = "userName" ,required = false) String userName,
+							  @RequestParam(value = "password" ,required = false) String password,
+							  HttpServletRequest request, HttpServletResponse response) {
+
+		//对密码解密(前端对密码+秘钥+当前时间戳进行base64加密)
+		password = MD5.getFromBase64(MD5.getFromBase64(password)).replace("ASdfelRtVjBhVzV6YVdkb2RBPT0=","");
+		password = password.substring(0,password.length()-13);
+		UsernamePasswordToken token = new UsernamePasswordToken(userName, password, false);
+		try {
+			loginService.login(token, userName, NetworkUtil.getIpAddress(request));
+			User user = userService.findByUserName(userName);
+			user = UserUtils.checkOrganization(user);
+			if (user != null){
+//				return "redirect:http://localhost:8080/customIndex";
+				return "redirect:" + singleLoginAddress;
+			}else{
+//				return "用户名密码错误!";
+				return "login";
+			}
+		} catch (Exception e) {
+			log.error("登录失败：", e);
+		}
+		return "login";
+	}
+	/**
 	 * 获取模拟登录的token
 	 *
 	 * @date Created at 2018年12月10日 下午2:32:58
