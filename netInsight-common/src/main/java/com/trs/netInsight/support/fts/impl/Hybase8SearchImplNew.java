@@ -356,7 +356,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             searchParams.setColorColumns(String.join(";", FtsParser.getHighLightField(resultClass)));
             String search = extractByTrsl(trsl, true, type);
 
-            if (search != null && !"weiboHtb".equals(type)) {
+            if (search != null && !"hotTop".equals(type)) {
                 searchParams.setProperty("search.range.filter", search);
             }
             if (StringUtil.isNotEmpty(keyRedis)) {
@@ -369,7 +369,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
             }
 
             long startHybase = new Date().getTime();
-            if (!"weiboHtb".equals(type)) {
+            if (!"hotTop".equals(type)) {
                 if (!verifyFilterTime(searchParams)) {
                     return null;
                 }

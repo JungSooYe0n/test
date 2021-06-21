@@ -1,5 +1,6 @@
 package com.trs.netInsight.support.bigscreen.service.impl;
 
+import com.trs.dev4.jdk16.dao.PagedList;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.config.constant.FtsFieldConst;
 import com.trs.netInsight.handler.exception.OperationException;
@@ -9,12 +10,14 @@ import com.trs.netInsight.support.fts.FullTextSearch;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.builder.QueryCommonBuilder;
 import com.trs.netInsight.support.fts.builder.condition.Operator;
+import com.trs.netInsight.support.fts.entity.FtsRankList;
+import com.trs.netInsight.support.fts.entity.FtsRankListHtb;
+import com.trs.netInsight.support.fts.entity.FtsRankListRsb;
 import com.trs.netInsight.support.fts.model.result.GroupInfo;
 import com.trs.netInsight.support.fts.model.result.GroupResult;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.BigScreenDistrictInfo;
 import com.trs.netInsight.widget.analysis.service.IBigScreenDistrictInfoService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -557,6 +560,148 @@ public class BigScreenServiceImpl implements IBigScreenService {
             e.printStackTrace();
         }
         return map;
+    }
+
+    @Override
+    public Object hotList(String timeRange, String siteName, String channelName, String keyword) throws TRSException {
+        QueryBuilder queryBuilder = new QueryBuilder();
+        queryBuilder.filterField(FtsFieldConst.FIELD_LASTTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        queryBuilder.setPageNo(0);
+        queryBuilder.setPageSize(50);
+        queryBuilder.orderBy("IR_LASTTIME", true);
+        if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)) {
+            queryBuilder.orderBy("IR_RANK", false);
+        }
+        if (ObjectUtil.isNotEmpty(channelName)) queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL,channelName,Operator.Equal);
+        if (ObjectUtil.isNotEmpty(siteName)) queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,siteName,Operator.Equal);
+        if (StringUtil.isNotEmpty(keyword)) {
+//            String trsl = "IR_URLTITLE:" + keyword;
+//            queryBuilder.filterByTRSL(trsl);
+            String[] split = keyword.split("\\s+|,");
+            String splitNode = "";
+            for (int i = 0; i < split.length; i++) {
+                if (StringUtil.isNotEmpty(split[i])) {
+                    splitNode += split[i] + ",";
+                }
+            }
+            keyword = splitNode.substring(0, splitNode.length() - 1);
+            if (keyword.endsWith(";") || keyword.endsWith(",") || keyword.endsWith("；")
+                    || keyword.endsWith("，")) {
+                keyword = keyword.substring(0, keyword.length() - 1);
+
+            }
+            String hybaseField = "IR_URLTITLE";
+            if(Const.GROUPNAME_WEIBO.equals(siteName) && "热搜榜".equals(channelName)){
+                hybaseField = "IR_HOTWORD";
+            }
+            StringBuilder fuzzyBuilder = new StringBuilder();
+            fuzzyBuilder.append(hybaseField).append(":((\"").append(keyword.replaceAll("[,|，]+", "\") AND (\"")
+                    .replaceAll("[;|；]+", "\" OR \"")).append("\"))");
+            queryBuilder.filterByTRSL(fuzzyBuilder.toString());
+        }
+        if (Const.GROUPNAME_WEIBO.equals(siteName)){
+            queryBuilder.setDatabase("热搜榜".equals(channelName) ? Const.WEIBO_RSB : Const.WEIBO_HTB);
+            if ("热搜榜".equals(channelName)){
+                //微博热搜榜
+                PagedList<FtsRankListRsb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListRsb.class,false,false,false,"hotTop");
+                List<FtsRankListRsb> list = ftsPageList.getPageItems();
+                List<FtsRankListRsb> listTemp = new ArrayList();
+                for(int i=0;i<list.size();i++){//排重取十条数据
+                    boolean isAdd = true;
+                    for (int j = 0; j < listTemp.size(); j++) {
+                        if(listTemp.get(j).getHotWord().contains(list.get(i).getHotWord())){
+                            isAdd = false;
+                            break;
+                        }
+                    }
+                    if (isAdd) listTemp.add(list.get(i));
+                    if (listTemp.size() > 9) break;
+
+                }
+                SortListRsb sortList = new SortListRsb();
+                //按时间排序
+                Collections.sort(listTemp, sortList);
+                List<Object> resultList = new ArrayList<>();
+                for (FtsRankListRsb vo : listTemp) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("title",vo.getHotWord());
+                    map.put("heat",vo.getDescExtr());
+                    resultList.add(map);
+                }
+                return resultList;
+            }else {
+                //微博话题榜
+//                queryBuilder.orderBy("IR_READNUM", true);
+                PagedList<FtsRankListHtb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListHtb.class,false,false,false,"hotTop");
+                List<FtsRankListHtb> list = ftsPageList.getPageItems();
+                SortListHtb sortList = new SortListHtb();
+                Collections.sort(list, sortList);
+                List<FtsRankListHtb> listTemp = new ArrayList();
+                for(int i=0;i<list.size();i++){//排重取十条数据
+                    boolean isAdd = true;
+                    for (int j = 0; j < listTemp.size(); j++) {
+                        if(listTemp.get(j).getTitle().contains(list.get(i).getTitle())){
+                            isAdd = false;
+                            break;
+                        }
+                    }
+                    if (isAdd) listTemp.add(list.get(i));
+                    if (listTemp.size() > 9) break;
+
+                }
+                List<Object> resultList = new ArrayList<>();
+                for (FtsRankListHtb vo : listTemp) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("title",vo.getTitle());
+                    map.put("heat",vo.getReadNum());
+                    resultList.add(map);
+                }
+                return resultList;
+            }
+        }else {
+            queryBuilder.setDatabase(Const.DC_BANGDAN);
+            PagedList<FtsRankList> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankList.class,false,false,false,"hotTop");
+            List<FtsRankList> list = ftsPageList.getPageItems();
+            List<FtsRankList> listTemp = new ArrayList();
+            for(int i=0;i<list.size();i++){//排重取十条数据
+                boolean isAdd = true;
+                for (int j = 0; j < listTemp.size(); j++) {
+                    if(listTemp.get(j).getTitle().contains(list.get(i).getTitle())){
+                        isAdd = false;
+                        break;
+                    }
+                }
+                if (isAdd) listTemp.add(list.get(i));
+                if (listTemp.size() > 9) break;
+
+            }
+            if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
+                SortListBangdan sortList = new SortListBangdan();
+                Collections.sort(listTemp, sortList);
+            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)){
+
+            }else {
+                SortListBangdanHeat sortList = new SortListBangdanHeat();
+                //按时间排序
+                Collections.sort(listTemp, sortList);
+            }
+
+            List<Object> resultList = new ArrayList<>();
+            for (FtsRankList vo : listTemp) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("title",vo.getTitle());
+                if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
+                    map.put("heat",vo.getSearchIndex());
+                }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)){
+
+                }else {
+                    map.put("heat",vo.getHeat());
+                }
+
+                resultList.add(map);
+            }
+            return resultList;
+        }
     }
 
 
