@@ -615,7 +615,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
                         }
                     }
                     if (isAdd) listTemp.add(list.get(i));
-                    if (listTemp.size() > 9) break;
+                    if (listTemp.size() > 7) break;
 
                 }
                 SortListRsb sortList = new SortListRsb();
@@ -646,7 +646,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
                         }
                     }
                     if (isAdd) listTemp.add(list.get(i));
-                    if (listTemp.size() > 9) break;
+                    if (listTemp.size() > 7) break;
 
                 }
                 List<Object> resultList = new ArrayList<>();
@@ -672,7 +672,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
                     }
                 }
                 if (isAdd) listTemp.add(list.get(i));
-                if (listTemp.size() > 9) break;
+                if (listTemp.size() > 7) break;
 
             }
             if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
