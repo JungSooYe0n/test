@@ -19,8 +19,11 @@ import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.BigScreenDistrictInfo;
+import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.analysis.service.IBigScreenDistrictInfoService;
+import com.trs.netInsight.widget.common.service.ICommonChartService;
 import com.trs.netInsight.widget.common.service.ICommonListService;
+import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.InfoListResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,8 @@ public class BigScreenServiceImpl implements IBigScreenService {
     private IBigScreenDistrictInfoService bigScreenDistrictInfoService;
     @Autowired
     private ICommonListService commonListService;
+    @Autowired
+    private ICommonChartService commonChartService;
 
     @Override
     public Object dataCount(String keyWords) throws OperationException {
@@ -702,6 +707,54 @@ public class BigScreenServiceImpl implements IBigScreenService {
             }
             return resultList;
         }
+    }
+
+    @Override
+    public Object mediaActiveAccount(QueryBuilder builder, String source, String[] timeArray, boolean sim, boolean irSimflag, boolean irSimflagAll) throws TRSException {
+        List<String> allList = Const.ALL_GROUPNAME_SORT;
+        List<Object> result = new ArrayList<>();
+        List<String> sourceList = CommonListChartUtil.formatGroupName(source);
+        ChartResultField resultField = new ChartResultField("name", "value");
+        Boolean resultFlag = true;
+        Integer active = 0;
+        for(String oneGroupName : allList){
+
+            //只显示选择的数据源
+            if(sourceList.contains(oneGroupName)){
+                QueryBuilder queryBuilder = new QueryBuilder();
+                queryBuilder.filterByTRSL(builder.asTRSL());
+                String contrastField = FtsFieldConst.FIELD_SITENAME;
+                if(Const.GROUPNAME_WEIBO.equals(oneGroupName)){
+                    contrastField = FtsFieldConst.FIELD_SCREEN_NAME;
+                } else if (Const.MEDIA_TYPE_TF.contains(oneGroupName) || Const.MEDIA_TYPE_VIDEO.contains(oneGroupName) || Const.MEDIA_TYPE_ZIMEITI_LUNTAN_BOKE.contains(oneGroupName)) {
+                    //FaceBook、Twitter、视频、短视频、自媒体号、论坛、博客
+                    contrastField = FtsFieldConst.FIELD_AUTHORS;
+                }
+                if (Const.GROUPNAME_XINWEN.equals(oneGroupName)){
+                    queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,Const.REMOVEMEDIAS,Operator.NotEqual);
+                }
+                Map<String,Object> oneInfo = new HashMap<>();
+                Object list = commonChartService.getBarColumnData(queryBuilder,sim,irSimflag,irSimflagAll,oneGroupName,null,contrastField,"special",resultField);
+                List<Map<String, Object>> changeList = new ArrayList<>();
+                if (list != null) {
+                    changeList = (List<Map<String, Object>>) list;
+                    if (changeList.size() > 0) {
+                        resultFlag = false;
+                        active++;
+                        oneInfo.put("name", Const.PAGE_SHOW_GROUPNAME_CONTRAST.get(oneGroupName));
+                        oneInfo.put("info", list);
+                        oneInfo.put("active", active == 1 ? true : false);
+                        result.add(oneInfo);
+                    }
+
+                }
+
+            }
+        }
+        if (resultFlag) {
+            return null;
+        }
+        return result;
     }
 
 

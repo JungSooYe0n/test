@@ -300,7 +300,7 @@ public class BigScreenController {
             timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
         }
         String[] range = DateUtil.formatTimeRange(timeRange);
-        Object mediaActiveAccount = specialChartAnalyzeService.mediaActiveAccount(builder,specialProject.getSource(), range, specialProject.isSimilar(),
+        Object mediaActiveAccount = bigScreenService.mediaActiveAccount(builder,specialProject.getSource(), range, specialProject.isSimilar(),
                 specialProject.isIrSimflag(),specialProject.isIrSimflagAll());
         return mediaActiveAccount;
     }
