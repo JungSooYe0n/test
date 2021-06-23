@@ -1,6 +1,8 @@
 package com.trs.netInsight.support.bigscreen.service;
 
 import com.trs.netInsight.handler.exception.OperationException;
+import com.trs.netInsight.handler.exception.TRSException;
+import com.trs.netInsight.support.fts.builder.QueryBuilder;
 
 /**
  *  大屏相关业务
@@ -64,4 +66,26 @@ public interface IBigScreenService {
      */
     public Object hotWordCloud(String keyWords,String timeRange) throws OperationException;
     public Object mapInfo(String timeRange) throws OperationException;
+
+    /**
+     * 热榜
+     * @param timeRange
+     * @param siteName
+     * @param channelName
+     * @param keyword
+     * @return
+     * @throws OperationException
+     */
+    public Object hotList(String timeRange,String siteName,String channelName,String keyword) throws TRSException;
+    /**
+     * 媒体活跃等级雷达图
+     *
+     * @param builder
+     * @param timeArray
+     *            时间数组
+     * @return
+     * @throws TRSException
+     */
+    public Object mediaActiveAccount(QueryBuilder builder, String source, String[] timeArray, boolean sim,
+                                     boolean irSimflag, boolean irSimflagAll) throws TRSException;
 }

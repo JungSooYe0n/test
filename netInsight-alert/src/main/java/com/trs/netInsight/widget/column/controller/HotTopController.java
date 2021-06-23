@@ -197,7 +197,7 @@ public class HotTopController {
             }else {
                 //微博话题榜
 //                queryBuilder.orderBy("IR_READNUM", true);
-                PagedList<FtsRankListHtb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListHtb.class,false,false,false,"weiboHtb");
+                PagedList<FtsRankListHtb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListHtb.class,false,false,false,"hotTop");
                 List<FtsRankListHtb> list = ftsPageList.getPageItems();
                 SortListHtb sortList = new SortListHtb();
                 Collections.sort(list, sortList);
