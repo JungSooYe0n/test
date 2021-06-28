@@ -64,10 +64,10 @@ public class CustomChart extends BaseEntity {
     @Column(name = "contrast")
     private String contrast;
 
-    @Column(name = "excludeWeb")
+    @Column(name = "exclude_web",columnDefinition = "TEXT")
     private String excludeWeb;// 排除网站
 
-    @Column(name = "monitor_site")
+    @Column(name = "monitor_site",columnDefinition = "TEXT")
     private String monitorSite;// 监测网站
 
     @Column(name = "time_range")

@@ -211,7 +211,7 @@ public class Favourites extends BaseEntity {
 	/**
 	 * 文章中图片路径
 	 */
-	@Column(name = "img_src")
+	@Column(name = "img_src",columnDefinition = "TEXT")
 	private String imgSrc;
 	/**
 	 * 来源 查库用
