@@ -375,6 +375,8 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/doLogin", "anon");
 		//单点登录
 		filterChainDefinitionMap.put("/singleLogin", "anon");
+		//单点登录(加密)
+		filterChainDefinitionMap.put("/singleLoginNew", "anon");
 		// 获取模拟登录的token
 		filterChainDefinitionMap.put("/getSimulatedLoginToken", "anon");
 		// 测试原生检索

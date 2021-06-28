@@ -622,6 +622,10 @@ public enum SystemLogOperation {
 	 */
 	FORM_LOGIN("第三方表单登录","登录"),
 	/**
+	 * 表单登录(加密)
+	 */
+	FORM_LOGIN_NEW("第三方表单登录(加密)","登录"),
+	/**
 	 * 微信登录
 	 */
 	WECHAT_LOGIN("微信登录","登录"),

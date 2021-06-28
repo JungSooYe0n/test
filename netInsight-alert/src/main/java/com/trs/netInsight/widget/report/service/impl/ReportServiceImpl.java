@@ -1204,6 +1204,375 @@ public class ReportServiceImpl implements IReportService {
 		}
 		return Const.SUCCESS;
 	}
+
+
+	/**
+	 * 加入收藏
+	 *
+	 * @param sids
+	 *            需要收藏的文章ID
+	 * @param userId
+	 *            用户ID
+	 * @return
+	 */
+	@Override
+	@Transactional
+	public String saveFavouritesNew(String sids, String userId, String subGroupId,String md5, String groupName, String urltime) {
+		if(RedisUtil.getString(UserUtils.getUser().getId()+"_"+sids)!=null) return "已经添加过了";
+		//redis防止多次添加
+		RedisUtil.setString(UserUtils.getUser().getId()+"_"+sids,sids,20,TimeUnit.SECONDS);
+		String[] sidArry = sids.split(SEMICOLON);
+		String[] groupNameArray = groupName.split(SEMICOLON);
+		String[] timeArray = urltime.split(SEMICOLON);
+		if (groupNameArray.length != sidArry.length) {
+			return "fail";
+		}
+		User user = userRepository.findOne(userId);
+		Favourites newAdd = null;
+		List<Favourites> favouritesList = new ArrayList<Favourites>();
+		QueryBuilder builder = null;
+		try {
+			builder= DateUtil.timeBuilder(urltime);
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		String timeTrsl = builder.asTRSL();
+		SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMdd);
+		List<String> sidList = new ArrayList<>();
+		List<String> groupList = new ArrayList<>();
+		for (int i = 0; i < sidArry.length; i++) {
+			//原生sql
+			String sid = sidArry[i];
+			Specification<Favourites> criteria = new Specification<Favourites>() {
+
+				@Override
+				public Predicate toPredicate(Root<Favourites> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+					List<Object> predicates = new ArrayList<>();
+					predicates.add(cb.equal(root.get("userId"), userId));
+					predicates.add(cb.isNull(root.get("libraryId")));
+					predicates.add(cb.equal(root.get("sid"), sid));
+					Predicate[] pre = new Predicate[predicates.size()];
+
+					return query.where(predicates.toArray(pre)).getRestriction();
+				}
+			};
+
+			Favourites favourites = favouritesRepository.findOne(criteria);
+			if (ObjectUtil.isEmpty(favourites)) {
+				sidList.add(sid);
+				groupList.add(groupNameArray[i]);
+//				try {
+//					FtsDocumentCommonVO fav = null;
+//					QueryBuilder queryBuilder = new QueryBuilder();
+//					queryBuilder.filterByTRSL(timeTrsl);
+//					queryBuilder.page(0, 1);
+//					String equals = CommonListChartUtil.changeGroupName(groupNameArray[i]);
+//					if (Const.GROUPNAME_WEIXIN.equals(equals)) {
+//						queryBuilder.filterField(FtsFieldConst.FIELD_HKEY, sidArry[i], Operator.Equal);
+//					} else if (Const.GROUPNAME_WEIBO.equals(equals)) {
+//						queryBuilder.filterField(FtsFieldConst.FIELD_MID, sidArry[i], Operator.Equal);
+//					} else {
+//						queryBuilder.filterField(FtsFieldConst.FIELD_SID, sidArry[i], Operator.Equal);
+//					}
+//					InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, false, groupNameArray[i], null, user, false);
+//					if (infoListResult.getContent() != null) {
+//						PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+//						if (pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+//							fav = pagedList.getPageItems().get(0);
+//						}
+//					}
+//					if (fav != null) {
+//						newAdd = new Favourites(fav.getSid(),user.getId(),user.getSubGroupId());
+//						//查到的数据已经是处理过后的 - 对摘要、正文、sid
+//						String oneGroupName = CommonListChartUtil.changeGroupName(fav.getGroupName());
+//						newAdd.setGroupName(oneGroupName);
+//						// 去掉img标签
+//						String content = fav.getContent();
+//						if (StringUtil.isNotEmpty(content)) {
+//							content = StringUtil.filterEmoji(StringUtil.replaceImg(content));
+//						}
+//						newAdd.setContent(content);
+//						newAdd.setStatusContent(content);
+//						String title = fav.getTitle();
+//						if (StringUtil.isNotEmpty(title)) {
+//							title = StringUtil.cutContent(StringUtil.filterEmoji(StringUtil.replaceImg(title)),100);
+//
+//						}
+//						newAdd.setTitle(title);
+//						newAdd.setUrlTitle(title);
+//						String abstracts = fav.getAbstracts();
+//						if (StringUtil.isNotEmpty(abstracts)) {
+//							abstracts = StringUtil.filterEmoji(StringUtil.replaceImg(abstracts));
+//						}
+//						newAdd.setAbstracts(abstracts);
+//						String fullContent = fav.getExportContent();
+//						if (StringUtil.isNotEmpty(fullContent)) {
+//							fullContent = StringUtil.filterEmoji(StringUtil.replaceImg(fullContent)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "");
+//						}
+//						newAdd.setFullContent(fullContent);
+//						newAdd.setHkey(null);
+//						if (Const.GROUPNAME_LUNTAN.equals(oneGroupName)){
+//							newAdd.setHkey(fav.getHkey());
+//						}
+//						newAdd.setMdsTag(fav.getMd5Tag());
+//						newAdd.setUrlName(fav.getUrlName());
+//						newAdd.setUrlTime(fav.getUrlTime());
+//						newAdd.setUrltime(sdf.format(fav.getUrlTime()));
+//						newAdd.setUrlDate(fav.getUrlDate());
+//						newAdd.setSiteName(fav.getSiteName());
+//						newAdd.setNreserved1(fav.getNreserved1());
+//						newAdd.setRetweetedMid(fav.getRetweetedMid());
+//						newAdd.setCommtCount(fav.getCommtCount());
+//						newAdd.setRttCount(fav.getRttCount());
+//						newAdd.setCreatedAt(fav.getCreatedAt());
+//						newAdd.setAppraise(StringUtil.isEmpty(fav.getAppraise()) ? "中性":fav.getAppraise());
+//						newAdd.setKeywords(fav.getKeywords());
+//						newAdd.setChannel(fav.getChannel());
+//						newAdd.setCapture(false);
+//						if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
+//							newAdd.setImgSrc(null);
+//						}else{
+//							newAdd.setImgSrc(fav.getImgSrc());
+//						}
+//
+//						String authors = fav.getAuthors();
+//						newAdd.setAuthors(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+//						newAdd.setAuthor(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+//						String siteName = fav.getSiteName();
+//						newAdd.setSiteName(StringUtil.filterEmoji(StringUtil.replaceImg(siteName)));
+//						String screenName = fav.getScreenName();
+//						String srcName = fav.getSrcName();
+//
+//						if (Const.GROUPNAME_WEIBO.equals(oneGroupName)) {
+//							newAdd.setTitle(content);
+//							newAdd.setUrlTitle(content);
+//							srcName = fav.getRetweetedScreenName();
+//							newAdd.setAbstracts(content);
+//						}else if (Const.GROUPNAME_FACEBOOK.equals(oneGroupName) || Const.GROUPNAME_TWITTER.equals(oneGroupName)) {
+//							newAdd.setTitle(content);
+//							newAdd.setUrlTitle(content);
+//							screenName = fav.getAuthors();
+//							srcName = fav.getRetweetedScreenName();
+//							newAdd.setAbstracts(content);
+//						}else if(Const.GROUPNAME_DUANSHIPIN.equals(oneGroupName) || Const.GROUPNAME_CHANGSHIPIN.equals(oneGroupName)){
+//							if(StringUtil.isEmpty(title)){
+//								newAdd.setTitle(content);
+//								newAdd.setUrlTitle(content);
+//							}
+//							newAdd.setAbstracts(content);
+//							newAdd.setImgSrc(fav.getImgUrl());
+//						}
+//						screenName =  StringUtil.filterEmoji(StringUtil.replaceImg(screenName));
+//						newAdd.setScreenName(screenName);
+//						srcName =  StringUtil.filterEmoji(StringUtil.replaceImg(srcName));
+//						newAdd.setSrcName(srcName);
+//						favouritesList.add(newAdd);
+//					}
+//
+//				} catch (TRSException e) {
+//					e.printStackTrace();
+//				}
+
+			}
+		}
+		//拼接查询语句
+		try {
+			QueryBuilder queryBuilder = new QueryBuilder();
+			queryBuilder.filterByTRSL(timeTrsl);
+			queryBuilder.page(0, 200);
+            StringBuffer midBuffer = new StringBuffer();
+            StringBuffer hkeyBuffer = new StringBuffer();
+            StringBuffer sidBuffer = new StringBuffer();
+			for (int k = 0; k < sidList.size(); k++) {
+				String equals = CommonListChartUtil.changeGroupName(groupList.get(k));
+				if (Const.GROUPNAME_WEIXIN.equals(equals)) {
+					if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
+						hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(sidList.get(k));
+                    } else {
+						hkeyBuffer.append(" OR ").append(sidList.get(k));
+                    }
+//					queryBuilder.filterField(FtsFieldConst.FIELD_HKEY, sidList.get(k), Operator.Equal);
+				} else if (Const.GROUPNAME_WEIBO.equals(equals)) {
+//					queryBuilder.filterField(FtsFieldConst.FIELD_MID, sidList.get(k), Operator.Equal);
+					if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
+						midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(sidList.get(k));
+					} else {
+						midBuffer.append(" OR ").append(sidList.get(k));
+					}
+				} else {
+//					queryBuilder.filterField(FtsFieldConst.FIELD_SID, sidList.get(k), Operator.Equal);
+					if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
+						sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(sidList.get(k));
+					} else {
+						sidBuffer.append(" OR ").append(sidList.get(k));
+					}
+				}
+
+//            StringBuffer midBuffer = new StringBuffer();
+//            StringBuffer hkeyBuffer = new StringBuffer();
+//            StringBuffer sidBuffer = new StringBuffer();
+//            for (int i = 0; i < pagedList.size(); i++) {
+//                FtsDocumentCommonVO ftsDocumentCommonVO = pagedList.get(i);
+//                String id = ftsDocumentCommonVO.getSid();
+//                if (Const.MEDIA_TYPE_WEIBO.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getMid())) {
+//                    if (ObjectUtil.isEmpty(midBuffer.toString()) && !midBuffer.toString().contains(FtsFieldConst.FIELD_MID)){
+//                        midBuffer.append(FtsFieldConst.FIELD_MID).append(":(").append(ftsDocumentCommonVO.getMid());
+//                    } else {
+//                        midBuffer.append(" OR ").append(ftsDocumentCommonVO.getMid());
+//                    }
+//                } else if (Const.MEDIA_TYPE_WEIXIN.contains(ftsDocumentCommonVO.getGroupName())&&StringUtil.isNotEmpty(ftsDocumentCommonVO.getHkey())) {
+//                    if (ObjectUtil.isEmpty(hkeyBuffer.toString()) && !hkeyBuffer.toString().contains(FtsFieldConst.FIELD_HKEY)){
+//                        hkeyBuffer.append(FtsFieldConst.FIELD_HKEY).append(":(").append(ftsDocumentCommonVO.getHkey());
+//                    } else {
+//                        hkeyBuffer.append(" OR ").append(ftsDocumentCommonVO.getHkey());
+//                    }
+//                } else {
+//                    if(StringUtil.isNotEmpty(id)) {
+//                        if (ObjectUtil.isEmpty(sidBuffer.toString()) && !sidBuffer.toString().contains(FtsFieldConst.FIELD_SID)) {
+//                            sidBuffer.append(FtsFieldConst.FIELD_SID).append(":(").append(id);
+//                        } else {
+//                            sidBuffer.append(" OR ").append(id);
+//                        }
+//                    }
+//                }
+//            }
+			}
+			//                排除所属ID
+			StringBuffer allBuffer = new StringBuffer();
+			if (ObjectUtil.isNotEmpty(midBuffer.toString())){
+				midBuffer.append(")");
+				//queryBuilder.filterByTRSL(midBuffer.toString());
+				allBuffer.append(midBuffer);
+			}
+			if (ObjectUtil.isNotEmpty(hkeyBuffer.toString())){
+				hkeyBuffer.append(")");
+				//queryBuilder.filterByTRSL(hkeyBuffer.toString());
+				if(ObjectUtil.isNotEmpty(allBuffer.toString())){
+					allBuffer.append(" OR ").append(hkeyBuffer);
+				}else {
+					allBuffer.append(hkeyBuffer);
+				}
+			}
+			if (ObjectUtil.isNotEmpty(sidBuffer.toString())){
+				sidBuffer.append(")");
+				//queryBuilder.filterByTRSL(sidBuffer.toString());
+				if(ObjectUtil.isNotEmpty(allBuffer.toString())){
+					allBuffer.append(" OR ").append(sidBuffer);
+				}else {
+					allBuffer.append(sidBuffer);
+				}
+			}
+			queryBuilder.filterByTRSL(allBuffer.toString());
+			InfoListResult infoListResult = commonListService.queryPageList(queryBuilder, false, false, false, "ALL", null, user, false);
+			List<FtsDocumentCommonVO> items = new ArrayList<FtsDocumentCommonVO>();
+			if (infoListResult.getContent() != null) {
+				PagedList<FtsDocumentCommonVO> pagedList = (PagedList<FtsDocumentCommonVO>) infoListResult.getContent();
+				if (pagedList.getPageItems() != null && pagedList.getPageItems().size() > 0) {
+					items = pagedList.getPageItems();
+				}
+			}
+			if (ObjectUtil.isNotEmpty(items)) {
+				for (int j = 0; j < items.size(); j++) {
+					FtsDocumentCommonVO fav = items.get(j);
+					newAdd = new Favourites(fav.getSid(),user.getId(),user.getSubGroupId());
+						//查到的数据已经是处理过后的 - 对摘要、正文、sid
+						String oneGroupName = CommonListChartUtil.changeGroupName(fav.getGroupName());
+						newAdd.setGroupName(oneGroupName);
+						// 去掉img标签
+						String content = fav.getContent();
+						if (StringUtil.isNotEmpty(content)) {
+							content = StringUtil.filterEmoji(StringUtil.replaceImg(content));
+						}
+						newAdd.setContent(content);
+						newAdd.setStatusContent(content);
+						String title = fav.getTitle();
+						if (StringUtil.isNotEmpty(title)) {
+							title = StringUtil.cutContent(StringUtil.filterEmoji(StringUtil.replaceImg(title)),100);
+
+						}
+						newAdd.setTitle(title);
+						newAdd.setUrlTitle(title);
+						String abstracts = fav.getAbstracts();
+						if (StringUtil.isNotEmpty(abstracts)) {
+							abstracts = StringUtil.filterEmoji(StringUtil.replaceImg(abstracts));
+						}
+						newAdd.setAbstracts(abstracts);
+						String fullContent = fav.getExportContent();
+						if (StringUtil.isNotEmpty(fullContent)) {
+							fullContent = StringUtil.filterEmoji(StringUtil.replaceImg(fullContent)).replaceAll("[\ud800\udc00-\udbff\udfff\ud800-\udfff]", "");
+						}
+						newAdd.setFullContent(fullContent);
+						newAdd.setHkey(null);
+						if (Const.GROUPNAME_LUNTAN.equals(oneGroupName)){
+							newAdd.setHkey(fav.getHkey());
+						}
+						newAdd.setMdsTag(fav.getMd5Tag());
+						newAdd.setUrlName(fav.getUrlName());
+						newAdd.setUrlTime(fav.getUrlTime());
+						newAdd.setUrltime(sdf.format(fav.getUrlTime()));
+						newAdd.setUrlDate(fav.getUrlDate());
+						newAdd.setSiteName(fav.getSiteName());
+						newAdd.setNreserved1(fav.getNreserved1());
+						newAdd.setRetweetedMid(fav.getRetweetedMid());
+						newAdd.setCommtCount(fav.getCommtCount());
+						newAdd.setRttCount(fav.getRttCount());
+						newAdd.setCreatedAt(fav.getCreatedAt());
+						newAdd.setAppraise(StringUtil.isEmpty(fav.getAppraise()) ? "中性":fav.getAppraise());
+						newAdd.setKeywords(fav.getKeywords());
+						newAdd.setChannel(fav.getChannel());
+						newAdd.setCapture(false);
+						if(Const.PAGE_SHOW_WEIXIN.equals(groupName)){
+							newAdd.setImgSrc(null);
+						}else{
+							newAdd.setImgSrc(fav.getImgSrc());
+						}
+
+						String authors = fav.getAuthors();
+						newAdd.setAuthors(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+						newAdd.setAuthor(StringUtil.filterEmoji(StringUtil.replaceImg(authors)));
+						String siteName = fav.getSiteName();
+						newAdd.setSiteName(StringUtil.filterEmoji(StringUtil.replaceImg(siteName)));
+						String screenName = fav.getScreenName();
+						String srcName = fav.getSrcName();
+
+						if (Const.GROUPNAME_WEIBO.equals(oneGroupName)) {
+							newAdd.setTitle(content);
+							newAdd.setUrlTitle(content);
+							srcName = fav.getRetweetedScreenName();
+							newAdd.setAbstracts(content);
+						}else if (Const.GROUPNAME_FACEBOOK.equals(oneGroupName) || Const.GROUPNAME_TWITTER.equals(oneGroupName)) {
+							newAdd.setTitle(content);
+							newAdd.setUrlTitle(content);
+							screenName = fav.getAuthors();
+							srcName = fav.getRetweetedScreenName();
+							newAdd.setAbstracts(content);
+						}else if(Const.GROUPNAME_DUANSHIPIN.equals(oneGroupName) || Const.GROUPNAME_CHANGSHIPIN.equals(oneGroupName)){
+							if(StringUtil.isEmpty(title)){
+								newAdd.setTitle(content);
+								newAdd.setUrlTitle(content);
+							}
+							newAdd.setAbstracts(content);
+							newAdd.setImgSrc(fav.getImgUrl());
+						}
+						screenName =  StringUtil.filterEmoji(StringUtil.replaceImg(screenName));
+						newAdd.setScreenName(screenName);
+						srcName =  StringUtil.filterEmoji(StringUtil.replaceImg(srcName));
+						newAdd.setSrcName(srcName);
+						favouritesList.add(newAdd);
+
+
+				}
+
+			}
+		}catch (TRSException e) {
+					e.printStackTrace();
+				}
+		if (favouritesList.size() > 0) {
+			favouritesRepository.save(favouritesList);
+		}
+		return Const.SUCCESS;
+	}
+
 	public String subString(String str){
 		if (StringUtil.isNotEmpty(str) && str.length() > 200) {
 				str = str.substring(0, 200);

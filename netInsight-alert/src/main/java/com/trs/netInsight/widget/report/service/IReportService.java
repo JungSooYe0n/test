@@ -42,6 +42,17 @@ public interface IReportService {
 	public String saveFavourites(String sids, String userId, String subGroupId,String md5,String groupName,String urltime);
 
 	/**
+	 * 加入收藏
+	 *
+	 * @param sids
+	 *            需要收藏的文章ID
+	 * @param userId
+	 *            用户ID
+	 * @return
+	 */
+	public String saveFavouritesNew(String sids, String userId, String subGroupId,String md5,String groupName,String urltime);
+
+	/**
 	 * 取消收藏
 	 * 
 	 * @param sids
