@@ -1,6 +1,5 @@
 package com.trs.netInsight.util;
 
-import com.trs.netInsight.support.fts.entity.FtsRankListHtb;
 import com.trs.netInsight.support.fts.entity.FtsRankListRsb;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,8 +12,8 @@ public class SortListRsb implements Comparator<Object> {
         FtsRankListRsb t2 = (FtsRankListRsb) o2;
         String d1, d2;
         try {
-            d1 = t1.getDescExtr();
-            d2 = t2.getDescExtr();
+            d1 = t1.getHeat();
+            d2 = t2.getHeat();
         } catch (Exception e) {
             // 解析出错，则不进行排序
             log.info("解析时间出错");

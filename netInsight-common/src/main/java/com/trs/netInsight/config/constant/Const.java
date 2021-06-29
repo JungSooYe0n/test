@@ -19,7 +19,6 @@ import com.trs.netInsight.widget.config.service.ISystemConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
@@ -138,11 +137,13 @@ public class Const {
     /**
      * 微博热搜榜
      */
-    public static final String WEIBO_RSB = "system2.weiborsb_200410";
+//    public static final String WEIBO_RSB = "system2.weiborsb_200410";
+    public static final String WEIBO_RSB = "system2.dc_bangdan_0109";
     /**
      * 微博话题榜
      */
-    public static final String WEIBO_HTB = "system2.weibohtb_210511";
+//    public static final String WEIBO_HTB = "system2.weibohtb_210511";
+    public static final String WEIBO_HTB = "system2.dc_bangdan_0109";
     /**
      * 榜单库
      */
