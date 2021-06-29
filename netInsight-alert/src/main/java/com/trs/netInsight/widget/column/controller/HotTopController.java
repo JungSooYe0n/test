@@ -128,8 +128,6 @@ public class HotTopController {
                                  @ApiParam("频道类型") @RequestParam(value = "channelName", required = false) String channelName,
                                  @ApiParam("关键词") @RequestParam(value = "keyword", required = false) String keyword) throws TRSException {
         QueryBuilder queryBuilder = new QueryBuilder();
-        String[] timeArray = DateUtil.formatTimeRange(timeRange);
-//        queryBuilder.filterField(ESFieldConst.IR_URLTIME, timeArray, Operator.Between);
         queryBuilder.filterField(FtsFieldConst.FIELD_LASTTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
         queryBuilder.setPageNo(0);
         queryBuilder.setPageSize(50);
@@ -140,8 +138,6 @@ public class HotTopController {
         if (ObjectUtil.isNotEmpty(channelName)) queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL,channelName,Operator.Equal);
         if (ObjectUtil.isNotEmpty(siteName)) queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,siteName,Operator.Equal);
         if (StringUtil.isNotEmpty(keyword)) {
-//            String trsl = "IR_URLTITLE:" + keyword;
-//            queryBuilder.filterByTRSL(trsl);
             String[] split = keyword.split("\\s+|,");
             String splitNode = "";
             for (int i = 0; i < split.length; i++) {
@@ -190,7 +186,7 @@ public class HotTopController {
                 for (FtsRankListRsb vo : listTemp) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("title",vo.getHotWord());
-                    map.put("heat",vo.getDescExtr());
+                    map.put("heat",vo.getHeat());
                     resultList.add(map);
                 }
                 return resultList;
@@ -294,6 +290,27 @@ public class HotTopController {
         map.put("keyWords",keyWords);
         result.add(map);
         return result;
+    }
+    @FormatResult
+    @GetMapping(value = "/setChangeHotTop")
+    @ApiOperation("修改热榜榜单历史数据")
+    public Object setChangeHotTop() throws TRSException {
+        List<HotTop> hotTops = hotTopRepository.findAll();
+        for (HotTop hotTop: hotTops) {
+           switch (hotTop.getName()){
+               case "百度":
+                   hotTop.setChildrenSort("百度热搜");
+                   break;
+               case "今日头条":
+                   hotTop.setChildrenSort("头条热榜;同城榜");
+                   break;
+               case "抖音":
+                   hotTop.setChildrenSort("热点榜;娱乐榜;社会榜;同城榜");
+                   break;
+           }
+        }
+        hotTopRepository.save(hotTops);
+        return "success";
     }
     public static List removeDuplicate(List list){
         List listTemp = new ArrayList();

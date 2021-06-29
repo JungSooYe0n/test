@@ -8,10 +8,12 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.support.bigscreen.service.IBigScreenService;
+import com.trs.netInsight.support.cache.EnableRedis;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.MD5;
 import com.trs.netInsight.util.ObjectUtil;
+import com.trs.netInsight.util.RedisUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.analysis.controller.SpecialChartAnalyzeController;
 import com.trs.netInsight.widget.analysis.entity.BigScreenDistrictInfo;
@@ -41,6 +43,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 大屏 控制层
@@ -354,6 +357,7 @@ public class BigScreenController {
             throw new TRSException("密文验证失败!");
         }
         SpecialProject specialProject = specialProjectService.findOne(specialId);
+        if (ObjectUtil.isEmpty(specialProject))  throw new TRSException("没有此id");
         QueryBuilder builder = specialProject.toSearchBuilder(0, 21, true);
         String timeRange = specialProject.getTimeRange();
         if (StringUtils.isBlank(timeRange)) {
@@ -376,6 +380,7 @@ public class BigScreenController {
     }
     @ApiOperation("舆论场统计接口")
     @FormatResult
+    @EnableRedis
     @RequestMapping(value = "/webCommitCount", method = RequestMethod.POST)
     public Object webCommitCount(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
                                  @ApiParam("时间区间(根据模块选择是否传)") @RequestParam(value = "timeRange", required = false,defaultValue = "0d") String timeRange,
@@ -387,11 +392,27 @@ public class BigScreenController {
             throw new TRSException("密文验证失败!");
         }
         SpecialProject specialProject = specialProjectService.findOne(specialId);
+        if (ObjectUtil.isEmpty(specialProject))  throw new TRSException("没有此id");
         if (StringUtil.isNotEmpty(timeRange)){
             String[] timeArray = DateUtil.formatTimeRange(timeRange);
             if (timeArray != null && timeArray.length == 2) {
                 specialProject.setStart(timeArray[0]);
                 specialProject.setEnd(timeArray[1]);
+            }
+        }
+        String redisKey = "bigScreenRedis_365d";
+        String redisKeyAddTime = "bigScreenRedisAddTime_365d";
+        if ("365d".equals(timeRange)) {//查询一年数据走redis
+            Object rt = RedisUtil.getObject(redisKey);
+            String addTime = RedisUtil.getString(redisKeyAddTime);
+            //key存放redis中的时间(分)
+            long alreadyAddMin = 1000l;
+            if (addTime != null)
+                alreadyAddMin = com.trs.netInsight.util.DateUtil.getDateTimeMin(addTime, com.trs.netInsight.util.DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"), "min");
+//          // redis有数据并且小于10分钟直接去redis数据
+            if (rt != null && alreadyAddMin < 61) {
+                //log.info("从redis获取该信息----------");
+                return rt;
             }
         }
         // 排重
@@ -406,6 +427,11 @@ public class BigScreenController {
         ChartResultField resultField = new ChartResultField("name", "value");
         List<Map<String, Object>> list = new ArrayList<>();
         list = (List<Map<String, Object>>)commonChartService.getPieColumnData(builder,sim,irSimflag,irSimflagAll,CommonListChartUtil.changeGroupName(specialProject.getSource()),null,contrastField,"special",resultField);
+        if(list != null && "365d".equals(timeRange)){
+            RedisUtil.setObject(redisKey,list);
+            RedisUtil.expire(redisKey,60,TimeUnit.MINUTES);
+            RedisUtil.setString(redisKeyAddTime, com.trs.netInsight.util.DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"));
+        }
         return list;
     }
     @ApiOperation("涉市账号预警接口")
