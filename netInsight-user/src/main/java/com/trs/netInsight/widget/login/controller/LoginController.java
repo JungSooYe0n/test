@@ -463,7 +463,7 @@ public class LoginController {
 	 * @return http://localhost:28088/netInsight/user/singleLogin?userName=lilingshao&password=1q2w3e4R
 	 * @throws TRSException
 	 */
-	@Log(systemLogOperation = SystemLogOperation.FORM_LOGIN, systemLogType = SystemLogType.LOGIN, methodDescription = "登录账号为：${userName}", systemLogOperationPosition = "登录账号为：@{userName}")
+	@Log(systemLogOperation = SystemLogOperation.FORM_LOGIN_NEW, systemLogType = SystemLogType.LOGIN, methodDescription = "登录账号为：${userName}", systemLogOperationPosition = "登录账号为：@{userName}")
 	@RequestMapping(value = "/singleLoginNew", method = {RequestMethod.GET,RequestMethod.POST})
 	public String singleLoginNew(@RequestParam(value = "userName" ,required = false) String userName,
 							  @RequestParam(value = "password" ,required = false) String password,

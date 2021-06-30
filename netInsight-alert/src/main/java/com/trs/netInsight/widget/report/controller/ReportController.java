@@ -176,7 +176,7 @@ public class ReportController {
 			groupName = StringUtils.join(groupNameArray, ";");
 			String userId = UserUtils.getUser().getId();
 			String subGroupId = UserUtils.getUser().getSubGroupId();
-			String result = reportService.saveFavourites(sids, userId,subGroupId,md5tag,
+			String result = reportService.saveFavouritesNew(sids, userId,subGroupId,md5tag,
 					groupName,urltime);
 			return result;
 		} catch (Exception e) {
