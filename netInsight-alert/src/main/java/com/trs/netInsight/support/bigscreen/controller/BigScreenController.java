@@ -8,8 +8,8 @@ import com.trs.netInsight.handler.exception.OperationException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
 import com.trs.netInsight.support.bigscreen.service.IBigScreenService;
-import com.trs.netInsight.support.cache.EnableRedis;
 import com.trs.netInsight.support.fts.builder.QueryBuilder;
+import com.trs.netInsight.support.fts.builder.condition.Operator;
 import com.trs.netInsight.support.fts.util.DateUtil;
 import com.trs.netInsight.util.MD5;
 import com.trs.netInsight.util.ObjectUtil;
@@ -358,13 +358,13 @@ public class BigScreenController {
         }
         SpecialProject specialProject = specialProjectService.findOne(specialId);
         if (ObjectUtil.isEmpty(specialProject))  throw new TRSException("没有此id");
-        QueryBuilder builder = specialProject.toSearchBuilder(0, 21, true);
         String timeRange = specialProject.getTimeRange();
         if (StringUtils.isBlank(timeRange)) {
             timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
             timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
         }
-        String[] range = DateUtil.formatTimeRange(timeRange);
+        QueryBuilder builder = specialProject.toSearchBuilder(0, 21, false);
+        builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(timeRange), Operator.Between);
         InfoListResult infoListResult = null;
         builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
         infoListResult = commonListService.queryPageList(builder, specialProject.isSimilar(), specialProject.isIrSimflag(), specialProject.isIrSimflagAll(), specialProject.getSource(), "special", null, false);
@@ -380,7 +380,6 @@ public class BigScreenController {
     }
     @ApiOperation("舆论场统计接口")
     @FormatResult
-    @EnableRedis
     @RequestMapping(value = "/webCommitCount", method = RequestMethod.POST)
     public Object webCommitCount(@ApiParam("来源id") @RequestParam(value = "id", required = false) String specialId,
                                  @ApiParam("时间区间(根据模块选择是否传)") @RequestParam(value = "timeRange", required = false,defaultValue = "0d") String timeRange,
@@ -400,6 +399,7 @@ public class BigScreenController {
                 specialProject.setEnd(timeArray[1]);
             }
         }
+        //只有在365d的情况下才使用缓存
         String redisKey = "bigScreenRedis_365d";
         String redisKeyAddTime = "bigScreenRedisAddTime_365d";
         if ("365d".equals(timeRange)) {//查询一年数据走redis
@@ -410,7 +410,7 @@ public class BigScreenController {
             if (addTime != null)
                 alreadyAddMin = com.trs.netInsight.util.DateUtil.getDateTimeMin(addTime, com.trs.netInsight.util.DateUtil.formatCurrentTime("yyyy-MM-dd HH:mm:ss"), "min");
 //          // redis有数据并且小于10分钟直接去redis数据
-            if (rt != null && alreadyAddMin < 61) {
+            if (rt != null && alreadyAddMin < 1) {
                 //log.info("从redis获取该信息----------");
                 return rt;
             }
@@ -447,13 +447,13 @@ public class BigScreenController {
         }
         SpecialProject specialProject = specialProjectService.findOne(specialId);
         specialProject.setSource("微博;微信;自媒体号;短视频");
-        QueryBuilder builder = specialProject.toSearchBuilder(0, 21, true);
+        QueryBuilder builder = specialProject.toSearchBuilder(0, 21, false);
         String timeRange = specialProject.getTimeRange();
         if (StringUtils.isBlank(timeRange)) {
             timeRange = DateUtil.format2String(specialProject.getStartTime(), DateUtil.yyyyMMdd) + ";";
             timeRange += DateUtil.format2String(specialProject.getEndTime(), DateUtil.yyyyMMdd);
         }
-        String[] range = DateUtil.formatTimeRange(timeRange);
+        builder.filterField(FtsFieldConst.FIELD_URLTIME, DateUtil.formatTimeRange(timeRange), Operator.Between);
         InfoListResult infoListResult = null;
         builder.orderBy(FtsFieldConst.FIELD_URLTIME, true);
         infoListResult = commonListService.queryPageList(builder, specialProject.isSimilar(), specialProject.isIrSimflag(), specialProject.isIrSimflagAll(), specialProject.getSource(), "special", null, false);

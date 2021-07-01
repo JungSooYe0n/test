@@ -527,24 +527,29 @@ public class BigScreenServiceImpl implements IBigScreenService {
 
         QueryBuilder builder = new QueryBuilder();
         builder.setPageSize(3);
-        builder.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\泗县" + ")");
+        builder.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\泗县" + ")"+" NOT (IR_NOISEMESSAGE:(采购招标 OR 游戏信息 OR 涉黄信息 OR 赌博彩票 OR 母婴广告 OR 招生招聘 OR 转发抽奖 OR 影视剧场 OR 婚恋交友 OR 明星娱乐 OR 股票信息 OR 假证假票))");
         builder.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        builder.filterField(FtsFieldConst.FIELD_APPRAISE,"负面",Operator.Equal);
         QueryBuilder builder2 = new QueryBuilder();
         builder2.setPageSize(3);
-        builder2.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\灵璧县" + ")");
+        builder2.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\灵璧县" + ")"+" NOT (IR_NOISEMESSAGE:(采购招标 OR 游戏信息 OR 涉黄信息 OR 赌博彩票 OR 母婴广告 OR 招生招聘 OR 转发抽奖 OR 影视剧场 OR 婚恋交友 OR 明星娱乐 OR 股票信息 OR 假证假票))");
         builder2.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        builder2.filterField(FtsFieldConst.FIELD_APPRAISE,"负面",Operator.Equal);
         QueryBuilder builder3 = new QueryBuilder();
         builder3.setPageSize(3);
-        builder3.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\砀山县" + ")");
+        builder3.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\砀山县" + ") NOT (IR_NOISEMESSAGE:(采购招标 OR 游戏信息 OR 涉黄信息 OR 赌博彩票 OR 母婴广告 OR 招生招聘 OR 转发抽奖 OR 影视剧场 OR 婚恋交友 OR 明星娱乐 OR 股票信息 OR 假证假票))");
         builder3.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        builder3.filterField(FtsFieldConst.FIELD_APPRAISE,"负面",Operator.Equal);
         QueryBuilder builder4 = new QueryBuilder();
         builder4.setPageSize(3);
-        builder4.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\萧县" + ")");
+        builder4.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\萧县" + ") NOT (IR_NOISEMESSAGE:(采购招标 OR 游戏信息 OR 涉黄信息 OR 赌博彩票 OR 母婴广告 OR 招生招聘 OR 转发抽奖 OR 影视剧场 OR 婚恋交友 OR 明星娱乐 OR 股票信息 OR 假证假票))");
         builder4.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        builder4.filterField(FtsFieldConst.FIELD_APPRAISE,"负面",Operator.Equal);
         QueryBuilder builder5 = new QueryBuilder();
         builder5.setPageSize(3);
-        builder5.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\埇桥区" + ")");
+        builder5.filterByTRSL(contrastField + ":(" +"中国\\\\安徽省\\\\宿州市\\\\埇桥区" + ") NOT (IR_NOISEMESSAGE:(采购招标 OR 游戏信息 OR 涉黄信息 OR 赌博彩票 OR 母婴广告 OR 招生招聘 OR 转发抽奖 OR 影视剧场 OR 婚恋交友 OR 明星娱乐 OR 股票信息 OR 假证假票))");
         builder5.filterField(FtsFieldConst.FIELD_URLTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
+        builder5.filterField(FtsFieldConst.FIELD_APPRAISE,"负面",Operator.Equal);
         InfoListResult infoListResult = null;
         InfoListResult infoListResult2 = null;
         InfoListResult infoListResult3 = null;
@@ -574,14 +579,17 @@ public class BigScreenServiceImpl implements IBigScreenService {
         queryBuilder.setPageNo(0);
         queryBuilder.setPageSize(50);
         queryBuilder.orderBy("IR_LASTTIME", true);
-        if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)) {
+        if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) ||("微博".equals(siteName) && "要闻榜".equals(channelName))) {
             queryBuilder.orderBy("IR_RANK", false);
         }
-        if (ObjectUtil.isNotEmpty(channelName)) queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL,channelName,Operator.Equal);
+        if (ObjectUtil.isNotEmpty(channelName)){
+            queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL,channelName,Operator.Equal);
+            if ("同城榜".equals(channelName)){
+                //只有同城榜需要 IR_CITY 字段 新增字段需要做空判断 默认北京
+            }
+        }
         if (ObjectUtil.isNotEmpty(siteName)) queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,siteName,Operator.Equal);
         if (StringUtil.isNotEmpty(keyword)) {
-//            String trsl = "IR_URLTITLE:" + keyword;
-//            queryBuilder.filterByTRSL(trsl);
             String[] split = keyword.split("\\s+|,");
             String splitNode = "";
             for (int i = 0; i < split.length; i++) {
@@ -604,9 +612,9 @@ public class BigScreenServiceImpl implements IBigScreenService {
                     .replaceAll("[;|；]+", "\" OR \"")).append("\"))");
             queryBuilder.filterByTRSL(fuzzyBuilder.toString());
         }
-        if (Const.GROUPNAME_WEIBO.equals(siteName)){
-            queryBuilder.setDatabase("热搜榜".equals(channelName) ? Const.WEIBO_RSB : Const.WEIBO_HTB);
-            if ("热搜榜".equals(channelName)){
+        if (Const.GROUPNAME_WEIBO.equals(siteName) && !"要闻榜".equals(channelName)){
+            queryBuilder.setDatabase(Const.DC_BANGDAN);
+            if ("热搜榜".equals(channelName) || "娱乐榜".equals(channelName)){
                 //微博热搜榜
                 PagedList<FtsRankListRsb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListRsb.class,false,false,false,"hotTop");
                 List<FtsRankListRsb> list = ftsPageList.getPageItems();
@@ -630,13 +638,14 @@ public class BigScreenServiceImpl implements IBigScreenService {
                 for (FtsRankListRsb vo : listTemp) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("title",vo.getHotWord());
-                    map.put("heat",vo.getDescExtr());
+                    map.put("heat",vo.getHeat());
                     resultList.add(map);
                 }
                 return resultList;
             }else {
                 //微博话题榜
 //                queryBuilder.orderBy("IR_READNUM", true);
+                queryBuilder.filterField(FtsFieldConst.FENLEI_HOTTOP,"总榜",Operator.Equal);
                 PagedList<FtsRankListHtb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListHtb.class,false,false,false,"hotTop");
                 List<FtsRankListHtb> list = ftsPageList.getPageItems();
                 SortListHtb sortList = new SortListHtb();
@@ -683,7 +692,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
             if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
                 SortListBangdan sortList = new SortListBangdan();
                 Collections.sort(listTemp, sortList);
-            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)){
+            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) ||("微博".equals(siteName) && "要闻榜".equals(channelName))){
 
             }else {
                 SortListBangdanHeat sortList = new SortListBangdanHeat();
@@ -697,8 +706,8 @@ public class BigScreenServiceImpl implements IBigScreenService {
                 map.put("title",vo.getTitle());
                 if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
                     map.put("heat",vo.getSearchIndex());
-                }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)){
-
+                }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) || ("微博".equals(siteName) && "要闻榜".equals(channelName))){
+//这些没有热度指数
                 }else {
                     map.put("heat",vo.getHeat());
                 }
@@ -707,6 +716,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
             }
             return resultList;
         }
+
     }
 
     @Override

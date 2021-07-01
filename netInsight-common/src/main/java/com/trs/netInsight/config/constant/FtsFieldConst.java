@@ -651,6 +651,10 @@ public class FtsFieldConst {
 
 //	已读 标
 	public static final String FIELD_READ = "IR_READ";
+	/**
+	 * 热榜分类
+	 */
+	public static final String FENLEI_HOTTOP = "IR_FENLEI";
 
 }
 

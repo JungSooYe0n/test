@@ -19,6 +19,7 @@ public class SortListRsb implements Comparator<Object> {
             log.info("解析时间出错");
             return 0;
         }
+        if (ObjectUtil.isEmpty(d1) || ObjectUtil.isEmpty(d2)) return -1;
         if (Integer.valueOf(d1) > Integer.valueOf(d2)) {
             return -1;
         } else {
