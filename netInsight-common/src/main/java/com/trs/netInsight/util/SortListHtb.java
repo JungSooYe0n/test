@@ -19,7 +19,8 @@ public class SortListHtb implements Comparator<Object> {
             log.info("解析时间出错");
             return 0;
         }
-        if (Integer.valueOf(d1) > Integer.valueOf(d2)) {
+        if (ObjectUtil.isEmpty(d1) || ObjectUtil.isEmpty(d2)) return -1;
+        if (Long.parseLong(d1) > Long.parseLong(d2)) {
             return -1;
         } else {
             return 1;
