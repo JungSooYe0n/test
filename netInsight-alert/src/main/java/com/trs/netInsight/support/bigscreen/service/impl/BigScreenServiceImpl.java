@@ -579,14 +579,17 @@ public class BigScreenServiceImpl implements IBigScreenService {
         queryBuilder.setPageNo(0);
         queryBuilder.setPageSize(50);
         queryBuilder.orderBy("IR_LASTTIME", true);
-        if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)) {
+        if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) ||("微博".equals(siteName) && "要闻榜".equals(channelName))) {
             queryBuilder.orderBy("IR_RANK", false);
         }
-        if (ObjectUtil.isNotEmpty(channelName)) queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL,channelName,Operator.Equal);
+        if (ObjectUtil.isNotEmpty(channelName)){
+            queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL,channelName,Operator.Equal);
+            if ("同城榜".equals(channelName)){
+                //只有同城榜需要 IR_CITY 字段 新增字段需要做空判断 默认北京
+            }
+        }
         if (ObjectUtil.isNotEmpty(siteName)) queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,siteName,Operator.Equal);
         if (StringUtil.isNotEmpty(keyword)) {
-//            String trsl = "IR_URLTITLE:" + keyword;
-//            queryBuilder.filterByTRSL(trsl);
             String[] split = keyword.split("\\s+|,");
             String splitNode = "";
             for (int i = 0; i < split.length; i++) {
@@ -609,9 +612,9 @@ public class BigScreenServiceImpl implements IBigScreenService {
                     .replaceAll("[;|；]+", "\" OR \"")).append("\"))");
             queryBuilder.filterByTRSL(fuzzyBuilder.toString());
         }
-        if (Const.GROUPNAME_WEIBO.equals(siteName)){
-            queryBuilder.setDatabase("热搜榜".equals(channelName) ? Const.WEIBO_RSB : Const.WEIBO_HTB);
-            if ("热搜榜".equals(channelName)){
+        if (Const.GROUPNAME_WEIBO.equals(siteName) && !"要闻榜".equals(channelName)){
+            queryBuilder.setDatabase(Const.DC_BANGDAN);
+            if ("热搜榜".equals(channelName) || "娱乐榜".equals(channelName)){
                 //微博热搜榜
                 PagedList<FtsRankListRsb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListRsb.class,false,false,false,"hotTop");
                 List<FtsRankListRsb> list = ftsPageList.getPageItems();
@@ -635,13 +638,14 @@ public class BigScreenServiceImpl implements IBigScreenService {
                 for (FtsRankListRsb vo : listTemp) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("title",vo.getHotWord());
-                    map.put("heat",vo.getDescExtr());
+                    map.put("heat",vo.getHeat());
                     resultList.add(map);
                 }
                 return resultList;
             }else {
                 //微博话题榜
 //                queryBuilder.orderBy("IR_READNUM", true);
+                queryBuilder.filterField(FtsFieldConst.FENLEI_HOTTOP,"总榜",Operator.Equal);
                 PagedList<FtsRankListHtb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListHtb.class,false,false,false,"hotTop");
                 List<FtsRankListHtb> list = ftsPageList.getPageItems();
                 SortListHtb sortList = new SortListHtb();
@@ -688,7 +692,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
             if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
                 SortListBangdan sortList = new SortListBangdan();
                 Collections.sort(listTemp, sortList);
-            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)){
+            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) ||("微博".equals(siteName) && "要闻榜".equals(channelName))){
 
             }else {
                 SortListBangdanHeat sortList = new SortListBangdanHeat();
@@ -702,8 +706,8 @@ public class BigScreenServiceImpl implements IBigScreenService {
                 map.put("title",vo.getTitle());
                 if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
                     map.put("heat",vo.getSearchIndex());
-                }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName)){
-
+                }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) || ("微博".equals(siteName) && "要闻榜".equals(channelName))){
+//这些没有热度指数
                 }else {
                     map.put("heat",vo.getHeat());
                 }
@@ -712,6 +716,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
             }
             return resultList;
         }
+
     }
 
     @Override
