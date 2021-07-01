@@ -49,6 +49,8 @@ public class ChartConst {
 	public static final String AUTOLOGINUSERNAME = "TMY-";
 	public static final String AUTOLOGIN_ZB = "浙报-";
 	public static final String AUTOLOGINUSERNAME_ZB = "ZB-";
+	public static final String AUTOLOGIN_SZ = "宿州-";
+	public static final String AUTOLOGINUSERNAME_SZ = "SZ-";
 
 }
 

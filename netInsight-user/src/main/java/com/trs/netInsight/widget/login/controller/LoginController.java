@@ -1,15 +1,19 @@
 package com.trs.netInsight.widget.login.controller;
 
+import com.alibaba.fastjson.JSONObject;
+import com.trs.netInsight.config.constant.ChartConst;
 import com.trs.netInsight.config.constant.Const;
 import com.trs.netInsight.handler.exception.LoginException;
 import com.trs.netInsight.handler.exception.TRSException;
 import com.trs.netInsight.handler.result.FormatResult;
+import com.trs.netInsight.shiro.EasyTypeToken;
 import com.trs.netInsight.support.log.entity.enums.SystemLogOperation;
 import com.trs.netInsight.support.log.entity.enums.SystemLogType;
 import com.trs.netInsight.support.log.handler.Log;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.login.service.ILoginService;
+import com.trs.netInsight.widget.user.controller.OrganAutoRegisterController;
 import com.trs.netInsight.widget.user.entity.*;
 import com.trs.netInsight.widget.user.entity.enums.CheckRole;
 import com.trs.netInsight.widget.user.service.*;
@@ -64,6 +68,9 @@ public class LoginController {
 	@Value("${singleLoginAddress}")
 	private String singleLoginAddress;
 
+	@Value("${ssoServerUrl}")
+	private String ssoServerUrl;
+
 	@Autowired
 	private IUserService userService;
 
@@ -77,6 +84,9 @@ public class LoginController {
 
 	@Autowired
 	private ILoginPageConfigService loginPageConfigService;
+
+	@Autowired
+	private OrganAutoRegisterController organAutoRegisterController;
 
 	@Value("${system.authority.login.orgId}")
 	private String authorityOrgId;
@@ -452,6 +462,48 @@ public class LoginController {
 		return "login";
 	}
 
+	/**
+	 * 单点登录接口
+	 *
+	 * @date Created at 2018年7月2日 下午3:49:18
+	 * @param token
+	 * @param request
+	 * @param response
+	 * @return http://localhost:28088/netInsight/user/singleLogin?userName=lilingshao&password=1q2w3e4R
+	 * @throws TRSException
+	 */
+	@Log(systemLogOperation = SystemLogOperation.FORM_LOGIN, systemLogType = SystemLogType.LOGIN, methodDescription = "登录账号为：${userName}", systemLogOperationPosition = "登录账号为：@{userName}")
+	@RequestMapping(value = "/ssoLogin", method = {RequestMethod.GET,RequestMethod.POST})
+	public String ssoLogin(@RequestParam(value = "token" ,required = false) String token,
+							  HttpServletRequest request, HttpServletResponse response) throws TRSException {
+		String result = HttpUtil.sendGet(ssoServerUrl,"token="+token);
+		JSONObject parseObject = JSONObject.parseObject(result);
+		String userName = parseObject.getString("username");
+		String userNameNew = ChartConst.AUTOLOGINUSERNAME_SZ+userName;
+		User user = userService.findByUserName(userNameNew);
+		if(ObjectUtil.isEmpty(user)){
+			//user =new User()
+            organAutoRegisterController.autoLoginNew(userName,"单点登录",null,0,request);
+			//userService.add(user,false);
+		}
+		//UsernamePasswordToken token = new UsernamePasswordToken(userName, password, false);
+		EasyTypeToken authToken = new EasyTypeToken(userNameNew);
+		try {
+			loginService.login(authToken, userNameNew, NetworkUtil.getIpAddress(request));
+			//User user = userService.findByUserName(userName);
+			user = UserUtils.checkOrganization(user);
+			if (user != null){
+//				return "redirect:http://localhost:8080/customIndex";
+				return "redirect:" + singleLoginAddress;
+			}else{
+//				return "用户名密码错误!";
+				return "login";
+			}
+		} catch (Exception e) {
+			log.error("登录失败：", e);
+		}
+		return "login";
+	}
 	/**
 	 * 单点登录接口（密码加密传输）
 	 *
