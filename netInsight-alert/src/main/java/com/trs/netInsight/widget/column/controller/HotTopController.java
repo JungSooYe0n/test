@@ -62,13 +62,13 @@ public class HotTopController {
         if (hotTops.size() > 0){
             log.info(hotTops.toString());
         }else {
-            hotTops.add(new HotTop("微博",1,false,"热搜榜;话题榜"));
-            hotTops.add(new HotTop("百度",2,false,"百度热榜"));
+            hotTops.add(new HotTop("微博",1,false,"热搜榜;话题榜;娱乐榜;要闻榜"));
+            hotTops.add(new HotTop("百度",2,false,"百度热搜"));
             hotTops.add(new HotTop("360",3,false,"360热搜榜"));
             hotTops.add(new HotTop("搜狗",4,false,"热搜榜;微信热搜词"));
             hotTops.add(new HotTop("腾讯",5,false,"腾讯新闻话题榜"));
-            hotTops.add(new HotTop("今日头条",6,false,"头条热榜"));
-            hotTops.add(new HotTop("抖音",7,false,"抖音热榜"));
+            hotTops.add(new HotTop("今日头条",6,false,"头条热榜;同城榜"));
+            hotTops.add(new HotTop("抖音",7,false,"热点榜;娱乐榜;社会榜;同城榜"));
             hotTops.add(new HotTop("知乎",8,false,"热榜;热搜榜"));
             hotTops.add(new HotTop("哔哩哔哩",9,false,"哔哩哔哩排行榜"));
             hotTops.add(new HotTop("澎湃",10,false,"澎湃热新闻"));
@@ -81,6 +81,7 @@ public class HotTopController {
             hashMap.put("name",hotTop.getName());
             hashMap.put("sequence",hotTop.getSequence());
             hashMap.put("hide",hotTop.isHide());
+            hashMap.put("location",hotTop.getLocation());
             List list = new ArrayList();
             String childrenSort = hotTop.getChildrenSort();
             String[] children = childrenSort.split(";|；");
@@ -113,6 +114,9 @@ public class HotTopController {
                     hotTop.setHide(parseObject.getBoolean("hide"));
                     hotTop.setSequence(sequence);
                     hotTop.setChildrenSort(parseObject.getString("childrenSort"));
+                    if ("抖音".equals(name) || "今日头条".equals(name)) {
+                        hotTop.setLocation(parseObject.getString("location"));
+                    }
                 }
             }
         }
@@ -126,7 +130,8 @@ public class HotTopController {
     public Object hotList(@ApiParam("时间区间") @RequestParam(value = "timeRange", required = true) String timeRange,
                                  @ApiParam("榜单类型") @RequestParam(value = "siteName", required = true) String siteName,
                                  @ApiParam("频道类型") @RequestParam(value = "channelName", required = false) String channelName,
-                                 @ApiParam("关键词") @RequestParam(value = "keyword", required = false) String keyword) throws TRSException {
+                                 @ApiParam("关键词") @RequestParam(value = "keyword", required = false) String keyword,
+                          @ApiParam("同城（对外接口使用,可不传）") @RequestParam(value = "location", required = false) String location) throws TRSException {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.filterField(FtsFieldConst.FIELD_LASTTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
         queryBuilder.setPageNo(0);
@@ -137,7 +142,20 @@ public class HotTopController {
         }
         if (ObjectUtil.isNotEmpty(channelName)){
             queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL,channelName,Operator.Equal);
-            if ("同城榜".equals(channelName)) queryBuilder.filterField("IR_CITY","北京",Operator.Equal);
+            if ("同城榜".equals(channelName)){
+                //只有同城榜需要 IR_CITY 字段 新增字段需要做空判断 默认北京
+                if (ObjectUtil.isEmpty(location)) {
+                    User user = UserUtils.getUser();
+                    String name = siteName.contains("抖音") ? "抖音" : siteName.contains("今日头条") ? "今日头条" : "";
+                    if (ObjectUtil.isNotEmpty(user) && StringUtil.isNotEmpty(name)) {
+                        List<HotTop> hotTops = hotTopRepository.findByUserIdAndName(user.getId(), name);
+                        if (ObjectUtil.isNotEmpty(hotTops)) location = hotTops.get(0).getLocation();
+                    } else {
+                        location = "北京";
+                    }
+                }
+                queryBuilder.filterField("IR_CITY",ObjectUtil.isNotEmpty(location) ? location : "北京",Operator.Equal);
+            }
         }
         if (ObjectUtil.isNotEmpty(siteName)) queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME,siteName,Operator.Equal);
         if (StringUtil.isNotEmpty(keyword)) {
@@ -302,14 +320,19 @@ public class HotTopController {
         List<HotTop> hotTops = hotTopRepository.findAll();
         for (HotTop hotTop: hotTops) {
            switch (hotTop.getName()){
+               case "微博":
+                   hotTop.setChildrenSort("热搜榜;话题榜;娱乐榜;要闻榜");
+                   break;
                case "百度":
                    hotTop.setChildrenSort("百度热搜");
                    break;
                case "今日头条":
                    hotTop.setChildrenSort("头条热榜;同城榜");
+                   hotTop.setLocation("北京");
                    break;
                case "抖音":
                    hotTop.setChildrenSort("热点榜;娱乐榜;社会榜;同城榜");
+                   hotTop.setLocation("北京");
                    break;
            }
         }

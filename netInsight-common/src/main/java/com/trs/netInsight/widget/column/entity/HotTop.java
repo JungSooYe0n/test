@@ -32,6 +32,8 @@ public class HotTop extends BaseEntity {
     private boolean hide = false;
     @Column(name = "children_sort")
     private String childrenSort;
+    @Column(name = "location")
+    private String location;
     public HotTop(String name,Integer sequence,boolean hide,String childrenSort){
         this.name = name;
         this.sequence = sequence;
