@@ -2123,6 +2123,18 @@ private String isArticleDelete(String startTrsl,String... indices){
 				String enddate = sdf.format(endDate);
 				String startdate = sdf.format(beginDate);
 				return FtsFieldConst.FIELD_URLTIME + ":[" + startdate + " TO " + enddate + "]";
+			} else {
+				int dataDate = 30;
+				if("detail".equals(type)){
+					//查文章详情
+					dataDate = 365;
+				}
+				Date date = new Date();
+				SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.yyyyMMddHHmmssSSS);
+				// 获取String类型的时间
+				String endCatch = sdf.format(date);
+				String startCatch = DateUtil.formatDateAfter(date, DateUtil.yyyyMMddHHmmssSSS, -dataDate);
+				return FtsFieldConst.FIELD_URLTIME + ":[" + startCatch + " TO " + endCatch + "]";
 			}
 		}else {
 			int dataDate = 30;
@@ -2137,7 +2149,7 @@ private String isArticleDelete(String startTrsl,String... indices){
 			String startCatch = DateUtil.formatDateAfter(date, DateUtil.yyyyMMddHHmmssSSS, -dataDate);
 			return FtsFieldConst.FIELD_URLTIME + ":[" + startCatch + " TO " + endCatch + "]";
 		}
-		return null;
+//		return null;
 	}
 
 	/**

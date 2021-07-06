@@ -594,14 +594,14 @@ public class AlertRule extends BaseEntity {
 					if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
 						this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
 					}
-					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 				}
 				//监测网站
 				if (StringUtil.isNotEmpty(this.monitorSite)) {
 					if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
 						this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
 					}
-					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
+					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 				}
 				break;
 			case SPECIAL:
@@ -704,14 +704,14 @@ public class AlertRule extends BaseEntity {
 					if (this.excludeSiteName.endsWith(";") || this.excludeSiteName.endsWith("；")){
 						this.excludeSiteName = this.excludeSiteName.substring(0,this.excludeSiteName.length()-1);
 					}
-					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
+					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE, this.excludeSiteName.replaceAll(";|；", " OR "), Operator.NotEqual);
 				}
 				//监测网站
 				if (StringUtil.isNotEmpty(this.monitorSite)) {
 					if (this.monitorSite.endsWith(";") || this.monitorSite.endsWith("；")){
 						this.monitorSite = this.monitorSite.substring(0,this.monitorSite.length()-1);
 					}
-					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
+					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 				}
 				break;
 			case SPECIAL:
