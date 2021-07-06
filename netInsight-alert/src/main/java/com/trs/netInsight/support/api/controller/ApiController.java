@@ -1230,24 +1230,28 @@ public class ApiController {
                                   //@ApiParam("表达式存入redis时的key值，用于关键字描红") @RequestParam(value = "trslk",required = false) String trslk,
                                   @ApiParam("当前需查看详情的文章的groupName值,必填参数") @RequestParam(value = "groupName",required = true) String groupName,
                                   @ApiParam("国内论坛主、回帖标识，当前文章groupName若为国内论坛，可将nreserved1值对应填入此参数") @RequestParam(value = "nreserved1",required = false) String nreserved1,
-                                  @ApiParam("当前需查看详情的文章的唯一值，其中微信，即国内微信取hKey的值，其他均取sid的值，必填参数")@RequestParam(value = "id", required = true) String id)throws OperationException,TRSException{
-
-        String trslk = null;
-        if (Const.MEDIA_TYPE_NEWS.contains(groupName)){
-            //传统
-            return infoListController.oneInfo(id,null,trslk,nreserved1);
-        }else if (Const.MEDIA_TYPE_WEIBO.contains(groupName)){
-            //微博
-            return infoListController.oneInfoStatus(id,null,trslk);
-        }else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)){
-            //微信
-            return infoListController.oneInfoWeChat(id,null,trslk);
-        }else if (Const.MEDIA_TYPE_TF.contains(groupName)){
-            //twitter、facebook
-            return infoListController.oneInfoTF(id,null,trslk);
+                                  @ApiParam("当前需查看详情的文章的唯一值，其中微信，即国内微信取hKey的值，其他均取sid的值，必填参数")@RequestParam(value = "id", required = true) String id) throws OperationException, TRSException, com.trs.hybase.client.TRSException {
+        ApiAccessToken token = getToken(request);
+        User user = userRepository.findOne(token.getGrantSourceOwnerId());
+        if (ObjectUtil.isNotEmpty(user)) {
+            return infoListController.oneInfoAll(id, null, null, groupName, nreserved1);
         }
-
-        throw new OperationException("请填写正确的groupName值");
+//        String trslk = null;
+//        if (Const.MEDIA_TYPE_NEWS.contains(groupName)){
+//            //传统
+//            return infoListController.oneInfo(id,null,trslk,nreserved1);
+//        }else if (Const.MEDIA_TYPE_WEIBO.contains(groupName)){
+//            //微博
+//            return infoListController.oneInfoStatus(id,null,trslk);
+//        }else if (Const.MEDIA_TYPE_WEIXIN.contains(groupName)){
+//            //微信
+//            return infoListController.oneInfoWeChat(id,null,trslk);
+//        }else if (Const.MEDIA_TYPE_TF.contains(groupName)){
+//            //twitter、facebook
+//            return infoListController.oneInfoTF(id,null,trslk);
+//        }
+        return null;
+        //throw new OperationException("请填写正确的groupName值");
     }
 
     /**
