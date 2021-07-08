@@ -176,6 +176,15 @@ public class AccessControlFilter {
 		ApiFrequency frequency = frequencyService.findByCodeWithClient(code, client);
 		int maxH = 30;// 每小时最大调用数
 		int maxD = 300;// 每天最大调用数
+		String level = client.getFrequencyLevel();
+		if("Low".equals(level)){
+           maxH = 10;
+           maxD = 100;
+		}
+		if("High".equals(level)){
+			maxH = 60;
+			maxD = 600;
+		}
 		String frequencyStr = frequency.getFrequencyCustom();
 		if (StringUtils.isNotBlank(frequencyStr)) {// 自定义频率优先
 			String[] range = frequencyStr.split(";");

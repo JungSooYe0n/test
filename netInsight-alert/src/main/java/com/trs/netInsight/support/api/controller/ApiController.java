@@ -1076,9 +1076,13 @@ public class ApiController {
     @Api(value = "select data by keyWords",method = ApiMethod.SelectData)
     @GetMapping("/selectData")
     @Log(systemLogOperation = SystemLogOperation.SELECT_DATA, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
-    public Object selectData( @RequestParam(value = "accessToken") String accessToken,HttpServletRequest request, @RequestParam(value = "keyWords") String keyWords,
-                              @RequestParam(value = "time",defaultValue = "7d",required = false) String time, @RequestParam(value = "groupName",required = false) String groupName,
-                              @RequestParam(value = "pageNo",defaultValue = "0") int pageNo, @RequestParam(value = "pageSize",defaultValue = "10") int pageSize)throws OperationException,TRSException{
+    public Object selectData( @RequestParam(value = "accessToken") String accessToken,
+                              HttpServletRequest request,
+                              @RequestParam(value = "keyWords") String keyWords,
+                              @RequestParam(value = "time",defaultValue = "0d",required = false) String time,
+                              @RequestParam(value = "groupName",required = false) String groupName,
+                              @RequestParam(value = "pageNo",defaultValue = "0") int pageNo,
+                              @RequestParam(value = "pageSize",defaultValue = "10") int pageSize)throws OperationException,TRSException{
         //防止前端乱输入
         pageSize = pageSize>=1?pageSize:10;
         QueryCommonBuilder commonBuilder = new QueryCommonBuilder();
@@ -1142,7 +1146,7 @@ public class ApiController {
     @GetMapping("/advancedSearch")
     @Log(systemLogOperation = SystemLogOperation.ADVANCED_SEARCH, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
     public Object advancedSearch(@RequestParam(value = "accessToken") String accessToken,HttpServletRequest request,
-                                 @RequestParam(value = "keywords", required = false) String keywords,
+                                 @RequestParam(value = "keywords") String keywords,
                                  @RequestParam(value = "groupName",defaultValue = "ALL",required = false) String groupName,
                                  @RequestParam(value = "sort", defaultValue = "desc", required = false) String sort,
                                  @RequestParam(value = "time",defaultValue = "7d",required = false) String time,
@@ -1229,7 +1233,7 @@ public class ApiController {
     public Object documentDetail( @RequestParam(value = "accessToken") String accessToken,HttpServletRequest request,
                                   //@ApiParam("表达式存入redis时的key值，用于关键字描红") @RequestParam(value = "trslk",required = false) String trslk,
                                   @ApiParam("当前需查看详情的文章的groupName值,必填参数") @RequestParam(value = "groupName",required = true) String groupName,
-                                  @ApiParam("国内论坛主、回帖标识，当前文章groupName若为国内论坛，可将nreserved1值对应填入此参数") @RequestParam(value = "nreserved1",required = false) String nreserved1,
+                                  @ApiParam("国内论坛主、回帖标识，当前文章groupName若为国内论坛，nreserved1论坛主贴 0 /回帖 1") @RequestParam(value = "nreserved1",required = false) String nreserved1,
                                   @ApiParam("当前需查看详情的文章的唯一值，其中微信，即国内微信取hKey的值，其他均取sid的值，必填参数")@RequestParam(value = "id", required = true) String id) throws OperationException, TRSException, com.trs.hybase.client.TRSException {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());

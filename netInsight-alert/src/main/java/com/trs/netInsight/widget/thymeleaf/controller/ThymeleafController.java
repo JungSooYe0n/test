@@ -156,7 +156,9 @@ public class ThymeleafController {
         modelMap.addAttribute("alertTime", returnMap.get("alertTime"));
         modelMap.addAttribute("size", returnMap.get("size"));
         modelMap.addAttribute("datas", returnMap.get("datas"));
-
+        if(returnMap.get("size").toString().equals("1")){
+        return "wechat1";
+          }
         return "wechat";
     }
 }
