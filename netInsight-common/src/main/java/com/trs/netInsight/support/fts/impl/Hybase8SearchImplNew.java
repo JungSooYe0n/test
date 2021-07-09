@@ -764,6 +764,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
         queryCount();
         String db = addHybaseInsert(String.join(";", indices));
         trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, indices);
+        //log.info("数据统计最终查询表达式：" + trsl);
         TRSConnection connection = null;
         try {
             String startConnect = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
