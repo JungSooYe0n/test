@@ -112,6 +112,28 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("contentArea", chart.getContentArea());
                 chartMap.put("mediaArea", chart.getMediaArea());
                 chartMap.put("preciseFilter", chart.getPreciseFilter());
+                String[] filter = null;
+                List<String> xwList = new ArrayList<>();
+                List<String> ltList = new ArrayList<>();
+                List<String> wbList = new ArrayList<>();
+                if(StringUtil.isNotEmpty(chart.getPreciseFilter())) {
+                    filter = chart.getPreciseFilter().split(";");
+                    for (int i = 0; i < filter.length; i++) {
+                        if(filter[i].contains("News")){
+                            xwList.add(filter[i]);
+                        }
+                        if(filter[i].contains("Luntan")){
+                            ltList.add(filter[i]);
+                        }
+                        if(filter[i].contains("Weibo")){
+                            wbList.add(filter[i]);
+                        }
+                    }
+
+                }
+                chartMap.put("preciseXWFilter",String.join(";", xwList));
+                chartMap.put("preciseLTFilter",String.join(";", ltList));
+                chartMap.put("preciseWBFilter",String.join(";", wbList));
                 chartMap.put("pointToId", chart.getParentId());
                 result.add(chartMap);
             }

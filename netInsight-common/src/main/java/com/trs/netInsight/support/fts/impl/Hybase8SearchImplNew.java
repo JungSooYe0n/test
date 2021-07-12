@@ -1822,7 +1822,7 @@ private String changeSetTrslTime(String trsl,String search) throws TRSSearchExce
                 }
             }
 
-        }else if (UserUtils.isRolePlatform(user)) {
+        }else if (UserUtils.isRolePlatform(user)&&user.isExclusiveHybase()) {
             HybaseShard trsHybaseShard = null;
             String valueFromRedis = "";
             valueFromRedis = RedisFactory.getValueFromRedis(user.getId() + "xiaoku");

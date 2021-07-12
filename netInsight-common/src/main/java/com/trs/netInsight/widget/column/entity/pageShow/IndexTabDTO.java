@@ -13,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -51,6 +53,9 @@ public class IndexTabDTO implements Serializable {
     private String contentArea;
     private String mediaArea;
     private String preciseFilter;
+    private String preciseXWFilter;
+    private String preciseLTFilter;
+    private String preciseWBFilter;
     private Boolean updateWordForm;
     private Integer wordFromNum;
     private Boolean wordFromSort;
@@ -147,6 +152,28 @@ public class IndexTabDTO implements Serializable {
         this.contentIndustry= tab.getContentIndustry();
         this.filterInfo=tab.getFilterInfo();
         this.preciseFilter = tab.getPreciseFilter();
+        String[] filter = null;
+        List<String> xwList = new ArrayList<>();
+        List<String> ltList = new ArrayList<>();
+        List<String> wbList = new ArrayList<>();
+        if(StringUtil.isNotEmpty(preciseFilter)) {
+           filter = tab.getPreciseFilter().split(";");
+            for (int i = 0; i < filter.length; i++) {
+                if(filter[i].contains("News")){
+                      xwList.add(filter[i]);
+                }
+                if(filter[i].contains("Luntan")){
+                    ltList.add(filter[i]);
+                }
+                if(filter[i].contains("Weibo")){
+                    wbList.add(filter[i]);
+                }
+            }
+
+        }
+        this.preciseXWFilter=String.join(";", xwList);
+        this.preciseLTFilter=String.join(";", ltList);
+        this.preciseWBFilter=String.join(";", wbList);
         this.contentArea=tab.getContentArea();
         this.mediaArea=tab.getMediaArea();
 
