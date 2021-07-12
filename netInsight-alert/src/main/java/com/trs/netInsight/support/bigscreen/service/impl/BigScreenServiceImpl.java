@@ -619,6 +619,9 @@ public class BigScreenServiceImpl implements IBigScreenService {
                 PagedList<FtsRankListRsb> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankListRsb.class,false,false,false,"hotTop");
                 List<FtsRankListRsb> list = ftsPageList.getPageItems();
                 List<FtsRankListRsb> listTemp = new ArrayList();
+                SortListRsb sortList = new SortListRsb();
+                //按时间排序
+                Collections.sort(list, sortList);
                 for(int i=0;i<list.size();i++){//排重取十条数据
                     boolean isAdd = true;
                     for (int j = 0; j < listTemp.size(); j++) {
@@ -631,9 +634,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
                     if (listTemp.size() > 7) break;
 
                 }
-                SortListRsb sortList = new SortListRsb();
-                //按时间排序
-                Collections.sort(listTemp, sortList);
+
                 List<Object> resultList = new ArrayList<>();
                 for (FtsRankListRsb vo : listTemp) {
                     Map<String, Object> map = new HashMap<>();
@@ -677,6 +678,16 @@ public class BigScreenServiceImpl implements IBigScreenService {
             PagedList<FtsRankList> ftsPageList = commonListService.queryPageListForClass(queryBuilder,FtsRankList.class,false,false,false,"hotTop");
             List<FtsRankList> list = ftsPageList.getPageItems();
             List<FtsRankList> listTemp = new ArrayList();
+            if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
+                SortListBangdan sortList = new SortListBangdan();
+                Collections.sort(list, sortList);
+            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) ||("微博".equals(siteName) && "要闻榜".equals(channelName))){
+
+            }else {
+                SortListBangdanHeat sortList = new SortListBangdanHeat();
+                //按时间排序
+                Collections.sort(list, sortList);
+            }
             for(int i=0;i<list.size();i++){//排重取十条数据
                 boolean isAdd = true;
                 for (int j = 0; j < listTemp.size(); j++) {
@@ -689,16 +700,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
                 if (listTemp.size() > 7) break;
 
             }
-            if (Const.HTB_SITENAME_BAIDU.equals(siteName) || Const.HTB_SITENAME_360.equals(siteName) || Const.HTB_SITENAME_soudog.equals(siteName)) {
-                SortListBangdan sortList = new SortListBangdan();
-                Collections.sort(listTemp, sortList);
-            }else if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) ||("微博".equals(siteName) && "要闻榜".equals(channelName))){
 
-            }else {
-                SortListBangdanHeat sortList = new SortListBangdanHeat();
-                //按时间排序
-                Collections.sort(listTemp, sortList);
-            }
 
             List<Object> resultList = new ArrayList<>();
             for (FtsRankList vo : listTemp) {
