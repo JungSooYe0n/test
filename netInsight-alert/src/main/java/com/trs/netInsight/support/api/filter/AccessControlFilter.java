@@ -205,11 +205,11 @@ public class AccessControlFilter {
 			//maxStepH++;
 			RedisUtil.increment(_Hkey, 1);
 			Integer integer = RedisUtil.getInteger(_Hkey);
-			log.info("_Hkey 未超出："+_Hkey+",对应maxStepH值："+maxStepH+",redis获取请求次数："+integer);
 			if (maxStepH > maxH) {
 				log.info("_Hkey 超出："+_Hkey+",对应maxStepH值："+maxStepH+",redis获取请求次数："+integer);
 				throw new ApiException(ApiResultType.TooMany);
 			}
+			log.info("_Hkey 未超出："+_Hkey+",对应maxStepH值："+maxStepH+",redis获取请求次数："+integer);
 			//RedisUtil.increment(_Hkey, 1);
 		}
 
@@ -226,11 +226,11 @@ public class AccessControlFilter {
 			//maxStepD++;
 			RedisUtil.increment(_Dkey, 1);
 			Integer integer = RedisUtil.getInteger(_Dkey);
-			log.info("_Dkey 未超出："+_Dkey+",对应maxStepD值："+maxStepD+",redis获取请求次数："+integer);
 			if (maxStepD > maxD) {
 				log.info("_Dkey 超出："+_Dkey+",对应maxStepD值："+maxStepD+",redis获取请求次数："+integer);
 				throw new ApiException(ApiResultType.TooMany);
 			}
+			log.info("_Dkey 未超出："+_Dkey+",对应maxStepD值："+maxStepD+",redis获取请求次数："+integer);
 			//RedisUtil.increment(_Dkey, 1);
 		}
 	}
