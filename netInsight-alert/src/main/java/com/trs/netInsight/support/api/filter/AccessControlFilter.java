@@ -171,7 +171,7 @@ public class AccessControlFilter {
 		if (code == 0 || StringUtils.isBlank(key)) {
 			throw new ApiException(ApiResultType.NotFind);
 		}
-		log.info("ApiClient grantOrgId："+client.getGrantOrgId()+",对应clientName："+client.getClientName());
+		log.info("ApiClient grantOrgId："+client.getGrantOrgId()+",对应clientName："+client.getClientName()+",对应apiCode："+code);
 		// 获取该api调用频率
 		ApiFrequency frequency = frequencyService.findByCodeWithClient(code, client);
 		int maxH = 30;// 每小时最大调用数
