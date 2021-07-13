@@ -5982,6 +5982,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //		}
 //		total += getScore(Long.valueOf(weiboVipNum),100,150,200) * 0.1;
 		int result = BigDecimal.valueOf(total).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+		if(total>0&&result==0){
+			result = 1;
+		}
 		return result;
 	}
 
