@@ -630,7 +630,28 @@ public class SpecialServiceImpl implements ISpecialService {
 					map.put("contentArea", tab.getContentArea());
 					map.put("mediaArea", tab.getMediaArea());
 					map.put("preciseFilter",tab.getPreciseFilter());
+					String[] filter = null;
+					List<String> xwList = new ArrayList<>();
+					List<String> ltList = new ArrayList<>();
+					List<String> wbList = new ArrayList<>();
+					if(StringUtil.isNotEmpty(tab.getPreciseFilter())) {
+						filter = tab.getPreciseFilter().split(";");
+						for (int i = 0; i < filter.length; i++) {
+							if(filter[i].contains("News")){
+								xwList.add(filter[i]);
+							}
+							if(filter[i].contains("Luntan")){
+								ltList.add(filter[i]);
+							}
+							if(filter[i].contains("Weibo")){
+								wbList.add(filter[i]);
+							}
+						}
 
+					}
+					map.put("preciseXWFilter",String.join(";", xwList));
+					map.put("preciseLTFilter",String.join(";", ltList));
+					map.put("preciseWBFilter",String.join(";", wbList));
 					if(!isGetOne.get(0) ){//之前还没找到一个要显示的 栏目数据
 						//要显示的栏目不可以是被隐藏的栏目 且它的父级不可以被隐藏
 							map.put("active", true);
