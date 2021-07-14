@@ -7520,13 +7520,15 @@ public class InfoListServiceImpl implements IInfoListService {
 			ChartResultField resultField = new ChartResultField("name", "value");
 			cateqoryQuery = (List<Map<String, Object>>)commonListService.queryListGroupNameStattotal(queryBuilder, sim, irSimflag, irSimflagAll, source, type, resultField);
 			Long count = 0L;
-			for(Map<String, Object> map :cateqoryQuery){
-				count += (Long)map.get(resultField.getCountField());
+			if(ObjectUtil.isNotEmpty(cateqoryQuery)) {
+				for (Map<String, Object> map : cateqoryQuery) {
+					count += (Long) map.get(resultField.getCountField());
+				}
+				Map<String, Object> total = new HashMap<>();
+				total.put(resultField.getContrastField(), "全部");
+				total.put(resultField.getCountField(), count);
+				cateqoryQuery.add(0, total);
 			}
-			Map<String, Object> total = new HashMap<>();
-			total.put(resultField.getContrastField(),"全部");
-			total.put(resultField.getCountField(),count);
-			cateqoryQuery.add(0,total);
 		} catch (Exception e) {
 			log.error("statByClassification error ", e);
 			throw new OperationException("statByClassification error: " + e, e);
