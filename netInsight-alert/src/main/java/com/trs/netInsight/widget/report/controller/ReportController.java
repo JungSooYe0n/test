@@ -91,6 +91,7 @@ public class ReportController {
 	public Object favouritesList(
 			@ApiParam("页数 从0开始") @RequestParam(value = "pageNo", defaultValue = "0") Integer pageNo,
 			@ApiParam("一页几条") @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+			@ApiParam("排序方式") @RequestParam(value = "sort", defaultValue = "default") String sort,
 			@ApiParam("来源") @RequestParam(value = "groupName", required = false) String groupName,
 			@ApiParam("在结果中搜索") @RequestParam(value = "keywords", required = false) String keywords,
 			@ApiParam("在结果中搜索de范围") @RequestParam(value = "fuzzyValueScope",defaultValue = "fullText",required = false) String fuzzyValueScope,
@@ -115,7 +116,7 @@ public class ReportController {
 				}
 			}
 
-			return reportService.getFavouritesByCondition(loginUser, pageNo, pageSize,
+			return reportService.getFavouritesByCondition(sort,loginUser, pageNo, pageSize,
 					source, keywords,fuzzyValueScope, invitationCard, forwarPrimary,false,isCapture);
 			/*
 			历史方法，但是没有筛选功能

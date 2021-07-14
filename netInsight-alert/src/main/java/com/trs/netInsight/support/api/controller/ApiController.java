@@ -362,7 +362,7 @@ public class ApiController {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)) {
-            return columnController.selectChart(id, "StatisticalChart", showType, "", "", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
+            return columnController.selectChart(id, "StatisticalChart", showType, "keywords", "", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
         }
         return null;
     }

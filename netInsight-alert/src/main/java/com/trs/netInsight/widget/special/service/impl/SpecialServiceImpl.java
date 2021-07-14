@@ -564,6 +564,10 @@ public class SpecialServiceImpl implements ISpecialService {
 				if (obj instanceof SpecialProject) {
 					SpecialProject tab = (SpecialProject) obj;
 					map.put("id",  tab.getId());
+					map.put("createdTime",  tab.getCreatedTime());
+					map.put("createdUserId",  tab.getCreatedUserId());
+					map.put("lastModifiedTime",  tab.getLastModifiedTime());
+					map.put("lastModifiedUserId",  tab.getLastModifiedUserId());
 					map.put("name", tab.getSpecialName());
 					map.put("flag", SpecialFlag.SpecialProjectFlag.ordinal());
 					map.put("flagSort", level);

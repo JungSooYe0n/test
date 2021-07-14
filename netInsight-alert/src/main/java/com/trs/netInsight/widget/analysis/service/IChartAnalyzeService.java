@@ -566,7 +566,7 @@ public interface IChartAnalyzeService {
 	 * @return
 	 */
 	public List<Map<String, String>> emotionOption(QueryBuilder searchBuilder, SpecialProject specialProject);
-	public int getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException;
+	public double getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException;
 
 	/**
 	 * 获取专题内图表列表数据

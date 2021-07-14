@@ -5920,7 +5920,7 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public int getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException {
+	public double getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException {
 		List<Map<String, Object>> list=new ArrayList<>();
 		boolean sim = specialProject.isSimilar();
 		boolean irSimflag = specialProject.isIrSimflag();
@@ -5981,9 +5981,9 @@ public class SpecialChartAnalyzeService implements IChartAnalyzeService {
 //			}
 //		}
 //		total += getScore(Long.valueOf(weiboVipNum),100,150,200) * 0.1;
-		int result = BigDecimal.valueOf(total).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+		double result = BigDecimal.valueOf(total).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
 		if(total>0&&result==0){
-			result = 1;
+			result =  total;
 		}
 		return result;
 	}

@@ -3143,7 +3143,7 @@ public class ChartAnalyzeService implements IChartAnalyzeService {
 	}
 
 	@Override
-	public int getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException {
+	public double getSituationAssessment(QueryBuilder searchBuilder, SpecialProject specialProject) throws TRSException {
 		return 0;
 	}
 
