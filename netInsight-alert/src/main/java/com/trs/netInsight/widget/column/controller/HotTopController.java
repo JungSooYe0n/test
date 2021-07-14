@@ -325,12 +325,13 @@ public class HotTopController {
     @FormatResult
     @GetMapping(value = "/getHotTopCity")
     @ApiOperation("获取城市")
-    public Object getHotTopCity() throws TRSException {
+    public Object getHotTopCity(@ApiParam("榜单类型") @RequestParam(value = "siteName", required = false) String siteName) throws TRSException {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setPageSize(500);
         queryBuilder.setPageNo(0);
         queryBuilder.filterField(FtsFieldConst.FIELD_LASTTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1("0d"), Operator.Between);
         queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL, "同城榜", Operator.Equal);
+        if (ObjectUtil.isNotEmpty(siteName)) queryBuilder.filterField(FtsFieldConst.FIELD_SITENAME, siteName, Operator.Equal);
         queryBuilder.setDatabase(Const.DC_BANGDAN);
         List<String> citys = new ArrayList<>();
 
