@@ -577,7 +577,7 @@ public class BigScreenServiceImpl implements IBigScreenService {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.filterField(FtsFieldConst.FIELD_LASTTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
         queryBuilder.setPageNo(0);
-        queryBuilder.setPageSize(50);
+        queryBuilder.setPageSize(100);
         queryBuilder.orderBy("IR_LASTTIME", true);
         if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) ||("微博".equals(siteName) && "要闻榜".equals(channelName))) {
             queryBuilder.orderBy("IR_RANK", false);

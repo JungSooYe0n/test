@@ -763,7 +763,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                                       String groupField, int limit, String type, String... indices) throws TRSSearchException {
         queryCount();
         String db = addHybaseInsert(String.join(";", indices));
-        trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, indices);
+        if (!"hotTop".equals(type)) trsl = commonMonthd(trsl, isSimilar, irSimflag, irSimflagAll, true, indices);
         //log.info("数据统计最终查询表达式：" + trsl);
         TRSConnection connection = null;
         try {
@@ -782,7 +782,7 @@ public class Hybase8SearchImplNew implements FullTextSearch {
                 return null;
 //                throw new TRSSearchException("时间范围不在权限之内",1008);
             }
-            if (isHybase80 && isOverOneByTrsl(trsl, true, type)) {
+            if (isHybase80 && isOverOneByTrsl(trsl, true, type) && !"hotTop".equals(type)) {
                 log.error("trsl------------>"+trsl);
                 searchParams.setProperty("search.match.rate", "80");
             }
