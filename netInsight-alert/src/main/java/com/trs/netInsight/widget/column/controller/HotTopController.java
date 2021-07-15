@@ -344,46 +344,66 @@ public class HotTopController {
         Comparator comparator = Collator.getInstance(Locale.CHINA);
         Collections.sort(citys, comparator);
         HashMap hashMap = new HashMap();
-        String lastZm = "";
-        List listZm = null;
+
         int size = citys.size();
+        String[] AllZm = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"};
         HashMap hashMapOne = new HashMap();
-        for (int i = 0; i < size; i++) {
-            String zm = PinyinUtil.toPinyinWithPolyphone(citys.get(i)).substring(0, 1).toUpperCase();
-
-            if (i == 0) {
-                listZm = new ArrayList();
-                HashMap hashMap1 = new HashMap();
-                hashMap1.put("name", citys.get(0));
-                lastZm = zm;
-                listZm.add(hashMap1);
-            } else {
-                if (zm.equals(lastZm)) {
+        for (int i = 0; i < AllZm.length; i++) {
+            //Comparator 排序不准确才用这个摘取字母的笨方法 26个循环
+            List listTZm = new ArrayList();
+            for (int j = 0; j < size; j++) {
+                String zm = PinyinUtil.toPinyinWithPolyphone(citys.get(j)).substring(0, 1).toUpperCase();
+                if (AllZm[i].equals(zm)){
                     HashMap hashMap1 = new HashMap();
-                    hashMap1.put("name", citys.get(i));
-                    listZm.add(hashMap1);
-                } else {
-                    //当不等于的时候，把上一个字母放进去，然后清空重新计算
-                    HashMap hashMap2 = new HashMap();
-                    hashMap2.put(lastZm, listZm);
-                    hashMapOne.putAll(hashMap2);
-                    listZm = new ArrayList();
-                    listZm.clear();
-                    lastZm = zm;
-                    HashMap hashMap3 = new HashMap();
-                    hashMap3.put("name", citys.get(i));
-                    listZm.add(hashMap3);
-
+                    hashMap1.put("name", citys.get(j));
+                    listTZm.add(hashMap1);
                 }
-                if (i == size - 1) {
-                    //最后一个字母会一直相同，需要把本字母放进去
-                    HashMap hashMap1 = new HashMap();
-                    hashMap1.put(lastZm, listZm);
-                    hashMapOne.putAll(hashMap1);
-                }
-
             }
+            if (listTZm.size() > 0) {
+                HashMap hashMap2 = new HashMap();
+                hashMap2.put(AllZm[i], listTZm);
+                hashMapOne.putAll(hashMap2);
+            }
+
         }
+//        String lastZm = "";
+//        List listZm = null;
+//        for (int i = 0; i < size; i++) {
+//            String zm = PinyinUtil.toPinyinWithPolyphone(citys.get(i)).substring(0, 1).toUpperCase();
+//
+//            if (i == 0) {
+//                listZm = new ArrayList();
+//                HashMap hashMap1 = new HashMap();
+//                hashMap1.put("name", citys.get(0));
+//                lastZm = zm;
+//                listZm.add(hashMap1);
+//            } else {
+//                if (zm.equals(lastZm)) {
+//                    HashMap hashMap1 = new HashMap();
+//                    hashMap1.put("name", citys.get(i));
+//                    listZm.add(hashMap1);
+//                } else {
+//                    //当不等于的时候，把上一个字母放进去，然后清空重新计算
+//                    HashMap hashMap2 = new HashMap();
+//                    hashMap2.put(lastZm, listZm);
+//                    hashMapOne.putAll(hashMap2);
+//                    listZm = new ArrayList();
+//                    listZm.clear();
+//                    lastZm = zm;
+//                    HashMap hashMap3 = new HashMap();
+//                    hashMap3.put("name", citys.get(i));
+//                    listZm.add(hashMap3);
+//
+//                }
+//                if (i == size - 1) {
+//                    //最后一个字母会一直相同，需要把本字母放进去
+//                    HashMap hashMap1 = new HashMap();
+//                    hashMap1.put(lastZm, listZm);
+//                    hashMapOne.putAll(hashMap1);
+//                }
+//
+//            }
+//        }
         hashMap.put("cities", hashMapOne);
         return hashMap;
     }
