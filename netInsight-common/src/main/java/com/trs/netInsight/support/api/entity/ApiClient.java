@@ -56,4 +56,11 @@ public class ApiClient extends BaseEntity {
 	@Column(name = "frequency_level")
 	private String frequencyLevel = ApiFrequencyConst.LEVEL_COMMON;
 
+	/**
+	 * 客户端状态
+	 */
+	@Column(name = "status")
+	private String status;
+
+
 }

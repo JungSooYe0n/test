@@ -842,7 +842,7 @@ public class ApiController {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)) {
-            Object other = specialChartAnalyzeController.affairVenation(specialId, 10, type, "", "0d", true, "", "", "", "", "", "", "", "", false, null, null, "", "", "", "", "", "", "", "", "", "");
+            Object other = specialChartAnalyzeController.affairVenation(specialId, 10, type, "", null, true, "", "", "", "", "", "", "", "", false, null, null, "", "", "", "", "", "", "", "", "", "");
             Map<String, Object> data = new HashMap<>();
             data.put("other", other);
             return data;
