@@ -3,6 +3,7 @@ package com.trs.netInsight.support.api.filter;
 import com.trs.netInsight.support.api.entity.ApiAccessToken;
 import com.trs.netInsight.support.api.entity.ApiClient;
 import com.trs.netInsight.support.api.entity.ApiFrequency;
+import com.trs.netInsight.support.api.entity.repository.IClientRepository;
 import com.trs.netInsight.support.api.exception.ApiException;
 import com.trs.netInsight.support.api.handler.Api;
 import com.trs.netInsight.support.api.result.ApiCommonResult;
@@ -10,6 +11,7 @@ import com.trs.netInsight.support.api.result.ApiResultType;
 import com.trs.netInsight.support.api.service.IApiFrequencyService;
 import com.trs.netInsight.support.api.service.IOAuthService;
 import com.trs.netInsight.support.api.utils.constance.GrantRange;
+import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.RedisUtil;
 import com.trs.netInsight.widget.UserHelp;
 import com.trs.netInsight.widget.user.entity.User;
@@ -50,6 +52,9 @@ public class AccessControlFilter {
 
 	@Autowired
 	private IApiFrequencyService frequencyService;
+
+	@Autowired
+	private IClientRepository clientRepository;
 
 	@Autowired
 	private UserHelp userHelp;
@@ -191,7 +196,16 @@ public class AccessControlFilter {
 			maxH = Integer.valueOf(range[0]);
 			maxD = Integer.valueOf(range[1]);
 		}
-
+		Long time = System.currentTimeMillis()/1000;
+		Long startTime= Long.valueOf(0);
+		Date start = client.getLastModifiedTime();
+		if(ObjectUtil.isNotEmpty(start)){
+			startTime=start.getTime()/1000+3600;
+		}
+		if(time>startTime) {
+			client.setStatus("1");
+			clientRepository.save(client);
+		}
 		// 每小时调用次数
 		String _Hkey = "Hkey" + key;
 		int maxStepH = 0;
@@ -201,11 +215,17 @@ public class AccessControlFilter {
 			RedisUtil.expire(_Hkey, 60, TimeUnit.MINUTES);
 			log.info("_Hkey new："+_Hkey+",对应maxStepH值："+maxStepH);
 		} else {
+			if("0".equals(client.getStatus())){
+				log.info("客户端:"+client.getClientName()+"已经锁定");
+				throw new ApiException(ApiResultType.TooMany);
+			}
 			maxStepH = RedisUtil.getInteger(_Hkey);
 			//maxStepH++;
 			RedisUtil.increment(_Hkey, 1);
 			Integer integer = RedisUtil.getInteger(_Hkey);
 			if (maxStepH > maxH) {
+				client.setStatus("0");
+				clientRepository.save(client);
 				log.info("_Hkey 超出："+_Hkey+",对应maxStepH值："+maxStepH+",redis获取请求次数："+integer);
 				throw new ApiException(ApiResultType.TooMany);
 			}
