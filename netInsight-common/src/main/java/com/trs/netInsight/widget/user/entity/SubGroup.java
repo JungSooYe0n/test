@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.user.entity;
 
+import com.trs.netInsight.widget.alert.entity.AlertAccount;
 import com.trs.netInsight.widget.base.entity.BaseEntity;
 import com.trs.netInsight.widget.user.entity.enums.Status;
 import lombok.Getter;
@@ -121,6 +122,12 @@ public class SubGroup extends BaseEntity {
      */
     @Transient
     private List<User> users;
+
+    /**
+     * 预警账号
+     */
+    @Transient
+    private List<AlertAccount> alerts;
 
     //分组角色
     @ManyToMany(fetch = FetchType.EAGER) // 多对多外键关联的配置

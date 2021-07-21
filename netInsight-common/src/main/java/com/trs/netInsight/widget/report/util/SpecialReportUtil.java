@@ -44,9 +44,12 @@ public class SpecialReportUtil {
     private static String getGaugeChart(String imgData) {
         if(StringUtil.isNotEmpty(imgData)){
             StringBuilder resultSb = new StringBuilder();
+            Double data = Double.valueOf(imgData);
+            if(data<1){
+                imgData="<1";
+            }
             resultSb.append("由图可知，目前热度指数为").append(imgData);
             resultSb.append("，事件态势处于");
-            Integer data = Integer.valueOf(imgData);
             if(data <=40){
                 resultSb.append("低热。");
             }else if(data <80 && data >40){

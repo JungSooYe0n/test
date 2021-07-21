@@ -586,18 +586,46 @@ public class AlertRuleController {
 	public Object sendAdd(
 			@ApiParam("类型 : SMS, EMAIL, WE_CHAT, APP, COMPOSITE, SMSandEMAIL, SMSandWE_CHAT") @RequestParam(value = "type", defaultValue = "ALL") SendWay type) {
 		User loginUser = UserUtils.getUser();
+		Map map = new HashMap();
 		List<AlertAccount> accountList = new ArrayList<>();
 		if (SendWay.SMS.equals(type)) {
 			// 获取机构内所有的用户名
+			AlertAccount adminUser =null;
 			String organizationId = UserUtils.getUser().getOrganizationId();
+			List<SubGroup> groups = subGroupRepository.findByOrganizationId(organizationId);
 			List<User> organizationList = userService.findByOrganizationIdAndIdNot(organizationId, loginUser.getId());
 			// 为了前段方便 把用户名 账号塞进去
-			for (User organization : organizationList) {
-				AlertAccount account = new AlertAccount();
-				account.setUserAccount(organization.getUserName());
-				account.setName(organization.getUserName());
-				accountList.add(account);
+//			for (User organization : organizationList) {
+//				AlertAccount account = new AlertAccount();
+//				account.setUserAccount(organization.getUserName());
+//				account.setName(organization.getUserName());
+//				accountList.add(account);
+//			}
+			for(SubGroup subGroup : groups){
+				List<User> users = new ArrayList<>();
+				List<AlertAccount> accounts =new ArrayList<>();
+              for(int i=0;i<organizationList.size();i++){
+              	String subId = organizationList.get(i).getSubGroupId();
+              	if(subGroup.getId().equals(subId)){
+              		users.add(organizationList.get(i));
+					AlertAccount account = new AlertAccount();
+					account.setUserAccount(organizationList.get(i).getUserName());
+					account.setName(organizationList.get(i).getUserName());
+					accounts.add(account);
+				}
+              	//subGroup.setUsers(users);
+              	subGroup.setAlerts(accounts);
+              	if(StringUtil.isEmpty(subId)){
+					AlertAccount account = new AlertAccount();
+					account.setUserAccount(organizationList.get(i).getUserName());
+					account.setName(organizationList.get(i).getUserName());
+              		adminUser = account;
+				}
+			  }
 			}
+			map.put("adminUser",adminUser);
+			map.put("groups",groups);
+			return map;
 		} else if (SendWay.WE_CHAT.equals(type)) {
 			// 为了前段方便 把用户名 账号塞进去
 			accountList = alertAccountService.findByUserAndType(loginUser, type);

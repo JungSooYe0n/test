@@ -206,11 +206,16 @@ public class SepcialReportTask implements Runnable {
                                     QueryBuilder searchBuilder = specialProject.toNoPagedBuilder();
                                     searchBuilder.setGroupName(specialProject.getSource());
                                     Object object = specialChartAnalyzeService.getSituationAssessment(searchBuilder, specialProject);
+                                    String imgData =object.toString();
+//                                    Double data = Double.valueOf(imgData);
+//                                    if(data<1){
+//                                        imgData="<1";
+//                                    }
                                     endMillis = System.currentTimeMillis();
                                     log.info(String.format(SPECILAREPORTLOG + SPECIALREPORTTIMELOG, OVERVIEWOFDATA, (endMillis - startMillis)));
                                     if (ObjectUtil.isNotEmpty(object)) {
                                         ReportResource situationAccess = new ReportResource();
-                                        situationAccess.setImg_data(object.toString());
+                                        situationAccess.setImg_data(imgData);
                                         situationAccess.setImgType("gaugeChart");
                                         // 数据、图类型、图名字
                                         situationAccess.setImgComment(SpecialReportUtil.getImgComment(JSON.toJSONString(object), "gaugeChart", "态势评估"));
