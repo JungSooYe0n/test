@@ -141,10 +141,26 @@ public class HotTopController {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.filterField(FtsFieldConst.FIELD_LASTTIME, com.trs.netInsight.support.fts.util.DateUtil.formatTimeRangeMinus1(timeRange), Operator.Between);
         queryBuilder.setPageNo(0);
-        queryBuilder.setPageSize(50);
+        queryBuilder.setPageSize(100);
         queryBuilder.orderBy("IR_LASTTIME", true);
         if (Const.HTB_SITENAME_ZHIHUHTB.equals(siteName) || Const.HTB_SITENAME_JINRI.equals(siteName) || Const.HTB_SITENAME_PENGPAI.equals(siteName) || Const.HTB_SITENAME_TIANYA.equals(siteName) || ("微博".equals(siteName) && "要闻榜".equals(channelName))) {
             queryBuilder.orderBy("IR_RANK", false);
+        }
+        //只判断哪些按热度值排行并且每次条数不是50的  时间一致就按原条数 否则按2倍
+        if(Const.HTB_SITENAME_BAIDU.equals(siteName)){
+            queryBuilder.setPageSize(30);
+        }else if (Const.HTB_SITENAME_SOUDOG_WEINXIN.equals(siteName)){
+            queryBuilder.setPageSize(10);
+        }else if (Const.HTB_SITENAME_DOUYIN.equals(siteName) && "热点榜".equals(channelName)){
+            queryBuilder.setPageSize(50);//时间一致
+        }else if (Const.HTB_SITENAME_DOUYIN.equals(siteName) && "同城榜".equals(channelName)){
+            queryBuilder.setPageSize(40);//*2
+        }else if (Const.HTB_SITENAME_BILIBILI.equals(siteName)){
+            queryBuilder.setPageSize(200);
+        }else if (Const.HTB_SITENAME_PENGPAI.equals(siteName)){
+            queryBuilder.setPageSize(10);
+        }else if (Const.HTB_SITENAME_TIANYA.equals(siteName)){
+            queryBuilder.setPageSize(40);
         }
         if (ObjectUtil.isNotEmpty(channelName)) {
             queryBuilder.filterField(FtsFieldConst.FIELD_CHANNEL, channelName, Operator.Equal);
@@ -435,13 +451,5 @@ public class HotTopController {
         return "success";
     }
 
-    public static List removeDuplicate(List list) {
-        List listTemp = new ArrayList();
-        for (int i = 0; i < list.size(); i++) {
-            if (!listTemp.contains(list.get(i))) {
-                listTemp.add(list.get(i));
-            }
-        }
-        return listTemp;
-    }
+
 }
