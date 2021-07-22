@@ -214,6 +214,13 @@ public class AlertRuleController {
 		    @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
 			@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
+			@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+			@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
 			throws TRSException {
 		//anyKeyword = "[{\"wordSpace\":0,\"wordOrder\":\"false\",\"keyWords\":\"湖人总冠军\"}]";
@@ -296,7 +303,7 @@ public class AlertRuleController {
 		AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, repetition, irSimflag,irSimflagAll,groupName, anyKeyword,
 				excludeWords,excludeWordsIndex, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight,sort, null, null,
-				countBy, frequencyId, md5Num, md5Range, false, false);
+				countBy, frequencyId, md5Num, md5Range, false, false,mediaLevel,mediaIndustry,contentIndustry,filterInfo,preciseFilter,contentArea,mediaArea);
 		// timeInterval看逻辑是按分钟存储 2h 120
 		try {
 			// 验证方法
@@ -374,6 +381,13 @@ public class AlertRuleController {
 		    @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
 			@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
+			@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+			@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
 			throws TRSException {
 
@@ -457,6 +471,13 @@ public class AlertRuleController {
 		alertRule.setWeight(weight);
 		alertRule.setSort(sort);
 		alertRule.setIrSimflagAll(irSimflagAll);
+		alertRule.setMediaArea(mediaArea);
+		alertRule.setMediaLevel(mediaLevel);
+		alertRule.setMediaIndustry(mediaIndustry);
+		alertRule.setContentIndustry(contentIndustry);
+		alertRule.setContentArea(contentArea);
+		alertRule.setFilterInfo(filterInfo);
+		alertRule.setPreciseFilter(preciseFilter);
 		String frequencyId = null;
 		// 确定定时预警时走哪个方法
 		if (AlertSource.AUTO.equals(alertSource)) {
