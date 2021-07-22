@@ -1579,6 +1579,8 @@ public class Const {
     public static final String HTB_SITENAME_ZHIHUHTB = "知乎热搜榜";
     public static final String HTB_SITENAME_PENGPAI = "澎湃";
     public static final String HTB_SITENAME_TIANYA = "天涯社区";
+    public static final String HTB_SITENAME_DOUYIN = "抖音";
+    public static final String HTB_SITENAME_BILIBILI = "哔哩哔哩排行榜";
 
 
 }

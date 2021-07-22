@@ -84,9 +84,13 @@ public class CommonListServiceImpl implements ICommonListService {
     private InfoListResult formatPageListResult(User user, String pageId, String nextPageId, PagedList<FtsDocumentCommonVO> pagedList, String database, String type, Boolean isCalculateSimNum) {
         List<FtsDocumentCommonVO> list = pagedList.getPageItems();
         List<Favourites> favouritesList = null;
+        long start = new Date().getTime();
         if (ObjectUtil.isNotEmpty(user)){
             favouritesList = favouritesService.findAll(user);
         }
+        long end = new Date().getTime();
+        long timeApi = end - start;
+        System.out.print("数据库时间："+timeApi);
 
         List<FtsDocumentCommonVO> ftsList = new ArrayList<>();
         List<String> md5List = new ArrayList<>();
@@ -138,6 +142,8 @@ public class CommonListServiceImpl implements ICommonListService {
                 ftsList.add(document);
 
             }
+            long end2 = new Date().getTime();
+            System.out.print("收藏匹配时间："+(end2 - end));
             final String trsSim = trslkHot;
             //根据参数计算相似文章数才计算相似文章数，基本的都需要计算相似文章数，但是存在个别不需要，例如API个别方法，详情页、导出
             if (isCalculateSimNum) {
