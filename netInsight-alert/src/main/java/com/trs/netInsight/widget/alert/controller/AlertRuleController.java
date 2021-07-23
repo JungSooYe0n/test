@@ -146,6 +146,32 @@ public class AlertRuleController {
 		List<AlertRule> list = null;
 		try {
 			list = alertRuleService.selectAll(UserUtils.getUser());
+			if(list.size()>0) {
+                for (AlertRule rule : list) {
+                    String[] filter = null;
+                    List<String> xwList = new ArrayList<>();
+                    List<String> ltList = new ArrayList<>();
+                    List<String> wbList = new ArrayList<>();
+                    if (StringUtil.isNotEmpty(rule.getPreciseFilter())) {
+                        filter = rule.getPreciseFilter().split(";");
+                        for (int i = 0; i < filter.length; i++) {
+                            if (filter[i].contains("News")) {
+                                xwList.add(filter[i]);
+                            }
+                            if (filter[i].contains("Luntan")) {
+                                ltList.add(filter[i]);
+                            }
+                            if (filter[i].contains("Weibo")) {
+                                wbList.add(filter[i]);
+                            }
+                        }
+
+                    }
+                    rule.setPreciseXWFilter(String.join(";", xwList));
+                    rule.setPreciseLTFilter(String.join(";", ltList));
+                    rule.setPreciseWBFilter(String.join(";", wbList));
+                }
+            }
 		} catch (Exception e) {
 			throw new OperationException("查询失败,message:" + e, e);
 		}
@@ -303,7 +329,7 @@ public class AlertRuleController {
 		AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, repetition, irSimflag,irSimflagAll,groupName, anyKeyword,
 				excludeWords,excludeWordsIndex, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight,sort, null, null,
-				countBy, frequencyId, md5Num, md5Range, false, false,mediaLevel,mediaIndustry,contentIndustry,filterInfo,preciseFilter,contentArea,mediaArea);
+				countBy, frequencyId, md5Num, md5Range, false, false,null,null,null,mediaLevel,mediaIndustry,contentIndustry,filterInfo,preciseFilter,contentArea,mediaArea);
 		// timeInterval看逻辑是按分钟存储 2h 120
 		try {
 			// 验证方法

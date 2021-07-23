@@ -269,6 +269,12 @@ public class AlertRule extends BaseEntity {
 	@Transient
 	@Column(name = "`flag`")
 	private boolean flag = false;
+	@Transient
+	private String preciseXWFilter;
+	@Transient
+	private String preciseLTFilter;
+	@Transient
+	private String preciseWBFilter;
 
 	/**
 	 * 媒体等级
