@@ -360,7 +360,9 @@ public class AlertRule extends BaseEntity {
 			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
 		}
 	}
-	
+	//图片筛选
+	@Column(name = "img_ocr")
+	private String imgOcr;
 
 	/**
 	 * 拼凑检索表达式 传统
@@ -840,6 +842,13 @@ public class AlertRule extends BaseEntity {
 						sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
 						searchBuilder = new QueryCommonBuilder();
 						searchBuilder.filterByTRSL(sb.toString());
+					}
+				}
+				if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
+					if("img".equals(imgOcr)){ // 看有ocr的
+						searchBuilder.filterByTRSL(Const.OCR_INCLUDE);
+					}else if("noimg".equals(imgOcr)){  // 不看有ocr的
+						searchBuilder.filterByTRSL(Const.OCR_NOT_INCLUDE);
 					}
 				}
 				break;

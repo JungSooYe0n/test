@@ -247,6 +247,7 @@ public class AlertRuleController {
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
 			throws TRSException {
 		//anyKeyword = "[{\"wordSpace\":0,\"wordOrder\":\"false\",\"keyWords\":\"湖人总冠军\"}]";
@@ -329,7 +330,7 @@ public class AlertRuleController {
 		AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, repetition, irSimflag,irSimflagAll,groupName, anyKeyword,
 				excludeWords,excludeWordsIndex, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight,sort, null, null,
-				countBy, frequencyId, md5Num, md5Range, false, false,null,null,null,mediaLevel,mediaIndustry,contentIndustry,filterInfo,preciseFilter,contentArea,mediaArea);
+				countBy, frequencyId, md5Num, md5Range, false, false,null,null,null,mediaLevel,mediaIndustry,contentIndustry,filterInfo,preciseFilter,contentArea,mediaArea,imgOcr);
 		// timeInterval看逻辑是按分钟存储 2h 120
 		try {
 			// 验证方法
@@ -414,6 +415,7 @@ public class AlertRuleController {
 			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
 			throws TRSException {
 
@@ -504,6 +506,7 @@ public class AlertRuleController {
 		alertRule.setContentArea(contentArea);
 		alertRule.setFilterInfo(filterInfo);
 		alertRule.setPreciseFilter(preciseFilter);
+		alertRule.setImgOcr(imgOcr);
 		String frequencyId = null;
 		// 确定定时预警时走哪个方法
 		if (AlertSource.AUTO.equals(alertSource)) {
