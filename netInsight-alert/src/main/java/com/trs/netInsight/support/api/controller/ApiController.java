@@ -362,7 +362,7 @@ public class ApiController {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)) {
-            return columnController.selectChart(id, "StatisticalChart", showType, "", "", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
+            return columnController.selectChart(id, "StatisticalChart", showType, "keywords", "", timeRange, false, "", "", "", "", "", "", "", "", false, 0, false, "", "", "", "", "", "", "", "", "", "", "");
         }
         return null;
     }
@@ -578,14 +578,13 @@ public class ApiController {
     @Api(value = "specialProject situationAssessment", method = ApiMethod.SituationAssessment)
     @GetMapping("/getSituationAssessment")
     @Log(systemLogOperation = SystemLogOperation.SITUATION_ASSESSMENT, systemLogType = SystemLogType.API, systemLogOperationPosition = "")
-    @ApiImplicitParam(name = "timeRange", value = "按时间查询 (2017-10-01 00:00:00;2017-10-20 00:00:00)", dataType = "String", paramType = "query")
     public Object getSituationAssessment(@RequestParam(value = "accessToken") String accessToken, HttpServletRequest request,
-                                         @RequestParam(value = "timeRange", required = false) String timeRange,
+                                         @ApiParam("时间区间(2017-10-01 00:00:00;2017-10-20 00:00:00)")@RequestParam(value = "timeRange", required = false) String timeRange,
                                @RequestParam(value = "specialId") String specialId) throws Exception {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)) {
-            return specialChartAnalyzeController.situationAssessment(timeRange, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            return specialChartAnalyzeController.situationAssessmentApi(timeRange, specialId, false, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
         }
         return null;
     }
@@ -843,7 +842,7 @@ public class ApiController {
         ApiAccessToken token = getToken(request);
         User user = userRepository.findOne(token.getGrantSourceOwnerId());
         if (ObjectUtil.isNotEmpty(user)) {
-            Object other = specialChartAnalyzeController.affairVenation(specialId, 10, type, "", "0d", true, "", "", "", "", "", "", "", "", false, null, null, "", "", "", "", "", "", "", "", "", "");
+            Object other = specialChartAnalyzeController.affairVenation(specialId, 10, type, "", null, true, "", "", "", "", "", "", "", "", false, null, null, "", "", "", "", "", "", "", "", "", "");
             Map<String, Object> data = new HashMap<>();
             data.put("other", other);
             return data;

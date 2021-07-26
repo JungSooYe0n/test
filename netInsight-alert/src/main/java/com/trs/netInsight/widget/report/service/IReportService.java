@@ -23,7 +23,7 @@ public interface IReportService {
 	 *
 	 * @throws TRSException
 	 */
-	public Object getFavouritesByCondition(User user, int pageNo, int pageSize,List<String> groupName,String keyword,String fuzzyValueScope,String invitationCard,String forwarPrimary,Boolean isExport,Boolean isCapture) throws TRSException;
+	public Object getFavouritesByCondition(String sort,User user, int pageNo, int pageSize,List<String> groupName,String keyword,String fuzzyValueScope,String invitationCard,String forwarPrimary,Boolean isExport,Boolean isCapture) throws TRSException;
 
 	/**
 	 * 由于hybase搜索结果不按照查询条件的sid排列 而从mysql取出的市按照时间排列的 为了让结果按照时间排列

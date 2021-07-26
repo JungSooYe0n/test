@@ -146,6 +146,32 @@ public class AlertRuleController {
 		List<AlertRule> list = null;
 		try {
 			list = alertRuleService.selectAll(UserUtils.getUser());
+			if(list.size()>0) {
+                for (AlertRule rule : list) {
+                    String[] filter = null;
+                    List<String> xwList = new ArrayList<>();
+                    List<String> ltList = new ArrayList<>();
+                    List<String> wbList = new ArrayList<>();
+                    if (StringUtil.isNotEmpty(rule.getPreciseFilter())) {
+                        filter = rule.getPreciseFilter().split(";");
+                        for (int i = 0; i < filter.length; i++) {
+                            if (filter[i].contains("News")) {
+                                xwList.add(filter[i]);
+                            }
+                            if (filter[i].contains("Luntan")) {
+                                ltList.add(filter[i]);
+                            }
+                            if (filter[i].contains("Weibo")) {
+                                wbList.add(filter[i]);
+                            }
+                        }
+
+                    }
+                    rule.setPreciseXWFilter(String.join(";", xwList));
+                    rule.setPreciseLTFilter(String.join(";", ltList));
+                    rule.setPreciseWBFilter(String.join(";", wbList));
+                }
+            }
 		} catch (Exception e) {
 			throw new OperationException("查询失败,message:" + e, e);
 		}
@@ -214,6 +240,14 @@ public class AlertRuleController {
 		    @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
 			@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
+			@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+			@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
 			throws TRSException {
 		//anyKeyword = "[{\"wordSpace\":0,\"wordOrder\":\"false\",\"keyWords\":\"湖人总冠军\"}]";
@@ -296,7 +330,7 @@ public class AlertRuleController {
 		AlertRule alertRule = new AlertRule(statusValue, title, timeInterval, growth, repetition, irSimflag,irSimflagAll,groupName, anyKeyword,
 				excludeWords,excludeWordsIndex, excludeSiteName,monitorSite,scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 				alertEndHour, null, 0L, alertSource, week, type, trsl, statusTrsl, weChatTrsl, weight,sort, null, null,
-				countBy, frequencyId, md5Num, md5Range, false, false);
+				countBy, frequencyId, md5Num, md5Range, false, false,null,null,null,mediaLevel,mediaIndustry,contentIndustry,filterInfo,preciseFilter,contentArea,mediaArea,imgOcr);
 		// timeInterval看逻辑是按分钟存储 2h 120
 		try {
 			// 验证方法
@@ -374,6 +408,14 @@ public class AlertRuleController {
 		    @ApiParam("默认空按数量计算预警  md5按照热度值计算预警") @RequestParam(value = "countBy", required = false) String countBy,
 			@ApiParam("按热度值预警时 分类统计大于这个值时发送预警") @RequestParam(value = "md5Num", defaultValue = "0") int md5Num,
 			@ApiParam("按热度值预警时  拼builder的时间范围") @RequestParam(value = "md5Range", defaultValue = "0") int md5Range,
+			@ApiParam("媒体等级") @RequestParam(value = "mediaLevel", required = false) String mediaLevel,
+			@ApiParam("媒体行业") @RequestParam(value = "mediaIndustry", required = false) String mediaIndustry,
+			@ApiParam("内容行业") @RequestParam(value = "contentIndustry", required = false) String contentIndustry,
+			@ApiParam("信息过滤") @RequestParam(value = "filterInfo", required = false) String filterInfo,
+			@ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
+			@ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
+			@ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+			@ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
 			@ApiParam("发送时间，。星期一;星期二;星期三;星期四;星期五;星期六;星期日") @RequestParam(value = "week", required = false, defaultValue = "星期一;星期二;星期三;星期四;星期五;星期六;星期日") String week)
 			throws TRSException {
 
@@ -457,6 +499,14 @@ public class AlertRuleController {
 		alertRule.setWeight(weight);
 		alertRule.setSort(sort);
 		alertRule.setIrSimflagAll(irSimflagAll);
+		alertRule.setMediaArea(mediaArea);
+		alertRule.setMediaLevel(mediaLevel);
+		alertRule.setMediaIndustry(mediaIndustry);
+		alertRule.setContentIndustry(contentIndustry);
+		alertRule.setContentArea(contentArea);
+		alertRule.setFilterInfo(filterInfo);
+		alertRule.setPreciseFilter(preciseFilter);
+		alertRule.setImgOcr(imgOcr);
 		String frequencyId = null;
 		// 确定定时预警时走哪个方法
 		if (AlertSource.AUTO.equals(alertSource)) {
@@ -586,18 +636,46 @@ public class AlertRuleController {
 	public Object sendAdd(
 			@ApiParam("类型 : SMS, EMAIL, WE_CHAT, APP, COMPOSITE, SMSandEMAIL, SMSandWE_CHAT") @RequestParam(value = "type", defaultValue = "ALL") SendWay type) {
 		User loginUser = UserUtils.getUser();
+		Map map = new HashMap();
 		List<AlertAccount> accountList = new ArrayList<>();
 		if (SendWay.SMS.equals(type)) {
 			// 获取机构内所有的用户名
+			AlertAccount adminUser =null;
 			String organizationId = UserUtils.getUser().getOrganizationId();
+			List<SubGroup> groups = subGroupRepository.findByOrganizationId(organizationId);
 			List<User> organizationList = userService.findByOrganizationIdAndIdNot(organizationId, loginUser.getId());
 			// 为了前段方便 把用户名 账号塞进去
-			for (User organization : organizationList) {
-				AlertAccount account = new AlertAccount();
-				account.setUserAccount(organization.getUserName());
-				account.setName(organization.getUserName());
-				accountList.add(account);
+//			for (User organization : organizationList) {
+//				AlertAccount account = new AlertAccount();
+//				account.setUserAccount(organization.getUserName());
+//				account.setName(organization.getUserName());
+//				accountList.add(account);
+//			}
+			for(SubGroup subGroup : groups){
+				List<User> users = new ArrayList<>();
+				List<AlertAccount> accounts =new ArrayList<>();
+              for(int i=0;i<organizationList.size();i++){
+              	String subId = organizationList.get(i).getSubGroupId();
+              	if(subGroup.getId().equals(subId)){
+              		users.add(organizationList.get(i));
+					AlertAccount account = new AlertAccount();
+					account.setUserAccount(organizationList.get(i).getUserName());
+					account.setName(organizationList.get(i).getUserName());
+					accounts.add(account);
+				}
+              	//subGroup.setUsers(users);
+              	subGroup.setAlerts(accounts);
+              	if(StringUtil.isEmpty(subId)){
+					AlertAccount account = new AlertAccount();
+					account.setUserAccount(organizationList.get(i).getUserName());
+					account.setName(organizationList.get(i).getUserName());
+              		adminUser = account;
+				}
+			  }
 			}
+			map.put("adminUser",adminUser);
+			map.put("groups",groups);
+			return map;
 		} else if (SendWay.WE_CHAT.equals(type)) {
 			// 为了前段方便 把用户名 账号塞进去
 			accountList = alertAccountService.findByUserAndType(loginUser, type);

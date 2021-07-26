@@ -1,5 +1,6 @@
 package com.trs.netInsight.widget.column.entity.pageShow;
 
+import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.widget.column.entity.CustomChart;
 import com.trs.netInsight.widget.column.entity.emuns.ChartPageInfo;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
@@ -8,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -45,7 +48,9 @@ public class CustomChartDTO implements Serializable {
     private String contentArea;
     private String mediaArea;
     private String preciseFilter;
-
+    private String preciseXWFilter;
+    private String preciseLTFilter;
+    private String preciseWBFilter;
     private String pointToId;
     private void setPointToId(String mapperId){
         this.pointToId = mapperId;
@@ -103,6 +108,28 @@ public class CustomChartDTO implements Serializable {
         this.mediaArea = customChart.getMediaArea();
         this.pointToId = customChart.getParentId();
         this.preciseFilter = customChart.getPreciseFilter();
+        String[] filter = null;
+        List<String> xwList = new ArrayList<>();
+        List<String> ltList = new ArrayList<>();
+        List<String> wbList = new ArrayList<>();
+        if(StringUtil.isNotEmpty(preciseFilter)) {
+            filter = customChart.getPreciseFilter().split(";");
+            for (int i = 0; i < filter.length; i++) {
+                if(filter[i].contains("News")){
+                    xwList.add(filter[i]);
+                }
+                if(filter[i].contains("Luntan")){
+                    ltList.add(filter[i]);
+                }
+                if(filter[i].contains("Weibo")){
+                    wbList.add(filter[i]);
+                }
+            }
+
+        }
+        this.preciseXWFilter=String.join(";", xwList);
+        this.preciseLTFilter=String.join(";", ltList);
+        this.preciseWBFilter=String.join(";", wbList);
         addTypeSeq();
     }
     /**

@@ -726,7 +726,7 @@ if (isAddAlert) {
 	AlertRule alertRule = new AlertRule(statusValue, name, timeInterval, growth, isSimilar, irSimflag, irSimflagAll, groupName, keyWord,
 			excludeWords, excludeWordsIndex, excludeWeb, monitorSite, scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 			alertEndHour, null, 0L, alertSource, week, specialType, trsl, statusTrsl, weChatTrsl, weight, sort, null, null,
-			countBy, frequencyId, md5Num, md5Range, false, false);
+			countBy, frequencyId, md5Num, md5Range, false, false,null,null,null,mediaLevel,mediaIndustry,contentIndustry,filterInfo,preciseFilter,contentArea,mediaArea,null);
 	// timeInterval看逻辑是按分钟存储 2h 120
 	try {
 		// 验证方法
@@ -1017,7 +1017,7 @@ if (isAddAlert) {
 				AlertRule alertRule = new AlertRule(statusValue, name, timeInterval, growth, isSimilar, irSimflag, irSimflagAll, groupName, keyWord,
 						excludeWords, excludeWordsIndex, excludeWeb, monitorSite, scopeValue, sendWay, websiteSendWay, websiteId, alertStartHour,
 						alertEndHour, null, 0L, alertSource, week, specialType, trsl, statusTrsl, weChatTrsl, weight, sort, null, null,
-						countBy, frequencyId, md5Num, md5Range, false, false);
+						countBy, frequencyId, md5Num, md5Range, false, false,null,null,null,mediaLevel,mediaIndustry,contentIndustry,filterInfo,preciseFilter,contentArea,mediaArea,null);
 				// timeInterval看逻辑是按分钟存储 2h 120
 				try {
 					// 验证方法

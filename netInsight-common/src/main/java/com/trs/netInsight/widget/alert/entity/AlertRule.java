@@ -17,6 +17,8 @@ import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.special.entity.enums.SearchScope;
 import com.trs.netInsight.widget.special.entity.enums.SpecialType;
 import lombok.*;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Column;
@@ -24,9 +26,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * 预警规则 新建预警
@@ -271,8 +271,100 @@ public class AlertRule extends BaseEntity {
 	@Transient
 	@Column(name = "`flag`")
 	private boolean flag = false;
-	
-	
+	@Transient
+	private String preciseXWFilter;
+	@Transient
+	private String preciseLTFilter;
+	@Transient
+	private String preciseWBFilter;
+
+	/**
+	 * 媒体等级
+	 */
+	@Column(name = "media_level")
+	private String mediaLevel;
+	public String getMediaLevel(){
+		if(StringUtil.isNotEmpty(this.mediaLevel)){
+			return this.mediaLevel.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.MEDIA_LEVEL,";").replaceAll("其他","其它");
+		}
+	}
+	/**
+	 * 媒体行业
+	 */
+	@Column(name = "media_industry")
+	private String mediaIndustry;
+	public String getMediaIndustry(){
+		if(StringUtil.isNotEmpty(this.mediaIndustry)){
+			return this.mediaIndustry.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.MEDIA_INDUSTRY,";").replaceAll("其他","其它");
+		}
+	}
+	/**
+	 * 内容行业
+	 */
+	@Column(name = "content_industry")
+	private String contentIndustry;
+	public String getContentIndustry(){
+		if(StringUtil.isNotEmpty(this.contentIndustry)){
+			return this.contentIndustry.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.CONTENT_INDUSTRY,";").replaceAll("其他","其它");
+		}
+	}
+	/**
+	 * 信息过滤  -  信息性质打标，如抽奖
+	 */
+	@Column(name = "filter_info")
+	private String filterInfo;
+	public String getFilterInfo(){
+		if(StringUtil.isNotEmpty(this.filterInfo)){
+			return this.filterInfo;
+		}else{
+			if (SpecialType.SPECIAL.equals(this.getSpecialType())){
+				//处理历史专家模式的信息过滤
+				return Const.NOT_FILTER_INFO;
+			}
+			return StringUtils.join(Const.FILTER_INFO,";");
+		}
+	}
+
+	/**
+	 * 精准筛选
+	 */
+	@Column(name = "precise_filter")
+	private String preciseFilter;
+
+
+	/**
+	 * 内容所属地域
+	 */
+	@Column(name = "content_area")
+	private String contentArea;
+	public String getContentArea(){
+		if(StringUtil.isNotEmpty(this.contentArea)){
+			return this.contentArea.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+		}
+	}
+	/**
+	 * 媒体所属地域
+	 */
+	@Column(name = "media_area")
+	private String mediaArea;
+	public String getMediaArea(){
+		if(StringUtil.isNotEmpty(this.mediaArea)){
+			return this.mediaArea.replaceAll("其他","其它");
+		}else{
+			return StringUtils.join(Const.AREA_LIST,";").replaceAll("其他","其它");
+		}
+	}
+	//图片筛选
+	@Column(name = "img_ocr")
+	private String imgOcr;
 
 	/**
 	 * 拼凑检索表达式 传统
@@ -672,6 +764,7 @@ public class AlertRule extends BaseEntity {
 			}
 		}
 
+		addFilterCondition(mediaLevel, mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea, preciseFilter);
 		switch (specialType) {
 			case COMMON:
 				// 根据关键词位置，任意关键词，排除词，拼凑表达式
@@ -713,6 +806,53 @@ public class AlertRule extends BaseEntity {
 					}
 					searchBuilder.filterField(FtsFieldConst.FIELD_SITENAME_LIKE, this.monitorSite.replaceAll("[;|；]", " OR "), Operator.Equal);
 				}
+//
+//				//筛选条件信息
+//				//媒体等级
+//				if(StringUtil.isNotEmpty(mediaLevel)){
+//					addFieldFilter(searchBuilder,FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
+//				}
+//				//媒体行业
+//				if(StringUtil.isNotEmpty(mediaIndustry )){
+//					addFieldFilter(searchBuilder,FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
+//				}
+//				//内容行业
+//				if(StringUtil.isNotEmpty(contentIndustry )){
+//					addFieldFilter(searchBuilder,FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
+//				}
+//				//内容地域
+//				if(StringUtil.isNotEmpty(contentArea )){
+//					addAreaFilter(searchBuilder,FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
+//				}
+//				//媒体地域
+//				if(StringUtil.isNotEmpty(mediaArea )){
+//					addAreaFilter(searchBuilder,FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
+//				}
+//
+//				//信息过滤
+//				if(StringUtil.isNotEmpty(filterInfo) && !filterInfo.equals(Const.NOT_FILTER_INFO)){
+//					String trsl = searchBuilder.asTRSL();
+//					StringBuilder sb = new StringBuilder(trsl);
+//					String[] valueArr = filterInfo.split(";");
+//					Set<String> valueArrList = new HashSet<>();
+//					for(String v : valueArr){
+//						if(Const.FILTER_INFO.contains(v)){
+//							valueArrList.add(v);
+//						}
+//					}
+//					if (valueArrList.size() > 0 /*&& valueArrList.size() < Const.FILTER_INFO.size()*/) {
+//						sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+//						searchBuilder = new QueryCommonBuilder();
+//						searchBuilder.filterByTRSL(sb.toString());
+//					}
+//				}
+//				if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
+//					if("img".equals(imgOcr)){ // 看有ocr的
+//						searchBuilder.filterByTRSL(Const.OCR_INCLUDE);
+//					}else if("noimg".equals(imgOcr)){  // 不看有ocr的
+//						searchBuilder.filterByTRSL(Const.OCR_NOT_INCLUDE);
+//					}
+//				}
 				break;
 			case SPECIAL:
 				String trsl = "";
@@ -758,7 +898,287 @@ public class AlertRule extends BaseEntity {
 				}
 			}
 		}
+		//筛选条件信息
+		//媒体等级
+		if(StringUtil.isNotEmpty(mediaLevel)){
+			addFieldFilter(searchBuilder,FtsFieldConst.FIELD_MEDIA_LEVEL,mediaLevel,Const.MEDIA_LEVEL);
+		}
+		//媒体行业
+		if(StringUtil.isNotEmpty(mediaIndustry )){
+			addFieldFilter(searchBuilder,FtsFieldConst.FIELD_MEDIA_INDUSTRY,mediaIndustry,Const.MEDIA_INDUSTRY);
+		}
+		//内容行业
+		if(StringUtil.isNotEmpty(contentIndustry )){
+			addFieldFilter(searchBuilder,FtsFieldConst.FIELD_CONTENT_INDUSTRY,contentIndustry,Const.CONTENT_INDUSTRY);
+		}
+		//内容地域
+		if(StringUtil.isNotEmpty(contentArea )){
+			addAreaFilter(searchBuilder,FtsFieldConst.FIELD_CATALOG_AREA,contentArea);
+		}
+		//媒体地域
+		if(StringUtil.isNotEmpty(mediaArea )){
+			addAreaFilter(searchBuilder,FtsFieldConst.FIELD_MEDIA_AREA,mediaArea);
+		}
+
+		//信息过滤
+		if(StringUtil.isNotEmpty(filterInfo) && !filterInfo.equals(Const.NOT_FILTER_INFO)){
+			String trsl = searchBuilder.asTRSL();
+			StringBuilder sb = new StringBuilder(trsl);
+			String[] valueArr = filterInfo.split(";");
+			Set<String> valueArrList = new HashSet<>();
+			for(String v : valueArr){
+				if(Const.FILTER_INFO.contains(v)){
+					valueArrList.add(v);
+				}
+			}
+			if (valueArrList.size() > 0 /*&& valueArrList.size() < Const.FILTER_INFO.size()*/) {
+				sb.append(" NOT (").append(FtsFieldConst.FIELD_FILTER_INFO).append(":(").append(StringUtils.join(valueArrList," OR ")).append("))");
+				searchBuilder = new QueryCommonBuilder();
+				searchBuilder.filterByTRSL(sb.toString());
+			}
+		}
+		if(StringUtil.isNotEmpty(imgOcr) && !"ALL".equals(imgOcr)){
+			if("img".equals(imgOcr)){ // 看有ocr的
+				searchBuilder.filterByTRSL(Const.OCR_INCLUDE);
+			}else if("noimg".equals(imgOcr)){  // 不看有ocr的
+				searchBuilder.filterByTRSL(Const.OCR_NOT_INCLUDE);
+			}
+		}
+		//精准筛选 与上面论坛的主回帖和微博的原转发类似 ，都需要在数据源的基础上进行修改
+		if (StringUtil.isNotEmpty(preciseFilter)) {
+			List<String> searchSourceList = CommonListChartUtil.formatGroupName(StringUtil.isEmpty(groupName)? "ALL":groupName);
+			if (searchSourceList.contains(Const.GROUPNAME_XINWEN) || searchSourceList.contains(Const.GROUPNAME_WEIBO) || searchSourceList.contains(Const.GROUPNAME_LUNTAN)) {
+				String[] arr = preciseFilter.split(";");
+				if (arr != null && arr.length > 0) {
+					List<String> preciseFilterList = new ArrayList<>();
+					for (String filter : arr) {
+						preciseFilterList.add(filter);
+					}
+					StringBuffer buffer = new StringBuffer();
+					// 新闻筛选  --- 屏蔽新闻转发 就是新闻 不要新闻不为空的时候，也就是要新闻原发
+					if (searchSourceList.contains(Const.GROUPNAME_XINWEN) && preciseFilterList.contains("notNewsForward")) {
+
+						buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_XINWEN + ")");
+						buffer.append(" AND (").append(Const.SRCNAME_XINWEN).append(")");
+						buffer.append(")");
+						searchSourceList.remove(Const.GROUPNAME_XINWEN);
+					}
+
+					//论坛筛选  ---  屏蔽论坛主贴  -  为回帖  、屏蔽论坛回帖为主贴
+					if (searchSourceList.contains(Const.GROUPNAME_LUNTAN) && (preciseFilterList.contains("notLuntanForward") || preciseFilterList.contains("notLuntanPrimary"))) {
+						if (buffer.length() > 0) {
+							buffer.append(" OR ");
+						}
+						buffer.append("(");
+						buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_LUNTAN + ")");
+						if (preciseFilterList.contains("notLuntanForward")) { //屏蔽论坛回帖 -- 主贴
+							buffer.append(" AND (").append(Const.NRESERVED1_LUNTAN).append(")");
+						}
+						if (preciseFilterList.contains("notLuntanPrimary")) { //屏蔽论坛主贴
+							buffer.append(" NOT (").append(Const.NRESERVED1_LUNTAN).append(")");
+						}
+						buffer.append(")");
+						searchSourceList.remove(Const.GROUPNAME_LUNTAN);
+					}
+
+					//微博筛选  ----  微博筛选时 ，屏蔽微博原发 - 为转发、 屏蔽微博转发 - 为原发
+					if (searchSourceList.contains(Const.GROUPNAME_WEIBO) && (preciseFilterList.contains("notWeiboForward") || preciseFilterList.contains("notWeiboPrimary")
+							|| preciseFilterList.contains("notWeiboOrgAuthen") || preciseFilterList.contains("notWeiboPeopleAuthen")
+							|| preciseFilterList.contains("notWeiboAuthen") || preciseFilterList.contains("notWeiboLocation")
+							|| preciseFilterList.contains("notWeiboScreenName") || preciseFilterList.contains("notWeiboTopic")
+					)) {
+						if (buffer.length() > 0) {
+							buffer.append(" OR ");
+						}
+						buffer.append("(");
+						buffer.append(FtsFieldConst.FIELD_GROUPNAME + ":(" + Const.GROUPNAME_WEIBO + ")");
+						if (preciseFilterList.contains("notWeiboForward")) {//屏蔽微博转发
+							buffer.append(" AND (").append(Const.PRIMARY_WEIBO).append(")");
+						}
+						if (preciseFilterList.contains("notWeiboPrimary")) {//屏蔽微博原发
+							buffer.append(" NOT (").append(Const.PRIMARY_WEIBO).append(")");
+						}
+						if (preciseFilterList.contains("notWeiboOrgAuthen")) {//屏蔽微博机构认证
+							buffer.append(" NOT (").append(Const.ORGANIZATION_WEIBO).append(")");
+						}
+						if (preciseFilterList.contains("notWeiboPeopleAuthen")) {//屏蔽微博个人认证
+							buffer.append(" NOT (").append(Const.PERSON_WEIBO).append(")");
+						}
+						if (preciseFilterList.contains("notWeiboAuthen")) {//屏蔽微博无认证
+							buffer.append(" NOT (").append(Const.NONE_WEIBO).append(")");
+						}
+						if (StringUtil.isNotEmpty(scope.name()) && (StringUtil.isNotEmpty(anyKeyword) || StringUtil.isNotEmpty(excludeWords))) {
+							anyKeyword = anyKeyword.trim();
+							JSONArray jsonArray = JSONArray.fromObject(anyKeyword);
+							StringBuilder childTrsl = new StringBuilder();
+							StringBuilder childTrsl2 = new StringBuilder();
+							StringBuilder childTrsl3 = new StringBuilder();
+							for (Object keyWord : jsonArray) {
+
+								JSONObject parseObject = JSONObject.fromObject(String.valueOf(keyWord));
+								String keyWordsSingle = parseObject.getString("keyWords");
+								if (StringUtil.isNotEmpty(keyWordsSingle)) {
+									//防止关键字以多个 , （逗号）结尾，导致表达式故障问题
+									String[] split = keyWordsSingle.split(",");
+									String splitNode = "";
+									for (int i = 0; i < split.length; i++) {
+										if (StringUtil.isNotEmpty(split[i])) {
+											if (split[i].endsWith(";") || split[i].endsWith("；")) {
+												split[i] = split[i].substring(0, split[i].length() - 1);
+											}
+											splitNode += split[i] + ",";
+										}
+									}
+									keyWordsSingle = splitNode.substring(0, splitNode.length() - 1);
+									childTrsl.append("((\"")
+											.append(keyWordsSingle.replaceAll("[,|，]", "*\") AND (\"").replaceAll("[;|；]+", "*\" OR \""))
+											.append("*\"))");
+									childTrsl2.append("((")
+											.append(keyWordsSingle.replaceAll("[,|，]", ") AND (").replaceAll("[;|；]+", " OR "))
+											.append("))");
+									childTrsl3.append("(").append(keyWordsSingle.replaceAll("[;|；|，|,]"," OR ")).append(")");
+//									childTrsl2.append("((")
+//											.append(keyWordsSingle.replaceAll("[,|，]", "*) AND (").replaceAll("[;|；]+", "* OR "))
+//											.append("*))");
+								}
+							}
+							if (preciseFilterList.contains("notWeiboLocation")) {//屏蔽命中微博位置信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_LOCATION).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_LOCATION_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_RT_LOCATION).append(":(").append(childTrsl3.toString()).append(")) ");
+							}
+							if (preciseFilterList.contains("notWeiboScreenName")) {//忽略命中微博博主名
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_AUTHORS_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL).append(":(").append(childTrsl3.toString()).append(") OR ").append(FtsFieldConst.FIELD_RETWEETED_FROM_ALL_LIKE).append(":(").append(childTrsl3.toString()).append("))");
+							}
+							if (preciseFilterList.contains("notWeiboTopic")) {//屏蔽命中微博话题信息
+								buffer.append(" NOT (").append(FtsFieldConst.FIELD_TAG).append(":(").append(childTrsl2.toString()).append(") OR ").append(FtsFieldConst.FIELD_TAG_LIKE).append(":(").append(childTrsl2.toString()).append("))");
+							}
+						}
+
+						buffer.append(")");
+						searchSourceList.remove(Const.GROUPNAME_WEIBO);
+					}
+					if(buffer.length() >0){
+						if (searchSourceList.size() > 0) {
+							if (buffer.length() > 0) {
+								buffer.append(" OR ");
+							}
+							buffer.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
+						}
+
+						searchBuilder.filterByTRSL(buffer.toString());
+					}
+				}
+			}
+		} else {
+			//不是精准筛选，trslk表达式也要加上group_name的内容
+			List<String> searchSourceList = CommonListChartUtil.formatGroupName(StringUtil.isEmpty(groupName) ? "ALL" : groupName);
+			StringBuffer sb = new StringBuffer();
+			sb.append("(").append(FtsFieldConst.FIELD_GROUPNAME).append(":(").append(StringUtils.join(searchSourceList, " OR ")).append("))");
+			searchBuilder.filterByTRSL(sb.toString());
+		}
 		return searchBuilder;
+	}
+
+	/**
+	 * 添加筛选条件信息  ---  如果要添加筛选条件，需要写在initSection 方法前面,
+	 * @param mediaLevel  媒体等级
+	 * @param mediaIndustry  媒体行业
+	 * @param contentIndustry  内容行业
+	 * @param filterInfo  过滤信息
+	 * @param contentArea  内容行业
+	 * @param mediaArea  媒体行业
+	 * @param preciseFilter  精准筛选
+	 */
+	public void addFilterCondition(String mediaLevel,String mediaIndustry,String contentIndustry,String filterInfo,
+								   String contentArea,String mediaArea,String preciseFilter){
+		//媒体等级
+		if(StringUtil.isNotEmpty(mediaLevel)){
+			if("ALL".equals(mediaLevel)){
+				mediaLevel = org.thymeleaf.util.StringUtils.join(Const.MEDIA_LEVEL,";");
+			}
+		}
+		//媒体行业
+		if(StringUtil.isNotEmpty(mediaIndustry)){
+			if("ALL".equals(mediaIndustry)){
+				mediaIndustry = org.thymeleaf.util.StringUtils.join(Const.MEDIA_INDUSTRY,";");
+			}
+		}
+		//内容行业
+		if(StringUtil.isNotEmpty(contentIndustry)){
+			if("ALL".equals(contentIndustry)){
+				contentIndustry = org.thymeleaf.util.StringUtils.join(Const.CONTENT_INDUSTRY,";");
+			}
+		}
+		//信息过滤
+		if(StringUtil.isNotEmpty(filterInfo)){
+			if("ALL".equals(filterInfo)){
+				filterInfo = org.thymeleaf.util.StringUtils.join(Const.FILTER_INFO,";");
+			}
+		}
+		this.mediaLevel = mediaLevel;
+		this.mediaIndustry = mediaIndustry;
+		this.contentIndustry = contentIndustry;
+		this.filterInfo = filterInfo;
+		this.contentArea = contentArea;
+		this.mediaArea = mediaArea;
+		this.preciseFilter = preciseFilter;
+	}
+
+	private void addFieldFilter(QueryCommonBuilder queryBuilder,String field,String value,List<String> allValue){
+		if(StringUtil.isNotEmpty(value)){
+			if(value.contains("其它")){
+				value = value.replaceAll("其它","其他");
+			}
+			String[] valueArr = value.split(";");
+			Set<String> valueArrList = new HashSet<>();
+			for(String v : valueArr){
+				if ("其他".equals(v) || "中性".equals(v)) {
+					valueArrList.add("\"\"");
+				}
+				if (allValue.contains(v)) {
+					valueArrList.add(v);
+				}
+			}
+			//如果list中有其他，则其他为 其他+“”。依然是算两个
+			if(valueArrList.size() >0  &&  valueArrList.size() < allValue.size() +1){
+				queryBuilder.filterField(field,StringUtils.join(valueArrList," OR ") , Operator.Equal);
+			}
+		}
+	}
+
+	private void addAreaFilter(QueryCommonBuilder queryBuilder,String field,String areas){
+		Map<String,String> areaMap = null;
+		if(FtsFieldConst.FIELD_MEDIA_AREA.equals(field)){
+			areaMap = Const.MEDIA_PROVINCE_NAME;
+		}else if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field)){
+			areaMap = Const.CONTTENT_PROVINCE_NAME;
+		}
+		if(StringUtil.isNotEmpty(areas) && areaMap!= null){
+			if(areas.contains("其它")){
+				areas = areas.replaceAll("其它","其他");
+			}
+			String[] areaArr = areas.split(";");
+			Set<String> areaList = new HashSet<>();
+			for(String area : areaArr){
+				if ("其他".equals(area)) {
+					areaList.add("\"\"");
+				}
+				if (areaMap.containsKey(area)) {
+					areaList.add(areaMap.get(area));
+				}
+			}
+			//如果list中有其他，则其他为 其他+“”。依然是算两个
+			if(areaList.size() >0  &&  areaList.size() < areaMap.size() +1){
+				if(FtsFieldConst.FIELD_CATALOG_AREA.equals(field) && this.getGroupName().contains(Const.TYPE_WEIXIN)){
+					StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append(FtsFieldConst.FIELD_CATALOG_AREA).append(":(").append(StringUtils.join(areaList," OR ")).append(")").append(" OR ").append(FtsFieldConst.FIELD_CATALOG_AREA_MULTIPLE).append(":(").append(StringUtils.join(areaList," OR ")).append(")");
+					queryBuilder.filterByTRSL(stringBuilder.toString());
+				}else {
+					queryBuilder.filterField(field, StringUtils.join(areaList, " OR "), Operator.Equal);
+				}
+			}
+		}
 	}
 
 	public String getAlertRuleTrsl() throws OperationException {

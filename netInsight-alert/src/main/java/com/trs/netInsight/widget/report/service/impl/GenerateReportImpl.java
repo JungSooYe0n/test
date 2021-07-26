@@ -745,7 +745,7 @@ public class GenerateReportImpl implements IGenerateReport {
 						break;
 					case WORDCLOUDSTATISTICS:
 						width = 5400000;
-						height = 3500000;
+						height = 3358800;
 						break;
 					case Hand_Made_Word_Cloud:
 						width = 5400000;
@@ -849,7 +849,7 @@ public class GenerateReportImpl implements IGenerateReport {
 						break;
 					case WORDCLOUDSTATISTICSkey:
 						width = 5400000;
-						height = 3200000;
+						height = 3358800;//addPicture方法中的宽度和高度是EMU（英制公制单位），所有根据1 EMU = 1/914400英寸= 1/36000 mm转化即可。
 						break;
 					case Hand_Made_Word_Cloud:
 						width = 5400000;

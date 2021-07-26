@@ -2901,7 +2901,7 @@ public class ReportServiceImpl implements IReportService {
 	 *
 	 * @throws TRSException
 	 */
-	public Object getFavouritesByCondition(User user, int pageNo, int pageSize, List<String> groupNameList, String keyword, String fuzzyValueScope, String invitationCard, String forwarPrimary, Boolean isExport,Boolean isCapture) throws TRSException {
+	public Object getFavouritesByCondition(String sorts,User user, int pageNo, int pageSize, List<String> groupNameList, String keyword, String fuzzyValueScope, String invitationCard, String forwarPrimary, Boolean isExport,Boolean isCapture) throws TRSException {
 		//获取用户可查询的数据源
 		String groupNames = org.apache.commons.lang3.StringUtils.join(groupNameList, ";");
 		List<String> groupName = SourceUtil.getGroupNameList(groupNames);
@@ -2909,13 +2909,22 @@ public class ReportServiceImpl implements IReportService {
 			return null;
 		}
 		String source = StringUtils.join(groupName, ";");
-		Sort sort;
-		if (isCapture) {
-			sort = new Sort(Sort.Direction.DESC, "captureTime");
-		}else {
-			sort = new Sort(Sort.Direction.DESC, "createdTime");
+		List<Sort.Order> orders=new ArrayList<>();
+		//Sort sort;
+		if("asc".equals(sorts)){
+			orders.add(new Sort.Order(Sort.Direction.ASC,"urlTime"));
 		}
-		PageRequest pageable = new PageRequest(pageNo, pageSize, sort);
+		if("desc".equals(sorts)){
+			orders.add(new Sort.Order(Sort.Direction.DESC,"urlTime"));
+		}
+		if (isCapture) {
+			orders.add(new Sort.Order(Sort.Direction.DESC,"captureTime"));
+			//sort = new Sort(Sort.Direction.DESC, "captureTime");
+		}else {
+			orders.add(new Sort.Order(Sort.Direction.DESC,"createdTime"));
+			//sort = new Sort(Sort.Direction.DESC, "createdTime");
+		}
+		PageRequest pageable = new PageRequest(pageNo, pageSize, new Sort(orders));
 		Page<Favourites> list = null;
 		Specification<Favourites> criteria = new Specification<Favourites>() {
 			@Override
