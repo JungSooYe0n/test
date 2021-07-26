@@ -114,7 +114,8 @@ public class AlertAccountServiceImpl implements IAlertAccountService {
 			return alertAccountRepository.findByUserIdAndType(user.getId(), type);
 
 		}else {
-			return alertAccountRepository.findBySubGroupIdAndType(user.getSubGroupId(), type);
+			//return alertAccountRepository.findBySubGroupIdAndType(user.getSubGroupId(), type);
+			return alertAccountRepository.findByUserIdAndType(user.getId(), type);
 		}
 	}
 
@@ -138,7 +139,8 @@ public class AlertAccountServiceImpl implements IAlertAccountService {
 			if (UserUtils.ROLE_LIST.contains(loginUser.getCheckRole())){
 				return changUserAccount(alertAccountRepository.findByTypeAndUserId(type, id, pageable));
 			}else {
-				return changUserAccount(alertAccountRepository.findByTypeAndSubGroupId(type, loginUser.getSubGroupId(), pageable));
+				//return changUserAccount(alertAccountRepository.findByTypeAndSubGroupId(type, loginUser.getSubGroupId(), pageable));
+				return changUserAccount(alertAccountRepository.findByTypeAndUserId(type, id, pageable));
 			}
 		}
 		if (StringUtils.isBlank(String.valueOf(type)) && StringUtils.isNotBlank(account)) {
