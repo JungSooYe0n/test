@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
+import com.trs.netInsight.widget.alert.entity.AlertWebSocket;
 import com.trs.netInsight.widget.alert.entity.PageAlert;
 import com.trs.netInsight.widget.user.entity.User;
 import org.springframework.data.domain.Page;
@@ -264,6 +265,15 @@ public interface IAlertService {
 	 */
 	public List<AlertEntity> findByReceiverAndSendWayAndCreatedTimeBetween(String userName, SendWay sms,
 			Date parseStart, Date parseEnd);
+	/**
+	 * 发送站内预警信息相关方法
+	 * @param alertWebSocket
+	 * 增删查
+	 */
+	public void saveReceiveAlert(AlertWebSocket alertWebSocket);
 
+	public List<AlertWebSocket> findReceiveAlert(String receiveid);
+
+	public void deleteReceiveAlert(String receiveid);
 	
 }
