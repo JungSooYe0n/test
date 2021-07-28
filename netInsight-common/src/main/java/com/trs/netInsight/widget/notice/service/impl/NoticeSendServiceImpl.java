@@ -456,7 +456,6 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 
 	/**
-	 * 手动预警走的发送方法
 	 * @param sendType  是自动预警还是手动预警
 	 * @param subject   当前这批预警的主题，自动预警则是预警规则名，手动预警则由用户自定义输入
 	 * @param userId    当前发送人的id，自动预警的话为当前预警规则对应的用户，如果是手动预警，则为当前登陆用户
@@ -647,7 +646,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						} else {
 							oneList = list.subList(i, list.size());
 						}
-						oneList.stream().forEach(oneMap -> titles.add(oneMap.get("title")));
+						oneList.stream().forEach(oneMap -> titles.add("["+oneMap.get("appraise")+"]"+oneMap.get("title")));
 						oneList.stream().forEach(oneMap -> sids.add(oneMap.get(FtsFieldConst.FIELD_ALERT_ID)));
 						listWeiChat.put(FtsFieldConst.FIELD_ALERT_ID,sids);
 						listWeiChat.put("title",titles);
