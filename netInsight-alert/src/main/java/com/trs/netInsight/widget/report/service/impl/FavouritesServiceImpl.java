@@ -55,6 +55,16 @@ public class FavouritesServiceImpl implements IFavouritesService {
     }
 
     @Override
+    public List<String> findUse(String userId) {
+        return favouritesRepository.findUse(userId);
+    }
+
+    @Override
+    public List<String> findUseNew(String subId) {
+        return favouritesRepository.findUseNew(subId);
+    }
+
+    @Override
     public List<Favourites> findByUserAndSid(User user, String sid) {
         String userId = user.getId();
         String subGroupId = user.getSubGroupId();

@@ -256,6 +256,10 @@ public class CustomChart extends BaseEntity {
     @Column(name = "precise_filter")
     private String preciseFilter;
 
+    //图片筛选
+    @Column(name = "img_ocr")
+    private String imgOcr;
+
 
     public IndexTab indexTab() {
         IndexTab indexTab = new IndexTab(this.name, this.trsl, this.xyTrsl, this.type, this.contrast, this.excludeWeb, this.monitorSite,this.timeRange,

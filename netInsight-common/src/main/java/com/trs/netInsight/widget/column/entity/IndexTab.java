@@ -79,6 +79,10 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	@Column(name = "monitor_site",columnDefinition = "TEXT")
 	private String monitorSite;// 监测网站
 
+	//图片筛选
+	@Column(name = "img_ocr")
+	private String imgOcr;
+
 	/**
 	 * 栏目分组id
 	 */
@@ -415,7 +419,7 @@ public class IndexTab extends BaseEntity implements Cloneable{
 	 * @Return : IndexTab
 	 */
 	public IndexTab tabCopy(){
-		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb,monitorSite, parentId,typeId, sequence,
+		IndexTab indexTab=new IndexTab(name,specialType, trsl, xyTrsl, type,contrast, tradition, excludeWeb,monitorSite,imgOcr, parentId,typeId, sequence,
 				maxSize, timeRange, hide, statusTrsl, weChatTrsl, keyWord,
 				excludeWords,excludeWordIndex, keyWordIndex, xyKeyWord, xyKeyWordIndex, groupName,similar,irSimflag,irSimflagAll,weight,sort,tabWidth,oneName,notSids,
 				mediaLevel, mediaIndustry, contentIndustry, filterInfo, preciseFilter, contentArea, mediaArea);

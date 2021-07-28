@@ -60,6 +60,7 @@ public class IndexTabDTO implements Serializable {
     private Integer wordFromNum;
     private Boolean wordFromSort;
     private Boolean topFlag;
+    private String imgOcr;
 
     private Boolean active = false;
     public void setActive(Boolean active){
@@ -176,7 +177,7 @@ public class IndexTabDTO implements Serializable {
         this.preciseWBFilter=String.join(";", wbList);
         this.contentArea=tab.getContentArea();
         this.mediaArea=tab.getMediaArea();
-
+        this.imgOcr=tab.getImgOcr();
         if("top".equals(mapper.getTopFlag())){
             this.topFlag = true;
         }else{

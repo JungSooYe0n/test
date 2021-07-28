@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
@@ -24,11 +25,32 @@ public interface FavouritesRepository
 	 * @date Created at 2017年11月24日 下午4:38:11
 	 * @Author 谷泽昊
 	 * @param userId
+	 * @return
+	 */
+	@Query(value = "SELECT f.sid FROM Favourites f where f.userId = ?1 and f.libraryId is null ")
+	List<String> findUse(String userId);
+
+	/**
+	 * 根据用户id查询收藏表，排序
+	 *
+	 * @date Created at 2017年11月24日 下午4:38:11
+	 * @Author 谷泽昊
+	 * @return
+	 */
+	@Query(value = "SELECT f.sid FROM Favourites f where f.subGroupId = ?1 and f.libraryId is null ")
+	List<String> findUseNew(String subId);
+
+
+	/**
+	 * 根据用户id查询收藏表，排序
+	 *
+	 * @date Created at 2017年11月24日 下午4:38:11
+	 * @Author 谷泽昊
+	 * @param userId
 	 * @param sort
 	 * @return
 	 */
 	List<Favourites> findByUserId(String userId, Sort sort);
-
 	/**
 	 * 根据用户id查询收藏表，分页
 	 * 

@@ -202,6 +202,10 @@ public class NoticeSendServiceImpl implements INoticeSendService {
                         alertTitle = WeixinMessageUtil.ALERT_TITLE_TWO.replace("SIZE", String.valueOf(size)).replace("USERNAME",
                                 userName);
                     }
+					if(size==1){
+						alertTitle = WeixinMessageUtil.ALERT_TITLE_SINGLE.replace("SUBJECT", subject).replace("APPRAISE", String.valueOf(size)).replace("ALERTTYPE",
+								sendType.name()).replace("USERNAME", userName);
+					}
 					List<AlertAccount> accountList = new ArrayList<>();
 					if (findByUserName != null) {
 						accountList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
@@ -433,6 +437,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 	}
 
 	/**
+	 * 自动预警走的发送方法
 	 * 发送预警信息
 	 *
 	 * @return
@@ -451,6 +456,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 
 
 	/**
+	 * 手动预警走的发送方法
 	 * @param sendType  是自动预警还是手动预警
 	 * @param subject   当前这批预警的主题，自动预警则是预警规则名，手动预警则由用户自定义输入
 	 * @param userId    当前发送人的id，自动预警的话为当前预警规则对应的用户，如果是手动预警，则为当前登陆用户
@@ -686,10 +692,16 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						}
 						String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
 								.replace("SIZE", String.valueOf(size)).replace("USERNAME",
-										user_.getUserName());
+										user_.getUserName()).replace("ALERTTYPE",
+										sendType.name().equals("ARTIFICIAL")?"手动":"自动");
 						if("".equals(subject)){
 							alertTitle = WeixinMessageUtil.ALERT_TITLE_TWO.replace("SIZE", String.valueOf(size)).replace("USERNAME",
-									user_.getUserName());
+									user_.getUserName()).replace("ALERTTYPE",
+									sendType.name().equals("ARTIFICIAL")?"手动":"自动");
+						}
+						if(size==1){
+							alertTitle = WeixinMessageUtil.ALERT_TITLE_SINGLE.replace("SUBJECT", subject).replace("APPRAISE", list.get(0).get("appraise")).replace("ALERTTYPE",
+									sendType.name().equals("ARTIFICIAL")?"手动":"自动").replace("USERNAME", user_.getUserName());
 						}
 						for (String openId : receivers) {
 							if (StringUtil.isNotEmpty(openId)) {
