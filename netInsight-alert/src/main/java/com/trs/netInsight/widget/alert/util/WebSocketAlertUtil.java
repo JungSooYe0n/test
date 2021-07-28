@@ -15,8 +15,8 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-@Component//扫描普通的pojo-必须有--{userId}
-@ServerEndpoint("/websocket")//请求接口
+@Component//扫描普通的pojo-必须有-
+@ServerEndpoint("/websocket/{userId}")//请求接口
 public class WebSocketAlertUtil {
 
     public static IAlertService alertService;//websocket不在spring bean统一管理，需要在WebSocketStompConfig中手动注入
@@ -27,27 +27,30 @@ public class WebSocketAlertUtil {
     private Session WebSocketsession;
 
     private String uid = "";//用户ID
+    /*
+    * User loginUser = UserUtils.getUser();this.uid=loginUser.getUserName();
+    * */
     /**
      * 连接建立成功调用的方法
      * @param WebSocketsession 创建会话域
      */
     @OnOpen
-    public void onOpen(Session WebSocketsession) throws IOException {
+    public void onOpen(@PathParam(value="userId")String userId,Session WebSocketsession) throws IOException {
         this.WebSocketsession = WebSocketsession;
-        User loginUser = UserUtils.getUser();
-        this.uid=loginUser.getUserName();
-        System.out.println("当前登录账号："+uid);
-        /*if (webSocketMap.containsKey(uid)){//判断用户集合是否存在
-            webSocketMap.remove(uid);
+        this.uid=userId;
+        System.out.println("账号"+userId+"连接成功");
+        if (webSocketMap.containsKey(uid)){//判断用户集合是否存在
+            webSocketMap.remove(uid);//保证每次都是新的会话
             webSocketMap.put(uid,this);
         }else{
             webSocketMap.put(uid,this);
         }
         if(alertService.findReceiveAlert(uid)!=null){//主动推送预警弹窗信息
             String message= JSON.toJSONString(alertService.findReceiveAlert(uid));//最新的三条数据
-            webSocketMap.get(uid).sendMessage(message);
+            webSocketMap.get(uid).sendMessage(message);//发送推送的数据
+            System.out.println("向"+userId+"推送"+message);
             alertService.deleteReceiveAlert(uid);//推送后删除相关信息
-        }*/
+        }
     }
 
     /**
@@ -55,7 +58,7 @@ public class WebSocketAlertUtil {
      */
     @OnClose
     public void onClose() throws IOException {
-        System.out.println("窗口执行了断开方法");
+        System.out.println("窗口"+uid+"断开连接");
         webSocketMap.remove(this);  //从map中删除
         WebSocketsession.close();//默认关闭状态1000的，正常断开连接
     }
@@ -67,7 +70,6 @@ public class WebSocketAlertUtil {
      */
     @OnMessage
     public void onMessage(String message) throws IOException {
-
         System.out.println("接收到用户发来的消息:"+message);
     }
 
@@ -80,7 +82,7 @@ public class WebSocketAlertUtil {
         error.printStackTrace();
     }
     /**
-     * 发送消息功能-目前只能传String类型数据，传递数据需要Json化
+     * 发送消息功能-只能传String类型数据，传递数据需要Json化
      */
     public void sendMessage(String message) throws IOException {
         this.WebSocketsession.getBasicRemote().sendText(message);
