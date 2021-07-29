@@ -178,6 +178,11 @@
             <artifactId>netInsight-common</artifactId>
             <version>1.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.trs.netInsight</groupId>
+            <artifactId>netInsight-alert</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
