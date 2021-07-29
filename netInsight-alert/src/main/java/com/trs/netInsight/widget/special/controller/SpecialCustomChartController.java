@@ -157,6 +157,7 @@ public class SpecialCustomChartController {
                                  @RequestParam(value = "contentArea", required = false) String contentArea,
                                  @RequestParam(value = "mediaArea", required = false) String mediaArea,
                                  @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
                                  HttpServletRequest request)
             throws TRSException {
         String[] typeArr = type.split(";");
@@ -253,6 +254,7 @@ public class SpecialCustomChartController {
                     filterInfo, contentArea, mediaArea, preciseFilter);
             customChart.setExcludeWordsIndex(excludeWordsIndex);
             customChart.setSort(sort);
+            customChart.setImgOcr(imgOcr);
             customChart = specialCustomChartService.saveSpecialCustomChart(customChart);
             result.add(customChart);
         }
@@ -339,6 +341,7 @@ public class SpecialCustomChartController {
                                     @RequestParam(value = "contentArea", required = false) String contentArea,
                                     @RequestParam(value = "mediaArea", required = false) String mediaArea,
                                     @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                    @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
                                     HttpServletRequest request)
             throws TRSException {
 
@@ -438,6 +441,7 @@ public class SpecialCustomChartController {
             customChart.setTabWidth(tabWidth);
             customChart.setSort(sort);
             customChart.setPreciseFilter(preciseFilter);
+            customChart.setImgOcr(imgOcr);
             return specialCustomChartService.saveSpecialCustomChart(customChart);
         } catch (Exception e) {
             log.error("栏目下自定义图表修改报错", e);

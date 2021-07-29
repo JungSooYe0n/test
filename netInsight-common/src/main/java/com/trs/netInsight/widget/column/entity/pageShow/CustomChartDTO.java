@@ -51,6 +51,7 @@ public class CustomChartDTO implements Serializable {
     private String preciseXWFilter;
     private String preciseLTFilter;
     private String preciseWBFilter;
+    private String imgOcr;
     private String pointToId;
     private void setPointToId(String mapperId){
         this.pointToId = mapperId;
@@ -130,6 +131,7 @@ public class CustomChartDTO implements Serializable {
         this.preciseXWFilter=String.join(";", xwList);
         this.preciseLTFilter=String.join(";", ltList);
         this.preciseWBFilter=String.join(";", wbList);
+        this.imgOcr=customChart.getImgOcr();
         addTypeSeq();
     }
     /**

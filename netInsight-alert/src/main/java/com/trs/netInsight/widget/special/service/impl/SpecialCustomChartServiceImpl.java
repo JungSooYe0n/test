@@ -135,6 +135,7 @@ public class SpecialCustomChartServiceImpl implements ISpecialCustomChartService
                 chartMap.put("preciseLTFilter",String.join(";", ltList));
                 chartMap.put("preciseWBFilter",String.join(";", wbList));
                 chartMap.put("pointToId", chart.getParentId());
+                chartMap.put("imgOcr",chart.getImgOcr());
                 result.add(chartMap);
             }
             return new PagedList<Object>(result,pageNo,

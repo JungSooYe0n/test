@@ -20,6 +20,10 @@ public interface IFavouritesService {
      */
     public List<Favourites> findAll(User user);
 
+    public List<String> findUse(String userId);
+
+    public List<String> findUseNew(String subId);
+
     public List<Favourites> findByUserAndSid(User user,String sid);
 
     /**

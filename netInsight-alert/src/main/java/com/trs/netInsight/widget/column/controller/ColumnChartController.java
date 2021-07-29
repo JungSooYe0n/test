@@ -392,6 +392,7 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
                                  @RequestParam(value = "mediaArea", required = false) String mediaArea,
                                  @RequestParam(value = "randomNum", required = false) String randomNum,
                                  @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
                                  HttpServletRequest request)
             throws TRSException {
         String[] typeArr = type.split(";");
@@ -486,6 +487,7 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
                     keyWordIndex, groupName, isSimilar, irSimflag, irSimflagAll, weight, tabWidth, tabId, sequence, specialType,mediaLevel, mediaIndustry, contentIndustry,
                     filterInfo, contentArea, mediaArea, preciseFilter);
             customChart.setSort(sort);
+            customChart.setImgOcr(imgOcr);
             customChart = columnChartService.saveCustomChart(customChart);
             result.add(customChart);
         }
@@ -572,6 +574,7 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
                                     @RequestParam(value = "contentArea", required = false) String contentArea,
                                     @RequestParam(value = "mediaArea", required = false) String mediaArea,
                                     @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+                                    @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
                                     @RequestParam(value = "randomNum", required = false) String randomNum,
                                     HttpServletRequest request)
             throws TRSException {
@@ -676,7 +679,7 @@ private void saveSequence(String tabId,String pageId,String indexId,IndexFlag in
             customChart.setSort(sort);
             customChart.setTabWidth(tabWidth);
             customChart.setPreciseFilter(preciseFilter);
-
+            customChart.setImgOcr(imgOcr);
             return columnChartService.saveCustomChart(customChart);
         } catch (Exception e) {
             log.error("栏目下自定义图表修改报错", e);

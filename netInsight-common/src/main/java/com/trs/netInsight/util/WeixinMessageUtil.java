@@ -118,12 +118,16 @@ public class WeixinMessageUtil {
 	/**
 	 * 微信预警通知标题
 	 */
-	public static final String ALERT_TITLE="关于（SUBJECT）预警信息共SIZE条\\n来自账号：USERNAME";
+	public static final String ALERT_TITLE="关于（SUBJECT）预警信息共SIZE条\\n来自账号：USERNAME\\n预警类型：ALERTTYPE";
+	/**
+	 * 微信预警单条推送标题
+	 */
+	public static final String ALERT_TITLE_SINGLE="预警信息单条推送\\n预警标题：SUBJECT\\n正负面：APPRAISE\\n预警类型：ALERTTYPE\\n来自账号：USERNAME";
 
 	/**
 	 * 微信预警通知标题(手动未填写标题)
 	 */
-	public static final String ALERT_TITLE_TWO="预警信息共SIZE条\\n来自账号：USERNAME";
+	public static final String ALERT_TITLE_TWO="预警信息共SIZE条\\n来自账号：USERNAME\\n预警类型：ALERTTYPE";
 
 	// ----------------------------------------------------------------
 	/**

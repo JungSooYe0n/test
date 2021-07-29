@@ -261,6 +261,10 @@ public class SpecialCustomChart extends BaseEntity{
     @Column(name = "precise_filter")
     private String preciseFilter;
 
+    //图片筛选
+    @Column(name = "img_ocr")
+    private String imgOcr;
+
     public SpecialCustomChart(String name, String trsl, String xyTrsl, String type, String contrast, String excludeWeb,String monitorSite, String timeRange, String keyWord, String excludeWords,
                        String keyWordIndex, String groupName, Boolean similar, Boolean irSimflag, Boolean irSimflagAll, Boolean weight, Integer tabWidth, String parentId, Integer sequence,SpecialType specialType) {
         this.name = name;

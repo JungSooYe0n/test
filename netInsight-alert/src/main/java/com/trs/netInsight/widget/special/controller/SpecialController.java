@@ -243,7 +243,9 @@ public class SpecialController {
 							 @RequestParam(value = "filterInfo", required = false) String filterInfo,
 							 @RequestParam(value = "contentArea", required = false) String contentArea,
 							 @RequestParam(value = "mediaArea", required = false) String mediaArea,
+							 @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
 							 @RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws Exception {
+
 		try {
 
 			//首先判断下用户权限（若为机构管理员，只受新建与编辑的权限，不受用户分组可创建资源数量的限制，但是受机构可创建资源数量的限制）
@@ -339,6 +341,7 @@ public class SpecialController {
 				specialProject.setContentArea(contentArea);
 				specialProject.setSort(sort);
 				specialProject.setPreciseFilter(preciseFilter);
+                specialProject.setImgOcr(imgOcr);
 				specialService.createSpecial(specialProject);
 				PerpetualPool.put(userId, DateUtil.formatCurrentTime("yyyyMMddHHmmss"));
 				return specialProject;
@@ -850,7 +853,8 @@ public class SpecialController {
 								@RequestParam(value = "filterInfo", required = false) String filterInfo,
 								@RequestParam(value = "contentArea", required = false) String contentArea,
 								@RequestParam(value = "mediaArea", required = false) String mediaArea,
-								@RequestParam(value = "preciseFilter", required = false) String preciseFilter) throws TRSException {
+								@RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+	                            @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr) throws TRSException {
 
 		//若为机构管理员或者普通用户 若为普通模式，判断关键字字数
 		User loginUser = UserUtils.getUser();
@@ -908,7 +912,7 @@ public class SpecialController {
 			SpecialProject updateSpecial = specialService.updateSpecial(specialId, type, specialName,
 					anyKeywords, excludeWords,excludeWordsIndex, trsl, scope, startTime, endTime, source,
 					timerange, isSimilar, weight,sort, irSimflag, server,irSimflagAll,excludeWeb, monitorSite,mediaLevel,
-					 mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,preciseFilter);
+					 mediaIndustry, contentIndustry, filterInfo, contentArea, mediaArea,preciseFilter,imgOcr);
 
 			// 修改专题成功,触发修改该专题当前日期指数
 			fixedThreadPool.execute(() -> computeBySpecialId(specialId, new Date(), new Date()));
