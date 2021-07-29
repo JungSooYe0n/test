@@ -55,7 +55,7 @@ public class AlertKafkaReceiveFactory {
                                 /*// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
                                 noticeSendService.sendAll(sendWay, TEMPLATE, alertRule.getTitle(), sendData, splitWeb[i],
                                         alertRule.getUserId(), AlertSource.AUTO);*/
-                        getMessage(alertRule,sendData);//站内自动预警调用WebSocket推送预警信息或者保存
+                        //getMessage(alertRule,sendData);//站内自动预警调用WebSocket推送预警信息或者保存
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -67,7 +67,7 @@ public class AlertKafkaReceiveFactory {
             }
         }
     }
-    public void getMessage(AlertRule alertRule,Map sendData) throws IOException {
+    /*public void getMessage(AlertRule alertRule,Map sendData) throws IOException {
         String webReceiver = alertRule.getWebsiteId();//对预警信息拆解重新封装，取需要的数据
         List<Map> list= (List<Map>) sendData.get("listMap");
         List<AlertWebSocket> alertList=new ArrayList<>();
@@ -80,5 +80,5 @@ public class AlertKafkaReceiveFactory {
             alertList.add(alertWebSocket);
         }
         webSocketAlertUtil.sendMessageToUser(webReceiver,alertList);
-    }
+    }*/
 }
