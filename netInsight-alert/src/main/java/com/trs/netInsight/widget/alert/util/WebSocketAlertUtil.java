@@ -59,7 +59,8 @@ public class WebSocketAlertUtil {
     @OnClose
     public void onClose() throws IOException {
         System.out.println("窗口"+uid+"断开连接");
-        webSocketMap.remove(this);  //从map中删除
+        webSocketMap.remove(uid);//从map中删除
+        System.out.println("当前在线用户"+webSocketMap);
         WebSocketsession.close();//默认关闭状态1000的，正常断开连接
     }
 
@@ -97,7 +98,9 @@ public class WebSocketAlertUtil {
             if(webSocketMap.get(send)!=null){//判断当前用户是否在线-在线直接转发
                 String sendmessage=JSON.toJSONString(message);
                 webSocketMap.get(send).sendMessage(sendmessage);
+                System.out.println("向在线用户"+send+"推送了相关信息");
             }else{//不在线保存数据库-对应数据库alert_websocket表——字段可扩展，根据需要的数据进行添加，下次登录后主动拉取
+                System.out.println("保存了"+send+"用户相关信息，方便下次推送");
                 for(int i=0;i<message.size();i++){
                         AlertWebSocket alertWebSocket=new AlertWebSocket();
                         alertWebSocket.setReceiveid(send);

@@ -5,7 +5,6 @@ import com.trs.netInsight.widget.alert.entity.AlertRule;
 import com.trs.netInsight.widget.alert.entity.AlertWebSocket;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
-import com.trs.netInsight.widget.alert.util.WebSocketAlertUtil;
 import com.trs.netInsight.widget.kafka.constant.AlertKafkaConst;
 import com.trs.netInsight.widget.kafka.entity.AlertKafkaSend;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
@@ -28,7 +27,7 @@ public class AlertKafkaReceiveFactory {
     @Autowired
     private INoticeSendService noticeSendService;
 
-    WebSocketAlertUtil webSocketAlertUtil=new WebSocketAlertUtil();
+    //WebSocketAlertUtil webSocketAlertUtil=new WebSocketAlertUtil();
 
 
     @KafkaListener(topics = {AlertKafkaConst.KAFKA_TOPIC_4,AlertKafkaConst.KAFKA_TOPIC_1,AlertKafkaConst.KAFKA_TOPIC_2,AlertKafkaConst.KAFKA_TOPIC_3,AlertKafkaConst.KAFKA_TOPIC_5,AlertKafkaConst.KAFKA_TOPIC_6,AlertKafkaConst.KAFKA_TOPIC_7,AlertKafkaConst.KAFKA_TOPIC_8})
