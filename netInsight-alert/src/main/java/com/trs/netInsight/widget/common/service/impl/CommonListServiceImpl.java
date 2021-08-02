@@ -21,10 +21,7 @@ import com.trs.netInsight.support.fts.model.result.IQueryBuilder;
 import com.trs.netInsight.support.fts.util.TrslUtil;
 import com.trs.netInsight.support.hybaseRedis.HybaseRead;
 import com.trs.netInsight.support.template.GUIDGenerator;
-import com.trs.netInsight.util.CodeUtils;
-import com.trs.netInsight.util.ObjectUtil;
-import com.trs.netInsight.util.RedisUtil;
-import com.trs.netInsight.util.StringUtil;
+import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.analysis.entity.ChartResultField;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
@@ -84,9 +81,16 @@ public class CommonListServiceImpl implements ICommonListService {
     private InfoListResult formatPageListResult(User user, String pageId, String nextPageId, PagedList<FtsDocumentCommonVO> pagedList, String database, String type, Boolean isCalculateSimNum) {
         List<FtsDocumentCommonVO> list = pagedList.getPageItems();
         List<Favourites> favouritesList = null;
+        List<String> favourites = null;
         long start = new Date().getTime();
         if (ObjectUtil.isNotEmpty(user)){
-            favouritesList = favouritesService.findAll(user);
+            if (UserUtils.ROLE_LIST.contains(user.getCheckRole())){
+                favourites = favouritesService.findUse(user.getId());
+            }else {
+                favourites = favouritesService.findUseNew(user.getSubGroupId());
+            }
+            //favouritesList = favouritesService.findAll(user);
+            //favouritesList = favouritesService.findUse(user.getId());
         }
         long end = new Date().getTime();
         long timeApi = end - start;
@@ -121,10 +125,10 @@ public class CommonListServiceImpl implements ICommonListService {
                 if (Const.MEDIA_TYPE_WEIXIN.contains(document.getGroupName())) {
                     document.setSid(document.getHkey());
                     // 检验收藏
-                    if (ObjectUtil.isNotEmpty(favouritesList)) document.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(document.getHkey())));
+                    if (ObjectUtil.isNotEmpty(favourites)) document.setFavourite(favourites.stream().anyMatch(sid -> sid.equals(document.getHkey())));
                 } else {
                     // 检验收藏
-                    if (ObjectUtil.isNotEmpty(favouritesList)) document.setFavourite(favouritesList.stream().anyMatch(sid -> sid.getSid().equals(document.getSid())));
+                    if (ObjectUtil.isNotEmpty(favourites)) document.setFavourite(favourites.stream().anyMatch(sid -> sid.equals(document.getSid())));
                 }
                 if (Const.MEDIA_TYPE_TF.contains(document.getGroupName())) {
                     document.setSiteName(document.getGroupName());

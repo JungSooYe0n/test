@@ -532,6 +532,7 @@ public class ColumnController {
 						   @ApiParam("信息地域") @RequestParam(value = "contentArea", required = false) String contentArea,
 						   @ApiParam("媒体地域") @RequestParam(value = "mediaArea", required = false) String mediaArea,
 						   @ApiParam("精准筛选") @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
+						   @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
 						   @ApiParam("定时推送时间间隔 即频率 5min;30min;1h") @RequestParam(value = "timeInterval", required = false, defaultValue = "60") int timeInterval,
 						   @ApiParam("增长量 默认0") @RequestParam(value = "growth", required = false, defaultValue = "0") int growth,
 						   @ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
@@ -655,6 +656,7 @@ public class ColumnController {
 		indexTab.setContentArea(contentArea);
 		indexTab.setSort(sort);
 		indexTab.setPreciseFilter(preciseFilter);
+		indexTab.setImgOcr(imgOcr);
 		if(StringUtil.isNotEmpty(indexPageId)){
 			IndexPage indexPage = indexPageService.findOne(indexPageId);
 			indexTab.setParentId(indexPage.getId());
@@ -864,6 +866,7 @@ if (isAddAlert) {
 							  @RequestParam(value = "copy", defaultValue = "false") boolean copy,
 							  @RequestParam(value = "preciseFilter", required = false) String preciseFilter,
 							  @RequestParam(value = "randomNum", required = false) String randomNum,
+							  @ApiParam("OCR筛选，对图片的筛选：全部：ALL、仅看图片img、屏蔽图片noimg") @RequestParam(value = "imgOcr", required = false) String imgOcr,
 							  @ApiParam("定时推送时间间隔 即频率 5min;30min;1h") @RequestParam(value = "timeInterval", required = false, defaultValue = "60") int timeInterval,
 							  @ApiParam("增长量 默认0") @RequestParam(value = "growth", required = false, defaultValue = "0") int growth,
 							  @ApiParam("微博表达式") @RequestParam(value = "statusTrsl", required = false) String statusTrsl,
@@ -1065,6 +1068,7 @@ if (isAddAlert) {
 			indexTab.setWeight(weight);
 			indexTab.setSort(sort);
 			indexTab.setPreciseFilter(preciseFilter);
+			indexTab.setImgOcr(imgOcr);
 			IndexPage indexPage = null;
 			// 根据另存为标识选择另存为与修改操作
 			if (copy) {

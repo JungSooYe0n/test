@@ -63,6 +63,7 @@ public interface IReportService {
 	 */
 	public String delFavourites(String sids, String userId);
 	public String probeCapture(String sids, String userId);
+	public String cutPicture(String sids,String urls);
 	public String changeToken();
 	public String changeHistoryFavourites();
 	public String changeHistoryFavouritesGroupName();

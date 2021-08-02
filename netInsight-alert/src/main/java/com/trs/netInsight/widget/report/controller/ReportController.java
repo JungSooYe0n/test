@@ -18,6 +18,7 @@ import com.trs.netInsight.util.ObjectUtil;
 import com.trs.netInsight.util.StringUtil;
 import com.trs.netInsight.util.UserUtils;
 import com.trs.netInsight.util.favourites.FavouritesUtil;
+import com.trs.netInsight.util.selenium.CutPictureUtil;
 import com.trs.netInsight.widget.report.entity.*;
 import com.trs.netInsight.widget.report.entity.repository.MaterialLibraryRepository;
 import com.trs.netInsight.widget.report.entity.repository.ReportMaterialRepository;
@@ -243,6 +244,28 @@ public class ReportController {
 		} catch (Exception e) {
 			log.error("添加探针截图失败", e);
 			throw new OperationException("探针截图失败,message" + e);
+		}
+	}
+
+	/**
+	 * @param sids
+	 *            需要删除的sid集合，用分号（;）隔开
+	 * @param request
+	 * @return
+	 * @throws OperationException
+	 */
+	@ApiOperation("截图")
+	@FormatResult
+	@RequestMapping(value = "/cutPicture", method = RequestMethod.GET)
+	public Object cutPicture(@RequestParam(value = "sids") String sids,
+							   @RequestParam(value = "url") String url,
+							   HttpServletRequest request) throws OperationException {
+		try {
+			//String userId = UserUtils.getUser().getId();
+			return reportService.cutPicture(sids,url);
+		} catch (Exception e) {
+			log.error("添加探针截图失败", e);
+			throw new OperationException("探针截图失败,message：" + e);
 		}
 	}
 	/**

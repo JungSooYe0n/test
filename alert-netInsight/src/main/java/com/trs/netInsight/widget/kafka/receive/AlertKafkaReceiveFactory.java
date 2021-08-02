@@ -2,6 +2,7 @@ package com.trs.netInsight.widget.kafka.receive;
 
 import com.alibaba.fastjson.JSONObject;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
+import com.trs.netInsight.widget.alert.entity.AlertWebSocket;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.kafka.constant.AlertKafkaConst;
@@ -14,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -22,6 +26,8 @@ import java.util.Optional;
 public class AlertKafkaReceiveFactory {
     @Autowired
     private INoticeSendService noticeSendService;
+
+    //WebSocketAlertUtil webSocketAlertUtil=new WebSocketAlertUtil();
 
 
     @KafkaListener(topics = {AlertKafkaConst.KAFKA_TOPIC_4,AlertKafkaConst.KAFKA_TOPIC_1,AlertKafkaConst.KAFKA_TOPIC_2,AlertKafkaConst.KAFKA_TOPIC_3,AlertKafkaConst.KAFKA_TOPIC_5,AlertKafkaConst.KAFKA_TOPIC_6,AlertKafkaConst.KAFKA_TOPIC_7,AlertKafkaConst.KAFKA_TOPIC_8})
@@ -48,6 +54,7 @@ public class AlertKafkaReceiveFactory {
                                 /*// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
                                 noticeSendService.sendAll(sendWay, TEMPLATE, alertRule.getTitle(), sendData, splitWeb[i],
                                         alertRule.getUserId(), AlertSource.AUTO);*/
+                        //getMessage(alertRule,sendData);//站内自动预警调用WebSocket推送预警信息或者保存
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -59,4 +66,18 @@ public class AlertKafkaReceiveFactory {
             }
         }
     }
+    /*public void getMessage(AlertRule alertRule,Map sendData) throws IOException {
+        String webReceiver = alertRule.getWebsiteId();//对预警信息拆解重新封装，取需要的数据
+        List<Map> list= (List<Map>) sendData.get("listMap");
+        List<AlertWebSocket> alertList=new ArrayList<>();
+        for (int i=0;i<list.size();i++){
+            AlertWebSocket alertWebSocket=new AlertWebSocket();
+            alertWebSocket.setReceivemessage(list.get(i).get("title").toString());
+            alertWebSocket.setReceivetime(list.get(i).get("urlTime").toString());
+            alertWebSocket.setReceivefrom(list.get(i).get("source").toString());
+            alertWebSocket.setReceiveurl(list.get(i).get("url").toString());
+            alertList.add(alertWebSocket);
+        }
+        webSocketAlertUtil.sendMessageToUser(webReceiver,alertList);
+    }*/
 }

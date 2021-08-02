@@ -202,6 +202,10 @@ public class NoticeSendServiceImpl implements INoticeSendService {
                         alertTitle = WeixinMessageUtil.ALERT_TITLE_TWO.replace("SIZE", String.valueOf(size)).replace("USERNAME",
                                 userName);
                     }
+					if(size==1){
+						alertTitle = WeixinMessageUtil.ALERT_TITLE_SINGLE.replace("SUBJECT", subject).replace("APPRAISE", String.valueOf(size)).replace("ALERTTYPE",
+								sendType.name()).replace("USERNAME", userName);
+					}
 					List<AlertAccount> accountList = new ArrayList<>();
 					if (findByUserName != null) {
 						accountList = alertAccountRepository.findByUserIdAndType(findByUserName.getId(), SendWay.WE_CHAT);
@@ -433,6 +437,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 	}
 
 	/**
+	 * 自动预警走的发送方法
 	 * 发送预警信息
 	 *
 	 * @return
@@ -641,7 +646,7 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						} else {
 							oneList = list.subList(i, list.size());
 						}
-						oneList.stream().forEach(oneMap -> titles.add(oneMap.get("title")));
+						oneList.stream().forEach(oneMap -> titles.add("["+oneMap.get("appraise")+"]"+oneMap.get("title")));
 						oneList.stream().forEach(oneMap -> sids.add(oneMap.get(FtsFieldConst.FIELD_ALERT_ID)));
 						listWeiChat.put(FtsFieldConst.FIELD_ALERT_ID,sids);
 						listWeiChat.put("title",titles);
@@ -686,10 +691,17 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						}
 						String alertTitle = WeixinMessageUtil.ALERT_TITLE.replace("SUBJECT", subject)
 								.replace("SIZE", String.valueOf(size)).replace("USERNAME",
-										user_.getUserName());
+										user_.getUserName()).replace("ALERTTYPE",
+										sendType.name().equals("ARTIFICIAL")?"手动":"自动");
 						if("".equals(subject)){
 							alertTitle = WeixinMessageUtil.ALERT_TITLE_TWO.replace("SIZE", String.valueOf(size)).replace("USERNAME",
-									user_.getUserName());
+									user_.getUserName()).replace("ALERTTYPE",
+									sendType.name().equals("ARTIFICIAL")?"手动":"自动");
+						}
+						if(size==1){
+							alertTitle = WeixinMessageUtil.ALERT_TITLE_SINGLE.replace("SUBJECT", subject).replace("APPRAISE", list.get(0).get("appraise")).replace("ALERTTYPE",
+									sendType.name().equals("ARTIFICIAL")?"手动":"自动").replace("USERNAME", user_.getUserName()).replace("TITLE",list.get(0).get("title").replaceAll("<font color=red>", "").replaceAll("</font>", "")).replace("SOURCE",list.get(0).get("source")).replace("TIME",list.get(0).get("urlTime"))
+							.replace("ABSTRACT",list.get(0).get("abstract")==null?"":list.get(0).get("abstract"));
 						}
 						for (String openId : receivers) {
 							if (StringUtil.isNotEmpty(openId)) {

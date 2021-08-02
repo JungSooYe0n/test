@@ -306,7 +306,7 @@ public class AlertNum implements Job {
         map.put("ruleId", alertRule.getId());
         map.put("organizationId", alertRule.getOrganizationId());
         map.put("countBy", alertRule.getCountBy());
-
+        map.put("abstract", abstracts);
         return map;
 
 

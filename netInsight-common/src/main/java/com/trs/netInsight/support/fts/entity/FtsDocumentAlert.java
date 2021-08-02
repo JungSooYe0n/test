@@ -247,6 +247,8 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
     private String organizationId;
     @Transient
     private Date createdTime;
+    @Transient
+    private String abstracts;
 
     public String getId() {
         return this.uid;
@@ -280,7 +282,32 @@ public class FtsDocumentAlert extends IDocument implements Serializable {
         this.sim = sim;
         this.alertRuleBackupsId = alertRuleBackupsId;
     }
-
+    public FtsDocumentAlert(String sid, String title, String titleWhole, String content,String fullContent, String urlName, Date time, String siteName, String groupName, long commtCount, long rttCount, String screenName, String appraise, String receiver, String sendWay, String nreserved1, String md5tag, String retweetedMid, String imageUrl, String keywords, int sim, String alertRuleBackupsId,String abstracts) {
+        this.sid = sid;
+        this.title = title;
+        this.titleWhole = titleWhole;
+        this.content = content;
+        this.fullContent = fullContent;
+        this.urlName = urlName;
+        this.time = time;
+        this.siteName = siteName;
+        this.groupName = groupName;
+        this.commtCount = commtCount;
+        this.rttCount = rttCount;
+        this.screenName = screenName;
+        this.appraise = appraise;
+        this.receiver = receiver;
+        this.sendWay = sendWay;
+        this.nreserved1 = nreserved1;
+        this.md5tag = md5tag;
+        this.retweetedMid = retweetedMid;
+        this.imageUrl = imageUrl;
+//        this.trslk = trslk;
+        this.keywords = keywords;
+        this.sim = sim;
+        this.alertRuleBackupsId = alertRuleBackupsId;
+        this.abstracts = abstracts;
+    }
     public FtsDocumentAlert(String uid, String alertId, String sid, String title, String titleNew, String titleWhole, String content, String contentNew, String fullContent, String urlName, Date time, String siteName, String groupName, String alertRuleBackupsId, long commtCount, long rttCount, String screenName, String appraise, String receiver, String sendWay, String nreserved1, String md5tag, String retweetedMid, String sendOrreceive, String imageUrl, boolean send, Boolean favourite, String copyTitle, int sim, String trslk, String keywords, Date loadTime, String userId, String subGroupId, String organizationId, Date createdTime) {
         this.uid = uid;
         this.alertId = alertId;

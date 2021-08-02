@@ -14,8 +14,10 @@ import com.trs.netInsight.support.fts.entity.FtsDocumentAlert;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.UserHelp;
 import com.trs.netInsight.widget.alert.entity.AlertAccount;
+import com.trs.netInsight.widget.alert.entity.AlertWebSocket;
 import com.trs.netInsight.widget.alert.entity.PageAlert;
 import com.trs.netInsight.widget.alert.entity.repository.AlertAccountRepository;
+import com.trs.netInsight.widget.alert.entity.repository.AlertWebSocketRepository;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.report.service.IFavouritesService;
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +76,8 @@ public class AlertServiceImpl implements IAlertService {
 	private IFavouritesService favouritesService;
 	@Autowired
 	private AlertAccountRepository alertAccountRepository;
+	@Autowired
+	private AlertWebSocketRepository alertWebSocketRepository;
 
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
@@ -744,6 +748,31 @@ public class AlertServiceImpl implements IAlertService {
 	public List<AlertEntity> findByReceiverAndSendWayAndCreatedTimeBetween(String userName, SendWay sms,
 			Date parseStart, Date parseEnd) {
 		return alertRepository.findByReceiverAndSendWayAndCreatedTimeBetween(userName, sms,  parseStart, parseEnd);
+	}
+	/**
+	 * 保存需要拉取的预警信息
+	 * @param alertWebSocket 正常情况存数据，用完后删，保证每次都是最新数据
+	 */
+	@Override
+	public void saveReceiveAlert(AlertWebSocket alertWebSocket) {
+		alertWebSocketRepository.save(alertWebSocket);
+	}
+
+	/**
+	 * 连接后主动拉取的预警信息
+	 * @param receiveid 连接WebSocket用户的id
+	 */
+	@Override
+	public List<AlertWebSocket> findReceiveAlert(String receiveid) {
+		return alertWebSocketRepository.selectAlertWebSocket(receiveid);
+	}
+	/**
+	 * 主动推送删除预警信息
+	 * @param receiveid 连接WebSocket用户的id
+	 */
+	@Override
+	public void deleteReceiveAlert(String receiveid) {
+		alertWebSocketRepository.deleteAlertWebSocketByReceiveid(receiveid);
 	}
 
 }

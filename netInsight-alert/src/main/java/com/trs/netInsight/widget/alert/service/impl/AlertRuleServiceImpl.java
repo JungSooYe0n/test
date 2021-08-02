@@ -21,12 +21,14 @@ import com.trs.netInsight.support.hybaseRedis.HybaseRead;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.widget.alert.entity.AlertEntity;
 import com.trs.netInsight.widget.alert.entity.AlertRule;
+import com.trs.netInsight.widget.alert.entity.AlertWebSocket;
 import com.trs.netInsight.widget.alert.entity.enums.AlertSource;
 import com.trs.netInsight.widget.alert.entity.enums.ScheduleStatus;
 import com.trs.netInsight.widget.alert.entity.enums.SendWay;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRuleRepository;
 import com.trs.netInsight.widget.alert.service.IAlertRuleService;
 import com.trs.netInsight.widget.alert.service.IAlertService;
+import com.trs.netInsight.widget.alert.util.WebSocketAlertUtil;
 import com.trs.netInsight.widget.common.service.ICommonListService;
 import com.trs.netInsight.widget.common.util.CommonListChartUtil;
 import com.trs.netInsight.widget.notice.service.INoticeSendService;
@@ -51,6 +53,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -83,6 +86,10 @@ public class AlertRuleServiceImpl implements IAlertRuleService {
 	private SubGroupRepository subGroupRepository;
 	@Autowired
 	private ICommonListService commonListService;
+	/**
+	 * 发送预警信息工具类-使用WebSocket
+	 */
+	public WebSocketAlertUtil webSocketAlertUtil=new WebSocketAlertUtil();
 
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
@@ -1597,6 +1604,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 				map.put("rttCount", String.valueOf(alertEntity.getRttCount()));
 				map.put("commtCount", String.valueOf(alertEntity.getCommtCount()));
 				map.put("nreserved1", alertEntity.getNreserved1());
+				map.put("abstract",alertEntity.getAbstracts());
 				ListMap.add(map);
 			}
 
@@ -1613,6 +1621,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 				try {
 					// 我让前段把接受者放到websiteid里边了 然后用户和发送方式一一对应 和手动发送方式一致
 					noticeSendService.sendAlert(AlertSource.ARTIFICIAL, content, userId, sendWay, receivers, map, false);
+					getNeedMessage(receivers,map);
 				} catch (Exception e) {
 					log.error("手动预警发送失败：发送方式为：" + sendWay + "标题为：" + content + "发送用户信息为：" + userId);
 				}
@@ -1631,10 +1640,10 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 				}*/
 			}
 		}
-
 		return "success";
 
 	}
+
 
 	private List<FtsDocumentAlert> formatFtsDocumentToAlertEntry(List<FtsDocumentCommonVO> documents){
 		List<FtsDocumentAlert> result = new ArrayList<>();
@@ -1686,7 +1695,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 					alert = new FtsDocumentAlert(vo.getSid(),vo.getTitle(),vo.getTitle(),
 							vo.getContent(),content,vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(),
 							vo.getGroupName(),0,0,vo.getAuthors(),vo.getAppraise(),"",null,
-							vo.getNreserved1(),vo.getMd5Tag(),"other",imgUrl,keywords,0,"");
+							vo.getNreserved1(),vo.getMd5Tag(),"other",imgUrl,keywords,0,"",vo.getAbstracts());
 					result.add(alert);
 				}
 			}
@@ -2108,5 +2117,23 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 			}
 		}
 		return fts;
+	}
+	/*
+	 * 对所需要发送的信息进行重新切割
+	 * @param receivers 接收用户
+	 * @param map 接收数据
+	 * */
+	public void getNeedMessage(String receivers,Map map) throws IOException{
+		List<Map> list=(List)map.get("listMap");//map中有些数据不需要，对数据进行重新切割封装
+		List<AlertWebSocket> alertList=new ArrayList<>();
+		for (int i=0;i<list.size();i++){
+			AlertWebSocket alertWebSocket=new AlertWebSocket();
+			alertWebSocket.setReceivemessage(list.get(i).get("title").toString());
+			alertWebSocket.setReceivetime(list.get(i).get("urlTime").toString());
+			alertWebSocket.setReceivefrom(list.get(i).get("source").toString());
+			alertWebSocket.setReceiveurl(list.get(i).get("url").toString());
+			alertList.add(alertWebSocket);
+		}
+		webSocketAlertUtil.sendMessageToUser(receivers,alertList);
 	}
 }

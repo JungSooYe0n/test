@@ -371,6 +371,10 @@ public class SpecialProject extends BaseEntity implements Cloneable {
 	}
 	@Column(name = "precise_filter")
 	private String preciseFilter;
+
+	//图片筛选
+	@Column(name = "img_ocr")
+	private String imgOcr;
 	/**
 	 * 是否有条件筛选  -  例如现在列表页中的条件筛选页面
 	 * 因为在没有条件筛选的情况下，专家模式只拼接trsl，不拼接跟普通模式相同的参数
@@ -1358,8 +1362,8 @@ public class SpecialProject extends BaseEntity implements Cloneable {
 //	private String preciseFilter;//精准筛选
 	@Transient
 	private String emotion;//  阅读标记
-	@Transient
-	private String imgOcr;//  阅读标记
+//	@Transient
+//	private String imgOcr;//  阅读标记
 
 	/**
 	 * 添加筛选条件信息
