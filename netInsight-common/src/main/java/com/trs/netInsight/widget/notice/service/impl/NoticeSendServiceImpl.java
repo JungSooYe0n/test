@@ -700,7 +700,8 @@ public class NoticeSendServiceImpl implements INoticeSendService {
 						}
 						if(size==1){
 							alertTitle = WeixinMessageUtil.ALERT_TITLE_SINGLE.replace("SUBJECT", subject).replace("APPRAISE", list.get(0).get("appraise")).replace("ALERTTYPE",
-									sendType.name().equals("ARTIFICIAL")?"手动":"自动").replace("USERNAME", user_.getUserName());
+									sendType.name().equals("ARTIFICIAL")?"手动":"自动").replace("USERNAME", user_.getUserName()).replace("TITLE",list.get(0).get("title").replaceAll("<font color=red>", "").replaceAll("</font>", "")).replace("SOURCE",list.get(0).get("source")).replace("TIME",list.get(0).get("urlTime"))
+							.replace("ABSTRACT",list.get(0).get("abstract")==null?"":list.get(0).get("abstract"));
 						}
 						for (String openId : receivers) {
 							if (StringUtil.isNotEmpty(openId)) {

@@ -122,7 +122,7 @@ public class WeixinMessageUtil {
 	/**
 	 * 微信预警单条推送标题
 	 */
-	public static final String ALERT_TITLE_SINGLE="预警信息单条推送\\n预警标题：SUBJECT\\n正负面：APPRAISE\\n预警类型：ALERTTYPE\\n来自账号：USERNAME";
+	public static final String ALERT_TITLE_SINGLE="【SUBJECT】【ALERTTYPE】【APPRAISE】\\n来自账号：USERNAME\\n标题：TITLE\\n来源：SOURCE\\n时间：TIME\\n摘要：ABSTRACT";
 
 	/**
 	 * 微信预警通知标题(手动未填写标题)

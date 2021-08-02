@@ -21,6 +21,7 @@ import com.trs.netInsight.support.report.word.model.WordData;
 import com.trs.netInsight.util.*;
 import com.trs.netInsight.util.favourites.FavouritesUtil;
 import com.trs.netInsight.util.report.PhantomjsFactory;
+import com.trs.netInsight.util.selenium.CutPictureUtil;
 import com.trs.netInsight.widget.alert.entity.repository.AlertRepository;
 import com.trs.netInsight.widget.analysis.entity.ChartAnalyzeEntity;
 import com.trs.netInsight.widget.common.service.ICommonListService;
@@ -97,6 +98,11 @@ public class ReportServiceImpl implements IReportService {
 	 */
 	@Value("${http.alert.netinsight.url}")
 	private String alertNetinsightUrl;
+	/**
+	 * 截图存储路径
+	 */
+	@Value("${cutpicture.url}")
+	private String cutPictureUrl;
 
 	private static final String SEMICOLON = ";";
 	private static final int BUILDED = 1;
@@ -1683,6 +1689,22 @@ public class ReportServiceImpl implements IReportService {
 		}
 		favouritesRepository.save(findAll);
 		return Const.SUCCESS;
+	}
+
+	@Override
+	public String cutPicture(String sids, String urls) {
+		String[] sidArry = sids.split(SEMICOLON);
+		String[] urlArry = urls.split(SEMICOLON);
+		List<String> sidList = Arrays.asList(sidArry);
+		List<String> urlList = Arrays.asList(urlArry);
+		boolean flag = false;
+		for(int i=0;i<sidList.size();i++){
+		flag = CutPictureUtil.saveHtml(cutPictureUrl+sidList.get(i)+".png",urlList.get(i));
+		}
+		if(flag){
+			return Const.SUCCESS;
+		}
+		return Const.FAIL_INT.toString();
 	}
 
 	/**

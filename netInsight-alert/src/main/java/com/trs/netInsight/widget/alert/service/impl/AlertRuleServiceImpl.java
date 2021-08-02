@@ -1604,6 +1604,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 				map.put("rttCount", String.valueOf(alertEntity.getRttCount()));
 				map.put("commtCount", String.valueOf(alertEntity.getCommtCount()));
 				map.put("nreserved1", alertEntity.getNreserved1());
+				map.put("abstract",alertEntity.getAbstracts());
 				ListMap.add(map);
 			}
 
@@ -1694,7 +1695,7 @@ private InfoListResult setInfoData(InfoListResult infoListResult,String keywordI
 					alert = new FtsDocumentAlert(vo.getSid(),vo.getTitle(),vo.getTitle(),
 							vo.getContent(),content,vo.getUrlName(),vo.getUrlTime(),vo.getSiteName(),
 							vo.getGroupName(),0,0,vo.getAuthors(),vo.getAppraise(),"",null,
-							vo.getNreserved1(),vo.getMd5Tag(),"other",imgUrl,keywords,0,"");
+							vo.getNreserved1(),vo.getMd5Tag(),"other",imgUrl,keywords,0,"",vo.getAbstracts());
 					result.add(alert);
 				}
 			}
